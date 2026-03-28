@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "iblai": {
+      "command": "npx",
+      "args": ["-y", "@iblai/mcp"]
+    }
+  }
+}
