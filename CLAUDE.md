@@ -93,6 +93,10 @@ pnpm build              # Production build
 pnpm lint               # ESLint
 pnpm typecheck          # TypeScript type checking
 pnpm test:e2e           # Playwright E2E tests
+
+iblai config show       # View current configuration
+iblai config set KEY VAL  # Update .env.local
+iblai open              # Open localhost:3000 in browser
 ```
 
 ## Adding Features
@@ -119,7 +123,9 @@ All `add` commands (except `init` and `mcp`) require auth to be set up first.
 | shadcn/ui | `npx shadcn@latest add` | Everything else -- forms, tables, modals, date pickers |
 | shadcnspace blocks | `npx shadcn@latest add @shadcn-space/<block>` | Pre-built page sections |
 
-ibl.ai and shadcn components share the same Tailwind theme. They are visually seamless.
+ibl.ai and shadcn components share the same Tailwind theme via OKLCH CSS variables
+mapped in `globals.css`. A shadcn `bg-primary` button renders in ibl.ai blue (#0058cc),
+not the default shadcn black. No manual theme work needed.
 
 ## Brand
 
