@@ -14,10 +14,10 @@ Scaffold a new AI-powered app using the iblai CLI.
 
 2. **Scaffold the app**:
    ```bash
-   npx @iblai/cli startapp agent --platform-key <tenant> --mentor-id <agent-id>
+   npx @iblai/cli startapp agent --platform <tenant> --agent <agent-id>
    ```
    - If the user doesn't have a tenant yet, use `iblai` as the default
-   - If they don't have an agent ID, omit `--mentor-id` (will prompt or use default)
+   - If they don't have an agent ID, omit `--agent` (will prompt or use default)
    - For a minimal app without the chat UI, use `startapp base` instead
 
 3. **Install dependencies**:
@@ -48,7 +48,7 @@ Scaffold a new AI-powered app using the iblai CLI.
 To customize the app with AI during scaffolding:
 ```bash
 npx @iblai/cli startapp agent \
-  --platform-key acme \
+  --platform acme \
   --anthropic-key sk-ant-... \
   --prompt "Make this a kids learning assistant with bright, playful colors"
 ```
