@@ -12,7 +12,7 @@ Add pre-built iblai components to an existing Next.js app.
 
 | Command | What It Adds |
 |---------|-------------|
-| `iblai add auth` | SSO authentication -- redirects to ibl.ai login, returns with session. Adds Redux store, AuthProvider, TenantProvider, SSO callback page. |
+| `iblai add auth` | SSO authentication -- see `/vibe-add-auth` for detailed step-by-step walkthrough |
 | `iblai add chat` | AI chat widget -- `<mentor-ai>` web component. Full-screen or embedded chat with streaming, file upload, voice. |
 | `iblai add profile` | User profile dropdown -- avatar with dropdown menu, profile settings page. |
 | `iblai add account` | Organization/account settings -- tenant management, team settings. |
