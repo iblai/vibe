@@ -128,6 +128,7 @@ Invoke with `/` in Claude Code:
 |-------|-------------|
 | `/vibe-new-app` | Scaffold and configure a new iblai app |
 | `/vibe-add-auth` | Add ibl.ai SSO auth to a vanilla Next.js app (step-by-step) |
+| `/vibe-setup-env` | Set up environment variables from .env.example |
 | `/vibe-add-feature` | Add an iblai component to your app |
 | `/vibe-deploy` | Deploy to Vercel, Docker, or app stores |
 | `/vibe-customize` | Customize UI with shadcn + iblai brand |
