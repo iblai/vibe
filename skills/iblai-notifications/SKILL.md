@@ -13,7 +13,7 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- `iblai` CLI available (`iblai --version`). If not, run `/iblai-install`
+- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 
 ## Add Notifications
 

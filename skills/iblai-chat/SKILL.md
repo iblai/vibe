@@ -14,7 +14,7 @@ automatically.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- `iblai` CLI available (`iblai --version`). If not, run `/iblai-install`
+- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 - A mentor/agent ID from your ibl.ai platform (get one at https://iblai.app)
 
 ## Add Chat

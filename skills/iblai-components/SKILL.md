@@ -7,7 +7,44 @@ alwaysApply: false
 
 # /iblai-components
 
-Add pre-built iblai components to an existing Next.js app.
+Overview of all ibl.ai components and how to create a new app.
+
+## Creating a New App
+
+### Vanilla Next.js + ibl.ai Features
+
+Start with a standard Next.js app and add features as needed:
+
+```bash
+npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+cd my-app
+iblai add auth --platform your-tenant
+iblai add chat
+pnpm install && pnpm dev
+```
+
+### Full ibl.ai Agent App
+
+Scaffold a complete app with auth, chat, and everything pre-configured:
+
+```bash
+iblai startapp agent --platform your-tenant
+cd <app-name> && pnpm install
+cp .env.example .env.local && pnpm dev
+```
+
+### Non-Interactive (CI/CD)
+
+```bash
+iblai startapp agent --yes --platform acme --agent my-id --app-name my-app
+```
+
+### AI-Enhanced Scaffolding
+
+```bash
+iblai startapp agent --platform acme --anthropic-key sk-ant-... \
+  --prompt "kids learning assistant with bright colors"
+```
 
 ## Available Components
 
@@ -60,6 +97,6 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 - Next.js App Router project (app/ directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
+- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 - If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
 - If you used `iblai startapp agent`, auth is already set up

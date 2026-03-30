@@ -13,7 +13,7 @@ User Management, Integrations, Advanced settings, and Billing.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- `iblai` CLI available (`iblai --version`). If not, run `/iblai-install`
+- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 
 ## Add Account Settings
 
