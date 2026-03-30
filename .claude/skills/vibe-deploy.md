@@ -1,1 +1,0 @@
-../../skills/vibe-deploy/SKILL.md

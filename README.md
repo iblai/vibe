@@ -136,13 +136,18 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 
 | Skill | Description |
 |-------|-------------|
-| `/vibe-new-app` | Scaffold and configure a new iblai app |
-| `/vibe-add-feature` | Add an iblai component to your app |
-| `/vibe-deploy` | Deploy to Vercel, Docker, or app stores |
-| `/vibe-customize` | Customize UI with shadcn + iblai brand |
-| `/vibe-connect-backend` | Connect to iblai.app or your own tenant |
+| `/iblai-install` | Install the iblai CLI (npx or build from source) |
+| `/iblai-new-app` | Scaffold and configure a new iblai app |
+| `/iblai-auth` | Add SSO authentication to a Next.js app |
+| `/iblai-chat` | Add AI chat widget |
+| `/iblai-profile` | Add profile dropdown + settings page |
+| `/iblai-account` | Add account/org settings page |
+| `/iblai-analytics` | Add analytics dashboard |
+| `/iblai-notifications` | Add notification bell + center page |
+| `/iblai-env` | Set up environment variables |
+| `/iblai-components` | Overview of all available components |
 
-The skills are plain markdown files in `.claude/skills/` -- read them, extend them, or write your own.
+Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
 ## Deploy Anywhere
 

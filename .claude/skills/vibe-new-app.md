@@ -1,1 +1,0 @@
-../../skills/vibe-new-app/SKILL.md

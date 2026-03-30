@@ -1,0 +1,1 @@
+../../skills/iblai-install/SKILL.md

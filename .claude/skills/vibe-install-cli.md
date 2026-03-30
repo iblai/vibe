@@ -1,1 +1,0 @@
-../../skills/vibe-install-cli/SKILL.md

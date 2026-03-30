@@ -1,0 +1,1 @@
+../../skills/iblai-new-app/SKILL.md

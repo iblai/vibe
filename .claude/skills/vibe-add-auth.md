@@ -1,1 +1,0 @@
-../../skills/vibe-add-auth/SKILL.md
