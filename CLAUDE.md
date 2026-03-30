@@ -122,6 +122,9 @@ See [BRAND.md](https://github.com/iblai/iblai-app-cli/blob/main/BRAND.md) in ibl
 
 ## Skills
 
+Skills are in `skills/` (symlinked to `.claude/skills/` for Claude Code discovery).
+Edit the files in `skills/` — changes are reflected automatically.
+
 Invoke with `/` in Claude Code:
 
 | Skill | Description |
