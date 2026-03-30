@@ -15,7 +15,18 @@ Ship AI-powered apps fast. Backend included.
 </div>
 
 ---
+## Quick Start
+### Install Skills
 
+Add ibl.ai skills to any project with one command:
+
+```bash
+npx skills add iblai/vibe
+```
+### ibl.ai Components for Next.js Apps
+Ask Claude to add Chat, Profile, Account, Notifications or Analytics to your Next.js project. 
+### ibl.ai App Template
+Ask Claude to start an ibl.ai agent app.
 ## What is Vibe
 
 A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notifications, and analytics are already wired up. No API tokens to manage.
@@ -36,42 +47,7 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 3. **Customize** -- use Claude Code skills to add features, swap components, and adjust business logic
 4. **Deploy** -- push to Vercel, package with Tauri, or run in Docker
 
-## Quick Start
 
-### Start with a Vanilla Next.js App
-
-Create a standard Next.js app and add ibl.ai features as needed:
-
-```bash
-npx create-next-app@latest my-app --yes
-cd my-app
-iblai add auth           # SSO authentication
-iblai add chat           # AI chat widget
-npm run dev
-```
-
-### Or Scaffold a Full ibl.ai Agent App
-
-Get a complete app with auth, AI chat, profiles, and more in one command:
-
-```bash
-iblai startapp agent
-cd <app-name> && pnpm install
-cp .env.example .env.local
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). You will be redirected to [iblai.app](https://iblai.app) for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
-
-To get your own branded tenant (custom domain, your logo, your users), register at [iblai.app](https://iblai.app).
-
-### Install Skills
-
-Add ibl.ai skills to any project with one command:
-
-```bash
-npx skills add iblai/vibe
-```
 
 This installs 7 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
 
