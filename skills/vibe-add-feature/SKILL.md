@@ -25,8 +25,12 @@ Add pre-built iblai components to an existing Next.js app.
 
 1. **Navigate to your Next.js project root**
 
-2. **Run the add command**:
+2. **Run the add command** (choose one):
    ```bash
+   # If iblai is installed globally
+   iblai add auth
+
+   # Or via npx (when published)
    npx @iblai/cli add auth
    ```
 
@@ -55,4 +59,5 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 - Next.js App Router project (app/ directory)
 - Node.js 18+
+- `iblai` CLI available (`iblai --version`). If not available, run `/vibe-install-cli`
 - The `auth` component should be added first if you need authentication (other components depend on the auth providers)

@@ -24,25 +24,34 @@ get_playwright_helper_info("createConfig")    # E2E test utilities
 - The `@iblai/iblai-js` SDK with auth, chat, UI components, and data layer
 - Connection to iblai.app -- a production backend with SSO auth, AI agents, analytics, and multi-tenancy
 
+## Installing the CLI
+
+```bash
+iblai --version    # Check if already available
+```
+
+If not available, see `/vibe-install-cli` for installation options (npx or build from source).
+
 ## Getting Started
 
 ```bash
 # Scaffold a new app
-npx @iblai/cli startapp agent
+iblai startapp agent
+# or: npx @iblai/cli startapp agent
 
 # Non-interactive (CI/CD)
-npx @iblai/cli startapp agent --yes --platform acme --app-name my-app
+iblai startapp agent --yes --platform acme --app-name my-app
 
 # Add AI skills to an existing project
-npx @iblai/cli init
+iblai init
 
 # Add features to an existing Next.js app
-npx @iblai/cli add auth
-npx @iblai/cli add chat
-npx @iblai/cli add profile
-npx @iblai/cli add account
-npx @iblai/cli add analytics
-npx @iblai/cli add notifications
+iblai add auth
+iblai add chat
+iblai add profile
+iblai add account
+iblai add analytics
+iblai add notifications
 ```
 
 ## Architecture
@@ -146,6 +155,7 @@ Invoke with `/` in Claude Code:
 
 | Skill | Description |
 |-------|-------------|
+| `/vibe-install-cli` | Install the iblai CLI (npx or build from source) |
 | `/vibe-new-app` | Scaffold and configure a new iblai app |
 | `/vibe-add-auth` | Add ibl.ai SSO auth to a vanilla Next.js app (step-by-step) |
 | `/vibe-setup-env` | Set up environment variables from .env.example |

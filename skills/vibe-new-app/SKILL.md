@@ -11,14 +11,18 @@ Scaffold a new AI-powered app using the iblai CLI.
 ## Steps
 
 1. **Check prerequisites**: Node.js 18+, pnpm (recommended)
+   - `iblai` CLI: `iblai --version` (if not available, run `/vibe-install-cli`)
 
-2. **Scaffold the app**:
+2. **Scaffold the app** (choose one):
    ```bash
+   # If iblai is installed globally
+   iblai startapp agent --platform <tenant> --agent <agent-id>
+
+   # Or via npx (when published)
    npx @iblai/cli startapp agent --platform <tenant> --agent <agent-id>
    ```
    - If the user doesn't have a tenant yet, use `iblai` as the default
    - If they don't have an agent ID, omit `--agent` (will prompt or use default)
-   - For a minimal app without the chat UI, use `startapp base` instead
 
 3. **Install dependencies**:
    ```bash
