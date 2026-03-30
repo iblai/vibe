@@ -163,6 +163,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
 | `/iblai-components` | Overview of all components + app creation paths |
+| `/iblai-test` | Test your app before showing work to the user |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 

@@ -186,6 +186,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
 | `/iblai-components` | Overview of all available components |
+| `/iblai-test` | Test your app before showing work to the user |
 
 ## Deployment
 
