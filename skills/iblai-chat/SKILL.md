@@ -22,6 +22,11 @@ automatically.
 > ```
 > NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid-they-gave-you>
 > ```
+>
+> Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
+> It ships with its own styling. Keep the component as-is.
+>
+> You MUST run `/iblai-test` before telling the user the work is ready.
 
 ## Prerequisites
 
@@ -94,12 +99,14 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 
 ## Step 4: Verify
 
-```bash
-npm run dev
-```
+Run `/iblai-test` before telling the user the work is ready:
 
-Log in, then verify the chat widget connects and streams responses from the
-user's AI agent.
+1. `npm run build` -- must pass with zero errors
+2. Start dev server and touch test:
+   ```bash
+   npm run dev &
+   npx playwright screenshot http://localhost:3000 /tmp/home.png
+   ```
 
 ## Detailed Guide
 
