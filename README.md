@@ -24,7 +24,7 @@ Add ibl.ai skills to any project with one command:
 npx skills add iblai/vibe
 ```
 ### ibl.ai Components for Next.js Apps
-Ask Claude to add Chat, Profile, Account, Notifications or Analytics to your Next.js project. 
+Ask Claude to add ibl.ai Chat, Profile, Account, Notifications or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
 ## What is Vibe
