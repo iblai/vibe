@@ -1,59 +1,89 @@
 ---
 name: iblai-new-app
-description: Scaffold and configure a new iblai-powered app
+description: Create a new ibl.ai-powered app
 globs:
 alwaysApply: false
 ---
 
 # /iblai-new-app
 
-Scaffold a new AI-powered app using the iblai CLI.
+Two ways to create an ibl.ai-powered app, depending on what you need.
 
-## Steps
+## Vanilla Next.js + ibl.ai Features
 
-1. **Check prerequisites**: Node.js 18+, pnpm (recommended)
-   - `iblai` CLI: `iblai --version` (if not available, run `/iblai-install`)
+Start with a standard Next.js app and add ibl.ai features as needed.
 
-2. **Scaffold the app** (choose one):
-   ```bash
-   # If iblai is installed globally
-   iblai startapp agent --platform <tenant> --agent <agent-id>
+```bash
+npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+cd my-app
+```
 
-   # Or via npx (when published)
-   npx @iblai/cli startapp agent --platform <tenant> --agent <agent-id>
-   ```
-   - If the user doesn't have a tenant yet, use `iblai` as the default
-   - If they don't have an agent ID, omit `--agent` (will prompt or use default)
+Then add features incrementally:
 
-3. **Install dependencies**:
-   ```bash
-   cd <app-name>
-   pnpm install
-   ```
+```bash
+iblai add auth           # SSO authentication
+iblai add chat           # AI chat widget
+iblai add profile        # User profile page
+iblai add notifications  # Notification bell
+# or prefix with: npx @iblai/cli add auth
+```
 
-4. **Configure environment**:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Default config connects to iblai.app. For custom tenants, update `NEXT_PUBLIC_MAIN_TENANT_KEY`.
+```bash
+pnpm install
+pnpm dev
+```
 
-5. **Start development**:
-   ```bash
-   pnpm dev
-   ```
-   Visit http://localhost:3000. You'll be redirected to iblai.app login.
+Use this when:
+- You're adding ibl.ai to an existing project
+- You want full control over the initial project structure
+- You only need specific features (e.g., auth only, no chat)
 
-6. **Set up AI-assisted development**:
-   - The generated app includes `.mcp.json` for the @iblai/mcp server
-   - Skills are in `.claude/skills/` -- invoke with `/` prefix
-   - For existing projects without MCP config, run `npx @iblai/cli init`
+The `create-next-app` flags:
+- `--typescript` -- required (iblai templates generate .tsx)
+- `--tailwind` -- required (SDK uses Tailwind CSS)
+- `--eslint` -- recommended
+- `--app` -- required (App Router, not Pages Router)
+- `--src-dir` -- optional (iblai CLI auto-detects both layouts)
+
+## Full ibl.ai Agent App
+
+Scaffold a complete app with auth, AI chat, profiles, and more in one command.
+
+```bash
+iblai startapp agent --platform <tenant> --agent <agent-id>
+# or: npx @iblai/cli startapp agent --platform <tenant> --agent <agent-id>
+```
+
+```bash
+cd <app-name>
+pnpm install
+cp .env.example .env.local
+pnpm dev
+```
+
+Use this when:
+- You want everything pre-configured from the start
+- You're building an AI agent app with chat as the core feature
+- You want the full ibl.ai stack (auth + chat + providers + store + e2e tests)
+
+If you don't have a tenant yet, use `iblai` as the default.
+If you don't have an agent ID, omit `--agent` (the CLI will prompt).
+
+## After Setup
+
+Both paths give you a Next.js app connected to iblai.app.
+Visit http://localhost:3000 -- you'll be redirected to login.iblai.app.
+Log in or create a free account, then you're back in your app.
+
+For environment configuration, see `/iblai-env`.
+For CLI installation, see `/iblai-install`.
 
 ## Non-Interactive Mode (CI/CD)
 
 Skip all prompts with `--yes` (requires `--platform` and `--app-name`):
 
 ```bash
-npx @iblai/cli startapp agent \
+iblai startapp agent \
   --yes \
   --platform acme \
   --agent my-agent-id \
@@ -62,28 +92,20 @@ npx @iblai/cli startapp agent \
 
 ## AI-Enhanced Scaffolding
 
-To customize the app with AI during scaffolding:
+Customize the generated app with AI during scaffolding:
+
 ```bash
-npx @iblai/cli startapp agent \
+iblai startapp agent \
   --platform acme \
   --anthropic-key sk-ant-... \
   --prompt "Make this a kids learning assistant with bright, playful colors"
 ```
 
-## Add AI Skills to an Existing Project
+## What the Full Agent App Generates
 
-For existing Next.js projects that need MCP config and AI skills:
-```bash
-cd your-existing-project
-npx @iblai/cli init
-```
-
-This adds `.mcp.json`, `skills/`, and tool symlinks for Claude Code, OpenCode, and Cursor.
-## What Gets Generated
-
-- Next.js 15 App Router project with TypeScript
+- Next.js 16 App Router project with TypeScript
 - SSO authentication flow (client-side, no API tokens)
-- AI chat interface (agent template) or blank canvas (base template)
+- AI chat interface (`<mentor-ai>` web component)
 - Redux Toolkit store with @iblai/iblai-js data layer
 - Tailwind CSS 4 + shadcn/ui (new-york style)
 - Playwright E2E test setup

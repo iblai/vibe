@@ -13,6 +13,9 @@ a session -- no API tokens to manage.
 
 ## Prerequisites
 
+> If you used `iblai startapp agent`, auth is already set up -- skip this skill.
+> This skill is for adding auth to a vanilla Next.js app or an existing project.
+
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`

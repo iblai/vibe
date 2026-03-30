@@ -34,24 +34,34 @@ If not available, see `/iblai-install` for installation options (npx or build fr
 
 ## Getting Started
 
+### Vanilla Next.js + ibl.ai Features
+
 ```bash
-# Scaffold a new app
-iblai startapp agent
-# or: npx @iblai/cli startapp agent
-
-# Non-interactive (CI/CD)
-iblai startapp agent --yes --platform acme --app-name my-app
-
-# Add AI skills to an existing project
-iblai init
-
-# Add features to an existing Next.js app
+npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+cd my-app
 iblai add auth
 iblai add chat
-iblai add profile
-iblai add account
-iblai add analytics
-iblai add notifications
+pnpm install && pnpm dev
+```
+
+### Full ibl.ai Agent App
+
+```bash
+iblai startapp agent
+cd <app-name> && pnpm install
+cp .env.example .env.local
+pnpm dev
+```
+
+### Add Features to Any Next.js App
+
+```bash
+iblai add auth           # SSO authentication
+iblai add chat           # AI chat widget
+iblai add profile        # User profile page
+iblai add account        # Account settings
+iblai add analytics      # Analytics dashboard
+iblai add notifications  # Notification bell
 ```
 
 ## Architecture

@@ -61,4 +61,5 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 - Next.js App Router project (app/ directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
-- The `auth` component should be added first if you need authentication (other components depend on the auth providers)
+- If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
+- If you used `iblai startapp agent`, auth is already set up
