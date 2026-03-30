@@ -96,3 +96,4 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 - `iblai` CLI available for auth and chat (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 - If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
 - If you used `iblai startapp agent`, auth is already set up
+- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

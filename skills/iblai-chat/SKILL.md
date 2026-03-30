@@ -119,3 +119,5 @@ Run `/iblai-test` before telling the user the work is ready:
 
 For the complete implementation reference:
 https://github.com/iblai/iblai-app-cli/blob/main/skills/components/iblai-add-chat.md
+
+**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

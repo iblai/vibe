@@ -101,3 +101,5 @@ Kill the dev server when done.
 For writing custom authenticated journey tests, auth setup, and
 multi-browser patterns, see:
 https://github.com/iblai/iblai-app-cli/blob/main/skills/testing/iblai-add-test.md
+
+**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
