@@ -1,1 +1,0 @@
-../../skills/iblai-profile/SKILL.md

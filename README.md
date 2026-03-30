@@ -65,6 +65,16 @@ Open [http://localhost:3000](http://localhost:3000). You will be redirected to [
 
 To get your own branded tenant (custom domain, your logo, your users), register at [iblai.app](https://iblai.app).
 
+### Install Skills
+
+Add ibl.ai skills to any project with one command:
+
+```bash
+npx skills add iblai/vibe
+```
+
+This installs 7 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
+
 ## What You Get
 
 | Feature | Description |
@@ -80,19 +90,15 @@ To get your own branded tenant (custom domain, your logo, your users), register 
 
 ## Add to Existing Apps
 
-Already have a project? Start by adding AI development skills, then pull in features:
+Already have a project? Install the skills and let your AI agent add features:
 
 ```bash
-npx @iblai/cli init               # Add MCP server + AI skills
-npx @iblai/cli add auth           # SSO authentication
-npx @iblai/cli add chat           # AI chat with streaming
-npx @iblai/cli add profile        # User profile page
-npx @iblai/cli add account        # Account settings
-npx @iblai/cli add analytics      # Usage dashboard
-npx @iblai/cli add notifications  # Real-time notifications
+npx skills add iblai/vibe
 ```
 
-Each command scaffolds the feature into your app with the right components, hooks, and routes.
+Then ask your AI agent to use `/iblai-auth` to add authentication, `/iblai-chat`
+for AI chat, `/iblai-profile` for user profiles, and so on. The skills provide
+complete code, SDK imports, and MCP tool references.
 
 ### CI/CD
 
@@ -157,6 +163,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
 | `/iblai-components` | Overview of all components + app creation paths |
+| `/iblai-test` | Test your app before showing work to the user |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
@@ -199,6 +206,7 @@ iblai builds ci-workflow --all  # GitHub Actions for all platforms
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
 - [iblai.app](https://iblai.app) -- the backend platform (register for a free tenant)
+- [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
 - [Skills Reference](https://github.com/iblai/iblai-app-cli#skills) -- documentation for all bundled Claude Code skills
 
 ## License

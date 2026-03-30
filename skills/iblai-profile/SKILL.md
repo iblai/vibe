@@ -11,32 +11,119 @@ Add user profile features -- a compact avatar dropdown for your navbar and
 a full settings page with tabs for Basic info, Social links, Education,
 Experience, Resume, and Security.
 
+![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
+
+> **AI Assistant:** Build this component directly using the code and MCP tools
+> below. Do NOT run `iblai add profile` -- you are building this feature
+> yourself using the SDK components documented here.
+
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
+- The following packages are already installed by `iblai add auth`:
+  `@iblai/iblai-js`, `@reduxjs/toolkit`, `react-redux`
 
-## Add Profile
+## Step 1: Use MCP Tools
 
-```bash
-iblai add profile
-# or: npx @iblai/cli add profile
+Call these MCP tools for the full props reference:
+
+```
+get_component_info("Profile")
+get_component_info("UserProfileDropdown")
 ```
 
-```bash
-pnpm install
+## Step 2: Create Profile Settings Page
+
+Create `app/profile/page.tsx` (or `src/app/profile/page.tsx` if using `src/` layout):
+
+```tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Profile } from "@iblai/iblai-js/web-containers";
+import config from "@/lib/iblai/config";
+
+function resolveTenantKey(raw: string | null): string {
+  if (!raw || raw === "[object Object]") return "";
+  try {
+    const p = JSON.parse(raw);
+    if (typeof p === "string") return p;
+    if (p?.key) return p.key;
+  } catch {}
+  return raw;
+}
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [tenantKey, setTenantKey] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    const resolved = resolveTenantKey(stored) || config.mainTenantKey();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const tenants = JSON.parse(tenantsRaw);
+        const match = tenants.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !username || !tenantKey) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <p className="text-sm text-gray-400">Loading profile...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen w-screen overflow-auto">
+      <Profile
+        tenant={tenantKey}
+        username={username}
+        isAdmin={isAdmin}
+        onClose={() => router.push("/")}
+        customization={{
+          showUsernameField: false,
+          showPlatformName: true,
+          useGravatarPicFallback: true,
+        }}
+        targetTab="basic"
+      />
+    </div>
+  );
+}
 ```
 
-## What Was Generated
+## Step 3: Create Profile Dropdown (Navbar Component)
 
-| File | Purpose |
-|------|---------|
-| `app/(app)/profile/page.tsx` | Full profile settings page using SDK `Profile` component |
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown with profile link, tenant switching, logout |
+Create `components/iblai/profile-dropdown.tsx`:
 
-## Usage
+1. Call `get_component_info("UserProfileDropdown")` for the full props reference
+2. Import from `@iblai/iblai-js/web-containers/next`
+3. Read username and tenant from localStorage (same pattern as above)
 
-### Profile Dropdown (navbar)
+Place in your navbar:
 
 ```tsx
 import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
@@ -44,25 +131,29 @@ import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
 <ProfileDropdown />
 ```
 
-### Profile Page
+## `<Profile>` Props
 
-Accessible at `/profile`. Shows 7 tabs:
-- Basic info (name, bio, avatar)
-- Social links
-- Education
-- Experience
-- Resume
-- Security (password change)
+| Prop | Type | Description |
+|------|------|-------------|
+| `tenant` | `string` | Tenant/org key |
+| `username` | `string` | Username |
+| `isAdmin` | `boolean` | Shows admin badge + settings |
+| `onClose` | `() => void` | Cancel/close callback |
+| `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
+| `customization` | `object` | `showUsernameField`, `showPlatformName`, `useGravatarPicFallback` |
 
-## Verify
+## Step 4: Verify
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
-Log in, click the avatar dropdown, then navigate to the profile page.
+Log in, click the avatar dropdown, then navigate to `/profile`.
 
-## Detailed Guide
+## Important Notes
 
-For the complete implementation reference:
-https://github.com/iblai/iblai-app-cli/blob/main/skills/components/iblai-add-profile.md
+- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
+- **`initializeDataLayer()`**: 5 args (v1.2+)
+- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
+- **Admin detection**: Derive from `tenants` array in localStorage
+- **Config import**: Use `@/lib/iblai/config` (generated by `iblai add auth`)

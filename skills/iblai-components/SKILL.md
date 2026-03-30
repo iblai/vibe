@@ -48,36 +48,32 @@ iblai startapp agent --platform acme --anthropic-key sk-ant-... \
 
 ## Available Components
 
+### CLI-Generated (use the CLI)
+
 | Command | What It Adds |
 |---------|-------------|
-| `iblai add auth` | SSO authentication -- see `/iblai-auth` for step-by-step walkthrough |
-| `iblai add chat` | AI chat widget -- see `/iblai-chat` |
-| `iblai add profile` | User profile -- see `/iblai-profile` |
-| `iblai add account` | Account settings -- see `/iblai-account` |
-| `iblai add analytics` | Analytics dashboard -- see `/iblai-analytics` |
-| `iblai add notifications` | Notifications -- see `/iblai-notifications` |
-| `iblai add builds` | Tauri v2 shell -- desktop (macOS/Windows/Linux) and mobile (iOS/Android) builds |
+| `iblai add auth` | SSO authentication -- see `/iblai-auth` |
+| `iblai add chat` | AI chat widget -- see `/iblai-chat` (requires agent ID from user) |
+
+### AI-Built (you build these using the skill documentation)
+
+| Skill | What It Adds |
+|-------|-------------|
+| `/iblai-profile` | User profile dropdown + settings page |
+| `/iblai-account` | Account/organization settings page |
+| `/iblai-analytics` | Analytics dashboard page |
+| `/iblai-notifications` | Notification bell + center page |
+
+These components are built by the AI assistant using SDK components and the
+detailed code provided in each skill. The MCP tools (`get_component_info`,
+`get_hook_info`) provide props references and usage examples.
+
+### Other CLI Commands
+
+| Command | What It Adds |
+|---------|-------------|
+| `iblai add builds` | Tauri v2 shell -- desktop and mobile builds |
 | `iblai add mcp` | MCP + skills -- @iblai/mcp server config, Claude/OpenCode/Cursor skill files |
-
-## How to Use
-
-1. **Navigate to your Next.js project root**
-
-2. **Run the add command** (choose one):
-   ```bash
-   # If iblai is installed globally
-   iblai add auth
-
-   # Or via npx (when published)
-   npx @iblai/cli add auth
-   ```
-
-3. **Install new dependencies** (if any were added to package.json):
-   ```bash
-   pnpm install
-   ```
-
-4. **Verify** -- the CLI will tell you what files were created and any manual steps needed
 
 ## Component Priority
 
@@ -97,6 +93,6 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 - Next.js App Router project (app/ directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
+- `iblai` CLI available for auth and chat (`iblai --version`). See `/iblai-auth` prerequisites for installation.
 - If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
 - If you used `iblai startapp agent`, auth is already set up

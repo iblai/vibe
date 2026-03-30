@@ -7,55 +7,154 @@ alwaysApply: false
 
 # /iblai-analytics
 
-Add an analytics dashboard page with tabs for Users, Topics, Financial,
-Transcripts, and Reports.
+Add an analytics dashboard page with usage metrics, conversation stats,
+and user activity. Supports a simple overview or a full tabbed layout with
+Users, Topics, Financial, Transcripts, and Reports.
+
+![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-analytics/analytics-page.png)
+
+> **AI Assistant:** Build this component directly using the code and MCP tools
+> below. Do NOT run `iblai add analytics` -- you are building this feature
+> yourself using the SDK components documented here.
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
+- The following packages are already installed by `iblai add auth`:
+  `@iblai/iblai-js`, `@reduxjs/toolkit`, `react-redux`
 
-## Add Analytics
+## Step 1: Use MCP Tools
 
-```bash
-iblai add analytics
-# or: npx @iblai/cli add analytics
+```
+get_component_info("AnalyticsOverview")
 ```
 
-```bash
-pnpm install
-```
+## Step 2: Create Analytics Page
 
-## What Was Generated
-
-| File | Purpose |
-|------|---------|
-| `app/(app)/analytics/page.tsx` | Analytics dashboard using SDK `AnalyticsOverview` component |
-
-## Usage
-
-Accessible at `/analytics`. Shows overview dashboard with usage metrics,
-conversation stats, and user activity.
-
-## Quick Embed
-
-To embed the analytics overview in an existing page:
+Create `app/analytics/page.tsx` (or `src/app/analytics/page.tsx` if using `src/` layout):
 
 ```tsx
-import { AnalyticsOverview } from "@iblai/iblai-js/web-containers";
+"use client";
 
-<AnalyticsOverview org={tenantKey} />
+import { useCallback, useEffect, useState } from "react";
+import {
+  AnalyticsOverview,
+  ChartFiltersProvider,
+} from "@iblai/iblai-js/web-containers";
+import type { ChartFilters } from "@iblai/iblai-js/web-containers";
+import config from "@/lib/iblai/config";
+
+function resolveTenantKey(raw: string | null): string {
+  if (!raw || raw === "[object Object]") return "";
+  try {
+    const p = JSON.parse(raw);
+    if (typeof p === "string") return p;
+    if (p?.key) return p.key;
+  } catch {}
+  return raw;
+}
+
+export default function AnalyticsPage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [ready, setReady] = useState(false);
+
+  const handleOutsideFilters = useCallback(
+    (_filters: Partial<ChartFilters>) => {},
+    []
+  );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const stored =
+      localStorage.getItem("current_tenant") ??
+      localStorage.getItem("tenant");
+    setTenantKey(resolveTenantKey(stored) || config.mainTenantKey());
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <p className="text-sm text-gray-400">Loading analytics...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen w-screen overflow-auto">
+      <ChartFiltersProvider setOutsideFilters={handleOutsideFilters}>
+        <AnalyticsOverview tenantKey={tenantKey} mentorId="" />
+      </ChartFiltersProvider>
+    </div>
+  );
+}
 ```
 
-## Verify
+## `<AnalyticsOverview>` Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `tenantKey` | `string` | Tenant/org key |
+| `mentorId` | `string` | Mentor UUID. Pass `""` for org-wide analytics. |
+| `selectedMentorId` | `string?` | Filter analytics to a specific mentor |
+| `usergroupIds` | `string[]?` | Filter analytics to specific user groups |
+
+## `<ChartFiltersProvider>` (Required Wrapper)
+
+All analytics components must be wrapped in `ChartFiltersProvider` -- it provides
+time-range filter state to all charts via context.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `children` | `ReactNode` | Analytics components to wrap |
+| `setOutsideFilters` | `(next: Partial<ChartFilters>) => void` | Required callback. Use a no-op `useCallback(() => {}, [])` if you don't need external filter sync. |
+
+## Advanced: Full Tabbed Layout
+
+For the full multi-tab experience (Overview, Users, Topics, Financial,
+Transcripts, Reports), create a layout with sub-routes using `AnalyticsLayout`:
+
+```tsx
+import { AnalyticsLayout } from "@iblai/iblai-js/web-containers";
+
+<AnalyticsLayout
+  currentPath={pathname}
+  basePath="/analytics"
+  onTabChange={(tabValue) =>
+    router.push(tabValue ? `/analytics/${tabValue}` : "/analytics")
+  }
+  excludeTabs={["courses", "programs"]}
+>
+  {children}
+</AnalyticsLayout>
+```
+
+Then create sub-pages (`analytics/users/page.tsx`, `analytics/topics/page.tsx`,
+etc.) using `AnalyticsUsersStats`, `AnalyticsTopicsStats`,
+`AnalyticsFinancialStats`, `AnalyticsTranscriptsStats`, `AnalyticsReports` --
+each wrapped in `ChartFiltersProvider`.
+
+## Step 3: Verify
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Log in, then navigate to `/analytics`.
 
-## Detailed Guide
+## Important Notes
 
-For the complete implementation reference:
-https://github.com/iblai/iblai-app-cli/blob/main/skills/components/iblai-add-analytics.md
+- **Import**: `@iblai/iblai-js/web-containers` -- analytics components are framework-agnostic
+- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
+- **`initializeDataLayer()`**: 5 args (v1.2+)
+- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
+- **`mentorId` empty string**: For org-wide analytics pass `""` not `undefined`
+- **Config import**: Use `@/lib/iblai/config` (generated by `iblai add auth`)
