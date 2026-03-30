@@ -43,11 +43,11 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 Create a standard Next.js app and add ibl.ai features as needed:
 
 ```bash
-npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+npx create-next-app@latest my-app --yes
 cd my-app
 iblai add auth           # SSO authentication
 iblai add chat           # AI chat widget
-pnpm install && pnpm dev
+npm run dev
 ```
 
 ### Or Scaffold a Full ibl.ai Agent App

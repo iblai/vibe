@@ -38,11 +38,11 @@ installation options (npx or build from source).
 ### Vanilla Next.js + ibl.ai Features
 
 ```bash
-npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+npx create-next-app@latest my-app --yes
 cd my-app
 iblai add auth
 iblai add chat
-pnpm install && pnpm dev
+npm run dev
 ```
 
 ### Full ibl.ai Agent App
@@ -90,7 +90,7 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 
 ### Redux Store
 
-`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.mjs`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
+`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.ts`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
 
 ## Environment (.env.local)
 

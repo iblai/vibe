@@ -21,8 +21,7 @@ a session -- no API tokens to manage.
 > to get a full app with auth, chat, and everything pre-configured.
 >
 > **This skill** is for adding auth to a vanilla Next.js app
-> (`npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir`)
-> or an existing project.
+> (`npx create-next-app@latest my-app --yes`) or an existing project.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
@@ -102,7 +101,7 @@ The generator adds these to `package.json`:
 - `@reduxjs/toolkit` + `react-redux` -- state management (SDK uses RTK Query)
 - `sonner` -- toast notifications
 - `lucide-react` -- icons
-- `react-markdown` + `remark-gfm` -- markdown rendering
+
 
 ## Step 3: Wire Providers into Layout
 
@@ -204,9 +203,10 @@ pnpm dev
 
 ## What Was Patched
 
-- **`next.config.mjs`** -- webpack `resolve.alias` to deduplicate `@reduxjs/toolkit`.
-  Without this, SDK components use a different `ReactReduxContext` and RTK Query
-  hooks silently return `undefined` with zero HTTP requests.
+- **`next.config.ts`** -- webpack `resolve.alias` to deduplicate `@reduxjs/toolkit`,
+  `turbopack: {}` for Next.js 16+, and Tauri stub aliases. Without the dedup,
+  SDK components use a different `ReactReduxContext` and RTK Query hooks silently
+  return `undefined` with zero HTTP requests.
 - **`globals.css`** -- `@import` for SDK base styles + `@source` for Tailwind
   class generation from SDK components.
 - **`.env.local`** -- API URLs, auth URL, tenant key, WebSocket URL.
@@ -243,7 +243,7 @@ this console error during local development.
 
 ### SDK components show undefined / no API requests
 
-`@reduxjs/toolkit` must be deduplicated in `next.config.mjs`. Without the
+`@reduxjs/toolkit` must be deduplicated in `next.config.ts`. Without the
 webpack alias, the SDK's components use a different `ReactReduxContext` than
 your app's `StoreProvider`, so RTK Query hooks silently return `undefined`.
 
