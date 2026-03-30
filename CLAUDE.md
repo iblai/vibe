@@ -59,11 +59,11 @@ pnpm dev
 ```bash
 iblai add auth           # SSO authentication
 iblai add chat           # AI chat widget
-iblai add profile        # User profile page
-iblai add account        # Account settings
-iblai add analytics      # Analytics dashboard
-iblai add notifications  # Notification bell
 ```
+
+Other features (profile, account, analytics, notifications) are built using
+skills -- see `/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
+`/iblai-notifications`.
 
 ## Architecture
 
@@ -137,7 +137,7 @@ iblai init               # Alias for iblai add mcp
 ### AI-Built Components (use skills)
 
 These features are built by the AI assistant using SDK components and the
-detailed code provided in each skill. Do NOT use `iblai add` for these:
+detailed code provided in each skill:
 
 | Skill | What It Adds |
 |-------|-------------|

@@ -14,8 +14,8 @@ Experience, Resume, and Security.
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
 
 > **AI Assistant:** Build this component directly using the code and MCP tools
-> below. Do NOT run `iblai add profile` -- you are building this feature
-> yourself using the SDK components documented here.
+> below. Do NOT use the CLI for this -- you are building this feature yourself
+> using the SDK components documented here.
 >
 > Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 > They ship with their own styling. Keep the components as-is.

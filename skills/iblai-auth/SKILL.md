@@ -272,12 +272,18 @@ localhost, leaving the app in a broken state.
 After auth is set up, add more features:
 
 ```bash
-iblai add chat           # AI chat widget
-iblai add profile        # User profile + settings page
-iblai add account        # Organization/account settings
-iblai add analytics      # Analytics dashboard
-iblai add notifications  # Notification bell + center page
+iblai add chat           # AI chat widget (requires agent ID)
 ```
+
+Other features are built using skills -- ask your AI assistant to use:
+
+| Skill | What It Adds |
+|-------|-------------|
+| `/iblai-chat` | AI chat widget |
+| `/iblai-profile` | User profile dropdown + settings page |
+| `/iblai-account` | Account/organization settings page |
+| `/iblai-analytics` | Analytics dashboard page |
+| `/iblai-notifications` | Notification bell + center page |
 
 For the complete reference implementation with all features:
   https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app
