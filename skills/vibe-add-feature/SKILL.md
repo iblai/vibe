@@ -1,4 +1,5 @@
 ---
+name: vibe-add-feature
 description: Add an iblai component or feature to your app
 globs:
 alwaysApply: false

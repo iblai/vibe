@@ -1,4 +1,5 @@
 ---
+name: vibe-add-auth
 description: Add ibl.ai SSO authentication to a vanilla Next.js app
 globs:
 alwaysApply: false

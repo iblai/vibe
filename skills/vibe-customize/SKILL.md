@@ -1,4 +1,5 @@
 ---
+name: vibe-customize
 description: Customize your app's UI with shadcn and iblai brand
 globs:
 alwaysApply: false

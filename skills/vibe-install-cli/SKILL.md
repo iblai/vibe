@@ -1,4 +1,5 @@
 ---
+name: vibe-install-cli
 description: Install the iblai CLI (build from source or npx)
 globs:
 alwaysApply: false

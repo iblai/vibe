@@ -1,4 +1,5 @@
 ---
+name: vibe-new-app
 description: Scaffold and configure a new iblai-powered app
 globs:
 alwaysApply: false
