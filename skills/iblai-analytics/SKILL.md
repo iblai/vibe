@@ -11,6 +11,8 @@ Add an analytics dashboard page with usage metrics, conversation stats,
 and user activity. Supports a simple overview or a full tabbed layout with
 Users, Topics, Financial, Transcripts, and Reports.
 
+![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-analytics/analytics-page.png)
+
 > **AI Assistant:** Build this component directly using the code and MCP tools
 > below. Do NOT run `iblai add analytics` -- you are building this feature
 > yourself using the SDK components documented here.

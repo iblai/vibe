@@ -10,6 +10,8 @@ alwaysApply: false
 Add an account/organization settings page with tabs for Organization info,
 User Management, Integrations, Advanced settings, and Billing.
 
+![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-account/account-page.png)
+
 > **AI Assistant:** Build this component directly using the code and MCP tools
 > below. Do NOT run `iblai add account` -- you are building this feature
 > yourself using the SDK components documented here.

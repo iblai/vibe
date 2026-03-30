@@ -10,6 +10,8 @@ alwaysApply: false
 Add notification features -- a compact bell icon with unread badge for your
 navbar and a full notification center page with Inbox and Alerts tabs.
 
+![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-notifications/notifications-page.png)
+
 > **AI Assistant:** Build this component directly using the code and MCP tools
 > below. Do NOT run `iblai add notifications` -- you are building this feature
 > yourself using the SDK components documented here.

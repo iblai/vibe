@@ -11,6 +11,8 @@ Add user profile features -- a compact avatar dropdown for your navbar and
 a full settings page with tabs for Basic info, Social links, Education,
 Experience, Resume, and Security.
 
+![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
+
 > **AI Assistant:** Build this component directly using the code and MCP tools
 > below. Do NOT run `iblai add profile` -- you are building this feature
 > yourself using the SDK components documented here.
