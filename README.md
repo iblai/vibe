@@ -65,6 +65,16 @@ Open [http://localhost:3000](http://localhost:3000). You will be redirected to [
 
 To get your own branded tenant (custom domain, your logo, your users), register at [iblai.app](https://iblai.app).
 
+### Install Skills
+
+Add ibl.ai skills to any project with one command:
+
+```bash
+npx skills add iblai/vibe
+```
+
+This installs 7 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
+
 ## What You Get
 
 | Feature | Description |
@@ -80,18 +90,15 @@ To get your own branded tenant (custom domain, your logo, your users), register 
 
 ## Add to Existing Apps
 
-Already have a project? Start by adding AI development skills, then pull in features:
+Already have a project? Install the skills and let your AI agent add features:
 
 ```bash
-npx @iblai/cli init               # Add MCP server + AI skills
-npx @iblai/cli add auth           # SSO authentication
-npx @iblai/cli add chat           # AI chat with streaming
+npx skills add iblai/vibe
 ```
 
-Profile, account, analytics, and notifications are built by the AI assistant
-using SDK components and the detailed code in the bundled skills (`/iblai-profile`,
-`/iblai-account`, `/iblai-analytics`, `/iblai-notifications`). The MCP server
-provides `get_component_info()` for props references and usage examples.
+Then ask your AI agent to use `/iblai-auth` to add authentication, `/iblai-chat`
+for AI chat, `/iblai-profile` for user profiles, and so on. The skills provide
+complete code, SDK imports, and MCP tool references.
 
 ### CI/CD
 
@@ -198,6 +205,7 @@ iblai builds ci-workflow --all  # GitHub Actions for all platforms
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
 - [iblai.app](https://iblai.app) -- the backend platform (register for a free tenant)
+- [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
 - [Skills Reference](https://github.com/iblai/iblai-app-cli#skills) -- documentation for all bundled Claude Code skills
 
 ## License
