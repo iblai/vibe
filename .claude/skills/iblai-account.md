@@ -1,1 +1,0 @@
-../../skills/iblai-account/SKILL.md

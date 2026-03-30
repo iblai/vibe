@@ -1,1 +1,0 @@
-../../skills/iblai-chat/SKILL.md

@@ -1,1 +1,0 @@
-../../skills/iblai-notifications/SKILL.md
