@@ -173,7 +173,6 @@ Invoke with `/` in Claude Code:
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
-| `/iblai-env` | Set up environment variables from .env.example |
 | `/iblai-components` | Overview of all available components |
 
 ## Deployment

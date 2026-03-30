@@ -158,7 +158,6 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
-| `/iblai-env` | Set up environment variables |
 | `/iblai-components` | Overview of all available components |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.

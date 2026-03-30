@@ -75,8 +75,40 @@ Both paths give you a Next.js app connected to iblai.app.
 Visit http://localhost:3000 -- you'll be redirected to login.iblai.app.
 Log in or create a free account, then you're back in your app.
 
-For environment configuration, see `/iblai-env`.
 For CLI installation, see `/iblai-install`.
+
+## Environment Setup
+
+Both paths need a `.env.local` with your platform configuration.
+
+For the full agent app (`.env.example` is included):
+
+```bash
+cp .env.example .env.local
+iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
+```
+
+For a vanilla Next.js app (no `.env.example`), use the CLI:
+
+```bash
+iblai config set NEXT_PUBLIC_API_BASE_URL https://api.iblai.app
+iblai config set NEXT_PUBLIC_AUTH_URL https://login.iblai.app
+iblai config set NEXT_PUBLIC_BASE_WS_URL wss://asgi.data.iblai.app
+iblai config set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN iblai.app
+iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
+```
+
+View current config:
+
+```bash
+iblai config show
+```
+
+The default domain is `iblai.app`. For custom domains, replace `iblai.app`
+with your domain in all URLs.
+
+Use `iblai` as the default free tenant for development.
+Register at https://iblai.app for your own tenant key.
 
 ## Non-Interactive Mode (CI/CD)
 
