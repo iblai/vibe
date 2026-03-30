@@ -30,7 +30,7 @@ get_playwright_helper_info("createConfig")    # E2E test utilities
 iblai --version    # Check if already available
 ```
 
-If not available, see `/vibe-install-cli` for installation options (npx or build from source).
+If not available, see `/iblai-install` for installation options (npx or build from source).
 
 ## Getting Started
 
@@ -155,14 +155,16 @@ Invoke with `/` in Claude Code:
 
 | Skill | Description |
 |-------|-------------|
-| `/vibe-install-cli` | Install the iblai CLI (npx or build from source) |
-| `/vibe-new-app` | Scaffold and configure a new iblai app |
-| `/vibe-add-auth` | Add ibl.ai SSO auth to a vanilla Next.js app (step-by-step) |
-| `/vibe-setup-env` | Set up environment variables from .env.example |
-| `/vibe-add-feature` | Add an iblai component to your app |
-| `/vibe-deploy` | Deploy to Vercel, Docker, or app stores |
-| `/vibe-customize` | Customize UI with shadcn + iblai brand |
-| `/vibe-connect-backend` | Connect to iblai.app or your own tenant |
+| `/iblai-install` | Install the iblai CLI (npx or build from source) |
+| `/iblai-new-app` | Scaffold and configure a new iblai app |
+| `/iblai-auth` | Add SSO authentication to a Next.js app |
+| `/iblai-chat` | Add AI chat widget |
+| `/iblai-profile` | Add profile dropdown + settings page |
+| `/iblai-account` | Add account/org settings page |
+| `/iblai-analytics` | Add analytics dashboard |
+| `/iblai-notifications` | Add notification bell + center page |
+| `/iblai-env` | Set up environment variables from .env.example |
+| `/iblai-components` | Overview of all available components |
 
 ## Deployment
 

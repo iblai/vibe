@@ -1,18 +1,18 @@
 ---
-name: vibe-new-app
+name: iblai-new-app
 description: Scaffold and configure a new iblai-powered app
 globs:
 alwaysApply: false
 ---
 
-# /vibe-new-app
+# /iblai-new-app
 
 Scaffold a new AI-powered app using the iblai CLI.
 
 ## Steps
 
 1. **Check prerequisites**: Node.js 18+, pnpm (recommended)
-   - `iblai` CLI: `iblai --version` (if not available, run `/vibe-install-cli`)
+   - `iblai` CLI: `iblai --version` (if not available, run `/iblai-install`)
 
 2. **Scaffold the app** (choose one):
    ```bash

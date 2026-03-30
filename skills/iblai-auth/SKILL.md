@@ -1,11 +1,11 @@
 ---
-name: vibe-add-auth
+name: iblai-auth
 description: Add ibl.ai SSO authentication to a vanilla Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /vibe-add-auth
+# /iblai-auth
 
 Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
@@ -15,7 +15,7 @@ a session -- no API tokens to manage.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`). If not available, run `/vibe-install-cli`
+- `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
 - An ibl.ai tenant key (use `iblai` for the free default tenant, or register at https://iblai.app)
 
 ## Step 1: Run the Generator

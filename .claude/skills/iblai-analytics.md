@@ -1,0 +1,1 @@
+../../skills/iblai-analytics/SKILL.md

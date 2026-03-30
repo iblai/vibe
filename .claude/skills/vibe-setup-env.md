@@ -1,1 +1,0 @@
-../../skills/vibe-setup-env/SKILL.md

@@ -1,17 +1,17 @@
 ---
-name: vibe-setup-env
+name: iblai-env
 description: Set up environment variables for your ibl.ai app
 globs:
 alwaysApply: false
 ---
 
-# /vibe-setup-env
+# /iblai-env
 
 Expand the simple `.env.example` into a full `.env.local` for your ibl.ai app.
 
 ## Prerequisites
 
-- `iblai` CLI available (`iblai --version`). If not available, run `/vibe-install-cli`
+- `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
 
 ## Quick Setup
 

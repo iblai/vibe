@@ -1,1 +1,0 @@
-../../skills/vibe-connect-backend/SKILL.md

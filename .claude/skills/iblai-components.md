@@ -1,0 +1,1 @@
+../../skills/iblai-components/SKILL.md
