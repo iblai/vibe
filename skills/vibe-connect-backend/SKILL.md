@@ -1,4 +1,5 @@
 ---
+name: vibe-connect-backend
 description: Connect your app to the iblai backend
 globs:
 alwaysApply: false

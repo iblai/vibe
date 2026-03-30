@@ -1,4 +1,5 @@
 ---
+name: vibe-deploy
 description: Deploy your iblai app to production
 globs:
 alwaysApply: false

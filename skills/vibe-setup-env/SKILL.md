@@ -1,4 +1,5 @@
 ---
+name: vibe-setup-env
 description: Set up environment variables for your ibl.ai app
 globs:
 alwaysApply: false
