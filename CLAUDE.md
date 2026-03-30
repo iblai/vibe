@@ -100,10 +100,13 @@ NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
 NEXT_PUBLIC_MAIN_TENANT_KEY=iblai
-NEXT_PUBLIC_DEFAULT_AGENT_ID=00000000-0000-0000-0000-000000000000
+NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 ```
 
 Register at https://iblai.app for your own tenant. Replace `iblai` with your tenant key.
+
+> **AI Assistant:** When adding chat (`/iblai-chat`), you MUST ask the user for
+> their agent/mentor ID (a UUID). Do not use the placeholder value above.
 
 ## Commands
 
@@ -121,19 +124,29 @@ iblai open              # Open localhost:3000 in browser
 
 ## Adding Features
 
+### CLI Commands (auth and chat)
+
 ```bash
-iblai init               # Add MCP server + AI skills to current project
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget (<mentor-ai> web component)
-iblai add profile        # User profile dropdown + settings page
-iblai add account        # Organization/account settings page
-iblai add analytics      # Analytics dashboard page
-iblai add notifications  # Notification bell + center page
 iblai add builds         # Tauri v2 desktop/mobile shell
 iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
+iblai init               # Alias for iblai add mcp
 ```
 
-All `add` commands (except `init` and `mcp`) require auth to be set up first.
+### AI-Built Components (use skills)
+
+These features are built by the AI assistant using SDK components and the
+detailed code provided in each skill. Do NOT use `iblai add` for these:
+
+| Skill | What It Adds |
+|-------|-------------|
+| `/iblai-profile` | User profile dropdown + settings page |
+| `/iblai-account` | Account/organization settings page |
+| `/iblai-analytics` | Analytics dashboard page |
+| `/iblai-notifications` | Notification bell + center page |
+
+All features require auth to be set up first (`iblai add auth`).
 
 ## Component Hierarchy
 

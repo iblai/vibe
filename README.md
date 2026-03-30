@@ -86,13 +86,12 @@ Already have a project? Start by adding AI development skills, then pull in feat
 npx @iblai/cli init               # Add MCP server + AI skills
 npx @iblai/cli add auth           # SSO authentication
 npx @iblai/cli add chat           # AI chat with streaming
-npx @iblai/cli add profile        # User profile page
-npx @iblai/cli add account        # Account settings
-npx @iblai/cli add analytics      # Usage dashboard
-npx @iblai/cli add notifications  # Real-time notifications
 ```
 
-Each command scaffolds the feature into your app with the right components, hooks, and routes.
+Profile, account, analytics, and notifications are built by the AI assistant
+using SDK components and the detailed code in the bundled skills (`/iblai-profile`,
+`/iblai-account`, `/iblai-analytics`, `/iblai-notifications`). The MCP server
+provides `get_component_info()` for props references and usage examples.
 
 ### CI/CD
 
