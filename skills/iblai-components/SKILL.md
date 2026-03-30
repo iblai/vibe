@@ -16,11 +16,11 @@ Overview of all ibl.ai components and how to create a new app.
 Start with a standard Next.js app and add features as needed:
 
 ```bash
-npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir
+npx create-next-app@latest my-app --yes
 cd my-app
 iblai add auth --platform your-tenant
 iblai add chat
-pnpm install && pnpm dev
+npm run dev
 ```
 
 ### Full ibl.ai Agent App
