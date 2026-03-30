@@ -15,6 +15,11 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 > **AI Assistant:** Build this component directly using the code and MCP tools
 > below. Do NOT run `iblai add notifications` -- you are building this feature
 > yourself using the SDK components documented here.
+>
+> Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+> They ship with their own styling. Keep the components as-is.
+>
+> You MUST run `/iblai-test` before telling the user the work is ready.
 
 ## Prerequisites
 
@@ -154,11 +159,14 @@ notification.
 
 ## Step 4: Verify
 
-```bash
-npm run dev
-```
+Run `/iblai-test` before telling the user the work is ready:
 
-Log in, check the notification bell in the navbar, then navigate to `/notifications`.
+1. `npm run build` -- must pass with zero errors
+2. Start dev server and touch test:
+   ```bash
+   npm run dev &
+   npx playwright screenshot http://localhost:3000/notifications /tmp/notifications.png
+   ```
 
 ## Important Notes
 
