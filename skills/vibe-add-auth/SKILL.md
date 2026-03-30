@@ -14,15 +14,19 @@ a session -- no API tokens to manage.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version` to verify)
-- If `iblai` is not available, install from: https://github.com/iblai/iblai-app-cli
+- `iblai` CLI available (`iblai --version`). If not available, run `/vibe-install-cli`
 - An ibl.ai tenant key (use `iblai` for the free default tenant, or register at https://iblai.app)
 
 ## Step 1: Run the Generator
 
 ```bash
 cd your-nextjs-app
+
+# If iblai is installed globally
 iblai add auth
+
+# Or via npx (when published)
+npx @iblai/cli add auth
 ```
 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.

@@ -8,6 +8,10 @@ alwaysApply: false
 
 Expand the simple `.env.example` into a full `.env.local` for your ibl.ai app.
 
+## Prerequisites
+
+- `iblai` CLI available (`iblai --version`). If not available, run `/vibe-install-cli`
+
 ## Quick Setup
 
 1. Copy the example to your app root:
@@ -17,12 +21,17 @@ Expand the simple `.env.example` into a full `.env.local` for your ibl.ai app.
 
 2. Set your platform key:
    ```bash
+   # If iblai is installed globally
    iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-actual-key
+
+   # Or via npx (when published)
+   npx @iblai/cli config set NEXT_PUBLIC_MAIN_TENANT_KEY your-actual-key
    ```
 
 3. Verify:
    ```bash
    iblai config show
+   # or: npx @iblai/cli config show
    ```
 
 ## How the Two Variables Map
