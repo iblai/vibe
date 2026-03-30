@@ -30,10 +30,18 @@ get_playwright_helper_info("createConfig")    # E2E test utilities
 # Scaffold a new app
 npx @iblai/cli startapp agent
 
-# Or add features to an existing Next.js app
+# Non-interactive (CI/CD)
+npx @iblai/cli startapp agent --yes --platform acme --app-name my-app
+
+# Add AI skills to an existing project
+npx @iblai/cli init
+
+# Add features to an existing Next.js app
 npx @iblai/cli add auth
 npx @iblai/cli add chat
 npx @iblai/cli add profile
+npx @iblai/cli add account
+npx @iblai/cli add analytics
 npx @iblai/cli add notifications
 ```
 
@@ -85,20 +93,27 @@ pnpm build              # Production build
 pnpm lint               # ESLint
 pnpm typecheck          # TypeScript type checking
 pnpm test:e2e           # Playwright E2E tests
+
+iblai config show       # View current configuration
+iblai config set KEY VAL  # Update .env.local
+iblai open              # Open localhost:3000 in browser
 ```
 
 ## Adding Features
 
 ```bash
+iblai init               # Add MCP server + AI skills to current project
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget (<mentor-ai> web component)
-iblai add profile        # User profile dropdown
-iblai add account        # Organization/account settings
-iblai add analytics      # Analytics dashboard
-iblai add notifications  # Notification bell with unread badge
+iblai add profile        # User profile dropdown + settings page
+iblai add account        # Organization/account settings page
+iblai add analytics      # Analytics dashboard page
+iblai add notifications  # Notification bell + center page
 iblai add builds         # Tauri v2 desktop/mobile shell
 iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
 ```
+
+All `add` commands (except `init` and `mcp`) require auth to be set up first.
 
 ## Component Hierarchy
 
@@ -108,7 +123,9 @@ iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
 | shadcn/ui | `npx shadcn@latest add` | Everything else -- forms, tables, modals, date pickers |
 | shadcnspace blocks | `npx shadcn@latest add @shadcn-space/<block>` | Pre-built page sections |
 
-ibl.ai and shadcn components share the same Tailwind theme. They are visually seamless.
+ibl.ai and shadcn components share the same Tailwind theme via OKLCH CSS variables
+mapped in `globals.css`. A shadcn `bg-primary` button renders in ibl.ai blue (#0058cc),
+not the default shadcn black. No manual theme work needed.
 
 ## Brand
 

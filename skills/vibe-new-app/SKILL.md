@@ -41,7 +41,19 @@ Scaffold a new AI-powered app using the iblai CLI.
 6. **Set up AI-assisted development**:
    - The generated app includes `.mcp.json` for the @iblai/mcp server
    - Skills are in `.claude/skills/` -- invoke with `/` prefix
-   - Run `iblai add mcp` if MCP config is missing
+   - For existing projects without MCP config, run `npx @iblai/cli init`
+
+## Non-Interactive Mode (CI/CD)
+
+Skip all prompts with `--yes` (requires `--platform` and `--app-name`):
+
+```bash
+npx @iblai/cli startapp agent \
+  --yes \
+  --platform acme \
+  --agent my-agent-id \
+  --app-name my-app
+```
 
 ## AI-Enhanced Scaffolding
 
@@ -53,6 +65,15 @@ npx @iblai/cli startapp agent \
   --prompt "Make this a kids learning assistant with bright, playful colors"
 ```
 
+## Add AI Skills to an Existing Project
+
+For existing Next.js projects that need MCP config and AI skills:
+```bash
+cd your-existing-project
+npx @iblai/cli init
+```
+
+This adds `.mcp.json`, `skills/`, and tool symlinks for Claude Code, OpenCode, and Cursor.
 ## What Gets Generated
 
 - Next.js 15 App Router project with TypeScript

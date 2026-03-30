@@ -66,9 +66,10 @@ To get your own branded tenant (custom domain, your logo, your users), register 
 
 ## Add to Existing Apps
 
-Already have a project? Pull in individual features with `iblai add`:
+Already have a project? Start by adding AI development skills, then pull in features:
 
 ```bash
+npx @iblai/cli init               # Add MCP server + AI skills
 npx @iblai/cli add auth           # SSO authentication
 npx @iblai/cli add chat           # AI chat with streaming
 npx @iblai/cli add profile        # User profile page
@@ -78,6 +79,14 @@ npx @iblai/cli add notifications  # Real-time notifications
 ```
 
 Each command scaffolds the feature into your app with the right components, hooks, and routes.
+
+### CI/CD
+
+Use `--yes` to skip interactive prompts:
+
+```bash
+npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-app
+```
 
 ## The iblai Backend
 
