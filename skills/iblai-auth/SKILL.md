@@ -13,6 +13,9 @@ a session -- no API tokens to manage.
 
 ## Prerequisites
 
+> If you used `iblai startapp agent`, auth is already set up -- skip this skill.
+> This skill is for adding auth to a vanilla Next.js app or an existing project.
+
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
@@ -23,12 +26,18 @@ a session -- no API tokens to manage.
 ```bash
 cd your-nextjs-app
 
-# If iblai is installed globally
+# Pass your platform key directly
+iblai add auth --platform your-tenant
+
+# Or interactively (will prompt for platform key)
 iblai add auth
 
 # Or via npx (when published)
-npx @iblai/cli add auth
+npx @iblai/cli add auth --platform your-tenant
 ```
+
+The `--platform` argument sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
+Use `iblai` as the default free tenant for development.
 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
@@ -94,18 +103,21 @@ inside it.
 
 ## Step 4: Configure Environment
 
-Edit `.env.local` (created by the generator):
+If you passed `--platform` in Step 1, the tenant key is already set in `.env.local`.
+Verify with:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
-NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
-NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
-NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
-NEXT_PUBLIC_MAIN_TENANT_KEY=iblai
+iblai config show
 ```
 
-Replace `iblai` with your tenant key if you have one.
-Register at https://iblai.app for a free tenant.
+Otherwise, edit `.env.local` (created by the generator) or use the CLI:
+
+```bash
+iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
+```
+
+The default API URLs point to `iblai.app` and are set automatically.
+Register at https://iblai.app for your own tenant key.
 
 ## Step 5: Import SDK Styles
 
