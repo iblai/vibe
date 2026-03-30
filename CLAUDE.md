@@ -30,7 +30,8 @@ get_playwright_helper_info("createConfig")    # E2E test utilities
 iblai --version    # Check if already available
 ```
 
-If not available, see `/iblai-install` for installation options (npx or build from source).
+If not available, see the Prerequisites section in `/iblai-auth` for
+installation options (npx or build from source).
 
 ## Getting Started
 
@@ -165,9 +166,7 @@ Invoke with `/` in Claude Code:
 
 | Skill | Description |
 |-------|-------------|
-| `/iblai-install` | Install the iblai CLI (npx or build from source) |
-| `/iblai-new-app` | Scaffold and configure a new iblai app |
-| `/iblai-auth` | Add SSO authentication to a Next.js app |
+| `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-chat` | Add AI chat widget |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |

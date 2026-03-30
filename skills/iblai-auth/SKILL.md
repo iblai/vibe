@@ -13,13 +13,61 @@ a session -- no API tokens to manage.
 
 ## Prerequisites
 
-> If you used `iblai startapp agent`, auth is already set up -- skip this skill.
-> This skill is for adding auth to a vanilla Next.js app or an existing project.
+> **Already have auth?** If you used `iblai startapp agent`, auth is already
+> set up -- skip this skill.
+>
+> **Want a complete app from scratch?** Run:
+> `iblai startapp agent --platform your-tenant`
+> to get a full app with auth, chat, and everything pre-configured.
+>
+> **This skill** is for adding auth to a vanilla Next.js app
+> (`npx create-next-app@latest my-app --typescript --tailwind --eslint --app --src-dir`)
+> or an existing project.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`). If not available, run `/iblai-install`
+- `iblai` CLI available (`iblai --version`)
 - An ibl.ai tenant key (use `iblai` for the free default tenant, or register at https://iblai.app)
+
+### Installing the CLI
+
+If `iblai` is not available:
+
+**npx (when published):**
+
+```bash
+npx @iblai/cli --version
+# Use npx @iblai/cli as prefix: npx @iblai/cli add auth --platform your-tenant
+```
+
+**Build from source -- macOS / Linux** (Python 3.11+, pip, git, make):
+
+```bash
+git clone https://github.com/iblai/iblai-app-cli.git
+cd iblai-app-cli
+make -C .iblai install
+cd -   # back to your project
+```
+
+If `iblai` is not found after install, add `~/.local/bin` to your PATH:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+To make permanent, add the line to `~/.bashrc` or `~/.zshrc`.
+
+**Build from source -- Windows** (Python 3.11+, pip, git):
+
+```powershell
+git clone https://github.com/iblai/iblai-app-cli.git
+cd iblai-app-cli
+pip install -e .iblai/
+cd -
+```
+
+If `iblai` is not found, ensure Python Scripts is in your PATH.
+Typically at `%APPDATA%\Python\Python311\Scripts\`.
 
 ## Step 1: Run the Generator
 
