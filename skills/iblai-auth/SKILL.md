@@ -287,3 +287,5 @@ Other features are built using skills -- ask your AI assistant to use:
 
 For the complete reference implementation with all features:
   https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app
+
+**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

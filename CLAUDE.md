@@ -168,7 +168,7 @@ not the default shadcn black. No manual theme work needed.
 - **Font**: System sans-serif stack
 - **Style**: shadcn/ui new-york variant, neutral base, Lucide icons
 
-See [BRAND.md](https://github.com/iblai/iblai-app-cli/blob/main/BRAND.md) in iblai-app-cli for the complete brand guidelines.
+See [BRAND.md](BRAND.md) for the complete brand guidelines.
 
 ## Skills
 

@@ -26,6 +26,13 @@ automatically.
 > Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
 > It ships with its own styling. Keep the component as-is.
 >
+> When building custom UI around the chat widget, use the ibl.ai brand:
+> - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+> - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+> - **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+> - Use shadcn components for custom UI -- they share the same Tailwind
+>   theme and render in ibl.ai brand colors automatically.
+>
 > You MUST run `/iblai-test` before telling the user the work is ready.
 
 ## Prerequisites
@@ -112,3 +119,5 @@ Run `/iblai-test` before telling the user the work is ready:
 
 For the complete implementation reference:
 https://github.com/iblai/iblai-app-cli/blob/main/skills/components/iblai-add-chat.md
+
+**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
