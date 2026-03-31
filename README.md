@@ -89,21 +89,15 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-test
 ```
 
-Recommended flow for a new or existing app:
-
-1. Ask the user for their **tenant/platform key**.
-2. Run `iblai add mcp` to set up MCP servers for the project.
-3. Run `/iblai-auth` to add authentication with `iblai add auth --platform <tenant-key>`.
-4. Run `/iblai-chat` to add chat with `iblai add chat` and ask the user for their agent ID.
-5. Use `/iblai-profile`, `/iblai-account`, `/iblai-analytics`, and `/iblai-notifications` to add the remaining components with the CLI.
-6. Run `/iblai-test` before presenting the app to the user.
-
 What each skill does:
 
-- `/iblai-auth` -- installs or checks the CLI, asks for the tenant key, then adds auth.
-- `/iblai-chat` -- asks for the agent ID, then adds the chat widget.
-- `/iblai-profile`, `/iblai-account`, `/iblai-analytics`, `/iblai-notifications` -- guide the AI assistant in using the matching `iblai add` command and customizing the generated component.
-- `/iblai-test` -- requires `npm run build`, `npm run test`, and page touch tests to pass before the work is shown to the user.
+- `/iblai-auth` -- adds authentication and configures the app for ibl.ai login.
+- `/iblai-chat` -- adds the AI chat experience and agent integration.
+- `/iblai-profile` -- adds profile UI and profile settings flows.
+- `/iblai-account` -- adds account and organization settings.
+- `/iblai-analytics` -- adds analytics dashboards and reporting views.
+- `/iblai-notifications` -- adds notifications UI and notification center flows.
+- `/iblai-test` -- validates the app before it is presented to the user.
 
 ## What You Get
 
