@@ -104,7 +104,8 @@ dialog that combines profile editing and account settings in one overlay.
 Run `/iblai-test` before telling the user the work is ready:
 
 1. `npm run build` -- must pass with zero errors
-2. Start dev server and touch test:
+2. `npm run test` -- vitest must pass
+3. Start dev server and touch test:
    ```bash
    npm run dev &
    npx playwright screenshot http://localhost:3000/profile /tmp/profile.png
