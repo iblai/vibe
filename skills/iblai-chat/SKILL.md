@@ -82,14 +82,14 @@ and passes them to the MentorAI iframe via `authrelyonhost` mode.
 ```tsx
 import { ChatWidget } from "@/components/iblai/chat-widget";
 
-// Basic -- use the agent ID from .env.local or pass directly
-<ChatWidget mentorId={process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID!} />
+// Full viewport (recommended)
+<ChatWidget mentorId={process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID!} width="100vw" height="100vh" />
 
-// Or hardcode (useful for multi-agent pages)
-<ChatWidget mentorId="3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c" />
+// Custom viewport-relative dimensions
+<ChatWidget mentorId="..." width="80vw" height="90vh" />
 
-// Custom dimensions
-<ChatWidget mentorId="..." width={900} height={700} />
+// Or hardcode an agent ID (useful for multi-agent pages)
+<ChatWidget mentorId="3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c" width="100vw" height="100vh" />
 ```
 
 ## Props
@@ -97,10 +97,10 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `mentorId` | `string` | (required) | Agent/mentor UUID -- ask the user for this |
-| `tenantKey` | `string` | from localStorage | Override tenant key |
+| `tenantKey` | `string` | from `.env` | Override tenant key (defaults to `NEXT_PUBLIC_MAIN_TENANT_KEY`) |
 | `theme` | `"light" \| "dark"` | `"light"` | Color theme |
-| `width` | `number \| string` | `720` | Widget width |
-| `height` | `number \| string` | `600` | Widget height |
+| `width` | `number \| string` | `720` | Widget width -- use `vh`/`vw` strings (e.g., `"100vw"`) |
+| `height` | `number \| string` | `600` | Widget height -- use `vh`/`vw` strings (e.g., `"100vh"`) |
 
 ## Step 4: Verify
 
