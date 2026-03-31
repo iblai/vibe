@@ -51,11 +51,12 @@ the current tenant key against `is_admin`.
 ## Step 2: Use MCP Tools for Customization
 
 ```
-get_component_info("Profile")
 get_component_info("UserProfileDropdown")
 ```
 
 ## `<UserProfileDropdown>` Props
+
+The generated dropdown component. Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -70,16 +71,33 @@ get_component_info("UserProfileDropdown")
 | `onLogout` | `() => void` | Logout callback |
 | `className` | `string?` | Additional CSS class |
 
-## `<Profile>` Props (Full Settings Page)
+## `<UserProfileModal>` Props (Profile + Account Modal)
+
+For a profile editing modal (used by the MentorAI reference app), import
+`UserProfileModal` from `@iblai/iblai-js/web-containers/next`. This is a
+dialog that combines profile editing and account settings in one overlay.
+
+### Required
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `tenant` | `string` | Tenant/org key |
-| `username` | `string` | Username |
-| `isAdmin` | `boolean` | Shows admin badge + settings |
-| `onClose` | `() => void` | Cancel/close callback |
+| `isOpen` | `boolean` | Whether the modal is visible |
+| `onClose` | `() => void` | Close callback |
+| `params` | `{ tenantKey: string; mentorId?: string; isAdmin?: boolean }` | Tenant key, optional mentor ID and admin flag |
+| `authURL` | `string` | Auth service URL (from `config.authUrl()`) |
+
+### Optional
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `tenants` | `Tenant[]` | Full list of user tenants from localStorage |
 | `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
-| `customization` | `object` | `showUsernameField`, `showPlatformName`, `useGravatarPicFallback` |
+| `showPlatformName` | `boolean` | Show tenant name badge |
+| `useGravatarPicFallback` | `boolean` | Use Gravatar when no profile pic |
+| `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
+| `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
+| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant is updated |
+| `onAccountDeleted` | `() => void` | Called after account deletion |
 
 ## Step 3: Verify
 
