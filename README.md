@@ -75,6 +75,36 @@ npx skills add iblai/vibe
 
 This installs 7 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
 
+### Skills Usage Guide
+
+After installing the skills, use them directly in your AI agent with `/` commands:
+
+```text
+/iblai-auth
+/iblai-chat
+/iblai-profile
+/iblai-account
+/iblai-analytics
+/iblai-notifications
+/iblai-test
+```
+
+Recommended flow for a new or existing app:
+
+1. Ask the user for their **tenant/platform key**.
+2. Run `iblai add mcp` to set up MCP servers for the project.
+3. Run `/iblai-auth` to add authentication with `iblai add auth --platform <tenant-key>`.
+4. Run `/iblai-chat` to add chat with `iblai add chat` and ask the user for their agent ID.
+5. Use `/iblai-profile`, `/iblai-account`, `/iblai-analytics`, and `/iblai-notifications` to add the remaining components with the CLI.
+6. Run `/iblai-test` before presenting the app to the user.
+
+What each skill does:
+
+- `/iblai-auth` -- installs or checks the CLI, asks for the tenant key, then adds auth.
+- `/iblai-chat` -- asks for the agent ID, then adds the chat widget.
+- `/iblai-profile`, `/iblai-account`, `/iblai-analytics`, `/iblai-notifications` -- guide the AI assistant in using the matching `iblai add` command and customizing the generated component.
+- `/iblai-test` -- requires `npm run build`, `npm run test`, and page touch tests to pass before the work is shown to the user.
+
 ## What You Get
 
 | Feature | Description |
