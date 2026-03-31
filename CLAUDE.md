@@ -124,27 +124,17 @@ iblai open              # Open localhost:3000 in browser
 
 ## Adding Features
 
-### CLI Commands (auth and chat)
-
 ```bash
+iblai add mcp            # MCP servers + skills (run first)
 iblai add auth           # SSO authentication + Redux store + providers
 iblai add chat           # AI chat widget (<mentor-ai> web component)
+iblai add profile        # User profile dropdown
+iblai add account        # Account/organization settings page
+iblai add analytics      # Analytics dashboard page
+iblai add notifications  # Notification bell
 iblai add builds         # Tauri v2 desktop/mobile shell
-iblai add mcp            # MCP server config + Claude/OpenCode/Cursor skills
 iblai init               # Alias for iblai add mcp
 ```
-
-### AI-Built Components (use skills)
-
-These features are built by the AI assistant using SDK components and the
-detailed code provided in each skill:
-
-| Skill | What It Adds |
-|-------|-------------|
-| `/iblai-profile` | User profile dropdown + settings page |
-| `/iblai-account` | Account/organization settings page |
-| `/iblai-analytics` | Analytics dashboard page |
-| `/iblai-notifications` | Notification bell + center page |
 
 All features require auth to be set up first (`iblai add auth`).
 

@@ -48,32 +48,16 @@ iblai startapp agent --platform acme --anthropic-key sk-ant-... \
 
 ## Available Components
 
-### CLI-Generated (use the CLI)
-
-| Command | What It Adds |
-|---------|-------------|
-| `iblai add auth` | SSO authentication -- see `/iblai-auth` |
-| `iblai add chat` | AI chat widget -- see `/iblai-chat` (requires agent ID from user) |
-
-### AI-Built (you build these using the skill documentation)
-
-| Skill | What It Adds |
-|-------|-------------|
-| `/iblai-profile` | User profile dropdown + settings page |
-| `/iblai-account` | Account/organization settings page |
-| `/iblai-analytics` | Analytics dashboard page |
-| `/iblai-notifications` | Notification bell + center page |
-
-These components are built by the AI assistant using SDK components and the
-detailed code provided in each skill. The MCP tools (`get_component_info`,
-`get_hook_info`) provide props references and usage examples.
-
-### Other CLI Commands
-
-| Command | What It Adds |
-|---------|-------------|
-| `iblai add builds` | Tauri v2 shell -- desktop and mobile builds |
-| `iblai add mcp` | MCP + skills -- @iblai/mcp server config, Claude/OpenCode/Cursor skill files |
+| Command | What It Adds | Skill |
+|---------|-------------|-------|
+| `iblai add mcp` | MCP servers + skills (run first) | |
+| `iblai add auth` | SSO authentication | `/iblai-auth` |
+| `iblai add chat` | AI chat widget (requires agent ID) | `/iblai-chat` |
+| `iblai add profile` | User profile dropdown | `/iblai-profile` |
+| `iblai add account` | Account/organization settings | `/iblai-account` |
+| `iblai add analytics` | Analytics dashboard | `/iblai-analytics` |
+| `iblai add notifications` | Notification bell | `/iblai-notifications` |
+| `iblai add builds` | Tauri v2 desktop/mobile shell | |
 
 ## Component Priority
 
@@ -93,7 +77,8 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 - Next.js App Router project (app/ directory)
 - Node.js 18+
-- `iblai` CLI available for auth and chat (`iblai --version`). See `/iblai-auth` prerequisites for installation.
+- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
+- Run `iblai add mcp` first to set up MCP servers and skills
 - If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
 - If you used `iblai startapp agent`, auth is already set up
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

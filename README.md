@@ -96,9 +96,17 @@ Already have a project? Install the skills and let your AI agent add features:
 npx skills add iblai/vibe
 ```
 
-Then ask your AI agent to use `/iblai-auth` to add authentication, `/iblai-chat`
-for AI chat, `/iblai-profile` for user profiles, and so on. The skills provide
-complete code, SDK imports, and MCP tool references.
+Then use the CLI to add features:
+
+```bash
+iblai add mcp            # MCP servers + skills (run first)
+iblai add auth           # SSO authentication
+iblai add chat           # AI chat with streaming
+iblai add profile        # User profile dropdown
+iblai add account        # Account/organization settings
+iblai add analytics      # Analytics dashboard
+iblai add notifications  # Notification bell
+```
 
 ### CI/CD
 

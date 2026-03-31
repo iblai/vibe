@@ -13,10 +13,7 @@ Experience, Resume, and Security.
 
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
 
-> **AI Assistant:** Build this component directly using the code and MCP tools
-> below. Do NOT use the CLI for this -- you are building this feature yourself
-> using the SDK components documented here.
->
+> **AI Assistant:**
 > Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 > They ship with their own styling. Keep the components as-is.
 > Do NOT implement dark mode unless the user explicitly asks for it.
@@ -33,118 +30,47 @@ Experience, Resume, and Security.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- The following packages are already installed by `iblai add auth`:
-  `@iblai/iblai-js`, `@reduxjs/toolkit`, `react-redux`
+- MCP and skills must be set up: `iblai add mcp`
 
-## Step 1: Use MCP Tools
+## Step 1: Run the Generator
 
-Call these MCP tools for the full props reference:
+```bash
+iblai add profile
+```
+
+## What Was Generated
+
+| File | Purpose |
+|------|---------|
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile link and logout |
+
+The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
+localStorage. Admin status is derived from the `tenants` array by matching
+the current tenant key against `is_admin`.
+
+## Step 2: Use MCP Tools for Customization
 
 ```
 get_component_info("Profile")
 get_component_info("UserProfileDropdown")
 ```
 
-## Step 2: Create Profile Settings Page
+## `<UserProfileDropdown>` Props
 
-Create `app/profile/page.tsx` (or `src/app/profile/page.tsx` if using `src/` layout):
+| Prop | Type | Description |
+|------|------|-------------|
+| `username` | `string` | Username |
+| `tenantKey` | `string` | Tenant/org key |
+| `userIsAdmin` | `boolean` | Shows admin badge + settings |
+| `showProfileTab` | `boolean` | Show profile link |
+| `showAccountTab` | `boolean` | Show account settings link |
+| `showTenantSwitcher` | `boolean` | Show tenant switcher |
+| `showLogoutButton` | `boolean` | Show logout button |
+| `authURL` | `string` | Auth service URL |
+| `onLogout` | `() => void` | Logout callback |
+| `className` | `string?` | Additional CSS class |
 
-```tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Profile } from "@iblai/iblai-js/web-containers";
-import config from "@/lib/iblai/config";
-
-function resolveTenantKey(raw: string | null): string {
-  if (!raw || raw === "[object Object]") return "";
-  try {
-    const p = JSON.parse(raw);
-    if (typeof p === "string") return p;
-    if (p?.key) return p.key;
-  } catch {}
-  return raw;
-}
-
-export default function ProfilePage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [tenantKey, setTenantKey] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? "");
-      }
-    } catch {}
-
-    const stored =
-      localStorage.getItem("current_tenant") ??
-      localStorage.getItem("tenant");
-    const resolved = resolveTenantKey(stored) || config.mainTenantKey();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const tenants = JSON.parse(tenantsRaw);
-        const match = tenants.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !username || !tenantKey) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <p className="text-sm text-gray-400">Loading profile...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen w-screen overflow-auto">
-      <Profile
-        tenant={tenantKey}
-        username={username}
-        isAdmin={isAdmin}
-        onClose={() => router.push("/")}
-        customization={{
-          showUsernameField: false,
-          showPlatformName: true,
-          useGravatarPicFallback: true,
-        }}
-        targetTab="basic"
-      />
-    </div>
-  );
-}
-```
-
-## Step 3: Create Profile Dropdown (Navbar Component)
-
-Create `components/iblai/profile-dropdown.tsx`:
-
-1. Call `get_component_info("UserProfileDropdown")` for the full props reference
-2. Import from `@iblai/iblai-js/web-containers/next`
-3. Read username and tenant from localStorage (same pattern as above)
-
-Place in your navbar:
-
-```tsx
-import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
-
-<ProfileDropdown />
-```
-
-## `<Profile>` Props
+## `<Profile>` Props (Full Settings Page)
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -155,7 +81,7 @@ import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
 | `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
 | `customization` | `object` | `showUsernameField`, `showPlatformName`, `useGravatarPicFallback` |
 
-## Step 4: Verify
+## Step 3: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
@@ -171,6 +97,5 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Admin detection**: Derive from `tenants` array in localStorage
-- **Config import**: Use `@/lib/iblai/config` (generated by `iblai add auth`)
+- **Admin detection**: Derived from `tenants` array in localStorage
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
