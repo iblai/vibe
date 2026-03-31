@@ -123,20 +123,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-**If you have existing providers** (e.g., ThemeProvider, custom contexts):
+**If you have existing providers** (e.g., custom contexts):
 
 ```tsx
 import { IblaiProviders } from "@/providers/iblai-providers";
-import { ThemeProvider } from "next-themes";
+import { MyProvider } from "./my-provider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <IblaiProviders>
-          <ThemeProvider attribute="class" defaultTheme="system">
+          <MyProvider>
             {children}
-          </ThemeProvider>
+          </MyProvider>
         </IblaiProviders>
       </body>
     </html>
@@ -199,7 +199,6 @@ pnpm dev
 | `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
 | `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware` |
 | `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > AuthProvider > TenantProvider |
-| `app/iblai-styles.css` | SDK style imports for Tailwind class scanning |
 
 ## What Was Patched
 
@@ -207,8 +206,7 @@ pnpm dev
   `turbopack: {}` for Next.js 16+, and Tauri stub aliases. Without the dedup,
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
-- **`globals.css`** -- `@import` for SDK base styles + `@source` for Tailwind
-  class generation from SDK components.
+- **`globals.css`** -- SDK base styles import.
 - **`.env.local`** -- API URLs, auth URL, tenant key, WebSocket URL.
 
 ## Advanced: Route Groups

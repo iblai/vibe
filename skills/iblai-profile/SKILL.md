@@ -19,6 +19,7 @@ Experience, Resume, and Security.
 >
 > Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 > They ship with their own styling. Keep the components as-is.
+> Do NOT implement dark mode unless the user explicitly asks for it.
 >
 > When building custom UI around SDK components, use the ibl.ai brand:
 > - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`

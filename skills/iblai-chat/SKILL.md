@@ -25,6 +25,7 @@ automatically.
 >
 > Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
 > It ships with its own styling. Keep the component as-is.
+> Do NOT implement dark mode unless the user explicitly asks for it.
 >
 > When building custom UI around the chat widget, use the ibl.ai brand:
 > - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
@@ -89,9 +90,6 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 
 // Custom dimensions
 <ChatWidget mentorId="..." width={900} height={700} />
-
-// Dark theme
-<ChatWidget mentorId="..." theme="dark" />
 ```
 
 ## Props
