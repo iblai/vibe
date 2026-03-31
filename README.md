@@ -63,7 +63,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). You will be redirected to [iblai.app](https://iblai.app) for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
 
-To get your own branded tenant (custom domain, your logo, your users), register at [iblai.app](https://iblai.app).
+To get your own branded tenant (custom domain, your logo, your users), register at [mentorai.iblai.app](https://mentorai.iblai.app).
 
 ### Install Skills
 
@@ -127,7 +127,7 @@ npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-
 - **Analytics** -- track user activity, conversation metrics, and engagement across your app
 - **Tenant Management** -- each tenant gets its own users, agents, branding, and configuration
 
-A free tier is available. Register at [iblai.app](https://iblai.app) to get your own tenant with custom branding and domain.
+A free tier is available. Register at [mentorai.iblai.app](https://mentorai.iblai.app) to get your own tenant with custom branding and domain.
 
 ## AI-Assisted Development
 
@@ -213,7 +213,7 @@ iblai builds ci-workflow --all  # GitHub Actions for all platforms
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) -- unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
-- [iblai.app](https://iblai.app) -- the backend platform (register for a free tenant)
+- [mentorai.iblai.app](https://mentorai.iblai.app) -- register for a free tenant
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
 - [Skills Reference](https://github.com/iblai/iblai-app-cli#skills) -- documentation for all bundled Claude Code skills
 

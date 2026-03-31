@@ -17,10 +17,10 @@ a session -- no API tokens to manage.
 >
 > Check `.env.local` first -- if `NEXT_PUBLIC_MAIN_TENANT_KEY` is already set
 > to a real value, use it. Treat these as placeholders that require asking:
-> `your-tenant`, `your-platform`, `your-tenant-key`, `iblai`, `test-tenant`,
+> `your-tenant`, `your-platform`, `your-tenant-key`, `test-tenant`,
 > `main`, or empty string.
 >
-> If the user does not have a tenant key, direct them to https://iblai.app
+> If the user does not have a tenant key, direct them to https://mentorai.iblai.app
 > to register for a free account.
 >
 > Pass the key to the generator:
@@ -43,7 +43,7 @@ a session -- no API tokens to manage.
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`)
-- An ibl.ai tenant key (register at https://iblai.app)
+- An ibl.ai tenant key (register at https://mentorai.iblai.app)
 
 ### Installing the CLI
 
@@ -180,7 +180,7 @@ iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
 ```
 
 The default API URLs point to `iblai.app` and are set automatically.
-Register at https://iblai.app for your own tenant key.
+Register at https://mentorai.iblai.app for your own tenant key.
 
 ## Step 5: Import SDK Styles
 

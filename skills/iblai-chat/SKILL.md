@@ -15,8 +15,8 @@ automatically.
 > their **agent/mentor ID** (a UUID like `3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c`).
 > This is required for the chat widget to connect to an AI agent.
 >
-> If the user does not have an agent ID, direct them to https://iblai.app to
-> create an AI agent. They can find the agent ID in the agent settings page.
+> If the user does not have an agent ID, direct them to https://mentorai.iblai.app
+> to create an AI agent. They can find the agent ID in the agent settings page.
 >
 > Once you have the ID, set it in `.env.local`:
 > ```
@@ -40,7 +40,7 @@ automatically.
 
 - Auth must be set up first (`/iblai-auth`)
 - `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
-- An agent/mentor ID from the user's ibl.ai platform (a UUID -- get one at https://iblai.app)
+- An agent/mentor ID from the user's ibl.ai platform (a UUID -- get one at https://mentorai.iblai.app)
 
 ## Step 1: Get Agent ID from User
 

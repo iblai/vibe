@@ -103,11 +103,11 @@ NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant-key
 NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 ```
 
-Register at https://iblai.app for your own tenant. Replace with your tenant key.
+Register at https://mentorai.iblai.app for your own tenant. Replace with your tenant key.
 
 > **AI Assistant:** Before running `iblai add auth`, you MUST ask the user for
 > their platform/tenant key. If `NEXT_PUBLIC_MAIN_TENANT_KEY` is set to a
-> placeholder (`your-tenant`, `your-platform`, `your-tenant-key`, `iblai`,
+> placeholder (`your-tenant`, `your-platform`, `your-tenant-key`,
 > `test-tenant`, `main`, or empty), ask the user for their real key.
 >
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
