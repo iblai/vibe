@@ -48,8 +48,53 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 4. **Deploy** -- push to Vercel, package with Tauri, or run in Docker
 
 
+Get a complete app with auth, AI chat, profiles, and more in one command:
+
+```bash
+iblai startapp agent
+cd <app-name> && pnpm install
+cp .env.example .env.local
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). You will be redirected to [iblai.app](https://iblai.app) for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
+
+To get your own branded tenant (custom domain, your logo, your users), register at [mentorai.iblai.app](https://mentorai.iblai.app).
+
+### Install Skills
+
+Add ibl.ai skills to any project with one command:
+
+```bash
+npx skills add iblai/vibe
+```
+
 
 This installs 7 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
+
+### Skills Usage Guide
+
+After installing the skills, use them directly in your AI agent with `/` commands:
+
+```text
+/iblai-auth
+/iblai-chat
+/iblai-profile
+/iblai-account
+/iblai-analytics
+/iblai-notifications
+/iblai-test
+```
+
+What each skill does:
+
+- `/iblai-auth` -- adds authentication and configures the app for ibl.ai login.
+- `/iblai-chat` -- adds the AI chat experience and agent integration.
+- `/iblai-profile` -- adds profile UI and profile settings flows.
+- `/iblai-account` -- adds account and organization settings.
+- `/iblai-analytics` -- adds analytics dashboards and reporting views.
+- `/iblai-notifications` -- adds notifications UI and notification center flows.
+- `/iblai-test` -- validates the app before it is presented to the user.
 
 ## What You Get
 
@@ -72,9 +117,17 @@ Already have a project? Install the skills and let your AI agent add features:
 npx skills add iblai/vibe
 ```
 
-Then ask your AI agent to use `/iblai-auth` to add authentication, `/iblai-chat`
-for AI chat, `/iblai-profile` for user profiles, and so on. The skills provide
-complete code, SDK imports, and MCP tool references.
+Then use the CLI to add features:
+
+```bash
+iblai add mcp            # MCP servers + skills (run first)
+iblai add auth           # SSO authentication
+iblai add chat           # AI chat with streaming
+iblai add profile        # User profile dropdown
+iblai add account        # Account/organization settings
+iblai add analytics      # Analytics dashboard
+iblai add notifications  # Notification bell
+```
 
 ### CI/CD
 
@@ -95,7 +148,7 @@ npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-
 - **Analytics** -- track user activity, conversation metrics, and engagement across your app
 - **Tenant Management** -- each tenant gets its own users, agents, branding, and configuration
 
-A free tier is available. Register at [iblai.app](https://iblai.app) to get your own tenant with custom branding and domain.
+A free tier is available. Register at [mentorai.iblai.app](https://mentorai.iblai.app) to get your own tenant with custom branding and domain.
 
 ## AI-Assisted Development
 
@@ -181,7 +234,7 @@ iblai builds ci-workflow --all  # GitHub Actions for all platforms
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) -- unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
-- [iblai.app](https://iblai.app) -- the backend platform (register for a free tenant)
+- [mentorai.iblai.app](https://mentorai.iblai.app) -- register for a free tenant
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
 - [Skills Reference](https://github.com/iblai/iblai-app-cli#skills) -- documentation for all bundled Claude Code skills
 

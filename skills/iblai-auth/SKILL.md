@@ -11,13 +11,30 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
+> **AI Assistant:** Before running `iblai add auth`, you MUST ask the user for
+> their **platform/tenant key**. This identifies their ibl.ai organization
+> (e.g., `acme`, `mycompany`).
+>
+> Check `.env.local` first -- if `NEXT_PUBLIC_MAIN_TENANT_KEY` is already set
+> to a real value, use it. Treat these as placeholders that require asking:
+> `your-tenant`, `your-platform`, `your-tenant-key`, `test-tenant`,
+> `main`, or empty string.
+>
+> If the user does not have a tenant key, direct them to https://mentorai.iblai.app
+> to register for a free account.
+>
+> Pass the key to the generator:
+> ```
+> iblai add auth --platform <tenant-key-from-user>
+> ```
+
 ## Prerequisites
 
 > **Already have auth?** If you used `iblai startapp agent`, auth is already
 > set up -- skip this skill.
 >
 > **Want a complete app from scratch?** Run:
-> `iblai startapp agent --platform your-tenant`
+> `iblai startapp agent --platform <your-tenant-key>`
 > to get a full app with auth, chat, and everything pre-configured.
 >
 > **This skill** is for adding auth to a vanilla Next.js app
@@ -26,7 +43,7 @@ a session -- no API tokens to manage.
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`)
-- An ibl.ai tenant key (use `iblai` for the free default tenant, or register at https://iblai.app)
+- An ibl.ai tenant key (register at https://mentorai.iblai.app)
 
 ### Installing the CLI
 
@@ -73,18 +90,17 @@ Typically at `%APPDATA%\Python\Python311\Scripts\`.
 ```bash
 cd your-nextjs-app
 
-# Pass your platform key directly
-iblai add auth --platform your-tenant
+# Pass the user's platform key directly
+iblai add auth --platform <tenant-key-from-user>
 
 # Or interactively (will prompt for platform key)
 iblai add auth
 
 # Or via npx (when published)
-npx @iblai/cli add auth --platform your-tenant
+npx @iblai/cli add auth --platform <tenant-key-from-user>
 ```
 
 The `--platform` argument sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
-Use `iblai` as the default free tenant for development.
 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
@@ -123,20 +139,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-**If you have existing providers** (e.g., ThemeProvider, custom contexts):
+**If you have existing providers** (e.g., custom contexts):
 
 ```tsx
 import { IblaiProviders } from "@/providers/iblai-providers";
-import { ThemeProvider } from "next-themes";
+import { MyProvider } from "./my-provider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         <IblaiProviders>
-          <ThemeProvider attribute="class" defaultTheme="system">
+          <MyProvider>
             {children}
-          </ThemeProvider>
+          </MyProvider>
         </IblaiProviders>
       </body>
     </html>
@@ -164,7 +180,7 @@ iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
 ```
 
 The default API URLs point to `iblai.app` and are set automatically.
-Register at https://iblai.app for your own tenant key.
+Register at https://mentorai.iblai.app for your own tenant key.
 
 ## Step 5: Import SDK Styles
 
@@ -199,7 +215,6 @@ pnpm dev
 | `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
 | `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware` |
 | `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > AuthProvider > TenantProvider |
-| `app/iblai-styles.css` | SDK style imports for Tailwind class scanning |
 
 ## What Was Patched
 
@@ -207,8 +222,7 @@ pnpm dev
   `turbopack: {}` for Next.js 16+, and Tauri stub aliases. Without the dedup,
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
-- **`globals.css`** -- `@import` for SDK base styles + `@source` for Tailwind
-  class generation from SDK components.
+- **`globals.css`** -- SDK base styles import.
 - **`.env.local`** -- API URLs, auth URL, tenant key, WebSocket URL.
 
 ## Advanced: Route Groups

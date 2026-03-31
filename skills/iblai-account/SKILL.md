@@ -12,12 +12,10 @@ User Management, Integrations, Advanced settings, and Billing.
 
 ![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-account/account-page.png)
 
-> **AI Assistant:** Build this component directly using the code and MCP tools
-> below. Do NOT use the CLI for this -- you are building this feature yourself
-> using the SDK components documented here.
->
+> **AI Assistant:**
 > Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 > They ship with their own styling. Keep the components as-is.
+> Do NOT implement dark mode unless the user explicitly asks for it.
 >
 > When building custom UI around SDK components, use the ibl.ai brand:
 > - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
@@ -31,115 +29,31 @@ User Management, Integrations, Advanced settings, and Billing.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- The following packages are already installed by `iblai add auth`:
-  `@iblai/iblai-js`, `@reduxjs/toolkit`, `react-redux`
+- MCP and skills must be set up: `iblai add mcp`
 
-## Step 1: Use MCP Tools
+## Step 1: Run the Generator
+
+```bash
+iblai add account
+```
+
+## What Was Generated
+
+| File | Purpose |
+|------|---------|
+| `app/(app)/account/page.tsx` | Account/organization settings page with tabs |
+
+The page reads `userData`, `tenant`/`current_tenant`, and `tenants` from
+localStorage. Admin status is derived from the `tenants` array.
+
+> **Note:** The `Account` component uses `next/image` internally -- it is
+> imported from `@iblai/iblai-js/web-containers/next`.
+
+## Step 2: Use MCP Tools for Customization
 
 ```
 get_component_info("Account")
 ```
-
-## Step 2: Create Account Settings Page
-
-Create `app/account/page.tsx` (or `src/app/account/page.tsx` if using `src/` layout):
-
-> **Note:** The `Account` component uses `next/image` internally -- always
-> import from `@iblai/iblai-js/web-containers/next`, not from
-> `@iblai/iblai-js/web-containers`.
-
-```tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Account } from "@iblai/iblai-js/web-containers/next";
-import config from "@/lib/iblai/config";
-
-function resolveTenantKey(raw: string | null): string {
-  if (!raw || raw === "[object Object]") return "";
-  try {
-    const p = JSON.parse(raw);
-    if (typeof p === "string") return p;
-    if (p?.key) return p.key;
-  } catch {}
-  return raw;
-}
-
-export default function AccountPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [tenantKey, setTenantKey] = useState("");
-  const [tenants, setTenants] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? "");
-      }
-    } catch {}
-
-    const stored =
-      localStorage.getItem("current_tenant") ??
-      localStorage.getItem("tenant");
-    const resolved = resolveTenantKey(stored) || config.mainTenantKey();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const parsed = JSON.parse(tenantsRaw);
-        setTenants(parsed);
-        const match = parsed.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !username || !tenantKey) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <p className="text-sm text-gray-400">Loading account settings...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen w-screen overflow-auto">
-      <Account
-        tenant={tenantKey}
-        tenants={tenants}
-        username={username}
-        isAdmin={isAdmin}
-        authURL={config.authUrl()}
-        currentPlatformBaseDomain={config.platformBaseDomain()}
-        currentSPA="agent"
-        onInviteClick={() => {/* open invite dialog if needed */}}
-        onClose={() => router.push("/")}
-        targetTab="organization"
-        showPlatformName={true}
-        useGravatarPicFallback={true}
-      />
-    </div>
-  );
-}
-```
-
-## Tabs
-
-| Tab | Requires |
-|-----|---------|
-| **Organization** | `isAdmin === true` -- edit org name, logos, support email |
-| **Management** | RBAC permissions -- manage users, groups, roles |
-| **Integrations** | `isAdmin === true` -- LLMs, API keys, data sources |
-| **Advanced** | `isAdmin === true` -- SMTP, custom domains, auth SPA config |
-| **Billing** | `billingURL` or `topUpURL` prop set -- Stripe billing/top-up |
 
 ## `<Account>` Props
 
@@ -152,7 +66,7 @@ export default function AccountPage() {
 | `username` | `string` | Username |
 | `onInviteClick` | `() => void` | Called when "Invite user" is clicked |
 | `onClose` | `() => void` | Cancel/close callback |
-| `authURL` | `string` | Auth service URL (from `config.authUrl()`) |
+| `authURL` | `string` | Auth service URL |
 | `isAdmin` | `boolean` | Controls tab visibility -- most tabs require `true` |
 
 ### Optional
@@ -168,19 +82,23 @@ export default function AccountPage() {
 | `showPlatformName` | `boolean` | Show tenant name badge in sidebar |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no org logo |
 
-## How `isAdmin` Is Determined
+## Tabs
 
-```typescript
-const match = tenants.find((t) => t.key === tenantKey);
-const isAdmin = !!match?.is_admin;
-```
+| Tab | Requires |
+|-----|---------|
+| **Organization** | `isAdmin === true` |
+| **Management** | RBAC permissions |
+| **Integrations** | `isAdmin === true` |
+| **Advanced** | `isAdmin === true` |
+| **Billing** | `billingURL` or `topUpURL` prop set |
 
 ## Step 3: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
 1. `npm run build` -- must pass with zero errors
-2. Start dev server and touch test:
+2. `npm run test` -- vitest must pass
+3. Start dev server and touch test:
    ```bash
    npm run dev &
    npx playwright screenshot http://localhost:3000/account /tmp/account.png
@@ -192,5 +110,4 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Config import**: Use `@/lib/iblai/config` (generated by `iblai add auth`)
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

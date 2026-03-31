@@ -22,7 +22,22 @@ npm run build    # or: pnpm build
 Fix all errors. A failed build means broken code -- do not proceed until
 the build passes cleanly.
 
-## Step 2: Touch Test Pages
+## Step 2: Run Unit Tests
+
+```bash
+npm run test    # or: pnpm test
+```
+
+This runs vitest to verify:
+- All `@source` paths in CSS files resolve to existing directories
+- The `lib/iblai/sdk` symlink is valid and targets the SDK dist
+- `lib/iblai/sdk/web-containers/source` contains compiled JS for
+  Tailwind class generation
+
+If tests fail, the SDK symlink may be broken. Run `ls -la lib/iblai/sdk`
+to check. If it's missing, run `iblai add auth` again to recreate it.
+
+## Step 3: Touch Test Pages
 
 ### If this is an agent app (from `iblai startapp agent`)
 
@@ -92,9 +107,10 @@ Kill the dev server when done.
 ## Summary
 
 1. `npm run build` (or `pnpm build`) -- must pass with zero errors
-2. Touch test every page -- `pnpm test:e2e` for agent apps, or
+2. `npm run test` (or `pnpm test`) -- vitest must pass
+3. Touch test every page -- `pnpm test:e2e` for agent apps, or
    `npx playwright screenshot` for vanilla apps
-3. Fix any failures before showing work to the user
+4. Fix any failures before showing work to the user
 
 ## Full E2E Reference
 

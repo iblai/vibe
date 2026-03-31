@@ -15,8 +15,8 @@ automatically.
 > their **agent/mentor ID** (a UUID like `3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c`).
 > This is required for the chat widget to connect to an AI agent.
 >
-> If the user does not have an agent ID, direct them to https://iblai.app to
-> create an AI agent. They can find the agent ID in the agent settings page.
+> If the user does not have an agent ID, direct them to https://mentorai.iblai.app
+> to create an AI agent. They can find the agent ID in the agent settings page.
 >
 > Once you have the ID, set it in `.env.local`:
 > ```
@@ -25,6 +25,7 @@ automatically.
 >
 > Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
 > It ships with its own styling. Keep the component as-is.
+> Do NOT implement dark mode unless the user explicitly asks for it.
 >
 > When building custom UI around the chat widget, use the ibl.ai brand:
 > - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
@@ -39,7 +40,7 @@ automatically.
 
 - Auth must be set up first (`/iblai-auth`)
 - `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
-- An agent/mentor ID from the user's ibl.ai platform (a UUID -- get one at https://iblai.app)
+- An agent/mentor ID from the user's ibl.ai platform (a UUID -- get one at https://mentorai.iblai.app)
 
 ## Step 1: Get Agent ID from User
 
@@ -81,17 +82,14 @@ and passes them to the MentorAI iframe via `authrelyonhost` mode.
 ```tsx
 import { ChatWidget } from "@/components/iblai/chat-widget";
 
-// Basic -- use the agent ID from .env.local or pass directly
-<ChatWidget mentorId={process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID!} />
+// Full viewport (recommended)
+<ChatWidget mentorId={process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID!} width="100vw" height="100vh" />
 
-// Or hardcode (useful for multi-agent pages)
-<ChatWidget mentorId="3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c" />
+// Custom viewport-relative dimensions
+<ChatWidget mentorId="..." width="80vw" height="90vh" />
 
-// Custom dimensions
-<ChatWidget mentorId="..." width={900} height={700} />
-
-// Dark theme
-<ChatWidget mentorId="..." theme="dark" />
+// Or hardcode an agent ID (useful for multi-agent pages)
+<ChatWidget mentorId="3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c" width="100vw" height="100vh" />
 ```
 
 ## Props
@@ -99,17 +97,18 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `mentorId` | `string` | (required) | Agent/mentor UUID -- ask the user for this |
-| `tenantKey` | `string` | from localStorage | Override tenant key |
+| `tenantKey` | `string` | from `.env` | Override tenant key (defaults to `NEXT_PUBLIC_MAIN_TENANT_KEY`) |
 | `theme` | `"light" \| "dark"` | `"light"` | Color theme |
-| `width` | `number \| string` | `720` | Widget width |
-| `height` | `number \| string` | `600` | Widget height |
+| `width` | `number \| string` | `720` | Widget width -- use `vh`/`vw` strings (e.g., `"100vw"`) |
+| `height` | `number \| string` | `600` | Widget height -- use `vh`/`vw` strings (e.g., `"100vh"`) |
 
 ## Step 4: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
 1. `npm run build` -- must pass with zero errors
-2. Start dev server and touch test:
+2. `npm run test` -- vitest must pass
+3. Start dev server and touch test:
    ```bash
    npm run dev &
    npx playwright screenshot http://localhost:3000 /tmp/home.png

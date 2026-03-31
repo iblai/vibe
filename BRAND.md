@@ -176,24 +176,6 @@ The SDK provides utility classes for common brand patterns:
 
 ---
 
-## Dark Mode
-
-The SDK supports dark mode via the `.dark-mode` CSS class. Dark mode
-overrides the CSS custom properties with a dark palette:
-
-| Token | Light | Dark |
-|-------|-------|------|
-| Background | `#ffffff` | `#1a1a2e` |
-| Surface | `#fafbfc` | `#16213e` |
-| Card BG | `#ffffff` | `#1e2a4a` |
-| Border | `#e5e7eb` | `#2a3a5c` |
-| Text Primary | `#616a76` | `#e0e0e0` |
-| Text Secondary | `#717985` | `#b0b0b0` |
-
-Toggle dark mode by adding/removing the `.dark-mode` class on the root element.
-
----
-
 ## Using with shadcn Components
 
 When adding shadcn UI components, the brand values above are already mapped
