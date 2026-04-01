@@ -310,7 +310,7 @@ Other features are built using skills -- ask your AI assistant to use:
 | `/iblai-profile` | User profile dropdown + settings page |
 | `/iblai-account` | Account/organization settings page |
 | `/iblai-analytics` | Analytics dashboard page |
-| `/iblai-notifications` | Notification bell + center page |
+| `/iblai-notification` | Notification bell + center page |
 
 For the complete reference implementation with all features:
   https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app

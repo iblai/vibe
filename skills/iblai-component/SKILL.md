@@ -1,11 +1,11 @@
 ---
-name: iblai-components
+name: iblai-component
 description: Add an iblai component or feature to your app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-components
+# /iblai-component
 
 Overview of all ibl.ai components and how to create a new app.
 
@@ -56,7 +56,7 @@ iblai startapp agent --platform acme --anthropic-key sk-ant-... \
 | `iblai add profile` | User profile dropdown | `/iblai-profile` |
 | `iblai add account` | Account/organization settings | `/iblai-account` |
 | `iblai add analytics` | Analytics dashboard | `/iblai-analytics` |
-| `iblai add notifications` | Notification bell | `/iblai-notifications` |
+| `iblai add notifications` | Notification bell | `/iblai-notification` |
 | | User invitation dialogs | `/iblai-invite` |
 | | Workflow builder components | `/iblai-workflow` |
 | `iblai add builds` | Tauri v2 desktop/mobile shell | |
