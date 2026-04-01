@@ -15,6 +15,8 @@ Ship AI-powered apps fast. Backend included.
 
 </div>
 
+> **Note:** This toolkit runs against the hosted [iblai.app](https://iblai.app) environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
+
 ---
 ## Quick Start
 ### Install Skills
