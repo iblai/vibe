@@ -11,6 +11,9 @@ Add an AI chat widget powered by ibl.ai mentors. Uses the `<mentor-ai>` web
 component with streaming, session management, and authentication handled
 automatically.
 
+![Chat Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-chat/chat-page.png)
+
+
 > **AI Assistant:** Before running `iblai add chat`, you MUST ask the user for
 > their **agent/mentor ID** (a UUID like `3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c`).
 > This is required for the chat widget to connect to an AI agent.
