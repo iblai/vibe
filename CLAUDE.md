@@ -61,9 +61,9 @@ iblai add auth           # SSO authentication
 iblai add chat           # AI chat widget
 ```
 
-Other features (profile, account, analytics, notifications) are built using
-skills -- see `/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
-`/iblai-notifications`.
+Other features (profile, account, analytics, notifications, invitations,
+workflows) are built using skills -- see `/iblai-profile`, `/iblai-account`,
+`/iblai-analytics`, `/iblai-notifications`, `/iblai-invite`, `/iblai-workflow`.
 
 ## Architecture
 
@@ -180,6 +180,8 @@ Invoke with `/` in Claude Code:
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notifications` | Add notification bell + center page |
+| `/iblai-invite` | Add user invitation dialogs |
+| `/iblai-workflow` | Add workflow builder components |
 | `/iblai-components` | Overview of all available components |
 | `/iblai-test` | Test your app before showing work to the user |
 
