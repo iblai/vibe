@@ -1,16 +1,16 @@
 ---
-name: iblai-notifications
+name: iblai-notification
 description: Add notification bell and center page to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-notifications
+# /iblai-notification
 
 Add notification features -- a compact bell icon with unread badge for your
 navbar and a full notification center page with Inbox and Alerts tabs.
 
-![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-notifications/notifications-page.png)
+![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-notification/notifications-page.png)
 
 > **AI Assistant:**
 > Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
