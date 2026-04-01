@@ -82,7 +82,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-profile
 /iblai-account
 /iblai-analytics
-/iblai-notifications
+/iblai-notification
 /iblai-invite
 /iblai-workflow
 /iblai-test
@@ -95,7 +95,7 @@ What each skill does:
 - `/iblai-profile` -- adds profile UI and profile settings flows.
 - `/iblai-account` -- adds account and organization settings.
 - `/iblai-analytics` -- adds analytics dashboards and reporting views.
-- `/iblai-notifications` -- adds notifications UI and notification center flows.
+- `/iblai-notification` -- adds notifications UI and notification center flows.
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-test` -- validates the app before it is presented to the user.
@@ -194,10 +194,10 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
-| `/iblai-notifications` | Add notification bell + center page |
+| `/iblai-notification` | Add notification bell + center page |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
-| `/iblai-components` | Overview of all components + app creation paths |
+| `/iblai-component` | Overview of all components + app creation paths |
 | `/iblai-test` | Test your app before showing work to the user |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
