@@ -24,12 +24,12 @@ Add ibl.ai skills to any project with one command:
 npx skills add iblai/vibe
 ```
 ### ibl.ai Components for Next.js Apps
-Ask Claude to add ibl.ai Chat, Profile, Account, Notifications or Analytics component to your Next.js project. 
+Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
 ## What is Vibe
 
-A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notifications, and analytics are already wired up. No API tokens to manage.
+A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
 
 **Why it matters:**
 
@@ -82,7 +82,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-profile
 /iblai-account
 /iblai-analytics
-/iblai-notifications
+/iblai-notification
 /iblai-invite
 /iblai-workflow
 /iblai-test
@@ -95,7 +95,7 @@ What each skill does:
 - `/iblai-profile` -- adds profile UI and profile settings flows.
 - `/iblai-account` -- adds account and organization settings.
 - `/iblai-analytics` -- adds analytics dashboards and reporting views.
-- `/iblai-notifications` -- adds notifications UI and notification center flows.
+- `/iblai-notification` -- adds notification UI and notification center flows.
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-test` -- validates the app before it is presented to the user.
@@ -109,7 +109,7 @@ What each skill does:
 | **User Profile** | Editable profile page with avatar, bio, and preferences |
 | **Account Settings** | Password changes, notification preferences, connected services |
 | **Analytics Dashboard** | Usage metrics, conversation stats, and user activity |
-| **Notifications** | Real-time notification system with read/unread state |
+| **Notification** | Real-time notification system with read/unread state |
 | **Desktop & Mobile** | Tauri v2 integration for macOS, Windows, Linux, iOS, and Android |
 | **AI Development Skills** | Claude Code skills that walk you through adding and customizing every feature |
 
@@ -130,7 +130,7 @@ iblai add chat           # AI chat with streaming
 iblai add profile        # User profile dropdown
 iblai add account        # Account/organization settings
 iblai add analytics      # Analytics dashboard
-iblai add notifications  # Notification bell
+iblai add notification  # Notification bell
 ```
 
 ### CI/CD
@@ -194,7 +194,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
-| `/iblai-notifications` | Add notification bell + center page |
+| `/iblai-notification` | Add notification bell + center page |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-components` | Overview of all components + app creation paths |
