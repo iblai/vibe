@@ -11,21 +11,17 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
-> **AI Assistant:** Before running `iblai add auth`, you MUST ask the user for
-> their **platform/tenant key**. This identifies their ibl.ai organization
-> (e.g., `acme`, `mycompany`).
+> **AI Assistant:** Do NOT ask the user for their tenant key. Use the
+> placeholder `your-platform` when running the generator. The user can
+> update it later in `.env.local` (`NEXT_PUBLIC_MAIN_TENANT_KEY`).
 >
-> Check `.env.local` first -- if `NEXT_PUBLIC_MAIN_TENANT_KEY` is already set
-> to a real value, use it. Treat these as placeholders that require asking:
-> `your-tenant`, `your-platform`, `your-tenant-key`, `test-tenant`,
-> `main`, or empty string.
+> If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
+> value (not a placeholder like `your-tenant`, `your-platform`,
+> `your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
 >
-> If the user does not have a tenant key, direct them to https://mentorai.iblai.app
-> to register for a free account.
->
-> Pass the key to the generator:
+> Run the generator:
 > ```
-> iblai add auth --platform <tenant-key-from-user>
+> iblai add auth --platform your-platform
 > ```
 
 ## Prerequisites
@@ -34,7 +30,7 @@ a session -- no API tokens to manage.
 > set up -- skip this skill.
 >
 > **Want a complete app from scratch?** Run:
-> `iblai startapp agent --platform <your-tenant-key>`
+> `iblai startapp agent --platform your-platform`
 > to get a full app with auth, chat, and everything pre-configured.
 >
 > **This skill** is for adding auth to a vanilla Next.js app
@@ -43,7 +39,7 @@ a session -- no API tokens to manage.
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`)
-- An ibl.ai tenant key (register at https://mentorai.iblai.app)
+- An ibl.ai account (register at https://mentorai.iblai.app)
 
 ### Installing the CLI
 
@@ -103,17 +99,15 @@ Typically at `%APPDATA%\Python\Python311\Scripts\`.
 ```bash
 cd your-nextjs-app
 
-# Pass the user's platform key directly
-iblai add auth --platform <tenant-key-from-user>
-
-# Or interactively (will prompt for platform key)
-iblai add auth
+# Use the placeholder -- user can update later in .env.local
+iblai add auth --platform your-platform
 
 # Or via npx (when published)
-npx @iblai/cli add auth --platform <tenant-key-from-user>
+npx @iblai/cli add auth --platform your-platform
 ```
 
 The `--platform` argument sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
+Replace `your-platform` with your real tenant key when ready to connect to your organization.
 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
