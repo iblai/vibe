@@ -99,19 +99,18 @@ NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
 NEXT_PUBLIC_AUTH_URL=https://login.iblai.app
 NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app
 NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app
-NEXT_PUBLIC_MAIN_TENANT_KEY=your-tenant-key
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-platform
 NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 ```
 
-Register at https://mentorai.iblai.app for your own tenant. Replace with your tenant key.
+Register at https://mentorai.iblai.app for your own tenant key and agent ID.
 
-> **AI Assistant:** Before running `iblai add auth`, you MUST ask the user for
-> their platform/tenant key. If `NEXT_PUBLIC_MAIN_TENANT_KEY` is set to a
-> placeholder (`your-tenant`, `your-platform`, `your-tenant-key`,
-> `test-tenant`, `main`, or empty), ask the user for their real key.
+> **AI Assistant:** Do NOT ask the user for their tenant key. Use the
+> placeholder `your-platform` when running `iblai add auth`. The user can
+> update `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local` later.
 >
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
-> agent/mentor ID (a UUID). Do not use placeholder values.
+> agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
 
 ## Commands
 

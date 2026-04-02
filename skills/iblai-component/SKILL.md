@@ -18,7 +18,7 @@ Start with a standard Next.js app and add features as needed:
 ```bash
 npx create-next-app@latest my-app --yes
 cd my-app
-iblai add auth --platform <your-tenant-key>
+iblai add auth --platform your-platform
 iblai add chat
 npm run dev
 ```
@@ -28,7 +28,7 @@ npm run dev
 Scaffold a complete app with auth, chat, and everything pre-configured:
 
 ```bash
-iblai startapp agent --platform <your-tenant-key>
+iblai startapp agent --platform your-platform
 cd <app-name> && pnpm install
 cp .env.example .env.local && pnpm dev
 ```
