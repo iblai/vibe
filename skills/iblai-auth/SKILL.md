@@ -288,6 +288,117 @@ Check that `.env.local` has `NEXT_PUBLIC_MAIN_TENANT_KEY` set. Without it,
 the tenant resolution falls back to custom-domain detection which fails on
 localhost, leaving the app in a broken state.
 
+## Step 7: Customize Auth Interface (Recommended)
+
+> **AI Assistant:** After auth is verified working, ask the user:
+> "Would you like to customize your login page? (Recommended — you can set your
+> brand title, logos, carousel images, and footer text.)"
+>
+> If the user says yes, ask the following questions **sequentially** (do not
+> batch them — ask one at a time so the user can think through each):
+>
+> 1. **Title** — "What title should appear on the login page?" (e.g., "Smart Buildings Academy")
+> 2. **Favicon** — "Provide a path or URL to your favicon image" (file path or URL)
+> 3. **Display logo** — "Provide a path or URL to your main logo" (shown on the login form)
+> 4. **Side panel logo** — "Provide a path or URL to the side panel logo" (shown on the carousel side)
+> 5. **Display images** — "Provide paths or URLs for carousel images (1-5 images)" (shown on the login side panel)
+> 6. **Display title** — "What headline text for the side panel?" (e.g., "Train Your Workforce. Elevate Performance")
+> 7. **Display description** — "What description text below the headline?" (e.g., "Training built for scale, consistency, and real-world results.")
+> 8. **Footer credit** — "What footer text? Use {{logo}} as placeholder for the ibl.ai logo" (default: "Powered by {{logo}}")
+> 9. **Terms of use URL** — "URL to your terms of use page" (optional, press Enter to skip)
+> 10. **Privacy policy URL** — "URL to your privacy policy page" (optional, press Enter to skip)
+> 11. **Password-only login** — "Restrict login to password only (no SSO/social)?" (true/false, default: false)
+>
+> After collecting answers, you need:
+> - The user's **platform key** (from `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`)
+> - The user's **API key** (from `IBLAI_API_KEY` in `.env.local`, or ask: "Provide your ibl.ai API key for the upload")
+>
+> **All API requests use this header:**
+> ```
+> Authorization: Api-Token <iblai-api-key>
+> ```
+>
+> ### Upload images first
+>
+> For each image the user provided as a **local file path**, upload it via:
+>
+> ```bash
+> curl -X POST "https://api.iblai.app/dm/api/core/platforms/{platform}/public-image-assets/" \
+>   -H "Authorization: Api-Token {api-key}" \
+>   -F "image=@{file_path}" \
+>   -F "category={category}"
+> ```
+>
+> Categories for each image type:
+> | Image | Category |
+> |-------|----------|
+> | Favicon | `auth_spa_favicon` |
+> | Display logo | `auth_spa_logo` |
+> | Side panel logo | `auth_spa_slide_panel_logo` |
+> | Display images (each) | `auth_spa_display_image` |
+>
+> The POST response returns a JSON object. Extract the `file` field — that is
+> the URL to use in the metadata payload.
+>
+> If the user provided a **URL** (not a local file), use it directly in the
+> metadata payload without uploading.
+>
+> ### PUT the metadata
+>
+> After all images are uploaded, assemble the payload and PUT to:
+>
+> ```
+> PUT https://api.iblai.app/dm/api/core/orgs/{platform}/metadata/
+> Authorization: Api-Token {api-key}
+> Content-Type: application/json
+> ```
+>
+> The payload has two identical keys — `auth_web_skillsai` and
+> `auth_web_mentorai` — both containing the same configuration:
+>
+> ```json
+> {
+>   "auth_web_skillsai": {
+>     "title": "User's Title",
+>     "favicon": "https://...uploaded-or-provided-url...",
+>     "display_logo": "https://...uploaded-or-provided-url...",
+>     "footer_credit": "Powered by {{logo}}",
+>     "display_images": [
+>       { "alt": "", "image": "https://...url..." },
+>       { "alt": "", "image": "https://...url..." }
+>     ],
+>     "terms_of_use_url": "https://example.com/terms",
+>     "display_title_info": "Headline text",
+>     "privacy_policy_url": "https://example.com/privacy",
+>     "display_description_info": "Description text",
+>     "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+>     "authorize_only_password_login": false
+>   },
+>   "auth_web_mentorai": {
+>     "title": "User's Title",
+>     "favicon": "https://...uploaded-or-provided-url...",
+>     "display_logo": "https://...uploaded-or-provided-url...",
+>     "footer_credit": "Powered by {{logo}}",
+>     "display_images": [
+>       { "alt": "", "image": "https://...url..." },
+>       { "alt": "", "image": "https://...url..." }
+>     ],
+>     "terms_of_use_url": "https://example.com/terms",
+>     "display_title_info": "Headline text",
+>     "privacy_policy_url": "https://example.com/privacy",
+>     "display_description_info": "Description text",
+>     "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+>     "authorize_only_password_login": false
+>   }
+> }
+> ```
+>
+> Omit optional fields (terms_of_use_url, privacy_policy_url) if the user
+> skipped them. Set `authorize_only_password_login` to `false` if not specified.
+>
+> After a successful PUT (200), tell the user: "Your login page has been
+> customized! Changes will appear on your next login at https://login.{domain}".
+
 ## Next Steps
 
 After auth is set up, add more features:
