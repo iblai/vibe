@@ -135,7 +135,7 @@ Register at https://mentorai.iblai.app for your own tenant key and agent ID.
 > variables, tell the user:
 > "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 >
 > Do NOT ask the user for their tenant key directly. Guide them to populate
 > `iblai.env` instead. The CLI reads these and derives all `NEXT_PUBLIC_*`

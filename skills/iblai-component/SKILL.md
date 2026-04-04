@@ -15,7 +15,7 @@ Overview of all ibl.ai components and how to create a new app.
 > these variables, tell the user:
 > "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 >
 > `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
 > shorthand variables. Next.js still reads runtime env vars from `.env.local`.

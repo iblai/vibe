@@ -70,7 +70,7 @@ automatically.
 > If the file does not exist or is missing these variables, tell the user:
 > "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Step 2: Get Agent ID from User
 
