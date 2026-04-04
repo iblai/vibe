@@ -15,6 +15,8 @@ Ship AI-powered apps fast. Backend included.
 
 </div>
 
+> **Note:** This toolkit runs against the hosted [iblai.app](https://iblai.app) environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
+
 ---
 ## Quick Start
 ### Install Skills
@@ -25,12 +27,12 @@ Add ibl.ai skills to any project with one command:
 npx skills add iblai/vibe
 ```
 ### ibl.ai Components for Next.js Apps
-Ask Claude to add ibl.ai Chat, Profile, Account, Notifications or Analytics component to your Next.js project. 
+Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
 ## What is Vibe
 
-A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notifications, and analytics are already wired up. No API tokens to manage.
+A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
 
 **Why it matters:**
 
@@ -112,7 +114,7 @@ What each skill does:
 | **User Profile** | Editable profile page with avatar, bio, and preferences |
 | **Account Settings** | Password changes, notification preferences, connected services |
 | **Analytics Dashboard** | Usage metrics, conversation stats, and user activity |
-| **Notifications** | Real-time notification system with read/unread state |
+| **Notification** | Real-time notification system with read/unread state |
 | **Desktop & Mobile** | Tauri v2 integration for macOS, Windows, Linux, iOS, and Android |
 | **AI Development Skills** | Claude Code skills that walk you through adding and customizing every feature |
 
@@ -133,7 +135,7 @@ iblai add chat           # AI chat with streaming
 iblai add profile        # User profile dropdown
 iblai add account        # Account/organization settings
 iblai add analytics      # Analytics dashboard
-iblai add notifications  # Notification bell
+iblai add notification  # Notification bell
 ```
 
 ### CI/CD
