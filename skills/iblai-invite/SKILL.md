@@ -40,7 +40,16 @@ email/username and a dialog showing pending invitations with status tracking.
 >
 > This is safe to run even if already at the latest version.
 
-## Step 1: Add the Components
+## Step 1: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
+## Step 2: Add the Components
 
 There is no dedicated CLI generator for invite dialogs. Import the components
 directly from the SDK:
@@ -49,7 +58,7 @@ directly from the SDK:
 import { InviteUserDialog, InvitedUsersDialog } from "@iblai/iblai-js/web-containers";
 ```
 
-## Step 2: Use MCP Tools for Customization
+## Step 3: Use MCP Tools for Customization
 
 ```
 get_component_info("InviteUserDialog")
@@ -113,7 +122,7 @@ export function InviteSection() {
 }
 ```
 
-## Step 3: Verify
+## Step 4: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 

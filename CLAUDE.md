@@ -105,9 +105,17 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 
 Register at https://mentorai.iblai.app for your own tenant key and agent ID.
 
-> **AI Assistant:** Do NOT ask the user for their tenant key. Use the
-> placeholder `your-platform` when running `iblai add auth`. The user can
-> update `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local` later.
+> **AI Assistant:** Before adding a component or creating a new app, check
+> for a `.env.local` (or `.env`) file in the project root. Look for `PLATFORM`,
+> `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
+> these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+>
+> Do NOT ask the user for their tenant key directly. Guide them to populate
+> `.env.local` instead. The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from
+> this file and derives all `NEXT_PUBLIC_*` env vars automatically.
 >
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
 > agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.

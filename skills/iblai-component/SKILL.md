@@ -9,6 +9,14 @@ alwaysApply: false
 
 Overview of all ibl.ai components and how to create a new app.
 
+> **AI Assistant:** Before adding a component or creating a new app, check
+> for a `.env.local` (or `.env`) in the project root. Look for `PLATFORM`,
+> `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
+> these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
 ## Creating a New App
 
 ### Vanilla Next.js + ibl.ai Features

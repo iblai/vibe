@@ -97,7 +97,19 @@ Typically at `%APPDATA%\Python\Python311\Scripts\`.
 >
 > This is safe to run even if already at the latest version.
 
-## Step 1: Run the Generator
+## Step 1: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+>
+> If `PLATFORM` is set to a real value (not `your-platform`), use it with
+> `--platform` below. Otherwise use the placeholder.
+
+## Step 2: Run the Generator
 
 ```bash
 cd your-nextjs-app
@@ -115,7 +127,7 @@ Replace `your-platform` with your real tenant key when ready to connect to your 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
 
-## Step 2: Install Dependencies
+## Step 3: Install Dependencies
 
 ```bash
 pnpm install
@@ -129,7 +141,7 @@ The generator adds these to `package.json`:
 - `lucide-react` -- icons
 
 
-## Step 3: Wire Providers into Layout
+## Step 4: Wire Providers into Layout
 
 Open `app/layout.tsx` and wrap `{children}` with the generated `IblaiProviders`.
 
@@ -174,7 +186,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 and Tenant providers that other components depend on. Place your own providers
 inside it.
 
-## Step 4: Configure Environment
+## Step 5: Configure Environment
 
 If you passed `--platform` in Step 1, the tenant key is already set in `.env.local`.
 Verify with:
@@ -192,7 +204,7 @@ iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
 The default API URLs point to `iblai.app` and are set automatically.
 Register at https://mentorai.iblai.app for your own tenant key.
 
-## Step 5: Import SDK Styles
+## Step 6: Import SDK Styles
 
 Verify `app/globals.css` has the SDK imports (the generator patches this automatically):
 
@@ -203,7 +215,7 @@ Verify `app/globals.css` has the SDK imports (the generator patches this automat
 
 If these lines are missing, add them near the top of `globals.css`.
 
-## Step 6: Verify
+## Step 7: Verify
 
 ```bash
 pnpm dev
@@ -291,7 +303,7 @@ Check that `.env.local` has `NEXT_PUBLIC_MAIN_TENANT_KEY` set. Without it,
 the tenant resolution falls back to custom-domain detection which fails on
 localhost, leaving the app in a broken state.
 
-## Step 7: Customize Auth Interface (Recommended)
+## Step 8: Customize Auth Interface (Recommended)
 
 > **AI Assistant:** After auth is verified working, ask the user:
 > "Would you like to customize your login page? (Recommended — you can set your
