@@ -117,7 +117,7 @@ in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
 If the file does not exist or is missing these variables, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
-`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 If `PLATFORM` is set to a real value (not `your-platform`), the CLI
 will read it automatically — no `--platform` flag needed in Step 3.
