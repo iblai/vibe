@@ -9,6 +9,9 @@ alwaysApply: false
 
 > **AI Assistant:** You MUST run these checks before presenting any work to
 > the user. Do NOT show untested code.
+>
+> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+> is not installed.
 
 ## Step 1: Build
 
@@ -16,7 +19,7 @@ Run the production build to catch TypeScript errors, missing imports, and
 config issues:
 
 ```bash
-npm run build    # or: pnpm build
+pnpm build
 ```
 
 Fix all errors. A failed build means broken code -- do not proceed until
@@ -25,7 +28,7 @@ the build passes cleanly.
 ## Step 2: Run Unit Tests
 
 ```bash
-npm run test    # or: pnpm test
+pnpm test
 ```
 
 This runs vitest to verify:
@@ -61,7 +64,7 @@ npx playwright test --config e2e/playwright.config.ts --project=chromium
 Install Playwright and a browser:
 
 ```bash
-npm install -D @playwright/test
+pnpm add -D @playwright/test
 npx playwright install --with-deps chromium
 ```
 
@@ -74,7 +77,7 @@ For browser binaries only: `npx playwright install`
 Start the dev server:
 
 ```bash
-npm run dev &
+pnpm dev &
 ```
 
 Wait for http://localhost:3000 to be ready, then screenshot every page
@@ -106,8 +109,8 @@ Kill the dev server when done.
 
 ## Summary
 
-1. `npm run build` (or `pnpm build`) -- must pass with zero errors
-2. `npm run test` (or `pnpm test`) -- vitest must pass
+1. `pnpm build` -- must pass with zero errors
+2. `pnpm test` -- vitest must pass
 3. Touch test every page -- `pnpm test:e2e` for agent apps, or
    `npx playwright screenshot` for vanilla apps
 4. Fix any failures before showing work to the user

@@ -44,14 +44,13 @@ only to override or when `iblai.env` is not set up.
 npx create-next-app@latest . --yes
 iblai add auth
 iblai add chat
-npm run dev
+pnpm dev
 ```
 
 ### Full ibl.ai Agent App
 
 Scaffold a complete app with auth, chat, and everything pre-configured.
-The CLI creates the app in a subdirectory — copy its contents into the
-current directory so the project lives here:
+The app should live in the current directory:
 
 ```bash
 iblai startapp agent
@@ -111,6 +110,12 @@ TOKEN=your-api-token
 The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` and derives
 the `NEXT_PUBLIC_*` env vars into `.env.local` automatically.
 
+> **Important:** `iblai.env` is NOT a replacement for `.env.local`. It only
+> holds the 3 shorthand variables. Next.js reads its runtime env vars from
+> `.env.local` / `.env` / `.env.development` as usual. The CLI bridges the
+> two: it reads `iblai.env` and writes the derived `NEXT_PUBLIC_*` values
+> into `.env.local`.
+
 ### `.env.local` — Next.js env vars (auto-derived)
 
 ```bash
@@ -135,6 +140,14 @@ Register at https://mentorai.iblai.app for your own tenant key and agent ID.
 > Do NOT ask the user for their tenant key directly. Guide them to populate
 > `iblai.env` instead. The CLI reads these and derives all `NEXT_PUBLIC_*`
 > env vars into `.env.local` automatically.
+>
+> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+> shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+> its runtime env vars from `.env.local`.
+>
+> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+> is not installed. The generated app should live in the current directory,
+> not in a subdirectory.
 >
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
 > agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
