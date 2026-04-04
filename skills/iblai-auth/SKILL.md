@@ -125,48 +125,83 @@ Otherwise use the placeholder.
 
 ## Step 2: Customize Auth Interface
 
-STOP here. You MUST ask the user this question before
+STOP here. You MUST ask the user these questions before
 proceeding to Step 3. Do NOT skip this step.
 
-Ask: "Would you like to customize your login page? You can set your
-brand title, logos, carousel images, and footer text."
+### Fetch platform name
 
-If the user says yes, ask the following questions **sequentially** (do not
-batch them — ask one at a time so the user can think through each):
+First, read `PLATFORM` and `TOKEN` from `iblai.env`, then fetch the
+platform metadata to get the platform name:
 
-1. **Title** — "What title should appear on the login page?" (e.g., "Smart Buildings Academy")
-2. **Favicon** — "Provide a path or URL to your favicon image" (file path or URL)
-3. **Display logo** — "Provide a path or URL to your main logo" (shown on the login form)
-4. **Side panel logo** — "Provide a path or URL to the side panel logo" (shown on the carousel side)
-5. **Display images** — "Provide paths or URLs for carousel images (1-5 images)" (shown on the login side panel)
-6. **Display title** — "What headline text for the side panel?" (e.g., "Train Your Workforce. Elevate Performance")
-7. **Display description** — "What description text below the headline?" (e.g., "Training built for scale, consistency, and real-world results.")
-8. **Footer credit** — "What footer text? Use {{logo}} as placeholder for the ibl.ai logo" (default: "Powered by {{logo}}")
-9. **Terms of use URL** — "URL to your terms of use page" (optional, press Enter to skip)
-10. **Privacy policy URL** — "URL to your privacy policy page" (optional, press Enter to skip)
-11. **Password-only login** — "Restrict login to password only (no SSO/social)?" (true/false, default: false)
-
-After collecting answers, you need:
-- The user's **platform key** (from `PLATFORM` in `iblai.env` or `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`)
-- The user's **API key** (from `TOKEN` in `iblai.env`, `IBLAI_API_KEY` in `.env.local`, or ask: "Provide your ibl.ai API key for the upload")
-
-**All API requests use this header:**
+```bash
+curl -s "https://api.{domain}/dm/api/core/orgs/{platform}/metadata/" \
+  -H "Authorization: Api-Token {token}"
 ```
-Authorization: Api-Token <iblai-api-key>
+
+Use the `platform_name` field from the response as the auth **title**.
+
+### Ask the user
+
+Ask: **"Briefly describe what your app does"**
+
+If the user skips or doesn't want to answer, use the platform name as
+`AUTH_DISPLAY_TITLE` and leave `AUTH_DISPLAY_DESCRIPTION` empty. If the
+user provides a description, generate a headline and tagline from it.
+
+Use `https://ibl.ai/images/iblai-logo.png` as the default logo (favicon,
+display logo, and side panel logo).
+
+Remaining fields use fixed defaults:
+
+- **Footer credit** — Always `"Powered by {{logo}}"` (the `{{logo}}` placeholder renders the ibl.ai logo)
+- **Privacy policy URL** — Always `"https://ibl.ai/privacy-policy"`
+- **Terms of use URL** — Always `"https://ibl.ai/terms-of-use"`
+- **Display images** — Leave empty (`[]`)
+- **Password-only login** — Default `false`
+
+### Save to `iblai.env`
+
+After generating the fields, append them to `iblai.env` so the user can
+review and edit before the API call:
+
+```bash
+# Auth interface (edit before proceeding)
+AUTH_TITLE=<platform_name from API>
+AUTH_LOGO=https://ibl.ai/images/iblai-logo.png
+AUTH_DISPLAY_TITLE=<platform_name from API>
+AUTH_DISPLAY_DESCRIPTION=
+AUTH_FOOTER_CREDIT=Powered by {{logo}}
+AUTH_PRIVACY_POLICY_URL=https://ibl.ai/privacy-policy
+AUTH_TERMS_OF_USE_URL=https://ibl.ai/terms-of-use
+AUTH_PASSWORD_ONLY=false
+```
+
+Tell the user: "I've saved the generated auth settings to `iblai.env`.
+Review them and edit if needed, then let me know to continue."
+
+STOP and wait for the user to confirm before proceeding with the API calls.
+Re-read `iblai.env` to pick up any edits the user made.
+
+After confirmation, use `PLATFORM` and `TOKEN` from `iblai.env` for all
+API calls. All API requests use this header:
+```
+Authorization: Api-Token <token>
 ```
 
 ### Upload images first
 
-For each image the user provided as a **local file path**, upload it via:
+If `AUTH_LOGO` is a **local file path**, upload it via:
 
 ```bash
-curl -X POST "https://api.iblai.app/dm/api/core/platforms/{platform}/public-image-assets/" \
-  -H "Authorization: Api-Token {api-key}" \
+curl -X POST "https://api.{domain}/dm/api/core/platforms/{platform}/public-image-assets/" \
+  -H "Authorization: Api-Token {token}" \
   -F "image=@{file_path}" \
   -F "category={category}"
 ```
 
-Categories for each image type:
+Upload the logo three times with different categories. If `AUTH_LOGO` is
+already a URL (like the default), use it directly in the metadata payload
+without uploading.
 | Image | Category |
 |-------|----------|
 | Favicon | `auth_spa_favicon` |
@@ -197,41 +232,36 @@ The payload has two identical keys — `auth_web_skillsai` and
 {
   "auth_web_skillsai": {
     "title": "User's Title",
-    "favicon": "https://...uploaded-or-provided-url...",
-    "display_logo": "https://...uploaded-or-provided-url...",
+    "favicon": "https://...uploaded-logo-url...",
+    "display_logo": "https://...uploaded-logo-url...",
     "footer_credit": "Powered by {{logo}}",
-    "display_images": [
-      { "alt": "", "image": "https://...url..." },
-      { "alt": "", "image": "https://...url..." }
-    ],
-    "terms_of_use_url": "https://example.com/terms",
-    "display_title_info": "Headline text",
-    "privacy_policy_url": "https://example.com/privacy",
-    "display_description_info": "Description text",
-    "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+    "display_images": [],
+    "terms_of_use_url": "https://ibl.ai/terms-of-use",
+    "display_title_info": "Generated headline",
+    "privacy_policy_url": "https://ibl.ai/privacy-policy",
+    "display_description_info": "Generated description",
+    "display_slide_panel_logo": "https://...uploaded-logo-url...",
     "authorize_only_password_login": false
   },
   "auth_web_mentorai": {
     "title": "User's Title",
-    "favicon": "https://...uploaded-or-provided-url...",
-    "display_logo": "https://...uploaded-or-provided-url...",
+    "favicon": "https://...uploaded-logo-url...",
+    "display_logo": "https://...uploaded-logo-url...",
     "footer_credit": "Powered by {{logo}}",
-    "display_images": [
-      { "alt": "", "image": "https://...url..." },
-      { "alt": "", "image": "https://...url..." }
-    ],
-    "terms_of_use_url": "https://example.com/terms",
-    "display_title_info": "Headline text",
-    "privacy_policy_url": "https://example.com/privacy",
-    "display_description_info": "Description text",
-    "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+    "display_images": [],
+    "terms_of_use_url": "https://ibl.ai/terms-of-use",
+    "display_title_info": "Generated headline",
+    "privacy_policy_url": "https://ibl.ai/privacy-policy",
+    "display_description_info": "Generated description",
+    "display_slide_panel_logo": "https://...uploaded-logo-url...",
     "authorize_only_password_login": false
   }
 }
 ```
 
-Omit optional fields (terms_of_use_url, privacy_policy_url) if the user
-skipped them. Set `authorize_only_password_login` to `false` if not specified.
+Always use ibl.ai's privacy policy and terms of use URLs. Generate the
+headline and description from the user's app description. Set
+`authorize_only_password_login` to `false`.
 
 After a successful PUT (200), tell the user: "Your login page has been
 customized! Changes will appear on your next login at https://login.{domain}".
