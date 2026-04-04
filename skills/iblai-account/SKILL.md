@@ -41,7 +41,16 @@ User Management, Integrations, Advanced settings, and Billing.
 >
 > This is safe to run even if already at the latest version.
 
-## Step 1: Run the Generator
+## Step 1: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
+## Step 2: Run the Generator
 
 ```bash
 iblai add account
@@ -59,7 +68,7 @@ localStorage. Admin status is derived from the `tenants` array.
 > **Note:** The `Account` component uses `next/image` internally -- it is
 > imported from `@iblai/iblai-js/web-containers/next`.
 
-## Step 2: Use MCP Tools for Customization
+## Step 3: Use MCP Tools for Customization
 
 ```
 get_component_info("Account")
@@ -102,7 +111,7 @@ get_component_info("Account")
 | **Advanced** | `isAdmin === true` |
 | **Billing** | `billingURL` or `topUpURL` prop set |
 
-## Step 3: Verify
+## Step 4: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 

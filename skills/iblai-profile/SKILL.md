@@ -42,7 +42,16 @@ Experience, Resume, and Security.
 >
 > This is safe to run even if already at the latest version.
 
-## Step 1: Run the Generator
+## Step 1: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
+## Step 2: Run the Generator
 
 ```bash
 iblai add profile
@@ -58,7 +67,7 @@ The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
 localStorage. Admin status is derived from the `tenants` array by matching
 the current tenant key against `is_admin`.
 
-## Step 2: Use MCP Tools for Customization
+## Step 3: Use MCP Tools for Customization
 
 ```
 get_component_info("UserProfileDropdown")
@@ -109,7 +118,7 @@ dialog that combines profile editing and account settings in one overlay.
 | `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant is updated |
 | `onAccountDeleted` | `() => void` | Called after account deletion |
 
-## Step 3: Verify
+## Step 4: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 

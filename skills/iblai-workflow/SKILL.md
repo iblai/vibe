@@ -41,6 +41,15 @@ bezier curve edges, pan/zoom, undo/redo, and auto-save.
 >
 > This is safe to run even if already at the latest version.
 
+## Step 0b: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
 ## Architecture
 
 The workflow feature has two pages and three custom components:

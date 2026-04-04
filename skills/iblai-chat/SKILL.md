@@ -55,7 +55,16 @@ automatically.
 >
 > This is safe to run even if already at the latest version.
 
-## Step 1: Get Agent ID from User
+## Step 1: Check Environment
+
+> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+> If the file does not exist or is missing these variables, tell the user:
+> "You need a `.env.local` with your platform configuration. Download the
+> template and fill in your values:
+> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+
+## Step 2: Get Agent ID from User
 
 Ask the user for their agent/mentor ID. This is a UUID that identifies the AI
 agent the chat widget will connect to.
@@ -67,7 +76,7 @@ agent the chat widget will connect to.
 > NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
 > ```
 
-## Step 2: Run the Generator
+## Step 3: Run the Generator
 
 ```bash
 iblai add chat
@@ -85,7 +94,7 @@ to include chat-specific reducers.
 The ChatWidget reads `axd_token`, `tenant`, and `userData` from localStorage
 and passes them to the MentorAI iframe via `authrelyonhost` mode.
 
-## Step 3: Use the Widget
+## Step 4: Use the Widget
 
 ```tsx
 import { ChatWidget } from "@/components/iblai/chat-widget";
@@ -110,7 +119,7 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 | `width` | `number \| string` | `720` | Widget width -- use `vh`/`vw` strings (e.g., `"100vw"`) |
 | `height` | `number \| string` | `600` | Widget height -- use `vh`/`vw` strings (e.g., `"100vh"`) |
 
-## Step 4: Verify
+## Step 5: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
