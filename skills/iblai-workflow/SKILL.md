@@ -43,12 +43,12 @@ bezier curve edges, pan/zoom, undo/redo, and auto-save.
 
 ## Step 0b: Check Environment
 
-> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> **AI Assistant:** Before proceeding, check for a `iblai.env`
 > in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
 > If the file does not exist or is missing these variables, tell the user:
-> "You need a `.env.local` with your platform configuration. Download the
+> "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
 
 ## Architecture
 

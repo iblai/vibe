@@ -11,26 +11,26 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
-> **AI Assistant:** Do NOT ask the user for their tenant key. Use the
-> placeholder `your-platform` when running the generator. The user can
-> update it later in `.env.local` (`NEXT_PUBLIC_MAIN_TENANT_KEY`).
+> **AI Assistant:** Do NOT ask the user for their tenant key. The CLI
+> reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
+> with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).
+> Otherwise use the placeholder:
+> ```
+> iblai add auth --platform your-platform
+> ```
 >
 > If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
 > value (not a placeholder like `your-tenant`, `your-platform`,
 > `your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
->
-> Run the generator:
-> ```
-> iblai add auth --platform your-platform
-> ```
 
 ## Prerequisites
 
 > **Already have auth?** If you used `iblai startapp agent`, auth is already
 > set up -- skip this skill.
 >
-> **Want a complete app from scratch?** Run:
-> `iblai startapp agent --platform your-platform`
+> **Want a complete app from scratch?** If `iblai.env` has `PLATFORM`, run:
+> `iblai startapp agent`
+> Otherwise: `iblai startapp agent --platform your-platform`
 > to get a full app with auth, chat, and everything pre-configured.
 >
 > **This skill** is for adding auth to a vanilla Next.js app
@@ -99,30 +99,35 @@ Typically at `%APPDATA%\Python\Python311\Scripts\`.
 
 ## Step 1: Check Environment
 
-> **AI Assistant:** Before proceeding, check for a `.env.local` (or `.env`)
+> **AI Assistant:** Before proceeding, check for a `iblai.env`
 > in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
 > If the file does not exist or is missing these variables, tell the user:
-> "You need a `.env.local` with your platform configuration. Download the
+> "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
 >
-> If `PLATFORM` is set to a real value (not `your-platform`), use it with
-> `--platform` below. Otherwise use the placeholder.
+> If `PLATFORM` is set to a real value (not `your-platform`), the CLI
+> will read it automatically — no `--platform` flag needed in Step 2.
+> Otherwise use the placeholder.
 
 ## Step 2: Run the Generator
 
 ```bash
 cd your-nextjs-app
 
-# Use the placeholder -- user can update later in .env.local
+# If iblai.env has PLATFORM, the CLI reads it automatically
+iblai add auth
+
+# Or pass explicitly (overrides iblai.env)
 iblai add auth --platform your-platform
 
 # Or via npx (when published)
 npx @iblai/cli add auth --platform your-platform
 ```
 
-The `--platform` argument sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
-Replace `your-platform` with your real tenant key when ready to connect to your organization.
+The platform key sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
+The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
+only if you want to override it or don't have an `iblai.env`.
 
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
@@ -188,7 +193,7 @@ inside it.
 
 ## Step 5: Configure Environment
 
-If you passed `--platform` in Step 1, the tenant key is already set in `.env.local`.
+If the CLI read `PLATFORM` from `iblai.env` or you passed `--platform`, the tenant key is already set in `.env.local`.
 Verify with:
 
 ```bash

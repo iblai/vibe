@@ -35,11 +35,13 @@ installation options (npx or build from source).
 
 ## Getting Started
 
+The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
+only to override or when `iblai.env` is not set up.
+
 ### Vanilla Next.js + ibl.ai Features
 
 ```bash
-npx create-next-app@latest my-app --yes
-cd my-app
+npx create-next-app@latest . --yes
 iblai add auth
 iblai add chat
 npm run dev
@@ -47,11 +49,15 @@ npm run dev
 
 ### Full ibl.ai Agent App
 
+Scaffold a complete app with auth, chat, and everything pre-configured.
+The CLI creates the app in a subdirectory — copy its contents into the
+current directory so the project lives here:
+
 ```bash
 iblai startapp agent
-cd <app-name> && pnpm install
+cp -a <app-name>/. . && rm -rf <app-name>
 cp .env.example .env.local
-pnpm dev
+pnpm install && pnpm dev
 ```
 
 ### Add Features to Any Next.js App
@@ -92,7 +98,20 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 
 `@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.ts`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined`.
 
-## Environment (.env.local)
+## Environment
+
+### `iblai.env` — Platform configuration
+
+```bash
+DOMAIN=iblai.app
+PLATFORM=your-platform
+TOKEN=your-api-token
+```
+
+The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` and derives
+the `NEXT_PUBLIC_*` env vars into `.env.local` automatically.
+
+### `.env.local` — Next.js env vars (auto-derived)
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
@@ -106,16 +125,16 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 Register at https://mentorai.iblai.app for your own tenant key and agent ID.
 
 > **AI Assistant:** Before adding a component or creating a new app, check
-> for a `.env.local` (or `.env`) file in the project root. Look for `PLATFORM`,
-> `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
-> these variables, tell the user:
-> "You need a `.env.local` with your platform configuration. Download the
+> for an `iblai.env` file in the project root. Look for `PLATFORM`, `DOMAIN`,
+> and `TOKEN` variables. If the file does not exist or is missing these
+> variables, tell the user:
+> "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
 >
 > Do NOT ask the user for their tenant key directly. Guide them to populate
-> `.env.local` instead. The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from
-> this file and derives all `NEXT_PUBLIC_*` env vars automatically.
+> `iblai.env` instead. The CLI reads these and derives all `NEXT_PUBLIC_*`
+> env vars into `.env.local` automatically.
 >
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
 > agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
