@@ -11,38 +11,43 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
-> **AI Assistant:** Do NOT ask the user for their tenant key. The CLI
-> reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
-> with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).
-> Otherwise use the placeholder:
-> ```
-> iblai add auth --platform your-platform
-> ```
->
-> If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
-> value (not a placeholder like `your-tenant`, `your-platform`,
-> `your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
->
-> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-> shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-> its runtime env vars from `.env.local`.
->
-> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-> is not installed. The generated app should live in the current directory,
-> not in a subdirectory.
+Do NOT ask the user for their tenant key. The CLI
+reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
+with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).
+Otherwise use the placeholder:
+```
+iblai add auth --platform your-platform
+```
+
+If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
+value (not a placeholder like `your-tenant`, `your-platform`,
+`your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
+
+`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+its runtime env vars from `.env.local`.
+
+Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+is not installed. The generated app should live in the current directory,
+not in a subdirectory.
 
 ## Prerequisites
 
-> **Already have auth?** If you used `iblai startapp agent`, auth is already
-> set up -- skip this skill.
->
-> **Want a complete app from scratch?** If `iblai.env` has `PLATFORM`, run:
-> `iblai startapp agent`
-> Otherwise: `iblai startapp agent --platform your-platform`
-> to get a full app with auth, chat, and everything pre-configured.
->
-> **This skill** is for adding auth to a vanilla Next.js app
-> (`npx create-next-app@latest my-app --yes`) or an existing project.
+ **Already have auth?** If you used `iblai startapp agent`, auth is already
+ set up -- skip this skill.
+
+ **Want a complete app from scratch?** Create in a temp directory and copy back:
+ ```
+ iblai startapp agent -o iblai-init
+ cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
+ cp .env.example .env.local
+ pnpm install && pnpm dev
+ ```
+ If `iblai.env` has `PLATFORM`, the CLI reads it automatically.
+ Otherwise pass `--platform your-platform`.
+
+ **This skill** is for adding auth to a vanilla Next.js app
+ (`npx create-next-app@latest my-app --yes`) or an existing project.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
@@ -97,28 +102,141 @@ Typically at `%APPDATA%\Python\Python311\Scripts\`.
 
 ## Step 0: Check for CLI Updates
 
-> **AI Assistant:** Before running any `iblai` command, ensure the CLI is
-> up to date. Run `iblai --version` to check the current version, then
-> upgrade directly:
-> - pip: `pip install --upgrade iblai-app-cli`
-> - npm: `npm install -g @iblai/cli@latest`
->
-> This is safe to run even if already at the latest version.
+Before running any `iblai` command, ensure the CLI is
+up to date. Run `iblai --version` to check the current version, then
+upgrade directly:
+- pip: `pip install --upgrade iblai-app-cli`
+- npm: `npm install -g @iblai/cli@latest`
+
+This is safe to run even if already at the latest version.
 
 ## Step 1: Check Environment
 
-> **AI Assistant:** Before proceeding, check for a `iblai.env`
-> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
-> If the file does not exist or is missing these variables, tell the user:
-> "You need an `iblai.env` with your platform configuration. Download the
-> template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
->
-> If `PLATFORM` is set to a real value (not `your-platform`), the CLI
-> will read it automatically — no `--platform` flag needed in Step 2.
-> Otherwise use the placeholder.
+Before proceeding, check for a `iblai.env`
+in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+If the file does not exist or is missing these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
 
-## Step 2: Run the Generator
+If `PLATFORM` is set to a real value (not `your-platform`), the CLI
+will read it automatically — no `--platform` flag needed in Step 3.
+Otherwise use the placeholder.
+
+## Step 2: Customize Auth Interface
+
+STOP here. You MUST ask the user this question before
+proceeding to Step 3. Do NOT skip this step.
+
+Ask: "Would you like to customize your login page? You can set your
+brand title, logos, carousel images, and footer text."
+
+If the user says yes, ask the following questions **sequentially** (do not
+batch them — ask one at a time so the user can think through each):
+
+1. **Title** — "What title should appear on the login page?" (e.g., "Smart Buildings Academy")
+2. **Favicon** — "Provide a path or URL to your favicon image" (file path or URL)
+3. **Display logo** — "Provide a path or URL to your main logo" (shown on the login form)
+4. **Side panel logo** — "Provide a path or URL to the side panel logo" (shown on the carousel side)
+5. **Display images** — "Provide paths or URLs for carousel images (1-5 images)" (shown on the login side panel)
+6. **Display title** — "What headline text for the side panel?" (e.g., "Train Your Workforce. Elevate Performance")
+7. **Display description** — "What description text below the headline?" (e.g., "Training built for scale, consistency, and real-world results.")
+8. **Footer credit** — "What footer text? Use {{logo}} as placeholder for the ibl.ai logo" (default: "Powered by {{logo}}")
+9. **Terms of use URL** — "URL to your terms of use page" (optional, press Enter to skip)
+10. **Privacy policy URL** — "URL to your privacy policy page" (optional, press Enter to skip)
+11. **Password-only login** — "Restrict login to password only (no SSO/social)?" (true/false, default: false)
+
+After collecting answers, you need:
+- The user's **platform key** (from `PLATFORM` in `iblai.env` or `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`)
+- The user's **API key** (from `TOKEN` in `iblai.env`, `IBLAI_API_KEY` in `.env.local`, or ask: "Provide your ibl.ai API key for the upload")
+
+**All API requests use this header:**
+```
+Authorization: Api-Token <iblai-api-key>
+```
+
+### Upload images first
+
+For each image the user provided as a **local file path**, upload it via:
+
+```bash
+curl -X POST "https://api.iblai.app/dm/api/core/platforms/{platform}/public-image-assets/" \
+  -H "Authorization: Api-Token {api-key}" \
+  -F "image=@{file_path}" \
+  -F "category={category}"
+```
+
+Categories for each image type:
+| Image | Category |
+|-------|----------|
+| Favicon | `auth_spa_favicon` |
+| Display logo | `auth_spa_logo` |
+| Side panel logo | `auth_spa_slide_panel_logo` |
+| Display images (each) | `auth_spa_display_image` |
+
+The POST response returns a JSON object. Extract the `file` field — that is
+the URL to use in the metadata payload.
+
+If the user provided a **URL** (not a local file), use it directly in the
+metadata payload without uploading.
+
+### PUT the metadata
+
+After all images are uploaded, assemble the payload and PUT to:
+
+```
+PUT https://api.iblai.app/dm/api/core/orgs/{platform}/metadata/
+Authorization: Api-Token {api-key}
+Content-Type: application/json
+```
+
+The payload has two identical keys — `auth_web_skillsai` and
+`auth_web_mentorai` — both containing the same configuration:
+
+```json
+{
+  "auth_web_skillsai": {
+    "title": "User's Title",
+    "favicon": "https://...uploaded-or-provided-url...",
+    "display_logo": "https://...uploaded-or-provided-url...",
+    "footer_credit": "Powered by {{logo}}",
+    "display_images": [
+      { "alt": "", "image": "https://...url..." },
+      { "alt": "", "image": "https://...url..." }
+    ],
+    "terms_of_use_url": "https://example.com/terms",
+    "display_title_info": "Headline text",
+    "privacy_policy_url": "https://example.com/privacy",
+    "display_description_info": "Description text",
+    "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+    "authorize_only_password_login": false
+  },
+  "auth_web_mentorai": {
+    "title": "User's Title",
+    "favicon": "https://...uploaded-or-provided-url...",
+    "display_logo": "https://...uploaded-or-provided-url...",
+    "footer_credit": "Powered by {{logo}}",
+    "display_images": [
+      { "alt": "", "image": "https://...url..." },
+      { "alt": "", "image": "https://...url..." }
+    ],
+    "terms_of_use_url": "https://example.com/terms",
+    "display_title_info": "Headline text",
+    "privacy_policy_url": "https://example.com/privacy",
+    "display_description_info": "Description text",
+    "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
+    "authorize_only_password_login": false
+  }
+}
+```
+
+Omit optional fields (terms_of_use_url, privacy_policy_url) if the user
+skipped them. Set `authorize_only_password_login` to `false` if not specified.
+
+After a successful PUT (200), tell the user: "Your login page has been
+customized! Changes will appear on your next login at https://login.{domain}".
+
+## Step 3: Run the Generator
 
 ```bash
 cd your-nextjs-app
@@ -140,7 +258,7 @@ only if you want to override it or don't have an `iblai.env`.
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
 
-## Step 3: Install Dependencies
+## Step 4: Install Dependencies
 
 ```bash
 pnpm install
@@ -154,7 +272,7 @@ The generator adds these to `package.json`:
 - `lucide-react` -- icons
 
 
-## Step 4: Wire Providers into Layout
+## Step 5: Wire Providers into Layout
 
 Open `app/layout.tsx` and wrap `{children}` with the generated `IblaiProviders`.
 
@@ -199,7 +317,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 and Tenant providers that other components depend on. Place your own providers
 inside it.
 
-## Step 5: Configure Environment
+## Step 6: Configure Environment
 
 If the CLI read `PLATFORM` from `iblai.env` or you passed `--platform`, the tenant key is already set in `.env.local`.
 Verify with:
@@ -217,7 +335,7 @@ iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
 The default API URLs point to `iblai.app` and are set automatically.
 Register at https://mentorai.iblai.app for your own tenant key.
 
-## Step 6: Import SDK Styles
+## Step 7: Import SDK Styles
 
 Verify `app/globals.css` has the SDK imports (the generator patches this automatically):
 
@@ -228,7 +346,7 @@ Verify `app/globals.css` has the SDK imports (the generator patches this automat
 
 If these lines are missing, add them near the top of `globals.css`.
 
-## Step 7: Verify
+## Step 8: Verify
 
 ```bash
 pnpm dev
@@ -315,117 +433,6 @@ SSO callback from the authenticated routes.
 Check that `.env.local` has `NEXT_PUBLIC_MAIN_TENANT_KEY` set. Without it,
 the tenant resolution falls back to custom-domain detection which fails on
 localhost, leaving the app in a broken state.
-
-## Step 8: Customize Auth Interface (Recommended)
-
-> **AI Assistant:** After auth is verified working, ask the user:
-> "Would you like to customize your login page? (Recommended — you can set your
-> brand title, logos, carousel images, and footer text.)"
->
-> If the user says yes, ask the following questions **sequentially** (do not
-> batch them — ask one at a time so the user can think through each):
->
-> 1. **Title** — "What title should appear on the login page?" (e.g., "Smart Buildings Academy")
-> 2. **Favicon** — "Provide a path or URL to your favicon image" (file path or URL)
-> 3. **Display logo** — "Provide a path or URL to your main logo" (shown on the login form)
-> 4. **Side panel logo** — "Provide a path or URL to the side panel logo" (shown on the carousel side)
-> 5. **Display images** — "Provide paths or URLs for carousel images (1-5 images)" (shown on the login side panel)
-> 6. **Display title** — "What headline text for the side panel?" (e.g., "Train Your Workforce. Elevate Performance")
-> 7. **Display description** — "What description text below the headline?" (e.g., "Training built for scale, consistency, and real-world results.")
-> 8. **Footer credit** — "What footer text? Use {{logo}} as placeholder for the ibl.ai logo" (default: "Powered by {{logo}}")
-> 9. **Terms of use URL** — "URL to your terms of use page" (optional, press Enter to skip)
-> 10. **Privacy policy URL** — "URL to your privacy policy page" (optional, press Enter to skip)
-> 11. **Password-only login** — "Restrict login to password only (no SSO/social)?" (true/false, default: false)
->
-> After collecting answers, you need:
-> - The user's **platform key** (from `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`)
-> - The user's **API key** (from `IBLAI_API_KEY` in `.env.local`, or ask: "Provide your ibl.ai API key for the upload")
->
-> **All API requests use this header:**
-> ```
-> Authorization: Api-Token <iblai-api-key>
-> ```
->
-> ### Upload images first
->
-> For each image the user provided as a **local file path**, upload it via:
->
-> ```bash
-> curl -X POST "https://api.iblai.app/dm/api/core/platforms/{platform}/public-image-assets/" \
->   -H "Authorization: Api-Token {api-key}" \
->   -F "image=@{file_path}" \
->   -F "category={category}"
-> ```
->
-> Categories for each image type:
-> | Image | Category |
-> |-------|----------|
-> | Favicon | `auth_spa_favicon` |
-> | Display logo | `auth_spa_logo` |
-> | Side panel logo | `auth_spa_slide_panel_logo` |
-> | Display images (each) | `auth_spa_display_image` |
->
-> The POST response returns a JSON object. Extract the `file` field — that is
-> the URL to use in the metadata payload.
->
-> If the user provided a **URL** (not a local file), use it directly in the
-> metadata payload without uploading.
->
-> ### PUT the metadata
->
-> After all images are uploaded, assemble the payload and PUT to:
->
-> ```
-> PUT https://api.iblai.app/dm/api/core/orgs/{platform}/metadata/
-> Authorization: Api-Token {api-key}
-> Content-Type: application/json
-> ```
->
-> The payload has two identical keys — `auth_web_skillsai` and
-> `auth_web_mentorai` — both containing the same configuration:
->
-> ```json
-> {
->   "auth_web_skillsai": {
->     "title": "User's Title",
->     "favicon": "https://...uploaded-or-provided-url...",
->     "display_logo": "https://...uploaded-or-provided-url...",
->     "footer_credit": "Powered by {{logo}}",
->     "display_images": [
->       { "alt": "", "image": "https://...url..." },
->       { "alt": "", "image": "https://...url..." }
->     ],
->     "terms_of_use_url": "https://example.com/terms",
->     "display_title_info": "Headline text",
->     "privacy_policy_url": "https://example.com/privacy",
->     "display_description_info": "Description text",
->     "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
->     "authorize_only_password_login": false
->   },
->   "auth_web_mentorai": {
->     "title": "User's Title",
->     "favicon": "https://...uploaded-or-provided-url...",
->     "display_logo": "https://...uploaded-or-provided-url...",
->     "footer_credit": "Powered by {{logo}}",
->     "display_images": [
->       { "alt": "", "image": "https://...url..." },
->       { "alt": "", "image": "https://...url..." }
->     ],
->     "terms_of_use_url": "https://example.com/terms",
->     "display_title_info": "Headline text",
->     "privacy_policy_url": "https://example.com/privacy",
->     "display_description_info": "Description text",
->     "display_slide_panel_logo": "https://...uploaded-or-provided-url...",
->     "authorize_only_password_login": false
->   }
-> }
-> ```
->
-> Omit optional fields (terms_of_use_url, privacy_policy_url) if the user
-> skipped them. Set `authorize_only_password_login` to `false` if not specified.
->
-> After a successful PUT (200), tell the user: "Your login page has been
-> customized! Changes will appear on your next login at https://login.{domain}".
 
 ## Next Steps
 
