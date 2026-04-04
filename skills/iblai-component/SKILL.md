@@ -16,6 +16,13 @@ Overview of all ibl.ai components and how to create a new app.
 > "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
 > `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
+>
+> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+> shorthand variables. Next.js still reads runtime env vars from `.env.local`.
+>
+> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+> is not installed. The generated app should live in the current directory,
+> not in a subdirectory.
 
 ## Creating a New App
 
@@ -30,14 +37,13 @@ only if you want to override it or don't have an `iblai.env`.
 npx create-next-app@latest . --yes
 iblai add auth
 iblai add chat
-npm run dev
+pnpm dev
 ```
 
 ### Full ibl.ai Agent App
 
 Scaffold a complete app with auth, chat, and everything pre-configured.
-The CLI creates the app in a subdirectory — copy its contents into the
-current directory so the project lives here:
+The app should live in the current directory:
 
 ```bash
 iblai startapp agent

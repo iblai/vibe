@@ -26,6 +26,14 @@ Users, Topics, Financial, Transcripts, and Reports.
 >   theme and render in ibl.ai brand colors automatically.
 >
 > You MUST run `/iblai-test` before telling the user the work is ready.
+>
+> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+> shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+> its runtime env vars from `.env.local`.
+>
+> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+> is not installed. The generated app should live in the current directory,
+> not in a subdirectory.
 
 ## Prerequisites
 
@@ -85,11 +93,11 @@ get_component_info("AnalyticsOverview")
 
 Run `/iblai-test` before telling the user the work is ready:
 
-1. `npm run build` -- must pass with zero errors
-2. `npm run test` -- vitest must pass
+1. `pnpm build` -- must pass with zero errors
+2. `pnpm test` -- vitest must pass
 3. Start dev server and touch test:
    ```bash
-   npm run dev &
+   pnpm dev &
    npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
    ```
 

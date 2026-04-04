@@ -22,6 +22,14 @@ a session -- no API tokens to manage.
 > If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
 > value (not a placeholder like `your-tenant`, `your-platform`,
 > `your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
+>
+> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+> shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+> its runtime env vars from `.env.local`.
+>
+> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+> is not installed. The generated app should live in the current directory,
+> not in a subdirectory.
 
 ## Prerequisites
 
