@@ -10,12 +10,12 @@ alwaysApply: false
 Overview of all ibl.ai components and how to create a new app.
 
 > **AI Assistant:** Before adding a component or creating a new app, check
-> for a `.env.local` (or `.env`) in the project root. Look for `PLATFORM`,
+> for a `iblai.env` in the project root. Look for `PLATFORM`,
 > `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
 > these variables, tell the user:
-> "You need a `.env.local` with your platform configuration. Download the
+> "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
-> `curl -o .env.local https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/.env.example`"
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env.example`"
 
 ## Creating a New App
 
@@ -23,28 +23,34 @@ Overview of all ibl.ai components and how to create a new app.
 
 Start with a standard Next.js app and add features as needed:
 
+The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
+only if you want to override it or don't have an `iblai.env`.
+
 ```bash
-npx create-next-app@latest my-app --yes
-cd my-app
-iblai add auth --platform your-platform
+npx create-next-app@latest . --yes
+iblai add auth
 iblai add chat
 npm run dev
 ```
 
 ### Full ibl.ai Agent App
 
-Scaffold a complete app with auth, chat, and everything pre-configured:
+Scaffold a complete app with auth, chat, and everything pre-configured.
+The CLI creates the app in a subdirectory — copy its contents into the
+current directory so the project lives here:
 
 ```bash
-iblai startapp agent --platform your-platform
-cd <app-name> && pnpm install
-cp .env.example .env.local && pnpm dev
+iblai startapp agent
+cp -a <app-name>/. . && rm -rf <app-name>
+cp .env.example .env.local
+pnpm install && pnpm dev
 ```
 
 ### Non-Interactive (CI/CD)
 
 ```bash
 iblai startapp agent --yes --platform acme --agent my-id --app-name my-app
+cp -a my-app/. . && rm -rf my-app
 ```
 
 ### AI-Enhanced Scaffolding
@@ -53,7 +59,7 @@ Set your API key as an environment variable (never pass secrets as CLI arguments
 
 ```bash
 export ANTHROPIC_API_KEY=<your-key>
-iblai startapp agent --platform acme \
+iblai startapp agent \
   --prompt "kids learning assistant with bright colors"
 ```
 
