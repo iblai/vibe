@@ -50,11 +50,11 @@ pnpm dev
 ### Full ibl.ai Agent App
 
 Scaffold a complete app with auth, chat, and everything pre-configured.
-The app should live in the current directory:
+Always create in a temp directory and copy back to the current directory:
 
 ```bash
-iblai startapp agent
-cp -a <app-name>/. . && rm -rf <app-name>
+iblai startapp agent -o .iblai-init
+cp -a .iblai-init/<app-name>/. . && rm -rf .iblai-init
 cp .env.example .env.local
 pnpm install && pnpm dev
 ```
