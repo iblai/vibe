@@ -41,8 +41,11 @@ iblai startapp agent --yes --platform acme --agent my-id --app-name my-app
 
 ### AI-Enhanced Scaffolding
 
+Set your API key as an environment variable (never pass secrets as CLI arguments):
+
 ```bash
-iblai startapp agent --platform acme --anthropic-key sk-ant-... \
+export ANTHROPIC_API_KEY=<your-key>
+iblai startapp agent --platform acme \
   --prompt "kids learning assistant with bright colors"
 ```
 
@@ -255,16 +258,13 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 ## CLI Updates
 
-> **AI Assistant:** Before running any `iblai` command, check for updates.
-> Run `iblai --version` to get the current version, then check the latest:
-> - **PyPI:** `curl -sf https://pypi.org/pypi/iblai-app-cli/json | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])"`
-> - **npm:** `npm view @iblai/cli version 2>/dev/null`
-> - **GitHub (binary installs):** `curl -sf https://api.github.com/repos/iblai/iblai-app-cli/releases/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))"`
->
-> If a newer version exists, update:
+> **AI Assistant:** Before running any `iblai` command, ensure the CLI is
+> up to date. Run `iblai --version` to check the current version, then
+> upgrade directly:
 > - pip: `pip install --upgrade iblai-app-cli`
 > - npm: `npm install -g @iblai/cli@latest`
-> - Binary: download the latest release from `https://github.com/iblai/iblai-app-cli/releases/latest` for the current platform and replace the binary
+>
+> This is safe to run even if already at the latest version.
 
 ## Requirements
 

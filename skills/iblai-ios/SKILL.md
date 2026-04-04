@@ -77,7 +77,7 @@ iblai builds ios dev --device "iPhone 16 Pro"
 ### Troubleshooting Simulator
 
 - **"No available iOS simulators"**: Open Xcode > Settings > Platforms > download an iOS runtime
-- **Build fails with "linking" errors**: Run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+- **Build fails with "linking" errors**: Verify Xcode path with `xcode-select -p`. If incorrect, the user should run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` themselves (requires elevated privileges -- confirm with the user before suggesting this)
 - **Simulator won't launch**: Try `xcrun simctl shutdown all` then retry
 
 ## Step 3: Run on a Physical Device
