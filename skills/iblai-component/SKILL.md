@@ -80,7 +80,7 @@ iblai startapp agent \
 | `iblai add profile` | User profile dropdown | `/iblai-profile` |
 | `iblai add account` | Account/organization settings | `/iblai-account` |
 | `iblai add analytics` | Analytics dashboard | `/iblai-analytics` |
-| `iblai add notifications` | Notification bell | `/iblai-notification` |
+| `iblai add notification` | Notification bell | `/iblai-notification` |
 | | User invitation dialogs | `/iblai-invite` |
 | | Workflow builder components | `/iblai-workflow` |
 | `iblai add builds` | Tauri v2 desktop/mobile shell | |
@@ -279,13 +279,13 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 
 ## CLI Updates
 
-> **AI Assistant:** Before running any `iblai` command, ensure the CLI is
-> up to date. Run `iblai --version` to check the current version, then
-> upgrade directly:
-> - pip: `pip install --upgrade iblai-app-cli`
-> - npm: `npm install -g @iblai/cli@latest`
->
-> This is safe to run even if already at the latest version.
+Before running any `iblai` command, ensure the CLI is
+up to date. Run `iblai --version` to check the current version, then
+upgrade directly:
+- pip: `pip install --upgrade iblai-app-cli`
+- npm: `npm install -g @iblai/cli@latest`
+
+This is safe to run even if already at the latest version.
 
 ## Requirements
 

@@ -55,22 +55,22 @@ automatically.
 
 ## Step 0: Check for CLI Updates
 
-> **AI Assistant:** Before running any `iblai` command, ensure the CLI is
-> up to date. Run `iblai --version` to check the current version, then
-> upgrade directly:
-> - pip: `pip install --upgrade iblai-app-cli`
-> - npm: `npm install -g @iblai/cli@latest`
->
-> This is safe to run even if already at the latest version.
+Before running any `iblai` command, ensure the CLI is
+up to date. Run `iblai --version` to check the current version, then
+upgrade directly:
+- pip: `pip install --upgrade iblai-app-cli`
+- npm: `npm install -g @iblai/cli@latest`
+
+This is safe to run even if already at the latest version.
 
 ## Step 1: Check Environment
 
-> **AI Assistant:** Before proceeding, check for a `iblai.env`
-> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
-> If the file does not exist or is missing these variables, tell the user:
-> "You need an `iblai.env` with your platform configuration. Download the
-> template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+Before proceeding, check for a `iblai.env`
+in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+If the file does not exist or is missing these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Step 2: Get Agent ID from User
 
