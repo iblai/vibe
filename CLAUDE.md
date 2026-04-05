@@ -224,6 +224,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-component` | Overview of all available components |
 | `/iblai-ios` | Build and run on iOS (Simulator and real device) |
 | `/iblai-test` | Test your app before showing work to the user |
+| `/iblai-deslop` | Audit and harden codebases for production readiness |
 
 ## Deployment
 
