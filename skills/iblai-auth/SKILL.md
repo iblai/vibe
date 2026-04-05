@@ -40,14 +40,15 @@ not in a subdirectory.
  ```
  iblai startapp agent -o iblai-init
  cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
+ rm -rf node_modules && pnpm install
  cp .env.example .env.local
- pnpm install && pnpm dev
+ pnpm dev
  ```
  If `iblai.env` has `PLATFORM`, the CLI reads it automatically.
  Otherwise pass `--platform your-platform`.
 
  **This skill** is for adding auth to a vanilla Next.js app
- (`npx create-next-app@latest my-app --yes`) or an existing project.
+ or an existing project.
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
@@ -286,7 +287,7 @@ only if you want to override it or don't have an `iblai.env`.
 The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
 It auto-detects `src/` directory layout and places files accordingly.
 
-## Step 4: Install Dependencies
+## Step 4: Install Dependencies and Add Test Script
 
 ```bash
 pnpm install
@@ -299,6 +300,20 @@ The generator adds these to `package.json`:
 - `sonner` -- toast notifications
 - `lucide-react` -- icons
 
+If `package.json` does not already have a `"test"` script (or it still has the
+default `create-next-app` placeholder), add vitest:
+
+```bash
+pnpm add -D vitest
+```
+
+Then set the test script in `package.json`:
+
+```json
+"scripts": {
+  "test": "vitest run"
+}
+```
 
 ## Step 5: Wire Providers into Layout
 

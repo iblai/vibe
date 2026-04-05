@@ -54,10 +54,11 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 Get a complete app with auth, AI chat, profiles, and more in one command:
 
 ```bash
-iblai startapp agent -o .iblai-init
-cp -a .iblai-init/<app-name>/. . && rm -rf .iblai-init
+iblai startapp agent -o iblai-init
+cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
+rm -rf node_modules && pnpm install
 cp .env.example .env.local
-pnpm install && pnpm dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). You will be redirected to [iblai.app](https://iblai.app) for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
@@ -141,8 +142,9 @@ iblai add notification  # Notification bell
 Use `--yes` to skip interactive prompts:
 
 ```bash
-npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-app -o .iblai-init
-cp -a .iblai-init/my-app/. . && rm -rf .iblai-init
+npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
+cp -a iblai-init/my-app/. . && rm -rf iblai-init
+rm -rf node_modules && pnpm install
 cp .env.example .env.local
 ```
 
