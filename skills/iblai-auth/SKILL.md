@@ -52,8 +52,6 @@ not in a subdirectory.
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
 - `iblai` CLI available (`iblai --version`)
-- An ibl.ai account (register at https://mentorai.iblai.app)
-
 ### Installing the CLI
 
 If `iblai` is not available:
@@ -363,7 +361,6 @@ iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
 ```
 
 The default API URLs point to `iblai.app` and are set automatically.
-Register at https://mentorai.iblai.app for your own tenant key.
 
 ## Step 7: Import SDK Styles
 
