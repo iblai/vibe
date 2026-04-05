@@ -41,22 +41,22 @@ bezier curve edges, pan/zoom, undo/redo, and auto-save.
 
 ## Step 0: Check for CLI Updates
 
-> **AI Assistant:** Before running any `iblai` command, ensure the CLI is
-> up to date. Run `iblai --version` to check the current version, then
-> upgrade directly:
-> - pip: `pip install --upgrade iblai-app-cli`
-> - npm: `npm install -g @iblai/cli@latest`
->
-> This is safe to run even if already at the latest version.
+Before running any `iblai` command, ensure the CLI is
+up to date. Run `iblai --version` to check the current version, then
+upgrade directly:
+- pip: `pip install --upgrade iblai-app-cli`
+- npm: `npm install -g @iblai/cli@latest`
 
-## Step 0b: Check Environment
+This is safe to run even if already at the latest version.
 
-> **AI Assistant:** Before proceeding, check for a `iblai.env`
-> in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
-> If the file does not exist or is missing these variables, tell the user:
-> "You need an `iblai.env` with your platform configuration. Download the
-> template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+## Step 1: Check Environment
+
+Before proceeding, check for a `iblai.env`
+in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
+If the file does not exist or is missing these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Architecture
 
@@ -73,7 +73,7 @@ components/workflows/
 └── node-config-panel.tsx             # Context-aware node property editor
 ```
 
-## Step 1: SDK Components
+## Step 2: SDK Components
 
 Import SDK components directly -- there is no CLI generator:
 
@@ -99,7 +99,7 @@ import {
 } from "@iblai/iblai-js/data-layer";
 ```
 
-## Step 2: Register workflowsApiSlice in Redux Store
+## Step 3: Register workflowsApiSlice in Redux Store
 
 **CRITICAL**: Add `workflowsApiSlice` to the store in `store/iblai-store.ts`:
 
@@ -174,7 +174,7 @@ Note: Uses `open` (NOT `isOpen`). Does NOT accept `org`.
 
 **WARNING**: Does NOT use `workflowId` or `onDelete`. Those are wrong.
 
-## Step 3: Create the Types File
+## Step 4: Create the Types File
 
 Create `components/workflows/types.ts` with the shared data model.
 Node data is **nested** in `node.data` (not flat on the node):
@@ -267,7 +267,7 @@ export interface CanvasEdge {
 }
 ```
 
-## Step 4: Create the Workflow List Page
+## Step 5: Create the Workflow List Page
 
 `app/(app)/workflows/page.tsx` -- shows all workflows in a grid.
 
@@ -307,7 +307,7 @@ const DEFAULT_EDGES = [
 ];
 ```
 
-## Step 5: Create the Workflow Editor Page
+## Step 6: Create the Workflow Editor Page
 
 `app/(app)/workflows/[id]/page.tsx` -- loads a workflow and renders
 the sidebar + canvas with save/publish controls.
@@ -381,7 +381,7 @@ useEffect(() => {
 }, []);
 ```
 
-## Step 6: Build the Canvas Component
+## Step 7: Build the Canvas Component
 
 `components/workflows/workflow-canvas.tsx` -- a custom canvas (no ReactFlow).
 
@@ -550,7 +550,7 @@ interface WorkflowCanvasProps {
 }
 ```
 
-## Step 7: Build the Node Config Panel
+## Step 8: Build the Node Config Panel
 
 `components/workflows/node-config-panel.tsx` -- opens when a node is clicked.
 
@@ -698,7 +698,7 @@ const handleUpdateNode = useCallback(
 );
 ```
 
-## Step 8: Verify
+## Step 9: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 

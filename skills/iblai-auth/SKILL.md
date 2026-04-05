@@ -220,8 +220,8 @@ metadata payload without uploading.
 After all images are uploaded, assemble the payload and PUT to:
 
 ```
-PUT https://api.iblai.app/dm/api/core/orgs/{platform}/metadata/
-Authorization: Api-Token {api-key}
+PUT https://api.{domain}/dm/api/core/orgs/{platform}/metadata/
+Authorization: Api-Token {token}
 Content-Type: application/json
 ```
 
@@ -402,7 +402,7 @@ pnpm dev
 ## What Was Patched
 
 - **`next.config.ts`** -- webpack `resolve.alias` to deduplicate `@reduxjs/toolkit`,
-  `turbopack: {}` for Next.js 16+, and Tauri stub aliases. Without the dedup,
+  `turbopack: {}` for Next.js 16+. Without the dedup,
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
 - **`globals.css`** -- SDK base styles import.

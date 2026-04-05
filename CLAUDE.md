@@ -175,7 +175,7 @@ iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
 iblai add account        # Account/organization settings page
 iblai add analytics      # Analytics dashboard page
-iblai add notifications  # Notification bell
+iblai add notification  # Notification bell
 iblai add builds         # Tauri v2 desktop/mobile shell
 iblai init               # Alias for iblai add mcp
 ```
@@ -224,7 +224,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-component` | Overview of all available components |
 | `/iblai-ios` | Build and run on iOS (Simulator and real device) |
 | `/iblai-test` | Test your app before showing work to the user |
-| `/iblai-deslop` | Audit and harden codebases for production readiness |
+
 
 ## Deployment
 
