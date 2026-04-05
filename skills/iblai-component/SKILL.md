@@ -34,7 +34,9 @@ The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
 only if you want to override it or don't have an `iblai.env`.
 
 ```bash
-npx create-next-app@latest . --yes
+npx create-next-app@latest iblai-init --yes
+cp -a iblai-init/. . && rm -rf iblai-init
+rm -rf node_modules && pnpm install
 iblai add auth
 iblai add chat
 pnpm dev
@@ -46,17 +48,19 @@ Scaffold a complete app with auth, chat, and everything pre-configured.
 Always create in a temp directory and copy back to the current directory:
 
 ```bash
-iblai startapp agent -o .iblai-init
-cp -a .iblai-init/<app-name>/. . && rm -rf .iblai-init
+iblai startapp agent -o iblai-init
+cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
+rm -rf node_modules && pnpm install
 cp .env.example .env.local
-pnpm install && pnpm dev
+pnpm dev
 ```
 
 ### Non-Interactive (CI/CD)
 
 ```bash
-iblai startapp agent --yes --platform acme --agent my-id --app-name my-app -o .iblai-init
-cp -a .iblai-init/my-app/. . && rm -rf .iblai-init
+iblai startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
+cp -a iblai-init/my-app/. . && rm -rf iblai-init
+rm -rf node_modules && pnpm install
 cp .env.example .env.local
 ```
 
