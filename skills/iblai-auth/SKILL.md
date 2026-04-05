@@ -376,7 +376,21 @@ Verify `app/globals.css` has the SDK imports (the generator patches this automat
 
 If these lines are missing, add them near the top of `globals.css`.
 
-## Step 8: Verify
+## Step 8: Replace Default Home Page
+
+After adding auth, check if `app/page.tsx` still has the default Next.js
+content (look for `next/image`, `vercel.svg`, `Vercel`, or
+`Get started by editing`). If it does, replace it with the ibl.ai home page:
+
+```bash
+iblai add homepage
+```
+
+If the user has already customized their home page, skip this step.
+
+## Step 9: Start Dev Server
+
+Start the dev server so the user can see the result:
 
 ```bash
 pnpm dev

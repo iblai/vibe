@@ -124,7 +124,7 @@ import { SsoLogin } from "@iblai/iblai-js/web-containers/next";
 | `OrganizationTab` | next | Organization settings tab |
 | `Profile` | root | Full profile management component |
 | `ResumeTab` | root | Resume upload and display |
-| `UserProfileDropdown` | next | Avatar dropdown with profile link, tenant switcher, logout |
+| `UserProfileDropdown` | next | Avatar dropdown with profile, organization, tenant switcher, logout |
 | `UserProfileModal` | next | Profile editing modal with tabs (Basic, Social, Education, Experience, Resume, Security) |
 
 ```typescript
