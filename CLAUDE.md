@@ -127,8 +127,6 @@ NEXT_PUBLIC_MAIN_TENANT_KEY=your-platform
 NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 ```
 
-Register at https://mentorai.iblai.app for your own tenant key and agent ID.
-
 > **AI Assistant:** Before adding a component or creating a new app, check
 > for an `iblai.env` file in the project root. Look for `PLATFORM`, `DOMAIN`,
 > and `TOKEN` variables. If the file does not exist or is missing these

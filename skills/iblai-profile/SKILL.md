@@ -27,6 +27,9 @@ Experience, Resume, and Security.
 >
 > You MUST run `/iblai-test` before telling the user the work is ready.
 >
+> After all work is complete, start a dev server (`pnpm dev`) so the user
+> can see the result at http://localhost:3000.
+>
 > `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
 > shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
 > its runtime env vars from `.env.local`.
@@ -69,11 +72,14 @@ iblai add profile
 
 | File | Purpose |
 |------|---------|
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile link and logout |
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, and logout |
 
 The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
 localStorage. Admin status is derived from the `tenants` array by matching
 the current tenant key against `is_admin`.
+
+The dropdown shows three items: **Profile** (links to `/profile`),
+**Organization** (links to `/account`), and **Logout**.
 
 ## Step 3: Use MCP Tools for Customization
 

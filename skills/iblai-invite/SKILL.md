@@ -24,6 +24,9 @@ email/username and a dialog showing pending invitations with status tracking.
 >
 > You MUST run `/iblai-test` before telling the user the work is ready.
 >
+> After all work is complete, start a dev server (`pnpm dev`) so the user
+> can see the result at http://localhost:3000.
+>
 > `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
 > shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
 > its runtime env vars from `.env.local`.
