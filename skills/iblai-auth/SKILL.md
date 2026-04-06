@@ -34,6 +34,12 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the tenant/platform name.
 Use the ibl.ai logo instead.
 
+Always use shadcn/ui components for all custom UI -- buttons, forms,
+modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
+components when a shadcn equivalent exists. Install with
+`npx shadcn@latest add <component>`. shadcn shares the same Tailwind
+theme and renders in ibl.ai brand colors automatically.
+
 ## Prerequisites
 
  **Already have auth?** If you used `iblai startapp agent`, auth is already
