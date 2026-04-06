@@ -23,6 +23,9 @@ Overview of all ibl.ai components and how to create a new app.
 > Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 > is not installed. The generated app should live in the current directory,
 > not in a subdirectory.
+>
+> When building a navbar or header, do NOT display the tenant/platform name.
+> Use the ibl.ai logo instead.
 
 ## Creating a New App
 
