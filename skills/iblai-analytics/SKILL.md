@@ -22,8 +22,11 @@ Users, Topics, Financial, Transcripts, and Reports.
 > - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 > - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
 > - **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-> - Use shadcn components for custom UI -- they share the same Tailwind
->   theme and render in ibl.ai brand colors automatically.
+> - Always use shadcn/ui components for all custom UI -- buttons, forms,
+>   modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
+>   components when a shadcn equivalent exists. Install with
+>   `npx shadcn@latest add <component>`. shadcn shares the same Tailwind
+>   theme and renders in ibl.ai brand colors automatically.
 >
 > You MUST run `/iblai-test` before telling the user the work is ready.
 >
