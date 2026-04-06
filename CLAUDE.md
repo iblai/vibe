@@ -223,7 +223,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all available components |
-| `/iblai-ios` | Build and run on iOS (Simulator and real device) |
+| `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-test` | Test your app before showing work to the user |
 
 
