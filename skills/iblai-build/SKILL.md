@@ -10,6 +10,18 @@ alwaysApply: false
 Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
 iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 
+Before adding build support or running a dev build, **stop all running dev
+servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
+process on port 3000 before proceeding.
+
+When the user asks to add iOS or Android build support, automatically start
+the emulator/simulator after initialization -- just like you would start
+`pnpm dev` after adding auth. Run `iblai builds device` to find the
+available device name, then start the dev build with that device.
+
+Do NOT guess device names. Always run `iblai builds device` first and use
+a device name from the output.
+
 ## Prerequisites (All Platforms)
 
 - **Tauri support** added to your project:
@@ -67,25 +79,27 @@ code, and iOS configuration.
 
 ### Run on iOS Simulator
 
+First, find available simulators:
+
+```bash
+iblai builds device
+```
+
+Then start the dev build with a device from the output:
+
+```bash
+iblai builds ios dev --device "<device name from iblai builds device>"
+```
+
+Or without specifying a device (uses the default simulator):
+
 ```bash
 iblai builds ios dev
 ```
 
-Or use the pnpm script:
-
-```bash
-pnpm tauri:dev:ios
-```
-
 This starts the Next.js dev server, compiles Rust for `aarch64-apple-ios-sim`,
-and launches the app in the default iOS Simulator. The first build takes
+and launches the app in the iOS Simulator. The first build takes
 several minutes; subsequent builds are fast.
-
-#### Choosing a Specific Simulator
-
-```bash
-iblai builds ios dev --device "iPhone 16 Pro"
-```
 
 #### Troubleshooting Simulator
 
@@ -182,6 +196,14 @@ iblai builds android init
 This generates `src-tauri/gen/android/` with the Gradle project.
 
 ### Run on Android Emulator
+
+First, find available emulators:
+
+```bash
+iblai builds device
+```
+
+Then start the dev build:
 
 ```bash
 iblai builds android dev
@@ -338,6 +360,7 @@ iblai builds ci-workflow --all
 | **iOS** | |
 | Initialize iOS project | `iblai builds ios init` |
 | Run on iOS Simulator | `iblai builds ios dev` |
+| Run on specific simulator | `iblai builds ios dev --device "<name>"` |
 | Run on physical iPhone | `iblai builds ios dev --device` |
 | Build release .ipa | `iblai builds ios build` |
 | iOS CI workflow | `iblai builds ci-workflow --ios` |
