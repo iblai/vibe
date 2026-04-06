@@ -9,23 +9,23 @@ alwaysApply: false
 
 Overview of all ibl.ai components and how to create a new app.
 
-> **AI Assistant:** Before adding a component or creating a new app, check
-> for a `iblai.env` in the project root. Look for `PLATFORM`,
-> `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
-> these variables, tell the user:
-> "You need an `iblai.env` with your platform configuration. Download the
-> template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
->
-> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-> shorthand variables. Next.js still reads runtime env vars from `.env.local`.
->
-> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-> is not installed. The generated app should live in the current directory,
-> not in a subdirectory.
->
-> When building a navbar or header, do NOT display the tenant/platform name.
-> Use the ibl.ai logo instead.
+Before adding a component or creating a new app, check
+for a `iblai.env` in the project root. Look for `PLATFORM`,
+`DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
+these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+
+`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+shorthand variables. Next.js still reads runtime env vars from `.env.local`.
+
+Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+is not installed. The generated app should live in the current directory,
+not in a subdirectory.
+
+When building a navbar or header, do NOT display the tenant/platform name.
+Use the ibl.ai logo instead.
 
 ## Creating a New App
 

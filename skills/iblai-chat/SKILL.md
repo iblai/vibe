@@ -14,44 +14,44 @@ automatically.
 ![Chat Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-chat/chat-page.png)
 
 
-> **AI Assistant:** Before running `iblai add chat`, you MUST ask the user for
-> their **agent/mentor ID** (a UUID like `3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c`).
-> This is required for the chat widget to connect to an AI agent.
->
-> If the user does not have an agent ID, direct them to https://mentorai.iblai.app
-> to create an AI agent. They can find the agent ID in the agent settings page.
->
-> Once you have the ID, set it in `.env.local`:
-> ```
-> NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid-they-gave-you>
-> ```
->
-> Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
-> It ships with its own styling. Keep the component as-is.
-> Do NOT implement dark mode unless the user explicitly asks for it.
->
-> When building custom UI around the chat widget, use the ibl.ai brand:
-> - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-> - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-> - **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-> - Always use shadcn/ui components for all custom UI -- buttons, forms,
->   modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
->   components when a shadcn equivalent exists. Install with
->   `npx shadcn@latest add <component>`. shadcn shares the same Tailwind
->   theme and renders in ibl.ai brand colors automatically.
->
-> You MUST run `/iblai-test` before telling the user the work is ready.
->
-> After all work is complete, start a dev server (`pnpm dev`) so the user
-> can see the result at http://localhost:3000.
->
-> `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-> shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-> its runtime env vars from `.env.local`.
->
-> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-> is not installed. The generated app should live in the current directory,
-> not in a subdirectory.
+Before running `iblai add chat`, you MUST ask the user for
+their **agent/mentor ID** (a UUID like `3f8a1b2c-4d5e-6f7a-8b9c-0d1e2f3a4b5c`).
+This is required for the chat widget to connect to an AI agent.
+
+If the user does not have an agent ID, direct them to https://mentorai.iblai.app
+to create an AI agent. They can find the agent ID in the agent settings page.
+
+Once you have the ID, set it in `.env.local`:
+```
+NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid-they-gave-you>
+```
+
+Do NOT add custom styles, colors, or CSS overrides to the ChatWidget.
+It ships with its own styling. Keep the component as-is.
+Do NOT implement dark mode unless the user explicitly asks for it.
+
+When building custom UI around the chat widget, use the ibl.ai brand:
+- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+- Always use shadcn/ui components for all custom UI -- buttons, forms,
+  modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
+  components when a shadcn equivalent exists. Install with
+  `npx shadcn@latest add <component>`. shadcn shares the same Tailwind
+  theme and renders in ibl.ai brand colors automatically.
+
+You MUST run `/iblai-test` before telling the user the work is ready.
+
+After all work is complete, start a dev server (`pnpm dev`) so the user
+can see the result at http://localhost:3000.
+
+`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+its runtime env vars from `.env.local`.
+
+Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+is not installed. The generated app should live in the current directory,
+not in a subdirectory.
 
 ## Prerequisites
 
@@ -83,12 +83,12 @@ template and fill in your values:
 Ask the user for their agent/mentor ID. This is a UUID that identifies the AI
 agent the chat widget will connect to.
 
-> **AI Assistant:** Once the user provides their agent ID, write it directly
-> to `.env.local` using the Edit tool — do NOT echo it back in shell commands.
-> Add or update this line in `.env.local`:
-> ```
-> NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
-> ```
+Once the user provides their agent ID, write it directly
+to `.env.local` using the Edit tool — do NOT echo it back in shell commands.
+Add or update this line in `.env.local`:
+```
+NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
+```
 
 ## Step 3: Run the Generator
 
