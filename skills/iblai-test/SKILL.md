@@ -7,11 +7,11 @@ alwaysApply: false
 
 # /iblai-test
 
-> **AI Assistant:** You MUST run these checks before presenting any work to
-> the user. Do NOT show untested code.
->
-> Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-> is not installed.
+You MUST run these checks before presenting any work to
+the user. Do NOT show untested code.
+
+Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+is not installed.
 
 ## Step 1: Build
 
