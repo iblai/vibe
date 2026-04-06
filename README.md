@@ -10,7 +10,7 @@ Ship AI-powered apps fast. Backend included.
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-CC785C?logoColor=white)](https://claude.ai)
-[![iOS](https://img.shields.io/badge/iOS-supported-blue)](skills/iblai-ios/SKILL.md)
+[![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
 </div>
@@ -87,7 +87,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-notification
 /iblai-invite
 /iblai-workflow
-/iblai-ios
+/iblai-build
 /iblai-test
 ```
 
@@ -101,7 +101,7 @@ What each skill does:
 - `/iblai-notification` -- adds notifications UI and notification center flows.
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
-- `/iblai-ios` -- builds and runs the app on iOS (Simulator and real device).
+- `/iblai-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-test` -- validates the app before it is presented to the user.
 
 ## What You Get
@@ -203,7 +203,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all components + app creation paths |
-| `/iblai-ios` | Build and run on iOS (Simulator and real device) |
+| `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-test` | Test your app before showing work to the user |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
