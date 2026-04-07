@@ -88,6 +88,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-invite
 /iblai-workflow
 /iblai-build
+/iblai-screenshot
 /iblai-test
 ```
 
@@ -102,6 +103,7 @@ What each skill does:
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-screenshot` -- captures app store screenshots for web, iOS, and Android.
 - `/iblai-test` -- validates the app before it is presented to the user.
 
 ## What You Get
@@ -204,6 +206,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all components + app creation paths |
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
+| `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-test` | Test your app before showing work to the user |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.

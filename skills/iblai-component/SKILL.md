@@ -27,6 +27,9 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the tenant/platform name.
 Use the ibl.ai logo instead.
 
+Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+colors, typography, spacing, and component styles.
+
 ## Creating a New App
 
 ### Vanilla Next.js + ibl.ai Features
