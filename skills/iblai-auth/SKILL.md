@@ -40,6 +40,9 @@ components when a shadcn equivalent exists. Install with
 `npx shadcn@latest add <component>`. shadcn shares the same Tailwind
 theme and renders in ibl.ai brand colors automatically.
 
+Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+colors, typography, spacing, and component styles.
+
 ## Prerequisites
 
  **Already have auth?** If you used `iblai startapp agent`, auth is already

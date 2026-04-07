@@ -207,3 +207,133 @@ packages/web-containers/src/styles/base.css
 
 All hex values, spacing scales, and utility classes in this document
 are derived from that file. When in doubt, check `base.css`.
+
+---
+
+## Apple-Inspired Design Language
+
+The visual design language for ibl.ai apps draws inspiration from Apple's
+design system. Use the guidelines below for layout, typography rhythm,
+component styling, and responsive behavior when building custom UI.
+
+### Visual Theme
+
+Controlled minimalism -- vast expanses of solid backgrounds serve as backdrops
+for content. The interface retreats until it becomes invisible.
+
+**Key Characteristics:**
+- System sans-serif with tight headline line-heights (1.07-1.14)
+- Binary light/dark section rhythm: black (`#000000`) alternating with light gray (`#f5f5f7`)
+- Single accent color for interactive elements
+- Full-width section layout with centered content
+- Pill-shaped CTAs (980px radius)
+- Generous whitespace between sections
+
+### Apple Color Roles
+
+| Role | Light BG | Dark BG |
+|------|----------|---------|
+| Background | `#f5f5f7` | `#000000` |
+| Text | `#1d1d1f` | `#ffffff` |
+| Secondary text | `rgba(0,0,0,0.8)` | `#ffffff` |
+| Interactive / CTA | `#0071e3` | `#0071e3` |
+| Link | `#0066cc` | `#2997ff` |
+| Card surface | `#f5f5f7` | `#272729` - `#2a2a2d` |
+| Focus ring | `#0071e3` | `#0071e3` |
+
+### Apple Typography Hierarchy
+
+| Role | Size | Weight | Line Height | Letter Spacing |
+|------|------|--------|-------------|----------------|
+| Display Hero | 56px (3.50rem) | 600 | 1.07 | -0.28px |
+| Section Heading | 40px (2.50rem) | 600 | 1.10 | normal |
+| Tile Heading | 28px (1.75rem) | 400 | 1.14 | 0.196px |
+| Card Title | 21px (1.31rem) | 700 | 1.19 | 0.231px |
+| Body | 17px (1.06rem) | 400 | 1.47 | -0.374px |
+| Button | 17px (1.06rem) | 400 | 1.00 | normal |
+| Link / Caption | 14px (0.88rem) | 400 | 1.43 | -0.224px |
+| Micro | 12px (0.75rem) | 400 | 1.33 | -0.12px |
+
+**Principles:**
+- Negative letter-spacing at all sizes (not just headlines)
+- Weight restraint: mostly 400 (regular) and 600 (semibold), max 700
+- Extreme line-height range: 1.07 for headlines, 1.47 for body
+
+### Apple Component Styles
+
+**Buttons**
+- Primary CTA: `#0071e3` bg, white text, 8px radius, 8px 15px padding
+- Secondary CTA: `#1d1d1f` bg, white text, 8px radius
+- Pill link: transparent bg, `#0066cc` text, 980px radius, 1px border
+- Focus: `2px solid #0071e3` outline
+
+**Cards & Containers**
+- Light: `#f5f5f7` bg, no border, 5-8px radius
+- Dark: `#272729`-`#2a2a2d` bg, no border
+- Shadow (rare): `rgba(0,0,0,0.22) 3px 5px 30px 0px`
+- No hover state on cards -- links within them are interactive
+
+**Navigation**
+- `rgba(0,0,0,0.8)` bg with `backdrop-filter: saturate(180%) blur(20px)`
+- 48px height, white text at 12px weight 400
+- Floats above content with glass effect
+
+### Apple Layout Principles
+
+- Base spacing unit: 8px
+- Max content width: ~980px centered
+- Full-viewport-width sections with centered content blocks
+- Alternating background colors create section separation (no borders)
+- Each section near full-viewport height
+
+**Border Radius Scale:**
+- 5px: small containers
+- 8px: buttons, cards
+- 11px: search inputs
+- 12px: feature panels
+- 980px: pill CTAs
+- 50%: media controls
+
+### Apple Depth & Elevation
+
+| Level | Treatment |
+|-------|-----------|
+| Flat | No shadow, solid background |
+| Navigation Glass | `backdrop-filter: saturate(180%) blur(20px)` on `rgba(0,0,0,0.8)` |
+| Subtle Lift | `rgba(0,0,0,0.22) 3px 5px 30px 0px` |
+| Focus | `2px solid #0071e3` outline |
+
+Shadow is rare and always soft. Elevation comes from background color contrast.
+
+### Apple Responsive Breakpoints
+
+| Name | Width |
+|------|-------|
+| Mobile | 360-480px |
+| Tablet | 640-1024px |
+| Desktop | 1024-1440px |
+| Large Desktop | >1440px |
+
+- Hero headlines: 56px -> 40px -> 28px on mobile
+- Grids: 3-col -> 2-col -> 1-col
+- Nav: horizontal -> hamburger
+- Touch targets: minimum 44x44px
+
+### Do's and Don'ts
+
+**Do:**
+- Use a single accent color for all interactive elements
+- Alternate light/dark section backgrounds for rhythm
+- Apply negative letter-spacing at all text sizes
+- Compress headline line-heights (1.07-1.14)
+- Use the glass blur effect for sticky navigation
+- Keep product imagery on solid color fields
+
+**Don't:**
+- Don't introduce additional accent colors
+- Don't use heavy shadows or multiple shadow layers
+- Don't use borders on cards or containers
+- Don't use font weight 800 or 900
+- Don't add textures, patterns, or gradients to backgrounds
+- Don't make the navigation opaque
+- Don't center-align body text (only headlines)
