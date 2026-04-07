@@ -149,11 +149,12 @@ WebView storage -- you only need to log in once per simulator device.
 
 3. Navigate to the page you want to capture in the Simulator.
 
-4. Capture from the Simulator menu: **File > Save Screen** (`Cmd+S`),
-   or from the terminal:
+4. Capture the full Simulator window including the title bar:
    ```bash
-   xcrun simctl io booted screenshot ~/Desktop/ios-screenshot.png
+   screencapture -l $(osascript -e 'tell app "Simulator" to id of window 1') ~/Desktop/ios-screenshot.png
    ```
+   This captures the Simulator window with its title bar showing the device
+   name and iOS version (e.g. "iPhone 16 Pro Max - iOS 18.0").
 
 ### Capture All Required Sizes
 
@@ -186,8 +187,9 @@ DEVICES=(
 for device in "${DEVICES[@]}"; do
   slug=$(echo "$device" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
   xcrun simctl boot "$device" 2>/dev/null
-  sleep 2
-  xcrun simctl io "$device" screenshot "screenshots/ios-${slug}.png"
+  sleep 5
+  # Capture the Simulator window with its title bar
+  screencapture -l $(osascript -e 'tell app "Simulator" to id of window 1') "screenshots/ios-${slug}.png"
   xcrun simctl shutdown "$device"
 done
 ```
@@ -223,9 +225,14 @@ in the emulator's WebView storage for subsequent runs.
 
 3. Navigate to the page you want to capture in the emulator.
 
-4. Capture from the emulator toolbar (camera icon), or from the terminal:
+4. Capture the full emulator window including the title bar:
    ```bash
-   adb exec-out screencap -p > ~/Desktop/android-screenshot.png
+   # macOS — capture the emulator window with its title bar (shows device name)
+   screencapture -l $(osascript -e 'tell app "qemu-system-aarch64" to id of window 1') ~/Desktop/android-screenshot.png
+   ```
+   Or on Linux, use `xdotool` to capture the emulator window:
+   ```bash
+   import -window "$(xdotool search --name 'Android Emulator')" ~/Desktop/android-screenshot.png
    ```
 
 ### Required Sizes for Google Play
@@ -252,7 +259,8 @@ for avd in "${EMULATORS[@]}"; do
   emulator -avd "$avd" -no-audio -no-boot-anim &
   adb wait-for-device
   sleep 10
-  adb exec-out screencap -p > "screenshots/android-${avd}.png"
+  # Capture emulator window with title bar
+  screencapture -l $(osascript -e 'tell app "qemu-system-aarch64" to id of window 1') "screenshots/android-${avd}.png"
   adb emu kill
 done
 ```
