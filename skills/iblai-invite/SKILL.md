@@ -10,6 +10,8 @@ alwaysApply: false
 Add user invitation features -- a dialog to invite new users to a tenant by
 email/username and a dialog showing pending invitations with status tracking.
 
+![Invite Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-invite/iblai-invite.png)
+
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
