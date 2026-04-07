@@ -12,6 +12,8 @@ browser sidebar, node configuration panels, connector management, and
 create/delete workflow modals. Includes a custom canvas with drag-and-drop,
 bezier curve edges, pan/zoom, undo/redo, and auto-save.
 
+![Workflow Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-workflow/iblai-workflow.png)
+
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
