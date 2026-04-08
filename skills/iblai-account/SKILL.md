@@ -83,7 +83,97 @@ localStorage. Admin status is derived from the `tenants` array.
 > **Note:** The `Account` component uses `next/image` internally -- it is
 > imported from `@iblai/iblai-js/web-containers/next`.
 
-## Step 3: Use MCP Tools for Customization
+## Step 3: Wrap in a White Container
+
+The SDK Account component has no outer background. Wrap it in a white
+container so it renders as a card against the gray page background
+(`--sidebar-bg: #fafbfc`).
+
+### Reference implementation
+
+```tsx
+// app/(app)/account/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Account } from "@iblai/iblai-js/web-containers/next";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function AccountPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [tenantKey, setTenantKey] = useState("");
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const resolved = resolveAppTenant();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const parsed = JSON.parse(tenantsRaw);
+        setTenants(parsed);
+        const match = parsed.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-gray-400">Loading account settings...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+        <Account
+          tenant={tenantKey}
+          tenants={tenants}
+          username={username}
+          isAdmin={isAdmin}
+          authURL={config.authUrl()}
+          currentPlatformBaseDomain={config.platformBaseDomain()}
+          currentSPA="agent"
+          onInviteClick={() => {}}
+          onClose={() => router.push("/")}
+          targetTab="organization"
+          showPlatformName={true}
+          useGravatarPicFallback={true}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+### Key patterns
+
+- **White container wrapper**: Wrap the `Account` component in a
+  `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`
+  div so it renders as a card against the gray page background.
+- **Responsive width**: `w-full px-4` on mobile, `md:w-[75vw] md:px-0`
+  on desktop.
+
+## Step 4: Use MCP Tools for Customization
 
 ```
 get_component_info("Account")
@@ -126,7 +216,7 @@ get_component_info("Account")
 | **Advanced** | `isAdmin === true` |
 | **Billing** | `billingURL` or `topUpURL` prop set |
 
-## Step 4: Verify
+## Step 5: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
@@ -145,4 +235,7 @@ Run `/iblai-test` before telling the user the work is ready:
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **`currentPlatformBaseDomain`**: Must be `{config.platformBaseDomain()}` — uses the config helper, not a raw env var. This is correct and intentional.
+- **SDK hardcoded styles**: The SDK Account component uses `bg-white` and
+  `bg-gray-50` internally. Do NOT override these. Instead, wrap the component
+  in a white container so it renders correctly against the gray page background.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

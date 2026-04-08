@@ -95,6 +95,75 @@ iblai startapp agent \
 | | Workflow builder components | `/iblai-workflow` |
 | `iblai add builds` | Tauri v2 desktop/mobile shell | |
 
+## Layout & Page Patterns
+
+### Page background
+
+The page background should be `var(--sidebar-bg, #fafbfc)` (light gray).
+Set in `globals.css`:
+
+```css
+@layer base {
+  body {
+    background-color: var(--sidebar-bg, #fafbfc);
+  }
+}
+```
+
+### SDK component wrappers
+
+SDK components (`Profile`, `Account`, `AnalyticsLayout`) have no outer
+background. Wrap them in a white container so they render as cards:
+
+```tsx
+<div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+  <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+    <SdkComponent ... />
+  </div>
+</div>
+```
+
+### Responsive width
+
+Use `w-full px-4` on mobile, `md:w-[75vw] md:px-0` on desktop for all
+page content and the navbar inner container. This keeps everything aligned.
+
+### Navbar pattern
+
+Use a sticky top navbar with frosted glass effect, ibl.ai logo on the left,
+nav links next to it, and profile dropdown on the right:
+
+```tsx
+<header className="sticky top-0 z-50 flex-shrink-0 border-b border-[var(--border-color)] bg-white/80 backdrop-blur-xl backdrop-saturate-150">
+  <div className="mx-auto flex h-14 w-full items-center px-4 md:w-[75vw] md:px-0">
+    {/* Mobile hamburger (Sheet) */}
+    {/* Logo */}
+    {/* Desktop nav links with bottom-border active state */}
+    {/* Profile dropdown ml-auto */}
+  </div>
+</header>
+```
+
+Key navbar details:
+- **Active link**: `border-b-2 border-[var(--primary-color)] text-[var(--primary-color)]`
+- **Inactive link**: `border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]`
+- **Mobile**: Use shadcn `Sheet` with `side="left"` for a slide-out drawer.
+  Note: shadcn Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild`
+  prop is NOT available on `SheetTrigger`.
+
+### Footer pattern
+
+```tsx
+<footer className="flex-shrink-0 border-t border-[var(--border-color)]">
+  <div className="mx-auto flex h-11 w-full items-center justify-between px-4 text-xs text-[var(--text-muted)] md:w-[75vw] md:px-0">
+    <p>&copy; {new Date().getFullYear()} ibl.ai</p>
+    <div className="flex items-center gap-5">
+      {/* Docs, Privacy, Terms links */}
+    </div>
+  </div>
+</footer>
+```
+
 ## Component Gallery
 
 All components below are from `@iblai/iblai-js/web-containers` (v1.1.28). Use MCP tools
@@ -132,15 +201,19 @@ import { SsoLogin } from "@iblai/iblai-js/web-containers/next";
 | `InvitedUsersDialog` | root | Dialog showing pending invitations |
 | `LocalLLMTab` | root | Local LLM model management (Tauri desktop) |
 | `OrganizationTab` | next | Organization settings tab |
-| `Profile` | root | Full profile management component |
+| `Profile` | root | Full inline profile management (use for `/profile` page) |
 | `ResumeTab` | root | Resume upload and display |
 | `UserProfileDropdown` | next | Avatar dropdown with profile, organization, tenant switcher, logout |
-| `UserProfileModal` | next | Profile editing modal with tabs (Basic, Social, Education, Experience, Resume, Security) |
+| `UserProfileModal` | next | Profile editing modal/dialog (use for overlay, NOT for a page) |
 
 ```typescript
 import { Account, OrganizationTab, UserProfileDropdown, UserProfileModal } from "@iblai/iblai-js/web-containers/next";
-import { CompanyDialog, EducationDialog, EducationTab, ExperienceDialog, ExperienceTab, InstitutionDialog, ... } from "@iblai/iblai-js/web-containers";
+import { Profile, CompanyDialog, EducationDialog, EducationTab, ExperienceDialog, ExperienceTab, InstitutionDialog, ... } from "@iblai/iblai-js/web-containers";
 ```
+
+> **`Profile` vs `UserProfileModal`**: `Profile` renders inline (full page).
+> `UserProfileModal` renders as a dialog overlay. Use `Profile` for a
+> dedicated `/profile` route. Use `UserProfileModal` for a quick-edit overlay.
 
 ### Tenant & Organization
 
@@ -160,13 +233,13 @@ import { TenantSwitcher } from "@iblai/iblai-js/web-containers";
 | `AnalyticsCourseDetail` | root | Single course detail view |
 | `AnalyticsCourses` | root | Course analytics listing |
 | `AnalyticsFinancialStats` | root | Financial/billing statistics |
-| `AnalyticsLayout` | root | Layout wrapper for analytics pages |
+| `AnalyticsLayout` | root | Layout wrapper for analytics pages with built-in tab navigation |
 | `AnalyticsOverview` | root | Overview dashboard with key metrics |
 | `AnalyticsProgramDetail` | root | Single program detail view |
 | `AnalyticsPrograms` | root | Program analytics listing |
 | `AnalyticsReportDownload` | root | Download analytics reports |
 | `AnalyticsReports` | root | Report listing and management |
-| `AnalyticsSettingsProvider` | root | Context provider for analytics settings |
+| `AnalyticsSettingsProvider` | root | Context provider for analytics settings (required wrapper) |
 | `AnalyticsTopicsStats` | root | Topic/conversation statistics |
 | `AnalyticsTranscriptsStats` | root | Transcript browsing and search |
 | `AnalyticsUsersStats` | root | User activity statistics |
@@ -179,8 +252,11 @@ import { TenantSwitcher } from "@iblai/iblai-js/web-containers";
 | `TimeFilter` | root | Time range filter dropdown |
 
 ```typescript
-import { AccessTimeHeatmap, AnalyticsCourseDetail, AnalyticsCourses, AnalyticsFinancialStats, AnalyticsLayout, AnalyticsOverview, ... } from "@iblai/iblai-js/web-containers";
+import { AnalyticsLayout, AnalyticsSettingsProvider, AnalyticsOverview, AnalyticsCourses, AnalyticsPrograms, AnalyticsFinancialStats, AnalyticsUsersStats, AnalyticsTopicsStats, AnalyticsTranscriptsStats, AnalyticsReports } from "@iblai/iblai-js/web-containers";
 ```
+
+> **`AnalyticsFinancialStats`** does NOT accept a `basePath` prop.
+> All other analytics sub-page components do.
 
 ### Notifications
 
@@ -286,6 +362,22 @@ when you need lower-level building blocks inside SDK component customizations:
    ```
 
 ibl.ai and shadcn components share the same Tailwind theme and are visually seamless.
+
+## SDK Styling Notes
+
+- SDK components use Tailwind classes internally (`bg-white`, `bg-gray-50`,
+  `bg-[#f5f7fb]`). Do NOT override these globally.
+- To make SDK components look correct on a gray page background, wrap them
+  in a `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden` container.
+- The `AnalyticsLayout` hardcodes `bg-[#f5f7fb]` for its background. If you
+  need white, add a targeted CSS override in `globals.css`:
+  ```css
+  .bg-\[\#f5f7fb\] {
+    background-color: #ffffff !important;
+  }
+  ```
+- shadcn Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild` prop
+  is NOT available on `SheetTrigger`.
 
 ## CLI Updates
 

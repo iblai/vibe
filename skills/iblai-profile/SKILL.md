@@ -79,19 +79,137 @@ iblai add profile
 
 | File | Purpose |
 |------|---------|
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, and logout |
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, tenant switcher, and logout |
 
 The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
 localStorage. Admin status is derived from the `tenants` array by matching
 the current tenant key against `is_admin`.
 
-The dropdown shows three items: **Profile** (links to `/profile`),
-**Organization** (links to `/account`), and **Logout**.
+The dropdown shows: **Profile** (links to `/profile`),
+**Organization** (links to `/account`), **Tenant Switcher**, and **Logout**.
 
-## Step 3: Use MCP Tools for Customization
+## Step 3: Add a Full Profile Page
+
+The generator creates the dropdown only. You must create the profile **page**
+manually using the `Profile` component (not `UserProfileModal`, which renders
+as a dialog).
+
+Import `Profile` from `@iblai/iblai-js/web-containers` (the framework-agnostic
+bundle, NOT the `/next` bundle). This renders an inline, full-page profile
+editor with sidebar navigation on desktop and tabbed navigation on mobile.
+
+### Reference implementation
+
+```tsx
+// app/(app)/profile/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { Profile } from "@iblai/iblai-js/web-containers";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function ProfilePage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const resolved = resolveAppTenant();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const parsed = JSON.parse(tenantsRaw);
+        const match = parsed.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-gray-400">Loading profile...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+        <Profile
+          tenant={tenantKey}
+          username={username}
+          isAdmin={isAdmin}
+          onClose={() => {}}
+          customization={{
+            showPlatformName: true,
+            useGravatarPicFallback: true,
+          }}
+          targetTab="basic"
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+### Key patterns
+
+- **White container wrapper**: The SDK Profile component has no outer background.
+  Wrap it in a `bg-white rounded-lg border` container so it renders as a card
+  against the gray page background (`--sidebar-bg: #fafbfc`).
+- **`Profile` vs `UserProfileModal`**: `Profile` renders inline (full page).
+  `UserProfileModal` renders as a dialog overlay. Use `Profile` for a
+  dedicated `/profile` route.
+- **Import path**: `@iblai/iblai-js/web-containers` (NOT `/next`).
+
+## Step 4: Enable Tenant Switcher in the Dropdown
+
+The generator does NOT enable the tenant switcher by default. You must pass
+the `userTenants` prop and set `showTenantSwitcher` to `true`:
+
+```tsx
+// In profile-dropdown.tsx, add:
+const userTenants = useMemo(() => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("tenants");
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}, []);
+
+// Then pass to the component:
+<UserProfileDropdown
+  userTenants={userTenants}
+  showTenantSwitcher
+  showAccountTab
+  // ...other props
+/>
+```
+
+Without `userTenants`, the tenant switcher will not appear even when
+`showTenantSwitcher` is `true`.
+
+## Step 5: Use MCP Tools for Customization
 
 ```
 get_component_info("UserProfileDropdown")
+get_component_info("Profile")
 ```
 
 ## `<UserProfileDropdown>` Props
@@ -103,13 +221,30 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `username` | `string` | Username |
 | `tenantKey` | `string` | Tenant/org key |
 | `userIsAdmin` | `boolean` | Shows admin badge + settings |
+| `userTenants` | `Tenant[]` | **Required for tenant switcher** -- full tenant list from localStorage |
 | `showProfileTab` | `boolean` | Show profile link |
 | `showAccountTab` | `boolean` | Show account settings link |
-| `showTenantSwitcher` | `boolean` | Show tenant switcher |
+| `showTenantSwitcher` | `boolean` | Show tenant switcher (needs `userTenants`) |
 | `showLogoutButton` | `boolean` | Show logout button |
+| `showHelpLink` | `boolean` | Show help link |
 | `authURL` | `string` | Auth service URL |
 | `onLogout` | `() => void` | Logout callback |
+| `onTenantChange` | `(tenant: string) => void` | Called when user switches tenant |
+| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant data updates |
 | `className` | `string?` | Additional CSS class |
+
+## `<Profile>` Props (Full-Page Profile)
+
+Import from `@iblai/iblai-js/web-containers`.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `tenant` | `string` | Tenant/org key |
+| `username` | `string` | Username |
+| `isAdmin` | `boolean` | Admin flag |
+| `onClose` | `() => void` | Close callback |
+| `customization` | `object` | `{ showPlatformName, useGravatarPicFallback }` |
+| `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
 
 ## `<UserProfileModal>` Props (Profile + Account Modal)
 
@@ -139,7 +274,7 @@ dialog that combines profile editing and account settings in one overlay.
 | `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant is updated |
 | `onAccountDeleted` | `() => void` | Called after account deletion |
 
-## Step 4: Verify
+## Step 6: Verify
 
 Run `/iblai-test` before telling the user the work is ready:
 
@@ -157,4 +292,7 @@ Run `/iblai-test` before telling the user the work is ready:
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **Admin detection**: Derived from `tenants` array in localStorage
+- **SDK hardcoded styles**: The SDK Profile component uses `bg-white` and
+  `bg-gray-50` internally. Do NOT override these. Instead, wrap the component
+  in a white container so it renders correctly against the gray page background.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
