@@ -214,6 +214,19 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
+## Platform Capabilities
+
+| Feature | Web | macOS | Windows/Surface | iOS | Android |
+|---------|-----|-------|-----------------|-----|---------|
+| SSO Authentication | Yes | Yes | Yes | No | No |
+| AI Chat | Yes | Yes | Yes | Yes | Yes |
+| User Profile | Yes | Yes | Yes | Yes | Yes |
+| Account Settings | Yes | Yes | Yes | Yes | Yes |
+| Analytics Dashboard | Yes | Yes | Yes | Yes | Yes |
+| Notifications | Yes | Yes | Yes | Yes | Yes |
+
+> **iOS & Android SSO limitation:** Mobile WebViews use a non-standard user-agent that SSO providers reject. Completing the OAuth flow requires a system browser popup (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android). This is not yet implemented -- mobile users must authenticate via another method for now.
+
 ## Deploy Anywhere
 
 ### Vercel (recommended)
