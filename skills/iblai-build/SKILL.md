@@ -51,6 +51,8 @@ iblai builds device
 
 ## iOS
 
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-ios.png)
+
 Build and run on iOS Simulator and real devices.
 
 ### iOS Prerequisites
@@ -176,6 +178,8 @@ base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ## Android
 
+![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-android.png)
+
 Build and run on Android emulators and real devices.
 
 ### Android Prerequisites
@@ -244,6 +248,8 @@ iblai builds ci-workflow --android
 ---
 
 ## macOS (Desktop)
+
+![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-osx.png)
 
 ### macOS Prerequisites
 
