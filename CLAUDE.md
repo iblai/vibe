@@ -226,6 +226,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
+| `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |
 | `/iblai-test` | Test your app before showing work to the user |
 
 
