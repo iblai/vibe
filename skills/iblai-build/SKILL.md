@@ -108,6 +108,16 @@ First, find available simulators:
 iblai builds device
 ```
 
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
+`devUrl` before starting the emulator (see
+[Vercel Deployment](#vercel-deployment-mobile-dev)):
+
+```bash
+pnpm build
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
+# Update devUrl in src-tauri/tauri.conf.json with the deployment URL
+```
+
 Then start the dev build with a device from the output:
 
 ```bash
@@ -120,9 +130,7 @@ Or without specifying a device (uses the default simulator):
 iblai builds ios dev
 ```
 
-This starts the Next.js dev server, compiles Rust for `aarch64-apple-ios-sim`,
-and launches the app in the iOS Simulator. The first build takes
-several minutes; subsequent builds are fast.
+The first build takes several minutes; subsequent builds are fast.
 
 #### Troubleshooting Simulator
 
@@ -228,16 +236,20 @@ First, find available emulators:
 iblai builds device
 ```
 
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
+`devUrl` before starting the emulator (see
+[Vercel Deployment](#vercel-deployment-mobile-dev)):
+
+```bash
+pnpm build
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
+# Update devUrl in src-tauri/tauri.conf.json with the deployment URL
+```
+
 Then start the dev build:
 
 ```bash
 iblai builds android dev
-```
-
-Or:
-
-```bash
-pnpm tauri:dev:android
 ```
 
 ### Run on Physical Android Device
