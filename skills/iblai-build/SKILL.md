@@ -38,6 +38,10 @@ runs the frontend build automatically before starting the Tauri dev server --
 there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
 the static files from `../out` on all platforms.
 
+For mobile dev builds, you can optionally deploy the `out/` directory to
+Vercel and point `devUrl` at the Vercel URL. See
+[Vercel Deployment (Mobile Dev)](#vercel-deployment-mobile-dev) below.
+
 ## Mobile Safe Area
 
 The generated CSS includes `padding: env(safe-area-inset-*)` on `<body>` and
@@ -365,6 +369,82 @@ iblai builds ci-workflow --linux
 
 ---
 
+## Vercel Deployment (Mobile Dev)
+
+Deploy the frontend to Vercel so mobile WebViews load from a network URL
+instead of local static files. This is useful when iterating on the frontend
+while running mobile dev builds.
+
+### Step 1: Get the Vercel token
+
+Check `iblai.env` for `VERCEL_TOKEN`. If it's missing or set to a placeholder
+(e.g., `your-vercel-token`), ask the user once for their token and save it.
+Don't ask again if a real token is already set. Token creation:
+https://vercel.com/account/tokens
+
+```bash
+echo 'VERCEL_TOKEN=<token>' >> iblai.env
+```
+
+### Step 2: Build the frontend
+
+```bash
+pnpm build
+```
+
+This generates the static export in `out/`.
+
+### Step 3: Deploy to Vercel
+
+```bash
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes
+```
+
+Capture the deployment URL from the output (e.g., `https://my-app-abc123.vercel.app`).
+
+### Step 4: Point Tauri at the Vercel URL
+
+Add `devUrl` to `src-tauri/tauri.conf.json`:
+
+```json
+{
+  "build": {
+    "devUrl": "https://my-app-abc123.vercel.app",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../out"
+  }
+}
+```
+
+When `devUrl` is set, Tauri loads the frontend from that URL in dev mode
+instead of from `frontendDist`.
+
+### Step 5: Run the mobile dev build
+
+```bash
+iblai builds ios dev
+# or
+iblai builds android dev
+```
+
+The CLI skips the local frontend build when `devUrl` is present in
+`tauri.conf.json`.
+
+### Redeploying after changes
+
+After making frontend changes, rebuild and redeploy:
+
+```bash
+pnpm build && npx vercel deploy out/ --token=$VERCEL_TOKEN --yes
+```
+
+Then update `devUrl` in `tauri.conf.json` with the new URL (Vercel generates
+a new URL per deployment unless you use `--prod`).
+
+To go back to local static files, remove `devUrl` from `tauri.conf.json`.
+
+---
+
 ## All Platforms CI
 
 Generate CI workflows for all platforms at once:
@@ -400,6 +480,9 @@ iblai builds ci-workflow --all
 | Surface CI workflow | `iblai builds ci-workflow --windows` |
 | Linux CI workflow | `iblai builds ci-workflow --linux` |
 | All CI workflows | `iblai builds ci-workflow --all` |
+| **Vercel (Mobile Dev)** | |
+| Deploy frontend to Vercel | `pnpm build && npx vercel deploy out/ --token=$VERCEL_TOKEN --yes` |
+| Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
 
 ## Reference
 

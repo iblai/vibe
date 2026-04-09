@@ -111,10 +111,16 @@ All features require auth first (`/iblai-auth` or `iblai add auth`).
 
 ## Environment
 
-Platform configuration lives in `iblai.env` (3 vars: `DOMAIN`, `PLATFORM`,
-`TOKEN`). The CLI derives all `NEXT_PUBLIC_*` env vars into `.env.local`
-automatically. Do NOT edit `.env.local` directly for platform config --
-update `iblai.env` and re-run a CLI command.
+Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
+and optionally `VERCEL_TOKEN` for mobile dev builds). The CLI derives all
+`NEXT_PUBLIC_*` env vars into `.env.local` automatically. Do NOT edit
+`.env.local` directly for platform config -- update `iblai.env` and re-run
+a CLI command.
+
+When adding builds for the first time (`/iblai-build`), check `iblai.env`
+for `VERCEL_TOKEN`. If missing or placeholder, ask the user once for their
+token (https://vercel.com/account/tokens) and save it to `iblai.env`.
+Mobile dev builds deploy `out/` to Vercel and point `devUrl` at it.
 
 ## Brand
 
