@@ -108,6 +108,7 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 DOMAIN=iblai.app
 PLATFORM=your-platform
 TOKEN=your-api-token
+VERCEL_TOKEN=your-vercel-token   # Optional — for mobile dev builds via Vercel
 ```
 
 The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` and derives
