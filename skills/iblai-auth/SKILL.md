@@ -330,11 +330,19 @@ Then set the test script in `package.json`:
 ## Step 5: Wire Providers into Layout
 
 Open `app/layout.tsx` and wrap `{children}` with the generated `IblaiProviders`.
+Add `viewport-fit=cover` to the metadata so mobile builds (iOS/Android) respect
+safe area insets and don't overlap with the status bar.
 
 **If you have no existing providers:**
 
 ```tsx
+import type { Metadata } from "next";
 import { IblaiProviders } from "@/providers/iblai-providers";
+
+export const metadata: Metadata = {
+  title: "My App",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -350,8 +358,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 **If you have existing providers** (e.g., custom contexts):
 
 ```tsx
+import type { Metadata } from "next";
 import { IblaiProviders } from "@/providers/iblai-providers";
 import { MyProvider } from "./my-provider";
+
+export const metadata: Metadata = {
+  title: "My App",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

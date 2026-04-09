@@ -31,6 +31,23 @@ a device name from the output.
   ```
 - **Rust toolchain** installed via [rustup](https://rustup.rs)
 
+## How Dev Builds Work
+
+All platforms (desktop and mobile) use a static `next build` export. The CLI
+runs the frontend build automatically before starting the Tauri dev server --
+there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
+the static files from `../out` on all platforms.
+
+## Mobile Safe Area
+
+The generated CSS includes `padding: env(safe-area-inset-*)` on `<body>` and
+the layout sets `viewport-fit=cover`. This prevents content from overlapping
+with the iOS status bar / notch and Android status bar. If you see content
+behind the status bar, verify:
+
+1. `globals.css` (or `iblai-styles.css`) has `padding-top: env(safe-area-inset-top)` on body
+2. `app/layout.tsx` metadata includes `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"`
+
 ## App Icons
 
 Generate platform-ready icons from your logo (works for all platforms):

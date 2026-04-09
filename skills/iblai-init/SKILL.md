@@ -127,6 +127,7 @@ update `iblai.env` and re-run a CLI command.
 - **Page background**: `var(--sidebar-bg, #fafbfc)`
 - **SDK wrappers**: Wrap SDK components in `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`
 - **Responsive width**: `w-full px-4` mobile, `md:w-[75vw] md:px-0` desktop
+- **Mobile safe area**: `globals.css` must have `padding-top: env(safe-area-inset-top)` (and bottom/left/right) on body, and `app/layout.tsx` metadata must include `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"` -- prevents content from overlapping the iOS notch / Android status bar
 - **Package manager**: Use `pnpm` (fall back to `npm`)
 
 ## Commands
