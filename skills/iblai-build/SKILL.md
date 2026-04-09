@@ -102,14 +102,17 @@ code, and iOS configuration.
 
 ### Run on iOS Simulator
 
-First, find available simulators:
+First, list available simulators:
 
 ```bash
 iblai builds device
 ```
 
+**Always pick a device from the list.** Choose the most mainstream iPhone
+(e.g., the newest Pro Max available). Do NOT run without a device name.
+
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
-`devUrl` before starting the emulator (see
+`devUrl` before starting the simulator (see
 [Vercel Deployment](#vercel-deployment-mobile-dev)):
 
 ```bash
@@ -118,16 +121,10 @@ npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 # Update devUrl in src-tauri/tauri.conf.json with the deployment URL
 ```
 
-Then start the dev build with a device from the output:
+Then start the dev build:
 
 ```bash
-iblai builds ios dev --device "<device name from iblai builds device>"
-```
-
-Or without specifying a device (uses the default simulator):
-
-```bash
-iblai builds ios dev
+iblai builds ios dev "iPhone 16 Pro Max"
 ```
 
 The first build takes several minutes; subsequent builds are fast.
@@ -230,11 +227,15 @@ This generates `src-tauri/gen/android/` with the Gradle project.
 
 ### Run on Android Emulator
 
-First, find available emulators:
+First, list available emulators:
 
 ```bash
 iblai builds device
 ```
+
+**Always pick a device from the list.** Choose the most mainstream Pixel
+(e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
+Do NOT run without a device name.
 
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
 `devUrl` before starting the emulator (see
@@ -249,7 +250,7 @@ npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 Then start the dev build:
 
 ```bash
-iblai builds android dev
+iblai builds android dev "Pixel_9"
 ```
 
 ### Run on Physical Android Device
@@ -401,7 +402,18 @@ echo 'VERCEL_TOKEN=<token>' >> iblai.env
 ### Step 2: Build and deploy
 
 If `VERCEL_TOKEN` is set in `iblai.env`, **always** deploy to Vercel after
-building — don't ask, just do it:
+building — don't ask, just do it.
+
+First, create `out/vercel.json` so Vercel serves the app as an SPA (all
+routes fall back to `index.html`):
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+Then build and deploy:
 
 ```bash
 pnpm build
@@ -434,6 +446,8 @@ iblai builds android dev
 
 ### Redeploying after changes
 
+Ensure `out/vercel.json` exists (see Step 2), then:
+
 ```bash
 pnpm build && npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 ```
@@ -461,14 +475,13 @@ iblai builds ci-workflow --all
 | List available devices | `iblai builds device` |
 | **iOS** | |
 | Initialize iOS project | `iblai builds ios init` |
-| Run on iOS Simulator | `iblai builds ios dev` |
-| Run on specific simulator | `iblai builds ios dev --device "<name>"` |
+| Run on iOS Simulator | `iblai builds ios dev "iPhone 16 Pro Max"` |
 | Run on physical iPhone | `iblai builds ios dev --device` |
 | Build release .ipa | `iblai builds ios build` |
 | iOS CI workflow | `iblai builds ci-workflow --ios` |
 | **Android** | |
 | Initialize Android project | `iblai builds android init` |
-| Run on Android emulator | `iblai builds android dev` |
+| Run on Android emulator | `iblai builds android dev "Pixel_9"` |
 | Run on physical Android | `iblai builds android dev --device` |
 | Build release APK | `iblai builds android build` |
 | Android CI workflow | `iblai builds ci-workflow --android` |
