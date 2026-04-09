@@ -229,8 +229,8 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `showHelpLink` | `boolean` | Show help link |
 | `authURL` | `string` | Auth service URL |
 | `onLogout` | `() => void` | Logout callback |
-| `onTenantChange` | `(tenant: string) => void` | Called when user switches tenant |
-| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant data updates |
+| `onTenantChange` | `(tenant: string) => void` | Called when user switches tenant -- must set `app_tenant` in localStorage |
+| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant data updates -- must set `app_tenant` in localStorage |
 | `className` | `string?` | Additional CSS class |
 
 ## `<Profile>` Props (Full-Page Profile)
