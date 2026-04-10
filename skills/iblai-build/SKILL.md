@@ -38,7 +38,7 @@ runs the frontend build automatically before starting the Tauri dev server --
 there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
 the static files from `../out` on all platforms.
 
-For mobile dev builds, you can optionally deploy to Vercel using
+For dev builds, you can optionally deploy to Vercel using
 `iblai deploy vercel` (see `/iblai-deploy`). This deploys `out/` and
 automatically updates `devUrl` in `tauri.conf.json`.
 
@@ -283,14 +283,16 @@ iblai builds ci-workflow --android
 
 ### Run in Dev Mode
 
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
+
 ```bash
-iblai builds dev
+iblai deploy vercel
 ```
 
-Or:
+Then start the dev build:
 
 ```bash
-pnpm tauri:dev
+iblai builds dev
 ```
 
 ### Build Release .dmg / .app
@@ -323,6 +325,14 @@ Build for Microsoft Surface tablets running Windows.
 - **WebView2** runtime (included on Windows 11, downloadable for Windows 10)
 
 ### Run in Dev Mode
+
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
+
+```bash
+iblai deploy vercel
+```
+
+Then start the dev build:
 
 ```bash
 iblai builds dev
