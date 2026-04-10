@@ -228,6 +228,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |
+| `/iblai-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-test` | Test your app before showing work to the user |
 
 
@@ -235,7 +236,7 @@ Invoke with `/` in Claude Code:
 
 ### Vercel
 ```bash
-vercel --prod
+iblai deploy vercel    # Builds, deploys, disables auth, updates devUrl
 ```
 
 ### Docker
