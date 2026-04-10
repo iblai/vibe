@@ -117,7 +117,7 @@ If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
 
 ```bash
 pnpm build
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --prod
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 # Update devUrl in src-tauri/tauri.conf.json with the deployment URL
 ```
 
@@ -243,7 +243,7 @@ If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
 
 ```bash
 pnpm build
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --prod
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 # Update devUrl in src-tauri/tauri.conf.json with the deployment URL
 ```
 
@@ -411,23 +411,39 @@ Build first, then write `out/vercel.json` (must be after build because
 pnpm build
 ```
 
-Create `out/vercel.json` so Vercel serves the app as an SPA (all routes
-fall back to `index.html`):
+Create `out/vercel.json` so Vercel serves clean URLs and falls back to
+`index.html` for client-side routes:
 
 ```json
 {
+  "cleanUrls": true,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 ```
 
-Then deploy with `--prod` (production deployments are publicly accessible,
-preview deployments require Vercel auth):
+`cleanUrls` maps `/foo` → `foo.html` for static pages (e.g., `sso-login-complete`).
+The rewrite catches everything else for client-side routing.
+
+Then deploy:
 
 ```bash
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --prod
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 ```
 
 Capture the deployment URL from the output (e.g., `https://my-app-abc123.vercel.app`).
+
+After the first deploy, disable Vercel Authentication and password protection
+so the mobile WebView can access the site:
+
+```bash
+PROJECT_ID=$(python3 -c "import json; print(json.load(open('out/.vercel/project.json'))['projectId'])")
+curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT_ID" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ssoProtection":null,"passwordProtection":null}'
+```
+
+Only needed once per project — subsequent deploys inherit the setting.
 
 ### Step 3: Point Tauri at the Vercel URL
 
@@ -458,7 +474,7 @@ Rebuild, recreate `out/vercel.json` (build wipes `out/`), then deploy:
 ```bash
 pnpm build
 # Recreate out/vercel.json with SPA rewrites (see Step 2)
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --prod
+npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
 ```
 
 Update `devUrl` in `tauri.conf.json` with the new URL.
@@ -502,7 +518,7 @@ iblai builds ci-workflow --all
 | Linux CI workflow | `iblai builds ci-workflow --linux` |
 | All CI workflows | `iblai builds ci-workflow --all` |
 | **Vercel (Mobile Dev)** | |
-| Deploy frontend to Vercel | `pnpm build` then write `out/vercel.json` then `npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --prod` |
+| Deploy frontend to Vercel | `pnpm build` then write `out/vercel.json` then `npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public` |
 | Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
 
 ## Reference
