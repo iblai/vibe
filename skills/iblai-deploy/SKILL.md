@@ -38,9 +38,9 @@ This single command handles the full flow:
 
 ## When to Deploy
 
-- Before running mobile dev builds (`iblai builds ios dev` / `iblai builds android dev`)
+- Before running dev builds (`iblai builds dev`, `iblai builds ios dev`, `iblai builds android dev`)
   so the WebView loads from a network URL
-- After frontend changes when iterating on mobile builds
+- After frontend changes when iterating on dev builds
 - When sharing a preview URL
 
 ## Going Back to Local
