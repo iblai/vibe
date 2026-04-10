@@ -117,10 +117,10 @@ and optionally `VERCEL_TOKEN` for mobile dev builds). The CLI derives all
 `.env.local` directly for platform config -- update `iblai.env` and re-run
 a CLI command.
 
-When adding builds for the first time (`/iblai-build`), check `iblai.env`
-for `VERCEL_TOKEN`. If missing or placeholder, ask the user once for their
-token (https://vercel.com/account/tokens) and save it to `iblai.env`.
-Mobile dev builds deploy `out/` to Vercel and point `devUrl` at it.
+`VERCEL_TOKEN` in `iblai.env` enables `iblai deploy vercel` — builds,
+deploys to Vercel, disables auth protection, and updates `devUrl` in
+`tauri.conf.json` automatically. If missing when the user wants to deploy,
+ask once for their token (https://vercel.com/account/tokens).
 
 ## Brand
 

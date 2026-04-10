@@ -38,9 +38,9 @@ runs the frontend build automatically before starting the Tauri dev server --
 there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
 the static files from `../out` on all platforms.
 
-For mobile dev builds, you can optionally deploy the `out/` directory to
-Vercel and point `devUrl` at the Vercel URL. See
-[Vercel Deployment (Mobile Dev)](#vercel-deployment-mobile-dev) below.
+For mobile dev builds, you can optionally deploy to Vercel using
+`iblai deploy vercel` (see `/iblai-deploy`). This deploys `out/` and
+automatically updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
 
@@ -111,14 +111,10 @@ iblai builds device
 **Always pick a device from the list.** Choose the most mainstream iPhone
 (e.g., the newest Pro Max available). Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
-`devUrl` before starting the simulator (see
-[Vercel Deployment](#vercel-deployment-mobile-dev)):
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-pnpm build
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
-# Update devUrl in src-tauri/tauri.conf.json with the deployment URL
+iblai deploy vercel
 ```
 
 Then start the dev build:
@@ -237,14 +233,10 @@ iblai builds device
 (e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
 Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first and set
-`devUrl` before starting the emulator (see
-[Vercel Deployment](#vercel-deployment-mobile-dev)):
+If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-pnpm build
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
-# Update devUrl in src-tauri/tauri.conf.json with the deployment URL
+iblai deploy vercel
 ```
 
 Then start the dev build:
@@ -382,107 +374,6 @@ iblai builds ci-workflow --linux
 
 ---
 
-## Vercel Deployment (Mobile Dev)
-
-Deploy the frontend to Vercel so mobile WebViews load from a network URL
-instead of local static files. This is useful when iterating on the frontend
-while running mobile dev builds.
-
-### Step 1: Get the Vercel token
-
-Check `iblai.env` for `VERCEL_TOKEN`. If it's missing or set to a placeholder
-(e.g., `your-vercel-token`), ask the user once for their token and save it.
-Don't ask again if a real token is already set. Token creation:
-https://vercel.com/account/tokens
-
-```bash
-echo 'VERCEL_TOKEN=<token>' >> iblai.env
-```
-
-### Step 2: Build and deploy
-
-If `VERCEL_TOKEN` is set in `iblai.env`, **always** deploy to Vercel after
-building — don't ask, just do it.
-
-Build first, then write `out/vercel.json` (must be after build because
-`pnpm build` wipes the `out/` directory):
-
-```bash
-pnpm build
-```
-
-Create `out/vercel.json` so Vercel serves clean URLs and falls back to
-`index.html` for client-side routes:
-
-```json
-{
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
-
-`cleanUrls` maps `/foo` → `foo.html` for static pages (e.g., `sso-login-complete`).
-The rewrite catches everything else for client-side routing.
-
-Then deploy:
-
-```bash
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
-```
-
-Capture the deployment URL from the output (e.g., `https://my-app-abc123.vercel.app`).
-
-After the first deploy, disable Vercel Authentication and password protection
-so the mobile WebView can access the site:
-
-```bash
-PROJECT_ID=$(python3 -c "import json; print(json.load(open('out/.vercel/project.json'))['projectId'])")
-curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT_ID" \
-  -H "Authorization: Bearer $VERCEL_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"ssoProtection":null,"passwordProtection":null}'
-```
-
-Only needed once per project — subsequent deploys inherit the setting.
-
-### Step 3: Point Tauri at the Vercel URL
-
-Update `src-tauri/tauri.conf.json` to add `devUrl`:
-
-```json
-{
-  "build": {
-    "devUrl": "https://my-app-abc123.vercel.app",
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../out"
-  }
-}
-```
-
-### Step 4: Run the mobile dev build
-
-```bash
-iblai builds ios dev
-# or
-iblai builds android dev
-```
-
-### Redeploying after changes
-
-Rebuild, recreate `out/vercel.json` (build wipes `out/`), then deploy:
-
-```bash
-pnpm build
-# Recreate out/vercel.json with SPA rewrites (see Step 2)
-npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public
-```
-
-Update `devUrl` in `tauri.conf.json` with the new URL.
-
-To go back to local static files, remove `devUrl` from `tauri.conf.json`.
-
----
-
 ## All Platforms CI
 
 Generate CI workflows for all platforms at once:
@@ -517,8 +408,8 @@ iblai builds ci-workflow --all
 | Surface CI workflow | `iblai builds ci-workflow --windows` |
 | Linux CI workflow | `iblai builds ci-workflow --linux` |
 | All CI workflows | `iblai builds ci-workflow --all` |
-| **Vercel (Mobile Dev)** | |
-| Deploy frontend to Vercel | `pnpm build` then write `out/vercel.json` then `npx vercel deploy out/ --token=$VERCEL_TOKEN --yes --public` |
+| **Deploy** | |
+| Deploy frontend to Vercel | `iblai deploy vercel` |
 | Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
 
 ## Reference
