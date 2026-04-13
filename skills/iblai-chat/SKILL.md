@@ -130,7 +130,7 @@ import { ChatWidget } from "@/components/iblai/chat-widget";
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `mentorId` | `string` | (required) | Agent/mentor UUID -- ask the user for this |
-| `tenantKey` | `string` | from `.env` | Override tenant key (defaults to `NEXT_PUBLIC_MAIN_TENANT_KEY`) |
+| `tenantKey` | `string` | from `.env` | Override platform key (defaults to `NEXT_PUBLIC_MAIN_TENANT_KEY`) |
 | `theme` | `"light" \| "dark"` | `"light"` | Color theme |
 | `width` | `number \| string` | `720` | Widget width -- use `vh`/`vw` strings (e.g., `"100vw"`) |
 | `height` | `number \| string` | `600` | Widget height -- use `vh`/`vw` strings (e.g., `"100vh"`) |

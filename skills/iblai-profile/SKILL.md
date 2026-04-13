@@ -42,7 +42,7 @@ Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
 
-When building a navbar or header, do NOT display the tenant/platform name.
+When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
 
 ## Prerequisites
@@ -79,14 +79,14 @@ iblai add profile
 
 | File | Purpose |
 |------|---------|
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, tenant switcher, and logout |
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, platform switcher, and logout |
 
 The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
 localStorage. Admin status is derived from the `tenants` array by matching
-the current tenant key against `is_admin`.
+the current platform key against `is_admin`.
 
 The dropdown shows: **Profile** (links to `/profile`),
-**Organization** (links to `/account`), **Tenant Switcher**, and **Logout**.
+**Organization** (links to `/account`), **Platform Switcher**, and **Logout**.
 
 ## Step 3: Add a Full Profile Page
 
@@ -176,9 +176,9 @@ export default function ProfilePage() {
   dedicated `/profile` route.
 - **Import path**: `@iblai/iblai-js/web-containers` (NOT `/next`).
 
-## Step 4: Enable Tenant Switcher in the Dropdown
+## Step 4: Enable Platform Switcher in the Dropdown
 
-The generator does NOT enable the tenant switcher by default. You must pass
+The generator does NOT enable the platform switcher by default. You must pass
 the `userTenants` prop and set `showTenantSwitcher` to `true`:
 
 ```tsx
@@ -202,7 +202,7 @@ const userTenants = useMemo(() => {
 />
 ```
 
-Without `userTenants`, the tenant switcher will not appear even when
+Without `userTenants`, the platform switcher will not appear even when
 `showTenantSwitcher` is `true`.
 
 ## Step 5: Use MCP Tools for Customization
@@ -219,18 +219,18 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | Prop | Type | Description |
 |------|------|-------------|
 | `username` | `string` | Username |
-| `tenantKey` | `string` | Tenant/org key |
+| `tenantKey` | `string` | Platform key |
 | `userIsAdmin` | `boolean` | Shows admin badge + settings |
-| `userTenants` | `Tenant[]` | **Required for tenant switcher** -- full tenant list from localStorage |
+| `userTenants` | `Tenant[]` | **Required for platform switcher** -- full platform list from localStorage |
 | `showProfileTab` | `boolean` | Show profile link |
 | `showAccountTab` | `boolean` | Show account settings link |
-| `showTenantSwitcher` | `boolean` | Show tenant switcher (needs `userTenants`) |
+| `showTenantSwitcher` | `boolean` | Show platform switcher (needs `userTenants`) |
 | `showLogoutButton` | `boolean` | Show logout button |
 | `showHelpLink` | `boolean` | Show help link |
 | `authURL` | `string` | Auth service URL |
 | `onLogout` | `() => void` | Logout callback |
-| `onTenantChange` | `(tenant: string) => void` | Called when user switches tenant -- must set `app_tenant` in localStorage |
-| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant data updates -- must set `app_tenant` in localStorage |
+| `onTenantChange` | `(tenant: string) => void` | Called when user switches platform -- must set `app_tenant` in localStorage |
+| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when platform data updates -- must set `app_tenant` in localStorage |
 | `className` | `string?` | Additional CSS class |
 
 ## `<Profile>` Props (Full-Page Profile)
@@ -239,7 +239,7 @@ Import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `tenant` | `string` | Tenant/org key |
+| `tenant` | `string` | Platform key |
 | `username` | `string` | Username |
 | `isAdmin` | `boolean` | Admin flag |
 | `onClose` | `() => void` | Close callback |
@@ -267,11 +267,11 @@ dialog that combines profile editing and account settings in one overlay.
 |------|------|-------------|
 | `tenants` | `Tenant[]` | Full list of user tenants from localStorage |
 | `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
-| `showPlatformName` | `boolean` | Show tenant name badge |
+| `showPlatformName` | `boolean` | Show platform name badge |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no profile pic |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
-| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when tenant is updated |
+| `onTenantUpdate` | `(tenant: Tenant) => void` | Called when platform is updated |
 | `onAccountDeleted` | `() => void` | Called after account deletion |
 
 ## Step 6: Verify

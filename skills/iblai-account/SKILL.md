@@ -185,8 +185,8 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `tenant` | `string` | Tenant/org key |
-| `tenants` | `Tenant[]` | Full list of user tenants from localStorage |
+| `tenant` | `string` | Platform key |
+| `tenants` | `Tenant[]` | Full list of user platforms from localStorage |
 | `username` | `string` | Username |
 | `onInviteClick` | `() => void` | Called when "Invite user" is clicked |
 | `onClose` | `() => void` | Cancel/close callback |
@@ -203,7 +203,7 @@ get_component_info("Account")
 | `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |
 | `topUpURL` | `string` | Stripe top-up URL -- shows Billing tab |
 | `enableRbac` | `boolean` | Enable RBAC permission checks for Management |
-| `showPlatformName` | `boolean` | Show tenant name badge in sidebar |
+| `showPlatformName` | `boolean` | Show platform name badge in sidebar |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no org logo |
 
 ## Tabs

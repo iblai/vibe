@@ -197,13 +197,13 @@ import { SsoLogin } from "@iblai/iblai-js/web-containers/next";
 | `ExperienceDialog` | root | Dialog for adding/editing experience |
 | `ExperienceTab` | root | Professional experience management |
 | `InstitutionDialog` | root | Institution selection dialog |
-| `InviteUserDialog` | root | Dialog to invite users to a tenant |
+| `InviteUserDialog` | root | Dialog to invite users to a platform |
 | `InvitedUsersDialog` | root | Dialog showing pending invitations |
 | `LocalLLMTab` | root | Local LLM model management (Tauri desktop) |
 | `OrganizationTab` | next | Organization settings tab |
 | `Profile` | root | Full inline profile management (use for `/profile` page) |
 | `ResumeTab` | root | Resume upload and display |
-| `UserProfileDropdown` | next | Avatar dropdown with profile, organization, tenant switcher, logout |
+| `UserProfileDropdown` | next | Avatar dropdown with profile, organization, platform switcher, logout |
 | `UserProfileModal` | next | Profile editing modal/dialog (use for overlay, NOT for a page) |
 
 ```typescript
@@ -215,11 +215,11 @@ import { Profile, CompanyDialog, EducationDialog, EducationTab, ExperienceDialog
 > `UserProfileModal` renders as a dialog overlay. Use `Profile` for a
 > dedicated `/profile` route. Use `UserProfileModal` for a quick-edit overlay.
 
-### Tenant & Organization
+### Platform & Organization
 
 | Export | Import | Description |
 |--------|--------|-------------|
-| `TenantSwitcher` | root | Switch between tenants/organizations with RBAC support |
+| `TenantSwitcher` | root | Switch between platforms/organizations with RBAC support |
 
 ```typescript
 import { TenantSwitcher } from "@iblai/iblai-js/web-containers";

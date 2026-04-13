@@ -11,7 +11,7 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
-Do NOT ask the user for their tenant key. The CLI
+Do NOT ask the user for their platform key. The CLI
 reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
 with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).
 Otherwise use the placeholder:
@@ -20,7 +20,7 @@ iblai add auth --platform your-platform
 ```
 
 If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
-value (not a placeholder like `your-tenant`, `your-platform`,
+value (not a placeholder like `your-main-platform`, `your-tenant`, `your-platform`,
 `your-tenant-key`, `test-tenant`, `main`, or empty), keep that value.
 
 `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
@@ -31,7 +31,7 @@ Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
 
-When building a navbar or header, do NOT display the tenant/platform name.
+When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
 
 Always use shadcn/ui components for all custom UI -- buttons, forms,
@@ -79,7 +79,7 @@ pip install iblai-app-cli
 
 ```bash
 npx @iblai/cli --version
-# Use npx @iblai/cli as prefix: npx @iblai/cli add auth --platform your-tenant
+# Use npx @iblai/cli as prefix: npx @iblai/cli add auth --platform your-main-platform
 ```
 
 **Build from source -- macOS / Linux** (Python 3.11+, pip, git, make):
@@ -130,7 +130,7 @@ If the file does not exist or is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-If `PLATFORM` is set to a real value (not `your-platform`), the CLI
+If `PLATFORM` is set to a real value (not `your-platform` or `your-main-platform`), the CLI
 will read it automatically — no `--platform` flag needed in Step 3.
 Otherwise use the placeholder.
 
@@ -388,7 +388,7 @@ inside it.
 
 ## Step 6: Configure Environment
 
-If the CLI read `PLATFORM` from `iblai.env` or you passed `--platform`, the tenant key is already set in `.env.local`.
+If the CLI read `PLATFORM` from `iblai.env` or you passed `--platform`, the platform key is already set in `.env.local`.
 Verify with:
 
 ```bash
@@ -398,7 +398,7 @@ iblai config show
 Otherwise, edit `.env.local` (created by the generator) or use the CLI:
 
 ```bash
-iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-tenant
+iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-main-platform
 ```
 
 The default API URLs point to `iblai.app` and are set automatically.
@@ -445,7 +445,7 @@ pnpm dev
 | File | Purpose |
 |------|---------|
 | `app/sso-login-complete/page.tsx` | SSO callback -- stores tokens from URL into localStorage |
-| `lib/iblai/config.ts` | Environment variable accessors (API URLs, tenant key, auth URL) |
+| `lib/iblai/config.ts` | Environment variable accessors (API URLs, platform key, auth URL) |
 | `lib/iblai/storage-service.ts` | localStorage wrapper implementing the SDK's StorageService interface |
 | `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
 | `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware` |
@@ -458,7 +458,7 @@ pnpm dev
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
 - **`globals.css`** -- SDK base styles import.
-- **`.env.local`** -- API URLs, auth URL, tenant key, WebSocket URL.
+- **`.env.local`** -- API URLs, auth URL, platform key, WebSocket URL.
 
 ## Advanced: Route Groups
 
@@ -485,8 +485,8 @@ For the route group pattern, see the reference implementation:
 
 ### "Unknown server error" with custom-domains on localhost
 
-The SDK calls `/api/custom-domains?domain=localhost` as part of tenant detection.
-This fails on localhost but is **harmless** -- the tenant is resolved from
+The SDK calls `/api/custom-domains?domain=localhost` as part of platform detection.
+This fails on localhost but is **harmless** -- the platform is resolved from
 `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local` instead. You can safely ignore
 this console error during local development.
 
@@ -513,7 +513,7 @@ SSO callback from the authenticated routes.
 ### Blank screen after login
 
 Check that `.env.local` has `NEXT_PUBLIC_MAIN_TENANT_KEY` set. Without it,
-the tenant resolution falls back to custom-domain detection which fails on
+the platform resolution falls back to custom-domain detection which fails on
 localhost, leaving the app in a broken state.
 
 ## Next Steps

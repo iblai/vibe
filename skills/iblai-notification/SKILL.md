@@ -91,7 +91,7 @@ get_component_info("NotificationDropdown")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `org` | `string` | Tenant/org key |
+| `org` | `string` | Platform key |
 | `userId` | `string` | Username |
 | `onViewNotifications` | `(id?) => void?` | "View all" callback |
 | `className` | `string?` | Additional CSS class |
@@ -100,7 +100,7 @@ get_component_info("NotificationDropdown")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `org` | `string` | Tenant/org key |
+| `org` | `string` | Platform key |
 | `userId` | `string` | Username |
 | `isAdmin` | `boolean?` | Shows Alerts tab + Send button |
 | `selectedNotificationId` | `string?` | Pre-select a notification |
