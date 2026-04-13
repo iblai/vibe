@@ -150,16 +150,19 @@ iblai add <feature>  # Add a feature
 
 ## Step 3: Add Frontend Design Skill
 
-After writing the CLAUDE.md, suggest adding the Anthropic frontend design
-skill for better UI implementation guidance:
+After writing the CLAUDE.md, ask the user:
+
+> Would you like to add the Anthropic frontend design skill? It helps
+> produce higher-quality UI code with consistent design patterns,
+> responsive layouts, and accessibility best practices.
+
+If the user says yes, run:
 
 ```bash
 npx skills add https://github.com/anthropics/skills --skill frontend-design
 ```
 
-This skill helps Claude Code produce higher-quality frontend code with
-consistent design patterns, responsive layouts, and accessibility best
-practices.
+Do not print the command to the user — just run it silently.
 
 ## Step 4: Confirm
 
