@@ -7,7 +7,7 @@ alwaysApply: false
 
 # /iblai-invite
 
-Add user invitation features -- a dialog to invite new users to a tenant by
+Add user invitation features -- a dialog to invite new users to a platform by
 email/username and a dialog showing pending invitations with status tracking.
 
 ![Invite Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-invite/iblai-invite.png)
@@ -45,7 +45,7 @@ not in a subdirectory.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- User must have admin privileges on the tenant to send invitations
+- User must have admin privileges on the platform to send invitations
 
 ## Step 0: Check for CLI Updates
 
@@ -84,13 +84,13 @@ get_component_info("InvitedUsersDialog")
 
 ## `<InviteUserDialog>` Props
 
-Dialog to invite a user to the current tenant by email or username.
+Dialog to invite a user to the current platform by email or username.
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `isOpen` | `boolean` | Whether the dialog is visible |
 | `onClose` | `() => void` | Close callback |
-| `org` | `string` | Tenant/org key |
+| `org` | `string` | Platform key |
 
 ## `<InvitedUsersDialog>` Props
 
@@ -100,7 +100,7 @@ Dialog showing pending invitations with their status (accepted, pending, expired
 |------|------|-------------|
 | `isOpen` | `boolean` | Whether the dialog is visible |
 | `onClose` | `() => void` | Close callback |
-| `org` | `string` | Tenant/org key |
+| `org` | `string` | Platform key |
 
 ## Example Usage
 
@@ -153,7 +153,7 @@ Run `/iblai-test` before telling the user the work is ready:
 ## Important Notes
 
 - **Import**: `@iblai/iblai-js/web-containers` -- framework-agnostic
-- **Admin only**: Invitation features require admin privileges on the tenant
+- **Admin only**: Invitation features require admin privileges on the platform
 - **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
