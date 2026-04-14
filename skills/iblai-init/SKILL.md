@@ -144,7 +144,6 @@ pnpm build           # Production build
 iblai config show    # View configuration
 iblai add <feature>  # Add a feature
 ```
-```
 
 ---
 

@@ -127,7 +127,7 @@ const AUTH = 'https://login.iblai.app';
 
   // Fill credentials from env
   await page.getByRole('textbox', { name: /email/i }).fill(process.env.PLAYWRIGHT_USERNAME!);
-  await page.getByRole('textbox', { name: /password/i }).fill(process.env.PLAYWRIGHT_PASSWORD!);
+  await page.getByLabel(/password/i).fill(process.env.PLAYWRIGHT_PASSWORD!);
   await page.getByRole('button', { name: /^continue$/i }).click();
 
   // Wait for redirect back to the app with auth tokens

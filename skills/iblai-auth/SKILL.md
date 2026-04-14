@@ -34,11 +34,11 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
 
-Always use shadcn/ui components for all custom UI -- buttons, forms,
-modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
-components when a shadcn equivalent exists. Install with
-`npx shadcn@latest add <component>`. shadcn shares the same Tailwind
-theme and renders in ibl.ai brand colors automatically.
+Follow the component hierarchy: use ibl.ai SDK components
+(`@iblai/iblai-js`) first, then shadcn/ui for everything else
+(`npx shadcn@latest add <component>`). Do NOT write custom components
+when an ibl.ai or shadcn equivalent exists. Both share the same
+Tailwind theme and render in ibl.ai brand colors automatically.
 
 Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
 colors, typography, spacing, and component styles.
@@ -336,12 +336,17 @@ safe area insets and don't overlap with the status bar.
 **If you have no existing providers:**
 
 ```tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IblaiProviders } from "@/providers/iblai-providers";
 
 export const metadata: Metadata = {
   title: "My App",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -358,13 +363,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 **If you have existing providers** (e.g., custom contexts):
 
 ```tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IblaiProviders } from "@/providers/iblai-providers";
 import { MyProvider } from "./my-provider";
 
 export const metadata: Metadata = {
   title: "My App",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
