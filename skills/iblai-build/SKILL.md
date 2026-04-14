@@ -52,6 +52,23 @@ behind the status bar, verify:
 1. `globals.css` (or `iblai-styles.css`) has `padding-top: env(safe-area-inset-top)` on body
 2. `app/layout.tsx` metadata includes `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"`
 
+## Mobile SSO
+
+For mobile builds (iOS/Android), the auth redirect must use a custom URI
+scheme instead of `https://`. Set `TAURI_CUSTOM_SCHEME` in `iblai.env`:
+
+```
+TAURI_CUSTOM_SCHEME=myapp
+```
+
+This configures:
+- `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local` — the frontend uses
+  this to pass `redirect-to=myapp://` to the auth SPA
+- The Tauri deep-link handler to listen for `myapp://` callbacks
+
+Without this, mobile SSO will redirect to an HTTPS URL that stays inside
+the system browser session and never returns to the app.
+
 ## App Icons
 
 Generate platform-ready icons from your logo (works for all platforms):

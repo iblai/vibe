@@ -166,10 +166,10 @@ Key navbar details:
 
 ## Component Gallery
 
-All components below are from `@iblai/iblai-js/web-containers` (v1.1.28). Use MCP tools
+All components below are from `@iblai/iblai-js/web-containers`. Use MCP tools
 (`get_component_info`, `get_hook_info`) for full props and usage examples.
 
-> Auto-generated from `@iblai/web-containers@1.1.28` type declarations. Re-generate with: `iblai update-gallery <path>`
+> Auto-generated from `@iblai/web-containers` type declarations. Re-generate with: `iblai update-gallery <path>`
 
 ### Authentication & SSO
 

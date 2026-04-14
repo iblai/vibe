@@ -34,11 +34,11 @@ When building custom UI around the chat widget, use the ibl.ai brand:
 - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
 - **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Always use shadcn/ui components for all custom UI -- buttons, forms,
-  modals, tables, dropdowns, etc. Do NOT write raw HTML or custom
-  components when a shadcn equivalent exists. Install with
-  `npx shadcn@latest add <component>`. shadcn shares the same Tailwind
-  theme and renders in ibl.ai brand colors automatically.
+- Follow the component hierarchy: use ibl.ai SDK components
+  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
+  (`npx shadcn@latest add <component>`). Do NOT write custom components
+  when an ibl.ai or shadcn equivalent exists. Both share the same
+  Tailwind theme and render in ibl.ai brand colors automatically.
 - Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
