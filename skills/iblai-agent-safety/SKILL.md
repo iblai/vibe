@@ -1,18 +1,18 @@
 ---
-name: iblai-tools-tab
-description: Add the agent Tools tab (enable/disable agent tools) to your Next.js app
+name: iblai-agent-safety
+description: Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-tools-tab
+# /iblai-agent-safety
 
-Add the agent **Tools tab** -- a toggleable list of agent tools with
-display names, descriptions in tooltips, and switches for enabling or
-disabling each tool. This is one tab in the wider agent-settings family.
-All tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **Safety tab** -- a two-column layout of editable safety
+and moderation prompt cards with toggle switches, plus an optional
+flagged prompts modal. This is one tab in the wider agent-settings
+family. All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-tools-tab/tools-tab.png)
+![Safety Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-safety/iblai-agent-safety.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -46,7 +46,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-settings-tab`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -68,31 +68,51 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentToolsTab`
+## Step 2: Mount `AgentSafetyTab`
 
 ```tsx
-// app/(app)/agents/[mentorId]/tools/page.tsx
+// app/(app)/agents/[mentorId]/safety/page.tsx
 "use client";
 
-import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
 
-export default function AgentToolsPage() {
+export default function AgentSafetyPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentToolsTab />
+      <AgentSafetyTab />
     </div>
   );
 }
 ```
 
+### With Markdown rendering and flagged prompts
+
+```tsx
+import ReactMarkdown from "react-markdown";
+
+<AgentSafetyTab
+  renderPromptContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
+  showFlaggedPrompts
+  FlaggedPromptsModal={({ isOpen, onClose, mentorId, tenantKey, username }) => (
+    <MyFlaggedPromptsModal
+      open={isOpen}
+      onClose={onClose}
+      mentorId={mentorId}
+      tenantKey={tenantKey}
+      username={username}
+    />
+  )}
+/>;
+```
+
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
 
-<AgentToolsTab
+<AgentSafetyTab
   labels={{
-    header: { title: "Mentor tools" },
+    header: { title: "Mentor safety" },
   }}
 />;
 ```
@@ -100,24 +120,29 @@ import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AgentToolsTab")
+get_component_info("AgentSafetyTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AgentToolsTab>` Props
+## `<AgentSafetyTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `labels` | `DeepPartial<ToolsTabLabels>` | No | Override user-visible strings |
+| `labels` | `DeepPartial<SafetyTabLabels>` | No | Override user-visible strings |
+| `renderPromptContent` | `(content: string) => ReactNode` | No | Render prompt text as rich content. Defaults to plain text |
+| `FlaggedPromptsModal` | `ComponentType<{ isOpen, onClose, mentorId, tenantKey, username }>` | No | Custom modal for reviewing flagged prompts |
+| `showFlaggedPrompts` | `boolean` | No | Show the "Flagged Prompts" button |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_TOOLS_TAB_LABELS` -- the default agent-facing label bundle.
-- `ToolsTabLabels` -- type for the full label bundle.
+- `AGENT_SAFETY_TAB_LABELS` -- the default agent-facing label bundle.
+- `SafetyTabLabels` -- type for the full label bundle.
+- `SafetySelectedPrompt` -- type for a selected prompt entry.
+- `SafetyEditFormValues` -- type for the edit form state.
 
 ## Step 5: Verify
 
@@ -128,7 +153,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/tools /tmp/tools-tab.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/safety /tmp/agent-safety.png
    ```
 
 ## Important Notes
@@ -139,5 +164,8 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-settings-tab` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+- **FlaggedPromptsModal**: Injected by the host app to avoid pulling in
+  standalone-specific dependencies. Without it, the "Flagged Prompts"
+  button is hidden unless `showFlaggedPrompts` is `true`.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

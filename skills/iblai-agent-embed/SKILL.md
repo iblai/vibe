@@ -1,18 +1,19 @@
 ---
-name: iblai-safety-tab
-description: Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app
+name: iblai-agent-embed
+description: Add the agent Embed tab (embed code, custom styling, shareable links) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-safety-tab
+# /iblai-agent-embed
 
-Add the agent **Safety tab** -- a two-column layout of editable safety
-and moderation prompt cards with toggle switches, plus an optional
-flagged prompts modal. This is one tab in the wider agent-settings
-family. All tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **Embed tab** -- a comprehensive embed configuration
+interface with CSS/JS editors, custom floating bubble styling, visibility
+controls, shareable links, and an embedded agent preview iframe. This is
+one tab in the wider agent-settings family. All tabs share the same
+`AgentSettingsProvider` wrapper.
 
-![Safety Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-safety-tab/safety-tab.png)
+![Embed Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-embed/iblai-agent-embed.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -46,7 +47,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-settings-tab`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -68,51 +69,67 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentSafetyTab`
+## Step 2: Mount `AgentEmbedTab`
+
+`AgentEmbedTab` has three required props: `urls`, `CopyCodeBlock`, and
+`visibilityOptions`. These are host-provided because they depend on
+the deployment environment and the host app's UI library.
 
 ```tsx
-// app/(app)/agents/[mentorId]/safety/page.tsx
+// app/(app)/agents/[mentorId]/embed/page.tsx
 "use client";
 
-import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
+import {
+  AgentEmbedTab,
+  type EmbedUrlConfig,
+  type VisibilityOption,
+} from "@iblai/iblai-js/web-containers/next";
 
-export default function AgentSafetyPage() {
+const urls: EmbedUrlConfig = {
+  dmUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
+  axdUrl: process.env.NEXT_PUBLIC_API_BASE_URL ?? "",
+  mentorIframeUrl: typeof window !== "undefined" ? window.location.origin : "",
+  authUrl: process.env.NEXT_PUBLIC_AUTH_URL ?? "",
+};
+
+const visibilityOptions: VisibilityOption[] = [
+  { label: "Public", value: "public" },
+  { label: "Private", value: "private" },
+  { label: "Unlisted", value: "unlisted" },
+];
+
+function CopyCodeBlock({ code }: { code: string }) {
+  return (
+    <pre className="overflow-auto rounded bg-gray-100 p-3 text-xs">
+      <code>{code}</code>
+    </pre>
+  );
+}
+
+export default function AgentEmbedPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentSafetyTab />
+      <AgentEmbedTab
+        urls={urls}
+        CopyCodeBlock={CopyCodeBlock}
+        visibilityOptions={visibilityOptions}
+      />
     </div>
   );
 }
 ```
 
-### With Markdown rendering and flagged prompts
-
-```tsx
-import ReactMarkdown from "react-markdown";
-
-<AgentSafetyTab
-  renderPromptContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
-  showFlaggedPrompts
-  FlaggedPromptsModal={({ isOpen, onClose, mentorId, tenantKey, username }) => (
-    <MyFlaggedPromptsModal
-      open={isOpen}
-      onClose={onClose}
-      mentorId={mentorId}
-      tenantKey={tenantKey}
-      username={username}
-    />
-  )}
-/>;
-```
-
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentEmbedTab } from "@iblai/iblai-js/web-containers/next";
 
-<AgentSafetyTab
+<AgentEmbedTab
+  urls={urls}
+  CopyCodeBlock={CopyCodeBlock}
+  visibilityOptions={visibilityOptions}
   labels={{
-    header: { title: "Mentor safety" },
+    header: { title: "Embed your mentor" },
   }}
 />;
 ```
@@ -120,29 +137,33 @@ import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AgentSafetyTab")
+get_component_info("AgentEmbedTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AgentSafetyTab>` Props
+## `<AgentEmbedTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `labels` | `DeepPartial<SafetyTabLabels>` | No | Override user-visible strings |
-| `renderPromptContent` | `(content: string) => ReactNode` | No | Render prompt text as rich content. Defaults to plain text |
-| `FlaggedPromptsModal` | `ComponentType<{ isOpen, onClose, mentorId, tenantKey, username }>` | No | Custom modal for reviewing flagged prompts |
-| `showFlaggedPrompts` | `boolean` | No | Show the "Flagged Prompts" button |
+| `urls` | `EmbedUrlConfig` | Yes | URL config: `{ dmUrl, axdUrl, mentorIframeUrl, authUrl }` |
+| `CopyCodeBlock` | `ComponentType<{ code: string }>` | Yes | Renders code snippets with copy support |
+| `visibilityOptions` | `VisibilityOption[]` | Yes | Options for the visibility dropdown |
+| `labels` | `DeepPartial<EmbedTabLabels>` | No | Override user-visible strings |
+| `ssoProviders` | `SsoProvider[]` | No | SSO provider list for embed auth config |
+| `isSsoProvidersError` | `boolean` | No | Whether SSO providers failed to load (defaults to `true`) |
+| `supportEmail` | `string` | No | Support email shown in SSO error states |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_SAFETY_TAB_LABELS` -- the default agent-facing label bundle.
-- `SafetyTabLabels` -- type for the full label bundle.
-- `SafetySelectedPrompt` -- type for a selected prompt entry.
-- `SafetyEditFormValues` -- type for the edit form state.
+- `AGENT_EMBED_TAB_LABELS` -- the default agent-facing label bundle.
+- `EmbedTabLabels` -- type for the full label bundle.
+- `EmbedUrlConfig` -- type for the `urls` prop.
+- `VisibilityOption` -- type for visibility dropdown entries.
+- `SsoProvider` -- type for SSO provider entries.
 
 ## Step 5: Verify
 
@@ -153,7 +174,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/safety /tmp/safety-tab.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/embed /tmp/agent-embed.png
    ```
 
 ## Important Notes
@@ -164,8 +185,8 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-settings-tab` Step 2 for the full snippet.
-- **FlaggedPromptsModal**: Injected by the host app to avoid pulling in
-  standalone-specific dependencies. Without it, the "Flagged Prompts"
-  button is hidden unless `showFlaggedPrompts` is `true`.
+  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+- **Required props**: Unlike most tabs, `AgentEmbedTab` requires three props
+  (`urls`, `CopyCodeBlock`, `visibilityOptions`) because they are
+  host-specific.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
