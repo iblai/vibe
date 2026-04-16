@@ -222,6 +222,28 @@ The SDK `Profile` component handles all API calls internally. If you need
 to build custom profile UIs or interact with profile data programmatically,
 here are the APIs each tab uses.
 
+**Read before write.** When calling these REST endpoints directly (e.g.
+via `fetch` or `curl`), always GET the current data first, merge your
+changes into it, then POST/PUT the full object back. Most endpoints
+replace the entire resource -- they do NOT merge fields. Skipping the
+read will silently erase fields you didn't include in the payload.
+
+```bash
+# 1. Read current state
+curl -s "{lmsUrl}/api/ibl/users/manage/metadata/?username=alice" \
+  -H "Authorization: Token {axd_token}" > profile.json
+
+# 2. Merge your changes into the existing data
+# 3. Write back the full object
+curl -X POST "{lmsUrl}/api/ibl/users/manage/metadata/?username=alice" \
+  -H "Authorization: Token {axd_token}" \
+  -H "Content-Type: application/json" \
+  -d @profile.json
+```
+
+This applies to all profile endpoints: metadata, social links, education,
+experience, and resume.
+
 ### Two Services
 
 Profile data lives across two backend services:
