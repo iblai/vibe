@@ -91,6 +91,19 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-build
 /iblai-screenshot
 /iblai-test
+/iblai-agent-search
+/iblai-settings-tab
+/iblai-access-tab
+/iblai-api-tab
+/iblai-datasets-tab
+/iblai-disclaimers-tab
+/iblai-embed-tab
+/iblai-history-tab
+/iblai-llm-tab
+/iblai-memory-tab
+/iblai-prompts-tab
+/iblai-safety-tab
+/iblai-tools-tab
 ```
 
 What each skill does:
@@ -107,6 +120,19 @@ What each skill does:
 - `/iblai-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-screenshot` -- captures app store screenshots for web, iOS, and Android.
 - `/iblai-test` -- validates the app before it is presented to the user.
+- `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
+- `/iblai-settings-tab` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
+- `/iblai-access-tab` -- adds the agent Access tab (role-based access control for editor and chat roles).
+- `/iblai-api-tab` -- adds the agent API tab (API key management).
+- `/iblai-datasets-tab` -- adds the agent Datasets tab (searchable dataset table with upload).
+- `/iblai-disclaimers-tab` -- adds the agent Disclaimers tab (user agreement and advisory).
+- `/iblai-embed-tab` -- adds the agent Embed tab (embed code, custom styling, shareable links).
+- `/iblai-history-tab` -- adds the agent History tab (conversation history with filters and export).
+- `/iblai-llm-tab` -- adds the agent LLM tab (model provider selection).
+- `/iblai-memory-tab` -- adds the agent Memory tab (enable/disable memory and manage memories).
+- `/iblai-prompts-tab` -- adds the agent Prompts tab (system prompts and suggested prompts).
+- `/iblai-safety-tab` -- adds the agent Safety tab (moderation prompts and flagged content).
+- `/iblai-tools-tab` -- adds the agent Tools tab (enable/disable agent tools).
 
 ## What You Get
 
@@ -211,6 +237,19 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-test` | Test your app before showing work to the user |
+| `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
+| `/iblai-settings-tab` | Add the agent Settings tab (name, visibility, copy, delete) |
+| `/iblai-access-tab` | Add the agent Access tab (RBAC for editor and chat roles) |
+| `/iblai-api-tab` | Add the agent API tab (API key management) |
+| `/iblai-datasets-tab` | Add the agent Datasets tab (searchable dataset table with upload) |
+| `/iblai-disclaimers-tab` | Add the agent Disclaimers tab (user agreement and advisory) |
+| `/iblai-embed-tab` | Add the agent Embed tab (embed code, custom styling, shareable links) |
+| `/iblai-history-tab` | Add the agent History tab (conversation history with filters and export) |
+| `/iblai-llm-tab` | Add the agent LLM tab (model provider selection) |
+| `/iblai-memory-tab` | Add the agent Memory tab (enable/disable memory and manage memories) |
+| `/iblai-prompts-tab` | Add the agent Prompts tab (system prompts and suggested prompts) |
+| `/iblai-safety-tab` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-tools-tab` | Add the agent Tools tab (enable/disable agent tools) |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
