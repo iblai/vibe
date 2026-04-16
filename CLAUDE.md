@@ -217,6 +217,7 @@ Invoke with `/` in Claude Code:
 |-------|-------------|
 | `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-chat` | Add AI chat widget |
+| `/iblai-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
@@ -225,6 +226,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all available components |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
+| `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |

@@ -234,6 +234,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all components + app creation paths |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
+| `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-test` | Test your app before showing work to the user |

@@ -2,12 +2,16 @@
 
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
-## [Unreleased]
+## [1.1.0] - 2026-04-16
 
 ### Added
-- **iblai-agent-search** skill — agent search/browse page with starred, featured, custom, and default agents sections
-- **iblai-agent-setting** skill — agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`
-- **iblai-agent-access** skill — agent Access tab (role-based access control for editor and chat roles)
+- **iblai-navbar** skill — responsive navbar with ibl.ai logo, Home/Profile/Account links with icons, notification bell, and profile dropdown; creates all linked pages (profile, account, notifications) automatically
+- **iblai-landing** skill — build a high-converting landing page using a 12-section conversion framework
+- **iblai-deploy** skill — deploy to Vercel (or other platforms)
+- **iblai-init** skill — update project CLAUDE.md with ibl.ai platform guidance
+- **iblai-agent-search** skill — agent search/browse page (starred, featured, custom, default agents)
+- **iblai-agent-setting** skill — agent Settings tab (name, visibility, copy, delete) built on `AgentSettingsProvider`
+- **iblai-agent-access** skill — agent Access tab (RBAC for editor and chat roles)
 - **iblai-agent-api** skill — agent API tab (API key management)
 - **iblai-agent-dataset** skill — agent Datasets tab (searchable dataset table with upload and pagination slots)
 - **iblai-agent-disclaimer** skill — agent Disclaimers tab (user agreement and advisory)
@@ -21,10 +25,16 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 - Screenshots for all 12 agent tab skills and agent-search
 
 ### Changed
-- Tab skills renamed from `iblai-<name>-tab` to `iblai-agent-<name>` convention (folders, images, frontmatter, headers, cross-references)
-- Singularized plural skill names: `datasets`→`dataset`, `disclaimers`→`disclaimer`, `prompts`→`prompt`, `settings`→`setting`, `tools`→`tool`
-- Images renamed to `iblai-agent-<name>.png` convention
-- SDK component references updated to use `Agent`-prefixed names (`AgentSettingsTab`, `AgentAccessTab`, etc.)
+- **iblai-auth** now asks "Do you want a navbar?" during setup (Step 2) and runs `/iblai-navbar` automatically if yes
+- **iblai-profile** updated with full Profile Content API documentation (Basic, Social, Education, Experience, Resume, Security tabs), RTK Query hooks, custom career API slice, AI Profile Memory API, chat privacy settings, and MediaBox integration
+- **iblai-profile**, **iblai-notification**, **iblai-account** skills now reference `/iblai-navbar` for navbar setup
+- Component hierarchy standardized across all skills: ibl.ai SDK first, then shadcn/ui, then custom
+- Navbar uses BRAND.md colors (brand blue `#0058cc`) instead of amber for active states
+- Navbar logo served locally from `public/images/` instead of external URL
+- Profile REST API endpoints documented with "read before write" warning and curl examples
+- Tab skills use the `iblai-agent-<name>` convention (folders, images, frontmatter, headers, cross-references) with singular names (`dataset`, `disclaimer`, `prompt`, `setting`, `tool`)
+- Skill images renamed to `iblai-agent-<name>.png` convention
+- SDK component references use `Agent`-prefixed names (`AgentSettingsTab`, `AgentAccessTab`, etc.)
 
 ## [1.0.0] - 2026-04-08
 
