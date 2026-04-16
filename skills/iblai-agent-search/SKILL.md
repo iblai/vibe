@@ -12,7 +12,7 @@ with four sections: starred agents, featured agents, custom agents, and
 all agents. Includes search input, category/subject/LLM/type filters,
 star/favorite toggle, and "Create Agent" action.
 
-![Agent Search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-search/agent-search.png)
+![Agent Search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-search/iblai-agent-search.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.

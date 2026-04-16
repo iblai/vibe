@@ -1,18 +1,18 @@
 ---
-name: iblai-memory-tab
-description: Add the agent Memory tab (enable/disable memory and manage memories) to your Next.js app
+name: iblai-agent-tools
+description: Add the agent Tools tab (enable/disable agent tools) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-memory-tab
+# /iblai-agent-tools
 
-Add the agent **Memory tab** -- a toggle switch to enable/disable agent
-memory and a managed memories section with add, edit, bulk delete, and
-individual delete actions. This is one tab in the wider agent-settings
-family. All tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **Tools tab** -- a toggleable list of agent tools with
+display names, descriptions in tooltips, and switches for enabling or
+disabling each tool. This is one tab in the wider agent-settings family.
+All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Memory Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-memory-tab/memory-tab.png)
+![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-tools/iblai-agent-tools.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -46,7 +46,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-settings-tab`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -68,18 +68,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentMemoryTab`
+## Step 2: Mount `AgentToolsTab`
 
 ```tsx
-// app/(app)/agents/[mentorId]/memory/page.tsx
+// app/(app)/agents/[mentorId]/tools/page.tsx
 "use client";
 
-import { AgentMemoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 
-export default function AgentMemoryPage() {
+export default function AgentToolsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentMemoryTab />
+      <AgentToolsTab />
     </div>
   );
 }
@@ -88,11 +88,11 @@ export default function AgentMemoryPage() {
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { AgentMemoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 
-<AgentMemoryTab
+<AgentToolsTab
   labels={{
-    header: { title: "Mentor memory" },
+    header: { title: "Mentor tools" },
   }}
 />;
 ```
@@ -100,24 +100,24 @@ import { AgentMemoryTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AgentMemoryTab")
+get_component_info("AgentToolsTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AgentMemoryTab>` Props
+## `<AgentToolsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `labels` | `DeepPartial<MemoryTabLabels>` | No | Override user-visible strings |
+| `labels` | `DeepPartial<ToolsTabLabels>` | No | Override user-visible strings |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_MEMORY_TAB_LABELS` -- the default agent-facing label bundle.
-- `MemoryTabLabels` -- type for the full label bundle.
+- `AGENT_TOOLS_TAB_LABELS` -- the default agent-facing label bundle.
+- `ToolsTabLabels` -- type for the full label bundle.
 
 ## Step 5: Verify
 
@@ -128,7 +128,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/memory /tmp/memory-tab.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/tools /tmp/agent-tools.png
    ```
 
 ## Important Notes
@@ -139,5 +139,5 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-settings-tab` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

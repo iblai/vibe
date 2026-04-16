@@ -1,11 +1,11 @@
 ---
-name: iblai-settings-tab
+name: iblai-agent-settings
 description: Add the agent Settings tab (name, description, visibility, copy, delete) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-settings-tab
+# /iblai-agent-settings
 
 Add the agent **Settings tab** -- the core edit-mentor form with name,
 description, avatar, visibility (administrators / students / anyone),
@@ -16,7 +16,7 @@ tab in the wider agent-settings family (`access`, `api`, `datasets`,
 same `AgentSettingsProvider` wrapper -- set it up once and mount as many
 tabs as you need.
 
-![Settings Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-settings-tab/settings-tab.png)
+![Settings Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-settings/iblai-agent-settings.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -273,7 +273,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/settings /tmp/settings-tab.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/settings /tmp/agent-settings.png
    ```
 
 ## Important Notes

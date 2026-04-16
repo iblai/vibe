@@ -1,11 +1,11 @@
 ---
-name: iblai-datasets-tab
+name: iblai-agent-datasets
 description: Add the agent Datasets tab (searchable dataset table with upload) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-datasets-tab
+# /iblai-agent-datasets
 
 Add the agent **Datasets tab** -- a searchable, paginated table of datasets
 with columns for name, type, tokens, interval, visibility, and status.
@@ -13,7 +13,7 @@ Includes an "Add Resource" slot for file uploads and a delete action per
 row. This is one tab in the wider agent-settings family. All tabs share
 the same `AgentSettingsProvider` wrapper.
 
-![Datasets Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-datasets-tab/datasets-tab.png)
+![Datasets Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-datasets/iblai-agent-datasets.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -47,7 +47,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-settings-tab`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -164,7 +164,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/datasets /tmp/datasets-tab.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/datasets /tmp/agent-datasets.png
    ```
 
 ## Important Notes
@@ -175,7 +175,7 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-settings-tab` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
 - **AddResourceModal**: The standalone app uses Dropbox/Google Drive/OneDrive
   pickers with deep dependencies. Consumers inject their own implementation
   to avoid pulling in those deps.
