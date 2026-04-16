@@ -232,6 +232,19 @@ Invoke with `/` in Claude Code:
 | `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |
 | `/iblai-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-test` | Test your app before showing work to the user |
+| `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
+| `/iblai-agent-settings` | Add the agent Settings tab (name, visibility, copy, delete) |
+| `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
+| `/iblai-agent-api` | Add the agent API tab (API key management) |
+| `/iblai-agent-datasets` | Add the agent Datasets tab (searchable dataset table with upload) |
+| `/iblai-agent-disclaimers` | Add the agent Disclaimers tab (user agreement and advisory) |
+| `/iblai-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
+| `/iblai-agent-history` | Add the agent History tab (conversation history with filters and export) |
+| `/iblai-agent-llm` | Add the agent LLM tab (model provider selection) |
+| `/iblai-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
+| `/iblai-agent-prompts` | Add the agent Prompts tab (system prompts and suggested prompts) |
+| `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-agent-tools` | Add the agent Tools tab (enable/disable agent tools) |
 
 
 ## Deployment
