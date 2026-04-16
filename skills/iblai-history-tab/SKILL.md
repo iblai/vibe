@@ -69,18 +69,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `HistoryTab`
+## Step 2: Mount `AgentHistoryTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/history/page.tsx
 "use client";
 
-import { HistoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentHistoryTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentHistoryPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <HistoryTab />
+      <AgentHistoryTab />
     </div>
   );
 }
@@ -91,7 +91,7 @@ export default function AgentHistoryPage() {
 ```tsx
 import ReactMarkdown from "react-markdown";
 
-<HistoryTab
+<AgentHistoryTab
   renderMessageContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
   onExport={(filters) => {
     console.log("export with filters", filters);
@@ -103,7 +103,7 @@ import ReactMarkdown from "react-markdown";
 ### With pagination
 
 ```tsx
-<HistoryTab
+<AgentHistoryTab
   PaginationComponent={({ currentPage, totalPages, onPageChange, disabled }) => (
     <MyPagination
       page={currentPage}
@@ -118,9 +118,9 @@ import ReactMarkdown from "react-markdown";
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { HistoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentHistoryTab } from "@iblai/iblai-js/web-containers/next";
 
-<HistoryTab
+<AgentHistoryTab
   labels={{
     header: { title: "Mentor conversations" },
   }}
@@ -130,11 +130,11 @@ import { HistoryTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("HistoryTab")
+get_component_info("AgentHistoryTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<HistoryTab>` Props
+## `<AgentHistoryTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

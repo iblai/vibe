@@ -68,18 +68,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `DisclaimersTab`
+## Step 2: Mount `AgentDisclaimersTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/disclaimers/page.tsx
 "use client";
 
-import { DisclaimersTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDisclaimersTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentDisclaimersPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <DisclaimersTab />
+      <AgentDisclaimersTab />
     </div>
   );
 }
@@ -93,7 +93,7 @@ instead of plain text:
 ```tsx
 import ReactMarkdown from "react-markdown";
 
-<DisclaimersTab
+<AgentDisclaimersTab
   renderContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
 />;
 ```
@@ -101,9 +101,9 @@ import ReactMarkdown from "react-markdown";
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { DisclaimersTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDisclaimersTab } from "@iblai/iblai-js/web-containers/next";
 
-<DisclaimersTab
+<AgentDisclaimersTab
   labels={{
     header: { title: "Mentor disclaimers" },
   }}
@@ -113,11 +113,11 @@ import { DisclaimersTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("DisclaimersTab")
+get_component_info("AgentDisclaimersTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<DisclaimersTab>` Props
+## `<AgentDisclaimersTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

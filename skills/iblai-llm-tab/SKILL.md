@@ -68,9 +68,9 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `LLMTab`
+## Step 2: Mount `AgentLLMTab`
 
-`LLMTab` has one required prop: `getLLMProviderDetails`. This maps a
+`AgentLLMTab` has one required prop: `getLLMProviderDetails`. This maps a
 provider name to display info (logo URL, display name). The host app
 provides this because logos and display names are host-specific.
 
@@ -79,7 +79,7 @@ provides this because logos and display names are host-specific.
 "use client";
 
 import {
-  LLMTab,
+  AgentLLMTab,
   type LLMProviderDetails,
 } from "@iblai/iblai-js/web-containers/next";
 
@@ -103,7 +103,7 @@ function getLLMProviderDetails(
 export default function AgentLLMPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <LLMTab getLLMProviderDetails={getLLMProviderDetails} />
+      <AgentLLMTab getLLMProviderDetails={getLLMProviderDetails} />
     </div>
   );
 }
@@ -112,9 +112,9 @@ export default function AgentLLMPage() {
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { LLMTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentLLMTab } from "@iblai/iblai-js/web-containers/next";
 
-<LLMTab
+<AgentLLMTab
   getLLMProviderDetails={getLLMProviderDetails}
   labels={{
     header: { title: "Model configuration" },
@@ -125,11 +125,11 @@ import { LLMTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("LLMTab")
+get_component_info("AgentLLMTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<LLMTab>` Props
+## `<AgentLLMTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

@@ -68,18 +68,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `SafetyTab`
+## Step 2: Mount `AgentSafetyTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/safety/page.tsx
 "use client";
 
-import { SafetyTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentSafetyPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <SafetyTab />
+      <AgentSafetyTab />
     </div>
   );
 }
@@ -90,7 +90,7 @@ export default function AgentSafetyPage() {
 ```tsx
 import ReactMarkdown from "react-markdown";
 
-<SafetyTab
+<AgentSafetyTab
   renderPromptContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
   showFlaggedPrompts
   FlaggedPromptsModal={({ isOpen, onClose, mentorId, tenantKey, username }) => (
@@ -108,9 +108,9 @@ import ReactMarkdown from "react-markdown";
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { SafetyTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentSafetyTab } from "@iblai/iblai-js/web-containers/next";
 
-<SafetyTab
+<AgentSafetyTab
   labels={{
     header: { title: "Mentor safety" },
   }}
@@ -120,11 +120,11 @@ import { SafetyTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("SafetyTab")
+get_component_info("AgentSafetyTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<SafetyTab>` Props
+## `<AgentSafetyTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

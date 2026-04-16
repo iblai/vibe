@@ -68,18 +68,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `ApiTab`
+## Step 2: Mount `AgentApiTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/api/page.tsx
 "use client";
 
-import { ApiTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentApiTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentApiPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <ApiTab />
+      <AgentApiTab />
     </div>
   );
 }
@@ -88,9 +88,9 @@ export default function AgentApiPage() {
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { ApiTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentApiTab } from "@iblai/iblai-js/web-containers/next";
 
-<ApiTab
+<AgentApiTab
   labels={{
     header: { title: "Mentor API keys" },
   }}
@@ -100,11 +100,11 @@ import { ApiTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("ApiTab")
+get_component_info("AgentApiTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<ApiTab>` Props
+## `<AgentApiTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

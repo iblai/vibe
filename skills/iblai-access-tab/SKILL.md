@@ -71,7 +71,7 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AccessTab`
+## Step 2: Mount `AgentAccessTab`
 
 The `AgentSettingsProvider` layout from `/iblai-settings-tab` Step 2 must
 already wrap this route. The provider supplies `tenantKey`, `mentorId`,
@@ -81,12 +81,12 @@ already wrap this route. The provider supplies `tenantKey`, `mentorId`,
 // app/(app)/agents/[mentorId]/access/page.tsx
 "use client";
 
-import { AccessTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentAccessTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentAccessPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AccessTab />
+      <AgentAccessTab />
     </div>
   );
 }
@@ -94,16 +94,16 @@ export default function AgentAccessPage() {
 
 ## Step 3: Customize Labels (Optional)
 
-`AccessTab` renders with the default agent-facing copy
+`AgentAccessTab` renders with the default agent-facing copy
 (`AGENT_ACCESS_TAB_LABELS`). Override any string via the `labels` prop:
 
 ```tsx
 import {
-  AccessTab,
+  AgentAccessTab,
   AGENT_ACCESS_TAB_LABELS,
 } from "@iblai/iblai-js/web-containers/next";
 
-<AccessTab
+<AgentAccessTab
   labels={{
     header: { title: "Mentor access", description: "Manage who can edit or chat with this mentor." },
     table: { columns: { role: "Permission level" } },
@@ -114,11 +114,11 @@ import {
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AccessTab")
+get_component_info("AgentAccessTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AccessTab>` Props
+## `<AgentAccessTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

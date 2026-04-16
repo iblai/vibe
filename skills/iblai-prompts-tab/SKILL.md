@@ -69,18 +69,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `PromptsTab`
+## Step 2: Mount `AgentPromptsTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/prompts/page.tsx
 "use client";
 
-import { PromptsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentPromptsTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentPromptsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <PromptsTab />
+      <AgentPromptsTab />
     </div>
   );
 }
@@ -91,7 +91,7 @@ export default function AgentPromptsPage() {
 ```tsx
 import ReactMarkdown from "react-markdown";
 
-<PromptsTab
+<AgentPromptsTab
   renderPromptContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
 />;
 ```
@@ -99,9 +99,9 @@ import ReactMarkdown from "react-markdown";
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { PromptsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentPromptsTab } from "@iblai/iblai-js/web-containers/next";
 
-<PromptsTab
+<AgentPromptsTab
   labels={{
     header: { title: "Mentor prompts" },
   }}
@@ -111,11 +111,11 @@ import { PromptsTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("PromptsTab")
+get_component_info("AgentPromptsTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<PromptsTab>` Props
+## `<AgentPromptsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

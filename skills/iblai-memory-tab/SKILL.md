@@ -68,18 +68,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `MemoryTab`
+## Step 2: Mount `AgentMemoryTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/memory/page.tsx
 "use client";
 
-import { MemoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentMemoryTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentMemoryPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <MemoryTab />
+      <AgentMemoryTab />
     </div>
   );
 }
@@ -88,9 +88,9 @@ export default function AgentMemoryPage() {
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { MemoryTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentMemoryTab } from "@iblai/iblai-js/web-containers/next";
 
-<MemoryTab
+<AgentMemoryTab
   labels={{
     header: { title: "Mentor memory" },
   }}
@@ -100,11 +100,11 @@ import { MemoryTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("MemoryTab")
+get_component_info("AgentMemoryTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<MemoryTab>` Props
+## `<AgentMemoryTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 

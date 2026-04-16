@@ -72,7 +72,7 @@ template and fill in your values:
 
 ## Step 2: Wrap the Route in `AgentSettingsProvider`
 
-All agent tabs (`SettingsTab`, `LLMTab`, `PromptsTab`, etc.) read shared
+All agent tabs (`AgentSettingsTab`, `AgentLLMTab`, `AgentPromptsTab`, etc.) read shared
 identity from `AgentSettingsProvider`. Wrap your agent-settings route once;
 every tab inside it reads from context.
 
@@ -133,7 +133,7 @@ export default function AgentSettingsLayout({
 destructive actions. Leave `false` unless the host app wires an
 `executeGatedAction` callback.
 
-## Step 3: Mount `SettingsTab`
+## Step 3: Mount `AgentSettingsTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/settings/page.tsx
@@ -141,7 +141,7 @@ destructive actions. Leave `false` unless the host app wires an
 
 import { useEffect, useState } from "react";
 import {
-  SettingsTab,
+  AgentSettingsTab,
   type CopyMentorTenant,
 } from "@iblai/iblai-js/web-containers/next";
 import { useRouter } from "next/navigation";
@@ -164,7 +164,7 @@ export default function AgentSettingsPage() {
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <SettingsTab
+      <AgentSettingsTab
         tenants={tenants}
         isLoadingTenants={isLoadingTenants}
         onSuccessfulSave={(mentor) => {
@@ -184,14 +184,14 @@ export default function AgentSettingsPage() {
 
 ## Step 4: Customize Labels (Optional)
 
-`SettingsTab` renders with the default agent-facing copy
+`AgentSettingsTab` renders with the default agent-facing copy
 (`AGENT_SETTINGS_TAB_LABELS`). Override any string via the `labels` prop.
 Pass a full `SettingsTabLabels` bundle (for a full mentor/tutor/coach
 re-skin) or a partial object (for one-off edits).
 
 ```tsx
 import {
-  SettingsTab,
+  AgentSettingsTab,
   type SettingsTabLabels,
   AGENT_SETTINGS_TAB_LABELS,
 } from "@iblai/iblai-js/web-containers/next";
@@ -204,13 +204,13 @@ const MENTOR_LABELS: SettingsTabLabels = {
   },
 };
 
-<SettingsTab tenants={tenants} labels={MENTOR_LABELS} />;
+<AgentSettingsTab tenants={tenants} labels={MENTOR_LABELS} />;
 ```
 
 For a partial override, pass only the keys you want to change:
 
 ```tsx
-<SettingsTab
+<AgentSettingsTab
   tenants={tenants}
   labels={{
     header: { title: "Tutor settings" },
@@ -222,13 +222,13 @@ For a partial override, pass only the keys you want to change:
 ## Step 5: Use MCP Tools for Customization
 
 ```
-get_component_info("SettingsTab")
+get_component_info("AgentSettingsTab")
 get_component_info("AgentSettingsProvider")
 get_component_info("CopyMentorModal")
 get_component_info("DeleteMentorModal")
 ```
 
-## `<SettingsTab>` Props
+## `<AgentSettingsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
@@ -243,7 +243,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 ## `<AgentSettingsProvider>` Props
 
-All tabs in the agent-settings family (`SettingsTab`, `LLMTab`, `PromptsTab`,
+All tabs in the agent-settings family (`AgentSettingsTab`, `AgentLLMTab`, `AgentPromptsTab`,
 etc.) read identity from this provider via `useAgentSettings()`.
 
 | Prop | Type | Description |
@@ -258,7 +258,7 @@ etc.) read identity from this provider via `useAgentSettings()`.
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `DeleteMentorModal`, `CopyMentorModal` -- used internally by `SettingsTab`.
+- `DeleteMentorModal`, `CopyMentorModal` -- used internally by `AgentSettingsTab`.
   Export paths for standalone use (e.g., an "archive" action outside the tab).
 - `resolveSettingsTabLabels` -- merges `DeepPartial<SettingsTabLabels>` with
   defaults. Useful when composing bundles.

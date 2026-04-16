@@ -69,9 +69,9 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `EmbedTab`
+## Step 2: Mount `AgentEmbedTab`
 
-`EmbedTab` has three required props: `urls`, `CopyCodeBlock`, and
+`AgentEmbedTab` has three required props: `urls`, `CopyCodeBlock`, and
 `visibilityOptions`. These are host-provided because they depend on
 the deployment environment and the host app's UI library.
 
@@ -80,7 +80,7 @@ the deployment environment and the host app's UI library.
 "use client";
 
 import {
-  EmbedTab,
+  AgentEmbedTab,
   type EmbedUrlConfig,
   type VisibilityOption,
 } from "@iblai/iblai-js/web-containers/next";
@@ -109,7 +109,7 @@ function CopyCodeBlock({ code }: { code: string }) {
 export default function AgentEmbedPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <EmbedTab
+      <AgentEmbedTab
         urls={urls}
         CopyCodeBlock={CopyCodeBlock}
         visibilityOptions={visibilityOptions}
@@ -122,9 +122,9 @@ export default function AgentEmbedPage() {
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { EmbedTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentEmbedTab } from "@iblai/iblai-js/web-containers/next";
 
-<EmbedTab
+<AgentEmbedTab
   urls={urls}
   CopyCodeBlock={CopyCodeBlock}
   visibilityOptions={visibilityOptions}
@@ -137,11 +137,11 @@ import { EmbedTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("EmbedTab")
+get_component_info("AgentEmbedTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<EmbedTab>` Props
+## `<AgentEmbedTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
@@ -186,7 +186,7 @@ Run `/iblai-test` before telling the user the work is ready:
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-settings-tab` Step 2 for the full snippet.
-- **Required props**: Unlike most tabs, `EmbedTab` requires three props
+- **Required props**: Unlike most tabs, `AgentEmbedTab` requires three props
   (`urls`, `CopyCodeBlock`, `visibilityOptions`) because they are
   host-specific.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)

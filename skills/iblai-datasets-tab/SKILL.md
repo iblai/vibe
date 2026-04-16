@@ -69,18 +69,18 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `DatasetsTab`
+## Step 2: Mount `AgentDatasetsTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/datasets/page.tsx
 "use client";
 
-import { DatasetsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDatasetsTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentDatasetsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <DatasetsTab />
+      <AgentDatasetsTab />
     </div>
   );
 }
@@ -93,7 +93,7 @@ omitted, the "Add Resource" button is shown but no modal opens. Inject
 your own implementation:
 
 ```tsx
-<DatasetsTab
+<AgentDatasetsTab
   AddResourceModal={({ isOpen, onClose }) => (
     <MyUploadModal open={isOpen} onClose={onClose} />
   )}
@@ -105,7 +105,7 @@ your own implementation:
 Inject a pagination component via the `PaginationComponent` prop:
 
 ```tsx
-<DatasetsTab
+<AgentDatasetsTab
   PaginationComponent={({ currentPage, totalPages, onPageChange, disabled }) => (
     <MyPagination
       page={currentPage}
@@ -120,9 +120,9 @@ Inject a pagination component via the `PaginationComponent` prop:
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { DatasetsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDatasetsTab } from "@iblai/iblai-js/web-containers/next";
 
-<DatasetsTab
+<AgentDatasetsTab
   labels={{
     header: { title: "Training data" },
   }}
@@ -132,11 +132,11 @@ import { DatasetsTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("DatasetsTab")
+get_component_info("AgentDatasetsTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<DatasetsTab>` Props
+## `<AgentDatasetsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
