@@ -49,7 +49,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-setting`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -73,7 +73,7 @@ template and fill in your values:
 
 ## Step 2: Mount `AgentAccessTab`
 
-The `AgentSettingsProvider` layout from `/iblai-agent-settings` Step 2 must
+The `AgentSettingsProvider` layout from `/iblai-agent-setting` Step 2 must
 already wrap this route. The provider supplies `tenantKey`, `mentorId`,
 `username`, and `enableRBAC` via context.
 
@@ -155,7 +155,7 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
 - **RBAC**: The tab checks `enableRBAC` from the provider and
   `rbacPermissions` to gate add/edit actions. If `enableRBAC` is `false`
   (the default), all actions are permitted.

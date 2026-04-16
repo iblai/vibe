@@ -1,18 +1,18 @@
 ---
-name: iblai-agent-disclaimers
-description: Add the agent Disclaimers tab (user agreement and advisory) to your Next.js app
+name: iblai-agent-tool
+description: Add the agent Tools tab (enable/disable agent tools) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-agent-disclaimers
+# /iblai-agent-tool
 
-Add the agent **Disclaimers tab** -- a two-column layout with a User
-Agreement card (permission-gated) and an Advisory section for managing
-agent disclaimers. This is one tab in the wider agent-settings family.
+Add the agent **Tools tab** -- a toggleable list of agent tools with
+display names, descriptions in tooltips, and switches for enabling or
+disabling each tool. This is one tab in the wider agent-settings family.
 All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Disclaimers Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-disclaimers/iblai-agent-disclaimers.png)
+![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-tool/iblai-agent-tool.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -46,7 +46,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-setting`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -68,44 +68,31 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentDisclaimersTab`
+## Step 2: Mount `AgentToolsTab`
 
 ```tsx
-// app/(app)/agents/[mentorId]/disclaimers/page.tsx
+// app/(app)/agents/[mentorId]/tools/page.tsx
 "use client";
 
-import { AgentDisclaimersTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 
-export default function AgentDisclaimersPage() {
+export default function AgentToolsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentDisclaimersTab />
+      <AgentToolsTab />
     </div>
   );
 }
 ```
 
-### With Markdown rendering
-
-Pass a `renderContent` function to render disclaimer text as rich content
-instead of plain text:
-
-```tsx
-import ReactMarkdown from "react-markdown";
-
-<AgentDisclaimersTab
-  renderContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
-/>;
-```
-
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { AgentDisclaimersTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 
-<AgentDisclaimersTab
+<AgentToolsTab
   labels={{
-    header: { title: "Mentor disclaimers" },
+    header: { title: "Mentor tools" },
   }}
 />;
 ```
@@ -113,25 +100,24 @@ import { AgentDisclaimersTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AgentDisclaimersTab")
+get_component_info("AgentToolsTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AgentDisclaimersTab>` Props
+## `<AgentToolsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `labels` | `DeepPartial<DisclaimersTabLabels>` | No | Override user-visible strings |
-| `defaultDisclaimerContent` | `string` | No | Default text shown when no user agreement exists yet |
-| `renderContent` | `(content: string) => ReactNode` | No | Render disclaimer/advisory as rich text (e.g., Markdown). Defaults to plain text |
+| `labels` | `DeepPartial<ToolsTabLabels>` | No | Override user-visible strings |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `DisclaimersTabLabels` -- type for the full label bundle.
+- `AGENT_TOOLS_TAB_LABELS` -- the default agent-facing label bundle.
+- `ToolsTabLabels` -- type for the full label bundle.
 
 ## Step 5: Verify
 
@@ -142,7 +128,7 @@ Run `/iblai-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/disclaimers /tmp/agent-disclaimers.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/tool /tmp/agent-tool.png
    ```
 
 ## Important Notes
@@ -153,5 +139,5 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
