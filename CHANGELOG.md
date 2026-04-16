@@ -2,6 +2,36 @@
 
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
+## [1.1.0] - 2026-04-16
+
+### Added
+- **iblai-navbar** skill — responsive navbar with ibl.ai logo, Home/Profile/Account links with icons, notification bell, and profile dropdown; creates all linked pages (profile, account, notifications) automatically
+- **iblai-landing** skill — build a high-converting landing page using a 12-section conversion framework
+- **iblai-deploy** skill — deploy to Vercel (or other platforms)
+- **iblai-init** skill — update project CLAUDE.md with ibl.ai platform guidance
+- **iblai-agent-search** skill — agent search/browse page (starred, featured, custom, default agents)
+- **iblai-agent-settings** skill — agent Settings tab (name, visibility, copy, delete)
+- **iblai-agent-access** skill — agent Access tab (RBAC for editor and chat roles)
+- **iblai-agent-api** skill — agent API tab (API key management)
+- **iblai-agent-datasets** skill — agent Datasets tab (searchable dataset table with upload)
+- **iblai-agent-disclaimers** skill — agent Disclaimers tab (user agreement and advisory)
+- **iblai-agent-embed** skill — agent Embed tab (embed code, custom styling, shareable links)
+- **iblai-agent-history** skill — agent History tab (conversation history with filters and export)
+- **iblai-agent-llm** skill — agent LLM tab (model provider selection)
+- **iblai-agent-memory** skill — agent Memory tab (enable/disable memory and manage memories)
+- **iblai-agent-prompts** skill — agent Prompts tab (system prompts and suggested prompts)
+- **iblai-agent-safety** skill — agent Safety tab (moderation prompts and flagged content)
+- **iblai-agent-tools** skill — agent Tools tab (enable/disable agent tools)
+
+### Changed
+- **iblai-auth** now asks "Do you want a navbar?" during setup (Step 2) and runs `/iblai-navbar` automatically if yes
+- **iblai-profile** updated with full Profile Content API documentation (Basic, Social, Education, Experience, Resume, Security tabs), RTK Query hooks, custom career API slice, AI Profile Memory API, chat privacy settings, and MediaBox integration
+- **iblai-profile**, **iblai-notification**, **iblai-account** skills now reference `/iblai-navbar` for navbar setup
+- Component hierarchy standardized across all skills: ibl.ai SDK first, then shadcn/ui, then custom
+- Navbar uses BRAND.md colors (brand blue `#0058cc`) instead of amber for active states
+- Navbar logo served locally from `public/images/` instead of external URL
+- Profile REST API endpoints documented with "read before write" warning and curl examples
+
 ## [1.0.0] - 2026-04-08
 
 ### Added
