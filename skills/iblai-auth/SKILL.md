@@ -34,6 +34,10 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
 
+> **Navbar:** After auth is set up, ask the user if they want a navbar.
+> If yes, guide them to `/iblai-navbar` which creates a responsive navbar
+> with logo, page links, notification bell, and profile dropdown.
+
 Follow the component hierarchy: use ibl.ai SDK components
 (`@iblai/iblai-js`) first, then shadcn/ui for everything else
 (`npx shadcn@latest add <component>`). Do NOT write custom components
