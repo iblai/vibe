@@ -41,6 +41,10 @@ Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
 
+> **Navbar:** If the user wants a navbar with links to the account page,
+> guide them to `/iblai-navbar` first. That skill creates the full navbar
+> with logo, page links, notification bell, and profile dropdown.
+
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)

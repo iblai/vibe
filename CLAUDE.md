@@ -217,6 +217,7 @@ Invoke with `/` in Claude Code:
 |-------|-------------|
 | `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-chat` | Add AI chat widget |
+| `/iblai-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
