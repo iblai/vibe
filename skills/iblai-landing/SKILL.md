@@ -93,6 +93,7 @@ explicitly opts out. Include OPTIONAL when the content exists.
 
 #### Section 1: HERO + PROOF BAR [REQUIRED]
 
+![Hero + Proof Bar](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/hero-proof-bar.png)
 **This is where the page is won or lost. You have seconds.**
 
 - **Headline** — Bold, transformation-focused. Not the product name. States the
@@ -113,7 +114,7 @@ radius). Proof bar sits directly below the CTA as a row of logos/badges.
 ---
 
 #### Section 2: TRANSFORMATION [REQUIRED]
-
+![The Transformation](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/the-transformation.png)
 **Right after the hero. Answers: "How easy is this going to be?"**
 
 - Step 1 → Step 2 → Step 3
@@ -128,6 +129,8 @@ light/dark section backgrounds per BRAND.md.
 ---
 
 #### Section 3: BENEFITS [REQUIRED]
+
+![Benefits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/benefits.png)
 
 **Deep, visual, outcome-led. Not features — outcomes.**
 
@@ -149,6 +152,9 @@ screenshots or product shots where possible.
 
 #### Section 4: FEATURES [RECOMMENDED]
 
+
+![Features](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/features.png)
+
 **The scan section. For people who won't read everything (most users).**
 
 - Short features with icons and one-liners.
@@ -161,6 +167,9 @@ screenshots or product shots where possible.
 ---
 
 #### Section 5: MID-PAGE CTA + PROOF [REQUIRED]
+
+
+![Mid-Page CTA + Proof](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/mid-page-cta-proof.png)
 
 **Most brands drop the ball here. They assume people scroll to the bottom.**
 
@@ -175,6 +184,8 @@ a one-line trust statement. Use the ibl.ai gradient background.
 
 #### Section 6: WHAT'S INCLUDED [RECOMMENDED]
 
+![What's Included](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/whats-included.png)
+
 **One of the highest-impact sections. One of the most ignored.**
 
 - Removes uncertainty. Exactly what they get. No ambiguity.
@@ -187,6 +198,9 @@ Can include a product image or mockup alongside.
 ---
 
 #### Section 7: SOCIAL PROOF — LAYERED [REQUIRED]
+
+
+![Social Proof - Layered](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/social-proof-layered.png)
 
 **Not just one testimonial block. Layered.**
 
@@ -203,6 +217,8 @@ star rating, and quote text. Use Card component from shadcn.
 
 #### Section 8: UGC / VIDEO CONTENT STRIP [OPTIONAL]
 
+![UGC / Video Content Strip](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/ugc-video-content-strip.png)
+
 **Where attention spikes again. Builds belief + increases dwell time.**
 
 - Scrolling content strip with thumbnails and play buttons.
@@ -215,6 +231,8 @@ overlay. Only include if the user has video content.
 ---
 
 #### Section 9: COMPARISON TABLE [RECOMMENDED]
+
+![Comparison Table](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/comparison-table.png)
 
 **Where decisions get made. You vs alternatives. Side by side.**
 
@@ -230,6 +248,9 @@ Use the shadcn Table component. Green checkmarks vs red X marks.
 
 #### Section 10: FAQ [REQUIRED]
 
+
+![FAQ](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/faq.png)
+
 **Not filler. It's objection handling.**
 
 - Every question is a doubt, a hesitation, a reason someone didn't buy.
@@ -244,6 +265,8 @@ content. Questions should be phrased as the visitor would ask them.
 
 #### Section 11: IMAGE STRIP / PRODUCT VISUALS [OPTIONAL]
 
+![Image Strip / Product Visuals](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/image-strip-product-visuals.png)
+
 **Right before the close: more visuals, more context, more immersion.**
 
 - Different angles, lifestyle shots, in-use moments.
@@ -255,6 +278,9 @@ content. Questions should be phrased as the visitor would ask them.
 ---
 
 #### Section 12: FINAL CTA — EMOTIVE CLOSE [REQUIRED]
+
+
+![Final CTA - Emotive Close](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-landing/pics/final-cta-emotive-close.png)
 
 **The last push. Must feel different from the mid-page CTA.**
 
