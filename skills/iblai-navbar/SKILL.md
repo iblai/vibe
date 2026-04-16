@@ -31,6 +31,13 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
+The navbar MUST follow BRAND.md colors:
+- **Active link**: `text-[var(--primary)]` / `border-[var(--primary)]`
+  (brand blue `#0058cc`), NOT amber/yellow
+- **Active drawer item**: `bg-blue-50 border-blue-200 text-[var(--primary)]`
+- **Hover**: `text-gray-800 bg-gray-100`
+- **Inactive**: `text-gray-600`
+
 ---
 
 ## Prerequisites
@@ -41,23 +48,18 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - Lucide icons: `pnpm add lucide-react`
 - Media queries: `pnpm add react-responsive`
 
-## Step 0 — Ask the user
+## What this skill creates
 
-Before doing anything, ask the user:
+Every navbar includes all of the following — no choices, no skipping:
 
-1. **Do you want a navbar?** If no, stop here.
-2. **Which pages should appear in the navbar?** Suggest defaults:
-   - Home (`/home`, `Home` icon)
-   - Profile (`/profile`, `User` icon) — requires `/iblai-profile`
-   - Discover (`/discover`, `Search` icon)
-3. **Do you want a notification bell?** (default: yes) — requires `/iblai-notification`
-4. **Do you want a profile dropdown?** (default: yes) — requires `/iblai-profile`
+**Left side:** ibl.ai logo + three links with icons:
+- Home (`/`, `Home` icon)
+- Profile (`/profile`, `User` icon)
+- Account (`/account`, `Settings` icon)
 
-> **AI Assistant:** If the user wants Profile or Account pages but hasn't
-> set them up yet, guide them to run `/iblai-profile` or `/iblai-account`
-> first. If they want notifications, guide them to `/iblai-notification`.
-> The navbar skill wires everything together but does NOT create those
-> pages itself.
+**Right side:**
+- Notification bell (links to `/notifications`)
+- Profile dropdown (with Profile and Account links)
 
 ---
 
@@ -68,17 +70,32 @@ components/
   navbar/
     nav-bar.tsx              # Main navbar component
     navigation-drawer.tsx    # Mobile slide-out drawer
-    logo.tsx                 # Tenant logo with fallback
+    logo.tsx                 # ibl.ai logo
     user-profile-button.tsx  # Profile dropdown wrapper
+app/
+  (app)/
+    profile/page.tsx         # Profile settings page
+    account/page.tsx         # Account/org settings page
+    notifications/
+      [[...id]]/page.tsx     # Notification center page
 ```
 
 The navbar is rendered in the app layout and wraps all authenticated pages.
+The profile, account, and notification pages are created alongside the
+navbar so the links point to real pages, not placeholders.
 
 ---
 
-## Step 1 — Logo component
+## Step 1 — Download and add the logo
 
-Create `components/navbar/logo.tsx`:
+Download the ibl.ai logo into the project's `public/images/` directory:
+
+```bash
+mkdir -p public/images
+curl -o public/images/iblai-logo.png https://ibl.ai/images/iblai-logo.png
+```
+
+Then create `components/navbar/logo.tsx`:
 
 ```tsx
 'use client';
@@ -86,41 +103,24 @@ Create `components/navbar/logo.tsx`:
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface LogoProps {
-  appName: string;
-  logoUrl?: string;
-  fallbackSrc?: string;
-}
-
-export function Logo({
-  appName,
-  logoUrl,
-  fallbackSrc = '/images/logo.png',
-}: LogoProps) {
+export function Logo() {
   return (
     <Link href="/" className="flex items-center">
       <Image
-        src={logoUrl || fallbackSrc}
-        alt={appName}
+        src="/images/iblai-logo.png"
+        alt="ibl.ai"
         width={120}
         height={40}
         className="h-6 w-auto sm:h-7 md:h-8"
-        loading="lazy"
+        priority
       />
     </Link>
   );
 }
 ```
 
-The logo source should come from tenant metadata when available:
-
-```tsx
-import { useTenantMetadata } from '@iblai/iblai-js/web-utils';
-
-const { metadata } = useTenantMetadata({ org: tenantKey });
-const logoUrl = metadata?.auth_web_skillsai?.display_logo
-  || `${dmUrl}/api/core/orgs/${tenantKey}/logo/`;
-```
+Use the ibl.ai logo. Do NOT use the tenant/platform logo. Always serve
+it locally from `public/images/`, never from an external URL.
 
 ---
 
@@ -213,16 +213,12 @@ interface NavigationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: NavItem[];
-  appName: string;
-  logoUrl?: string;
 }
 
 export function NavigationDrawer({
   isOpen,
   onClose,
   items,
-  appName,
-  logoUrl,
 }: NavigationDrawerProps) {
   const pathname = usePathname();
 
@@ -244,7 +240,7 @@ export function NavigationDrawer({
       >
         {/* Header */}
         <div className="flex h-20 items-center justify-between border-b px-4">
-          <Logo appName={appName} logoUrl={logoUrl} />
+          <Logo />
           <button
             onClick={onClose}
             className="rounded-lg p-2 transition-colors hover:bg-gray-100"
@@ -269,13 +265,13 @@ export function NavigationDrawer({
                     onClick={onClose}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                       isActive
-                        ? 'border border-amber-200 bg-amber-50 text-amber-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'border border-blue-200 bg-blue-50 text-[var(--primary)]'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <Icon
                       className={`h-5 w-5 ${
-                        isActive ? 'text-amber-700' : 'text-gray-500'
+                        isActive ? 'text-[var(--primary)]' : 'text-gray-500'
                       }`}
                     />
                     <span className="font-medium">{item.name}</span>
@@ -322,8 +318,6 @@ interface NavBarProps {
   onMenuClick: () => void;
   links: NavLink[];
   // Tenant/user props
-  appName: string;
-  logoUrl?: string;
   tenantKey: string;
   username?: string;
   isAdmin: boolean;
@@ -343,8 +337,6 @@ export function NavBar({
   activePage,
   onMenuClick,
   links,
-  appName,
-  logoUrl,
   tenantKey,
   username,
   isAdmin,
@@ -380,7 +372,7 @@ export function NavBar({
             <Menu className="h-6 w-6" />
           </button>
 
-          <Logo appName={appName} logoUrl={logoUrl} />
+          <Logo />
 
           {/* Desktop navigation links */}
           <nav className="ml-8 hidden h-full items-center space-x-6 md:flex">
@@ -393,7 +385,7 @@ export function NavBar({
                   href={link.href}
                   className={`flex h-full items-center gap-2 text-sm font-medium ${
                     isActive
-                      ? 'border-b-2 border-[var(--navbar-active-border,#f59e0b)] text-[var(--navbar-active-text,#f59e0b)]'
+                      ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
                       : 'text-[var(--navbar-text,#374151)] hover:text-[var(--navbar-hover-text,#1f2937)]'
                   }`}
                 >
@@ -441,7 +433,255 @@ export function NavBar({
 
 ---
 
-## Step 5 — Wire into app layout
+## Step 5 — Profile page
+
+Create `app/(app)/profile/page.tsx`.
+
+Import `Profile` from `@iblai/iblai-js/web-containers` (the framework-agnostic
+bundle, NOT the `/next` bundle). This renders an inline, full-page profile
+editor with sidebar navigation on desktop and tabbed navigation on mobile.
+
+```tsx
+// app/(app)/profile/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { Profile } from "@iblai/iblai-js/web-containers";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function ProfilePage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const resolved = resolveAppTenant();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const parsed = JSON.parse(tenantsRaw);
+        const match = parsed.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-gray-400">Loading profile...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+        <Profile
+          tenant={tenantKey}
+          username={username}
+          isAdmin={isAdmin}
+          onClose={() => {}}
+          customization={{
+            showPlatformName: true,
+            useGravatarPicFallback: true,
+          }}
+          targetTab="basic"
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+**Key patterns:**
+- Wrap in `bg-white rounded-lg border` — the SDK Profile has no outer background
+- Import from `@iblai/iblai-js/web-containers` (NOT `/next`)
+- `Profile` renders inline (full page). `UserProfileModal` renders as a dialog.
+
+---
+
+## Step 6 — Account page
+
+Create `app/(app)/account/page.tsx`.
+
+Import `Account` from `@iblai/iblai-js/web-containers/next` (this one
+DOES use the `/next` bundle because it uses `next/image` internally).
+
+```tsx
+// app/(app)/account/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Account } from "@iblai/iblai-js/web-containers/next";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function AccountPage() {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [tenantKey, setTenantKey] = useState("");
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const resolved = resolveAppTenant();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const parsed = JSON.parse(tenantsRaw);
+        setTenants(parsed);
+        const match = parsed.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-gray-400">Loading account settings...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+        <Account
+          tenant={tenantKey}
+          tenants={tenants}
+          username={username}
+          isAdmin={isAdmin}
+          authURL={config.authUrl()}
+          currentPlatformBaseDomain={config.platformBaseDomain()}
+          currentSPA="agent"
+          onInviteClick={() => {}}
+          onClose={() => router.push("/")}
+          targetTab="organization"
+          showPlatformName={true}
+          useGravatarPicFallback={true}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+**Key patterns:**
+- Wrap in `bg-white rounded-lg border` — same as Profile
+- Import from `@iblai/iblai-js/web-containers/next` (uses `next/image`)
+- Most tabs require `isAdmin === true` to be visible
+
+---
+
+## Step 7 — Notifications page
+
+Create `app/(app)/notifications/[[...id]]/page.tsx`.
+
+The `[[...id]]` catch-all route handles both `/notifications` (inbox) and
+`/notifications/{id}` (specific notification). Import `NotificationDisplay`
+from `@iblai/iblai-js/web-containers`.
+
+```tsx
+// app/(app)/notifications/[[...id]]/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { NotificationDisplay } from "@iblai/iblai-js/web-containers";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function NotificationsPage() {
+  const params = useParams();
+  const notificationId = params?.id?.[0] ?? undefined;
+  const [tenantKey, setTenantKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userData");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? "");
+      }
+    } catch {}
+
+    const resolved = resolveAppTenant();
+    setTenantKey(resolved);
+
+    try {
+      const tenantsRaw = localStorage.getItem("tenants");
+      if (tenantsRaw) {
+        const parsed = JSON.parse(tenantsRaw);
+        const match = parsed.find((t: any) => t.key === resolved);
+        if (match) setIsAdmin(!!match.is_admin);
+      }
+    } catch {}
+
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-gray-400">Loading notifications...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
+        <NotificationDisplay
+          org={tenantKey}
+          userId={username}
+          isAdmin={isAdmin}
+          selectedNotificationId={notificationId}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+**Key patterns:**
+- `[[...id]]` catch-all so `/notifications` and `/notifications/abc123` both work
+- Admin users see the Alerts tab and Send button
+- Import from `@iblai/iblai-js/web-containers` (NOT `/next`)
+
+---
+
+## Step 8 — Wire into app layout
 
 In your root layout or app layout component, render the navbar for all
 authenticated pages:
@@ -451,14 +691,14 @@ authenticated pages:
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, User, Search } from 'lucide-react';
+import { Home, User, Settings } from 'lucide-react';
 import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import { NavigationDrawer, type NavItem } from '@/components/navbar/navigation-drawer';
 
 const NAV_LINKS: NavLink[] = [
-  { name: 'Home',    href: '/home',    icon: Home,   segment: 'home' },
-  { name: 'Profile', href: '/profile', icon: User,   segment: 'profile' },
-  { name: 'Discover', href: '/discover', icon: Search, segment: 'discover' },
+  { name: 'Home',    href: '/',        icon: Home,     segment: '' },
+  { name: 'Profile', href: '/profile', icon: User,     segment: 'profile' },
+  { name: 'Account', href: '/account', icon: Settings, segment: 'account' },
 ];
 
 // Same items for the mobile drawer
@@ -468,7 +708,7 @@ const DRAWER_ITEMS: NavItem[] = NAV_LINKS.map(({ name, href, icon }) => ({
   icon,
 }));
 
-const NON_AUTH_PAGES = ['/login', '/sso-login-complete', '/logout'];
+const NON_AUTH_PAGES = ['/sso-login-complete'];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -488,7 +728,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           activePage={activePage}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           links={NAV_LINKS}
-          appName="My App"
           tenantKey={/* getTenant() */}
           username={/* getUserName() */}
           isAdmin={/* from your auth context */}
@@ -502,7 +741,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         items={DRAWER_ITEMS}
-        appName="My App"
       />
 
       <main className="flex-1 overflow-y-auto">
@@ -515,7 +753,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 ---
 
-## Step 6 — CSS variables
+## Step 9 — CSS variables
 
 The navbar uses CSS custom properties for theming. Add these to your
 `globals.css` (or they'll fall back to defaults):
@@ -526,8 +764,8 @@ The navbar uses CSS custom properties for theming. Add these to your
   --navbar-text: #374151;
   --navbar-hover-text: #1f2937;
   --navbar-hover-bg: #f3f4f6;
-  --navbar-active-text: #f59e0b;
-  --navbar-active-border: #f59e0b;
+  --navbar-active-text: #0058cc;
+  --navbar-active-border: #0058cc;
   --border: #d1d5db;
   --primary: #0058cc;
 }
@@ -546,7 +784,7 @@ The navbar uses CSS custom properties for theming. Add these to your
 
 ## Adding more links
 
-To add a new page link, add an entry to `NAV_LINKS` and `DRAWER_ITEMS`:
+To add a new page link, add an entry to `NAV_LINKS`:
 
 ```tsx
 import { BarChart3 } from 'lucide-react';
@@ -560,11 +798,13 @@ of the item label in the mobile drawer.
 
 ---
 
-## Related skills
+## SDK component reference
 
-- `/iblai-profile` — Profile dropdown and settings page (the dropdown
-  rendered in the navbar comes from this)
-- `/iblai-notification` — Notification bell and center page (the bell
-  icon in the navbar comes from this)
-- `/iblai-account` — Account/org settings page (can be linked from the
-  profile dropdown)
+For detailed props and customization of the SDK components used in
+these pages, see:
+
+- `/iblai-profile` — `Profile`, `UserProfileDropdown`, `UserProfileModal` props,
+  profile content APIs, career API slice, media uploads
+- `/iblai-account` — `Account` props, tab visibility, billing integration
+- `/iblai-notification` — `NotificationDisplay`, `NotificationDropdown` props,
+  admin vs user roles

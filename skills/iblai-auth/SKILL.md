@@ -153,7 +153,13 @@ Use the `platform_name` field from the response as the auth **title**.
 
 ### Ask the user
 
-Ask: **"Briefly describe what your app does"**
+Ask these two questions together:
+
+1. **"Briefly describe what your app does"**
+2. **"Do you want a navbar with logo, page links, notification bell, and profile dropdown?"**
+
+If the user says yes to the navbar, run `/iblai-navbar` after Step 8
+(Replace Default Home Page).
 
 If the user skips or doesn't want to answer, use the platform name as
 `AUTH_DISPLAY_TITLE` and leave `AUTH_DISPLAY_DESCRIPTION` empty. If the
@@ -436,13 +442,10 @@ iblai add homepage
 
 If the user has already customized their home page, skip this step.
 
-## Step 9: Navbar 
+## Step 9: Navbar
 
-Ask the user:
-
-"Do you want a navbar with logo, page links, notification bell, and
-profile dropdown?" If yes, run `/iblai-navbar`.
-
+If the user said yes to the navbar question in Step 2, run `/iblai-navbar`
+now before starting the dev server.
 
 ## Step 10: Start Dev Server
 
