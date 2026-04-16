@@ -45,6 +45,10 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the tenant/platform name.
 Use the ibl.ai logo instead.
 
+> **Navbar:** If the user wants a navbar with the profile dropdown, guide
+> them to `/iblai-navbar` first. That skill creates the full navbar with
+> logo, page links, notification bell, and profile dropdown.
+
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
