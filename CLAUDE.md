@@ -226,7 +226,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-component` | Overview of all available components |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
-| `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
+| `/iblai-marketing-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |

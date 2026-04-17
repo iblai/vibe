@@ -6,7 +6,7 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ### Added
 - **iblai-navbar** skill — responsive navbar with ibl.ai logo, Home/Profile/Account links with icons, notification bell, and profile dropdown; creates all linked pages (profile, account, notifications) automatically
-- **iblai-landing** skill — build a high-converting landing page using a 12-section conversion framework
+- **iblai-marketing-landing** skill — build a high-converting landing page using a 12-section conversion framework
 - **iblai-deploy** skill — deploy to Vercel (or other platforms)
 - **iblai-init** skill — update project CLAUDE.md with ibl.ai platform guidance
 - **iblai-agent-search** skill — agent search/browse page (starred, featured, custom, default agents)
