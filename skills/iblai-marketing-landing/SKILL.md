@@ -1,11 +1,11 @@
 ---
-name: iblai-landing
+name: iblai-marketing-landing
 description: Build a high-converting landing page for your app using a proven 12-section conversion framework.
 globs:
 alwaysApply: false
 ---
 
-# /iblai-landing
+# /iblai-marketing-landing
 
 Build a high-converting landing page for your app. Uses a proven 12-section
 conversion framework based on 8,000+ pages and 4,000+ brands — not guesswork,
