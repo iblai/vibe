@@ -1,11 +1,11 @@
 ---
-name: iblai-deploy
+name: iblai-ops-deploy
 description: Deploy your ibl.ai app to Vercel (or other platforms)
 globs:
 alwaysApply: false
 ---
 
-# /iblai-deploy
+# /iblai-ops-deploy
 
 Deploy your ibl.ai app frontend to a hosting platform. Currently supports
 Vercel; extensible to other platforms.

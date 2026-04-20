@@ -1,11 +1,11 @@
 ---
-name: iblai-init
+name: iblai-ops-init
 description: Update the project CLAUDE.md with ibl.ai platform guidance
 globs:
 alwaysApply: false
 ---
 
-# /iblai-init
+# /iblai-ops-init
 
 Update or create a `CLAUDE.md` in the user's current working directory with
 ibl.ai platform guidance. This file tells Claude Code how to work with the
@@ -102,8 +102,8 @@ you through the remaining manual steps:
 /iblai-invite        # User invitation dialogs
 /iblai-workflow      # Workflow builder
 /iblai-onboard       # Onboarding questionnaire flow
-/iblai-build         # Desktop/mobile builds (Tauri v2)
-/iblai-test          # Test before showing work
+/iblai-ops-build     # Desktop/mobile builds (Tauri v2)
+/iblai-ops-test      # Test before showing work
 /iblai-component     # Browse all available components
 ```
 

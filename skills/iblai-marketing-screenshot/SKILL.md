@@ -1,11 +1,11 @@
 ---
-name: iblai-screenshot
+name: iblai-marketing-screenshot
 description: Capture app store screenshots for web, iOS, and Android
 globs:
 alwaysApply: false
 ---
 
-# /iblai-screenshot
+# /iblai-marketing-screenshot
 
 Capture screenshots of your ibl.ai app for app store listings, documentation,
 and marketing. Covers pure web, iOS (App Store), and Android (Google Play).

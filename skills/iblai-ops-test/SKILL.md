@@ -1,11 +1,11 @@
 ---
-name: iblai-test
+name: iblai-ops-test
 description: Test your app before showing to the user
 globs:
 alwaysApply: false
 ---
 
-# /iblai-test
+# /iblai-ops-test
 
 You MUST run these checks before presenting any work to
 the user. Do NOT show untested code.

@@ -28,7 +28,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
-You MUST run `/iblai-test` before telling the user the work is ready.
+You MUST run `/iblai-ops-test` before telling the user the work is ready.
 
 After all work is complete, start a dev server (`pnpm dev`) so the user
 can see the result at http://localhost:3000.
@@ -40,6 +40,10 @@ its runtime env vars from `.env.local`.
 Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
+
+> **Navbar:** If the user wants a navbar with the notification bell, guide
+> them to `/iblai-navbar` first. That skill creates the full navbar with
+> logo, page links, notification bell, and profile dropdown.
 
 ## Prerequisites
 
@@ -117,7 +121,7 @@ get_component_info("NotificationDropdown")
 
 ## Step 4: Verify
 
-Run `/iblai-test` before telling the user the work is ready:
+Run `/iblai-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
