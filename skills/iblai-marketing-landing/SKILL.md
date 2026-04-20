@@ -24,7 +24,7 @@ Do NOT write custom components when an ibl.ai, shadcn, or shadcn-space
 equivalent exists. Both ibl.ai and shadcn share the same Tailwind theme and
 render in ibl.ai brand colors automatically.
 
-You MUST run `/iblai-test` before telling the user the work is ready.
+You MUST run `/iblai-ops-test` before telling the user the work is ready.
 
 After all work is complete, start a dev server (`pnpm dev`) so the user
 can see the result at http://localhost:3000.
@@ -442,7 +442,7 @@ Minimal footer with:
 
 ### Step 6: Verify
 
-Run `/iblai-test` before telling the user the work is ready:
+Run `/iblai-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors
 2. `pnpm dev` — start dev server

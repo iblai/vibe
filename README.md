@@ -10,7 +10,7 @@ Ship AI-powered apps fast. Backend included.
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-CC785C?logoColor=white)](https://claude.ai)
-[![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-build/SKILL.md)
+[![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-ops-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
 </div>
@@ -89,7 +89,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-workflow
 /iblai-onboard
 /iblai-build
-/iblai-screenshot
+/iblai-marketing-screenshot
 /iblai-test
 /iblai-agent-search
 /iblai-agent-setting
@@ -117,9 +117,9 @@ What each skill does:
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
-- `/iblai-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
-- `/iblai-screenshot` -- captures app store screenshots for web, iOS, and Android.
-- `/iblai-test` -- validates the app before it is presented to the user.
+- `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-marketing-screenshot` -- captures app store screenshots for web, iOS, and Android.
+- `/iblai-ops-test` -- validates the app before it is presented to the user.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
 - `/iblai-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
 - `/iblai-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
@@ -235,9 +235,9 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-component` | Overview of all components + app creation paths |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
-| `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
-| `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
-| `/iblai-test` | Test your app before showing work to the user |
+| `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
+| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
+| `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |

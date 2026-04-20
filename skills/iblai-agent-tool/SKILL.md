@@ -30,7 +30,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
-You MUST run `/iblai-test` before telling the user the work is ready.
+You MUST run `/iblai-ops-test` before telling the user the work is ready.
 
 After all work is complete, start a dev server (`pnpm dev`) so the user
 can see the result at http://localhost:3000.
@@ -121,7 +121,7 @@ From `@iblai/iblai-js/web-containers/next`:
 
 ## Step 5: Verify
 
-Run `/iblai-test` before telling the user the work is ready:
+Run `/iblai-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
