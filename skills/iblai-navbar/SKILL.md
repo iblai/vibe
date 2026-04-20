@@ -71,9 +71,9 @@ The navbar MUST follow BRAND.md colors:
 Every navbar includes all of the following — no choices, no skipping:
 
 **Left side:** ibl.ai logo + three text links (no icons):
+- Home (`/`)
 - Profile (`/profile`)
 - Account (`/account`)
-- Analytics (`/analytics`)
 
 **Right side:**
 - Notification bell (links to `/notifications`)
@@ -690,9 +690,9 @@ import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import { NavigationDrawer, type NavItem } from '@/components/navbar/navigation-drawer';
 
 const NAV_LINKS: NavLink[] = [
+  { name: 'Home',      href: '/',          segment: null },
   { name: 'Profile',   href: '/profile',   segment: 'profile' },
   { name: 'Account',   href: '/account',   segment: 'account' },
-  { name: 'Analytics', href: '/analytics', segment: 'analytics' },
 ];
 
 // Same items for the mobile drawer (text only, no icons)
@@ -775,6 +775,7 @@ To add a new page link, add an entry to `NAV_LINKS`:
 ```tsx
 // Add to NAV_LINKS array:
 { name: 'Analytics', href: '/analytics', segment: 'analytics' }
+// (Analytics is not included by default — add it only if needed)
 ```
 
 Links are text-only — do NOT add icons next to link labels in the navbar
