@@ -1,18 +1,19 @@
 ---
-name: iblai-agent-tools
-description: Add the agent Tools tab (enable/disable agent tools) to your Next.js app
+name: iblai-agent-dataset
+description: Add the agent Datasets tab (searchable dataset table with upload) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-agent-tools
+# /iblai-agent-dataset
 
-Add the agent **Tools tab** -- a toggleable list of agent tools with
-display names, descriptions in tooltips, and switches for enabling or
-disabling each tool. This is one tab in the wider agent-settings family.
-All tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **Datasets tab** -- a searchable, paginated table of datasets
+with columns for name, type, tokens, interval, visibility, and status.
+Includes an "Add Resource" slot for file uploads and a delete action per
+row. This is one tab in the wider agent-settings family. All tabs share
+the same `AgentSettingsProvider` wrapper.
 
-![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-tools/iblai-agent-tools.png)
+![Datasets Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-dataset/iblai-agent-dataset.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -46,7 +47,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-setting`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -68,31 +69,62 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentToolsTab`
+## Step 2: Mount `AgentDatasetsTab`
 
 ```tsx
-// app/(app)/agents/[mentorId]/tools/page.tsx
+// app/(app)/agents/[mentorId]/datasets/page.tsx
 "use client";
 
-import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDatasetsTab } from "@iblai/iblai-js/web-containers/next";
 
-export default function AgentToolsPage() {
+export default function AgentDatasetsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentToolsTab />
+      <AgentDatasetsTab />
     </div>
   );
 }
 ```
 
+### With custom Add Resource modal
+
+The `AddResourceModal` prop is a render slot for file upload UI. When
+omitted, the "Add Resource" button is shown but no modal opens. Inject
+your own implementation:
+
+```tsx
+<AgentDatasetsTab
+  AddResourceModal={({ isOpen, onClose }) => (
+    <MyUploadModal open={isOpen} onClose={onClose} />
+  )}
+/>
+```
+
+### With pagination
+
+Inject a pagination component via the `PaginationComponent` prop:
+
+```tsx
+<AgentDatasetsTab
+  PaginationComponent={({ currentPage, totalPages, onPageChange, disabled }) => (
+    <MyPagination
+      page={currentPage}
+      total={totalPages}
+      onChange={onPageChange}
+      disabled={disabled}
+    />
+  )}
+/>
+```
+
 ## Step 3: Customize Labels (Optional)
 
 ```tsx
-import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
+import { AgentDatasetsTab } from "@iblai/iblai-js/web-containers/next";
 
-<AgentToolsTab
+<AgentDatasetsTab
   labels={{
-    header: { title: "Mentor tools" },
+    header: { title: "Training data" },
   }}
 />;
 ```
@@ -100,24 +132,28 @@ import { AgentToolsTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 4: Use MCP Tools for Customization
 
 ```
-get_component_info("AgentToolsTab")
+get_component_info("AgentDatasetsTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## `<AgentToolsTab>` Props
+## `<AgentDatasetsTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `labels` | `DeepPartial<ToolsTabLabels>` | No | Override user-visible strings |
+| `labels` | `DeepPartial<DatasetsTabLabels>` | No | Override user-visible strings |
+| `onSelect` | `(dataset: Dataset) => void` | No | Called when a dataset row is selected |
+| `selectedDatasetId` | `string` | No | Highlight the row matching this ID |
+| `AddResourceModal` | `ComponentType<{ isOpen, onClose, keepParentOpen? }>` | No | Custom upload modal. Without it the button shows but no modal opens |
+| `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled }>` | No | Custom pagination. Without it no pagination UI renders |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_TOOLS_TAB_LABELS` -- the default agent-facing label bundle.
-- `ToolsTabLabels` -- type for the full label bundle.
+- `DatasetsTabLabels` -- type for the full label bundle.
+- `Dataset` -- type for a single dataset row.
 
 ## Step 5: Verify
 
@@ -128,7 +164,7 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 3. Start dev server and touch test:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/tools /tmp/agent-tools.png
+   npx playwright screenshot http://localhost:3000/agents/<id>/dataset /tmp/agent-dataset.png
    ```
 
 ## Important Notes
@@ -139,5 +175,8 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
+- **AddResourceModal**: The standalone app uses Dropbox/Google Drive/OneDrive
+  pickers with deep dependencies. Consumers inject their own implementation
+  to avoid pulling in those deps.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
