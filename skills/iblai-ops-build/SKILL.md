@@ -1,11 +1,11 @@
 ---
-name: iblai-build
+name: iblai-ops-build
 description: Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface)
 globs:
 alwaysApply: false
 ---
 
-# /iblai-build
+# /iblai-ops-build
 
 Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
 iOS, Android, macOS/Linux desktop, and Surface tablet builds.
@@ -39,7 +39,7 @@ there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
 the static files from `../out` on all platforms.
 
 For dev builds, you can optionally deploy to Vercel using
-`iblai deploy vercel` (see `/iblai-deploy`). This deploys `out/` and
+`iblai deploy vercel` (see `/iblai-ops-deploy`). This deploys `out/` and
 automatically updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
@@ -89,7 +89,7 @@ iblai builds device
 
 ## iOS
 
-![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-ios.png)
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-ops-build/iblai-ops-build-ios.png)
 
 Build and run on iOS Simulator and real devices.
 
@@ -217,7 +217,7 @@ base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ## Android
 
-![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-android.png)
+![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-ops-build/iblai-ops-build-android.png)
 
 Build and run on Android emulators and real devices.
 
@@ -292,7 +292,7 @@ iblai builds ci-workflow --android
 
 ## macOS (Desktop)
 
-![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-build/iblai-build-osx.png)
+![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-ops-build/iblai-ops-build-osx.png)
 
 ### macOS Prerequisites
 

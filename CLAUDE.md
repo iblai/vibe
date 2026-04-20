@@ -227,11 +227,11 @@ Invoke with `/` in Claude Code:
 | `/iblai-component` | Overview of all available components |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-marketing-landing` | Build a high-converting landing page using a 12-section conversion framework |
-| `/iblai-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
-| `/iblai-screenshot` | Capture app store screenshots for web, iOS, and Android |
-| `/iblai-init` | Update project CLAUDE.md with ibl.ai platform guidance |
-| `/iblai-deploy` | Deploy frontend to Vercel (or other platforms) |
-| `/iblai-test` | Test your app before showing work to the user |
+| `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
+| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
+| `/iblai-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
+| `/iblai-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
+| `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-settings` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |

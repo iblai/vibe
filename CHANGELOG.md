@@ -7,8 +7,8 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 ### Added
 - **iblai-navbar** skill — responsive navbar with ibl.ai logo, Home/Profile/Account links with icons, notification bell, and profile dropdown; creates all linked pages (profile, account, notifications) automatically
 - **iblai-marketing-landing** skill — build a high-converting landing page using a 12-section conversion framework
-- **iblai-deploy** skill — deploy to Vercel (or other platforms)
-- **iblai-init** skill — update project CLAUDE.md with ibl.ai platform guidance
+- **iblai-ops-deploy** skill — deploy to Vercel (or other platforms)
+- **iblai-ops-init** skill — update project CLAUDE.md with ibl.ai platform guidance
 - **iblai-agent-search** skill — agent search/browse page (starred, featured, custom, default agents)
 - **iblai-agent-settings** skill — agent Settings tab (name, visibility, copy, delete)
 - **iblai-agent-access** skill — agent Access tab (RBAC for editor and chat roles)
@@ -44,10 +44,10 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 - **iblai-invite** skill — user invitation dialogs
 - **iblai-workflow** skill — workflow builder components
 - **iblai-component** skill — component and feature reference
-- **iblai-build** skill — build and run on desktop and mobile (iOS, Android, macOS, Surface) via Tauri v2
-- **iblai-screenshot** skill — capture app store screenshots for web (Playwright), iOS (Simulator), and Android (Emulator)
+- **iblai-ops-build** skill — build and run on desktop and mobile (iOS, Android, macOS, Surface) via Tauri v2
+- **iblai-marketing-screenshot** skill — capture app store screenshots for web (Playwright), iOS (Simulator), and Android (Emulator)
 - **iblai-onboard** skill — questionnaire-style onboarding flow designer with 14 screen archetypes, 5-phase process, and Apple-inspired visual guidelines
-- **iblai-test** skill — build and touch testing validation
+- **iblai-ops-test** skill — build and touch testing validation
 - CLAUDE.md with architecture guidance, MCP tools, and commands reference
 - BRAND.md with complete ibl.ai brand identity (colors, typography, spacing, shadows, component styles, Apple-inspired design language)
 - README.md with quick start guide and feature documentation
