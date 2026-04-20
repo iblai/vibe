@@ -224,6 +224,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-notification` | Add notification bell + center page |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
+| `/iblai-course-access` | Add course-content pages (edX learner UI) |
 | `/iblai-component` | Overview of all available components |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-marketing-landing` | Build a high-converting landing page using a 12-section conversion framework |
