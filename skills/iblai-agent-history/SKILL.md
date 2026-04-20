@@ -47,7 +47,7 @@ is not installed.
 
 - Auth must be set up first (`/iblai-auth`)
 - MCP and skills must be set up: `iblai add mcp`
-- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-settings`
+- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-setting`
   Step 2 if not already set up)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
@@ -172,5 +172,5 @@ Run `/iblai-test` before telling the user the work is ready:
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-agent-settings` Step 2 for the full snippet.
+  layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
