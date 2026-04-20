@@ -8,7 +8,7 @@ alwaysApply: false
 # /iblai-navbar
 
 Add a responsive top navigation bar with:
-- **Left:** Logo + page links (each with a Lucide icon)
+- **Left:** Logo + page links
 - **Right:** Notification bell + user profile dropdown
 
 The navbar matches the ibl.ai skillsai reference app and is fully
@@ -18,6 +18,7 @@ hamburger drawer.
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
+Do NOT add Lucide icons next to nav link labels. Links are text-only.
 
 When building custom UI around SDK components, use the ibl.ai brand:
 - **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
@@ -32,11 +33,29 @@ When building custom UI around SDK components, use the ibl.ai brand:
   colors, typography, spacing, and component styles.
 
 The navbar MUST follow BRAND.md colors:
-- **Active link**: `text-[var(--primary)]` / `border-[var(--primary)]`
+- **Active link**: `text-[var(--navbar-active-text,var(--primary-color))]` /
+  `border-[var(--navbar-active-border,var(--primary-color))]`
   (brand blue `#0058cc`), NOT amber/yellow
-- **Active drawer item**: `bg-blue-50 border-blue-200 text-[var(--primary)]`
-- **Hover**: `text-gray-800 bg-gray-100`
-- **Inactive**: `text-gray-600`
+- **Active drawer item**: `bg-[var(--accent-color)] text-[var(--navbar-active-text,var(--primary-color))]`
+- **Hover**: `text-[var(--navbar-hover-text,var(--text-primary))]`
+- **Inactive**: `text-[var(--navbar-text,var(--text-secondary))]`
+
+---
+
+## Visual spec
+
+| Property | Value |
+|---|---|
+| Height | `h-16` mobile, `md:h-20` desktop |
+| Background | `bg-[var(--navbar-bg,#fff)]` — solid white, no blur/glass |
+| Border | `border-b border-[var(--border-color)]` |
+| Layout | Full-width, `justify-between`, `px-4 sm:px-6 md:px-6 lg:px-8` |
+| Link spacing | `space-x-6` between desktop nav links |
+| Link style | Text-only (no icons), `text-sm font-medium` |
+| Active link | `border-b-2` bottom border + brand color text |
+| Right side spacing | `space-x-4` between right-side items |
+| Hamburger icon | `h-6 w-6`, `rounded-sm` |
+| Mobile drawer header | `h-16` to match navbar |
 
 ---
 
@@ -46,16 +65,15 @@ The navbar MUST follow BRAND.md colors:
 - `@iblai/iblai-js` SDK installed
 - shadcn/ui initialized (`npx shadcn@latest init`)
 - Lucide icons: `pnpm add lucide-react`
-- Media queries: `pnpm add react-responsive`
 
 ## What this skill creates
 
 Every navbar includes all of the following — no choices, no skipping:
 
-**Left side:** ibl.ai logo + three links with icons:
-- Home (`/`, `Home` icon)
-- Profile (`/profile`, `User` icon)
-- Account (`/account`, `Settings` icon)
+**Left side:** ibl.ai logo + three text links (no icons):
+- Home (`/`)
+- Profile (`/profile`)
+- Account (`/account`)
 
 **Right side:**
 - Notification bell (links to `/notifications`)
@@ -69,7 +87,7 @@ Every navbar includes all of the following — no choices, no skipping:
 components/
   navbar/
     nav-bar.tsx              # Main navbar component
-    navigation-drawer.tsx    # Mobile slide-out drawer
+    navigation-drawer.tsx    # Mobile slide-out drawer (shadcn Sheet)
     logo.tsx                 # ibl.ai logo
     user-profile-button.tsx  # Profile dropdown wrapper
 app/
@@ -192,21 +210,28 @@ export function UserProfileButton({
 
 ## Step 3 — Navigation drawer (mobile)
 
-Create `components/navbar/navigation-drawer.tsx` for the mobile slide-out:
+Use shadcn `Sheet` with `side="left"` for the mobile drawer. Note: shadcn
+Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild` prop is NOT
+available on `SheetTrigger`.
+
+Create `components/navbar/navigation-drawer.tsx`:
 
 ```tsx
 'use client';
 
-import { X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { Logo } from './logo';
-import type { LucideIcon } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 export interface NavItem {
   name: string;
   href: string;
-  icon: LucideIcon;
 }
 
 interface NavigationDrawerProps {
@@ -223,66 +248,43 @@ export function NavigationDrawer({
   const pathname = usePathname();
 
   return (
-    <>
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={onClose}
-        />
-      )}
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="left" className="w-72 p-0">
+        <SheetTitle className="sr-only">Navigation</SheetTitle>
 
-      {/* Drawer */}
-      <div
-        className={`fixed top-0 left-0 z-50 h-full w-80 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {/* Header */}
-        <div className="flex h-20 items-center justify-between border-b px-4">
-          <Logo />
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
+        {/* Header — h-16 matches navbar mobile height */}
+        <div className="flex h-16 items-center border-b border-[var(--border-color)] px-5">
+          <div onClick={onClose}>
+            <Logo />
+          </div>
         </div>
 
         {/* Navigation Items */}
-        <nav className="p-4">
-          <ul className="space-y-2">
-            {items.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                pathname.startsWith(item.href + '/');
-              const Icon = item.icon;
+        <nav className="flex flex-col gap-0.5 p-3">
+          {items.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              pathname.startsWith(item.href + '/');
 
-              return (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                      isActive
-                        ? 'border border-blue-200 bg-blue-50 text-[var(--primary)]'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon
-                      className={`h-5 w-5 ${
-                        isActive ? 'text-[var(--primary)]' : 'text-gray-500'
-                      }`}
-                    />
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={cn(
+                  'rounded-sm px-3 py-2.5 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-[var(--accent-color)] text-[var(--navbar-active-text,var(--primary-color))]'
+                    : 'text-[var(--navbar-text,var(--text-secondary))] hover:text-[var(--navbar-hover-text,var(--text-primary))]'
+                )}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }
 ```
@@ -302,19 +304,17 @@ import { Logo } from './logo';
 import { UserProfileButton } from './user-profile-button';
 import { NotificationDropdown } from '@iblai/iblai-js/web-containers';
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export interface NavLink {
   name: string;
   href: string;
-  icon: LucideIcon;
   /** First path segment to match for active state (e.g. "profile") */
   segment: string;
 }
 
 interface NavBarProps {
-  activePage: string;
   onMenuClick: () => void;
   links: NavLink[];
   // Tenant/user props
@@ -334,7 +334,6 @@ interface NavBarProps {
 }
 
 export function NavBar({
-  activePage,
   onMenuClick,
   links,
   tenantKey,
@@ -351,6 +350,7 @@ export function NavBar({
   showProfileDropdown = true,
 }: NavBarProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleViewNotifications = useCallback(
     (notificationId?: string) => {
@@ -360,13 +360,13 @@ export function NavBar({
   );
 
   return (
-    <header className="h-16 flex-shrink-0 border-b border-[var(--border)] bg-[var(--navbar-bg,#fff)] md:h-20">
-      <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="h-16 flex-shrink-0 border-b border-[var(--border-color)] bg-[var(--navbar-bg,#fff)] md:h-20">
+      <div className="flex h-full items-center justify-between px-4 sm:px-6 md:px-6 lg:px-8">
         {/* Left: hamburger + logo + links */}
         <div className="flex h-full items-center">
           <button
             onClick={onMenuClick}
-            className="mr-3 rounded-sm text-[var(--navbar-text,#374151)] hover:bg-[var(--navbar-hover-bg,#f3f4f6)] hover:text-[var(--navbar-hover-text,#1f2937)] focus:ring-2 focus:ring-[var(--primary)] focus:outline-none focus:ring-inset md:hidden"
+            className="mr-3 rounded-sm text-[var(--navbar-text,var(--text-secondary))] hover:bg-[var(--navbar-hover-bg,var(--hover-bg))] hover:text-[var(--navbar-hover-text,var(--text-primary))] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none focus:ring-inset md:hidden"
             aria-label="Open sidebar"
           >
             <Menu className="h-6 w-6" />
@@ -374,26 +374,22 @@ export function NavBar({
 
           <Logo />
 
-          {/* Desktop navigation links */}
+          {/* Desktop navigation links — text only, no icons */}
           <nav className="ml-8 hidden h-full items-center space-x-6 md:flex">
-            {links.map((link) => {
-              const isActive = activePage === link.segment;
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.segment}
-                  href={link.href}
-                  className={`flex h-full items-center gap-2 text-sm font-medium ${
-                    isActive
-                      ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
-                      : 'text-[var(--navbar-text,#374151)] hover:text-[var(--navbar-hover-text,#1f2937)]'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {link.name}
-                </Link>
-              );
-            })}
+            {links.map((link) => (
+              <Link
+                key={link.segment}
+                href={link.href}
+                className={cn(
+                  'flex h-full items-center text-sm font-medium',
+                  pathname.startsWith(link.href)
+                    ? 'border-b-2 border-[var(--navbar-active-border,var(--primary-color))] text-[var(--navbar-active-text,var(--primary-color))]'
+                    : 'text-[var(--navbar-text,var(--text-secondary))] hover:text-[var(--navbar-hover-text,var(--text-primary))]'
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
           </nav>
         </div>
 
@@ -690,52 +686,38 @@ authenticated pages:
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { Home, User, Settings } from 'lucide-react';
 import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import { NavigationDrawer, type NavItem } from '@/components/navbar/navigation-drawer';
 
 const NAV_LINKS: NavLink[] = [
-  { name: 'Home',    href: '/',        icon: Home,     segment: '' },
-  { name: 'Profile', href: '/profile', icon: User,     segment: 'profile' },
-  { name: 'Account', href: '/account', icon: Settings, segment: 'account' },
+  { name: 'Home',      href: '/',          segment: null },
+  { name: 'Profile',   href: '/profile',   segment: 'profile' },
+  { name: 'Account',   href: '/account',   segment: 'account' },
 ];
 
-// Same items for the mobile drawer
-const DRAWER_ITEMS: NavItem[] = NAV_LINKS.map(({ name, href, icon }) => ({
+// Same items for the mobile drawer (text only, no icons)
+const DRAWER_ITEMS: NavItem[] = NAV_LINKS.map(({ name, href }) => ({
   name,
   href,
-  icon,
 }));
 
 const NON_AUTH_PAGES = ['/sso-login-complete'];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const pathname = usePathname();
-
-  // Skip navbar on non-auth pages
-  if (NON_AUTH_PAGES.includes(pathname)) {
-    return <>{children}</>;
-  }
-
-  const activePage = pathname.split('/')[1] || 'home';
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white">
-      <div className="sticky top-0 z-40 w-full">
-        <NavBar
-          activePage={activePage}
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          links={NAV_LINKS}
-          tenantKey={/* getTenant() */}
-          username={/* getUserName() */}
-          isAdmin={/* from your auth context */}
-          authURL={/* config.urls.auth() */}
-          onLogout={/* your logout handler */}
-          onTenantChange={/* your tenant switch handler */}
-        />
-      </div>
+      <NavBar
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+        links={NAV_LINKS}
+        tenantKey={/* getTenant() */}
+        username={/* getUserName() */}
+        isAdmin={/* from your auth context */}
+        authURL={/* config.urls.auth() */}
+        onLogout={/* your logout handler */}
+        onTenantChange={/* your tenant switch handler */}
+      />
 
       <NavigationDrawer
         isOpen={sidebarOpen}
@@ -766,8 +748,12 @@ The navbar uses CSS custom properties for theming. Add these to your
   --navbar-hover-bg: #f3f4f6;
   --navbar-active-text: #0058cc;
   --navbar-active-border: #0058cc;
-  --border: #d1d5db;
-  --primary: #0058cc;
+  --border-color: #d1d5db;
+  --primary-color: #0058cc;
+  --text-primary: #1f2937;
+  --text-secondary: #374151;
+  --accent-color: #eff6ff;
+  --hover-bg: #f3f4f6;
 }
 ```
 
@@ -777,8 +763,8 @@ The navbar uses CSS custom properties for theming. Add these to your
 
 | Breakpoint | Navbar Height | Links | Drawer |
 |---|---|---|---|
-| < 768px (mobile) | h-16 | Hidden | Hamburger opens drawer |
-| >= 768px (desktop) | h-20 | Inline with icons | Hidden |
+| < 768px (mobile) | h-16 (64px) | Hidden | Hamburger opens Sheet drawer |
+| >= 768px (desktop) | h-20 (80px) | Inline text links, `space-x-6` | Hidden |
 
 ---
 
@@ -787,14 +773,13 @@ The navbar uses CSS custom properties for theming. Add these to your
 To add a new page link, add an entry to `NAV_LINKS`:
 
 ```tsx
-import { BarChart3 } from 'lucide-react';
-
 // Add to NAV_LINKS array:
-{ name: 'Analytics', href: '/analytics', icon: BarChart3, segment: 'analytics' }
+{ name: 'Analytics', href: '/analytics', segment: 'analytics' }
+// (Analytics is not included by default — add it only if needed)
 ```
 
-The icon appears to the left of the link text on desktop, and to the left
-of the item label in the mobile drawer.
+Links are text-only — do NOT add icons next to link labels in the navbar
+or drawer.
 
 ---
 
