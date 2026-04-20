@@ -1,11 +1,13 @@
 ---
-name: iblai-course
+name: iblai-course-access
 description: Add course-content pages (edX learner UI) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-course
+# /iblai-course-access
+
+![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-course-access/course-content-page.png)
 
 Add a full edX course-content experience -- hierarchical course outline
 sidebar, collapsible modules/lessons/sublessons with progress indicators,

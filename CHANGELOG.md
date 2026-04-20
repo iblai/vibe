@@ -2,6 +2,11 @@
 
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
+## [Unreleased]
+
+### Added
+- **iblai-course-access** skill — edX course-content pages with outline sidebar, tab strip, breadcrumb, embedded learning MFE iframe, previous/next navigation, timed-exam guard, and tenant-based access control
+
 ## [1.0.0] - 2026-04-08
 
 ### Added
