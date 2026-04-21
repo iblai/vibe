@@ -62,6 +62,7 @@ When adding UI features, follow this priority order:
 | Invite users | `/iblai-invite` skill + `InviteUserDialog` from SDK | Custom invite form |
 | Workflow builder | `/iblai-workflow` skill + workflow components from SDK | Custom node editor |
 | Course content | `/iblai-course-access` skill + `CourseContentLayout`, `CourseContentTabPage` from SDK | Custom course player |
+| Create / publish courses | `/iblai-course-create` skill (Course Creation API) | Manually authoring OLX in edX Studio |
 | Onboarding flow | `/iblai-onboard` skill | Custom onboarding from scratch |
 | Buttons, forms, modals, tables | shadcn/ui (`npx shadcn@latest add button dialog table`) | Raw HTML or other UI libraries |
 | Page sections / blocks | shadcn/ui blocks (`npx shadcn@latest add @shadcn-space/hero-01`) | Custom layout from scratch |
@@ -100,6 +101,7 @@ you through the remaining manual steps:
 /iblai-account       # Account/org settings page
 /iblai-analytics     # Analytics dashboard
 /iblai-course-access # Course content pages (edX learner UI)
+/iblai-course-create # Generate and publish courses via Course Creation API
 /iblai-notification  # Notification bell
 /iblai-invite        # User invitation dialogs
 /iblai-workflow      # Workflow builder
