@@ -88,6 +88,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-invite
 /iblai-workflow
 /iblai-course-access
+/iblai-course-create
 /iblai-onboard
 /iblai-build
 /iblai-marketing-screenshot
@@ -118,6 +119,7 @@ What each skill does:
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
+- `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-marketing-screenshot` -- captures app store screenshots for web, iOS, and Android.
@@ -235,6 +237,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |
+| `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all components + app creation paths |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |

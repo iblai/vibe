@@ -3,7 +3,9 @@ name: iblai-course-create
 description: Use this skill when a user asks to create, draft, scaffold, generate, or publish a course on ibl.ai / OpenEdX — including programmatic outlines, unit/component generation, or edits to an AI-generated course. Invoke to drive the ibl.ai Course Creation API end-to-end: create the task, build the course on EdX, generate the outline, draft unit content, review/edit structure, and publish. Do NOT invoke for enrollment, grading, mentor configuration, or analytics queries — those are handled by other skills.
 ---
 
-# IBL.AI Course Creation Agent
+# /iblai-course-create
+
+![Course Content in Learner SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-course-create/skills-spa-course-content.png)
 
 ## Overview
 
@@ -77,6 +79,12 @@ The segment `type@<type>` identifies the block kind: `course`, `chapter`, `seque
 | video      | unit         |
 
 Violating hierarchy returns `400`.
+
+What the generated course looks like in edX Studio (course outline and a single unit with components):
+
+![Studio Course Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-course-create/studio-course-page.png)
+
+![Studio Unit Content](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-course-create/studio-unit-content.png)
 
 ## Task Lifecycle
 
