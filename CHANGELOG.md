@@ -5,6 +5,7 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 ## [Unreleased]
 
 ### Added
+- **iblai-ops-upgrade** skill — upgrade the `iblai` CLI, the `@iblai/iblai-js` SDK in the current project, and the vibe skills to the latest versions in one step
 - **iblai-course-access** skill — edX course-content pages with outline sidebar, tab strip, breadcrumb, embedded learning MFE iframe, previous/next navigation, timed-exam guard, and tenant-based access control
 - **iblai-course-create** skill — drive the ibl.ai Course Creation API end-to-end: create tasks, generate outlines, draft unit content, review/edit structure, and publish courses to OpenEdX
 

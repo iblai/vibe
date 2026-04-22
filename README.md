@@ -93,6 +93,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-build
 /iblai-marketing-screenshot
 /iblai-test
+/iblai-ops-upgrade
 /iblai-agent-search
 /iblai-agent-setting
 /iblai-agent-access
@@ -124,6 +125,7 @@ What each skill does:
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-marketing-screenshot` -- captures app store screenshots for web, iOS, and Android.
 - `/iblai-ops-test` -- validates the app before it is presented to the user.
+- `/iblai-ops-upgrade` -- upgrades the ibl.ai CLI, SDK, and vibe skills to the latest versions.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
 - `/iblai-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
 - `/iblai-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
@@ -244,6 +246,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-ops-test` | Test your app before showing work to the user |
+| `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |

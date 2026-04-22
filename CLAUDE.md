@@ -234,6 +234,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
 | `/iblai-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-ops-test` | Test your app before showing work to the user |
+| `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
