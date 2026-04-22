@@ -108,6 +108,7 @@ you through the remaining manual steps:
 /iblai-onboard       # Onboarding questionnaire flow
 /iblai-ops-build     # Desktop/mobile builds (Tauri v2)
 /iblai-ops-test      # Test before showing work
+/iblai-ops-upgrade   # Upgrade CLI, SDK, and skills to latest
 /iblai-component     # Browse all available components
 ```
 
