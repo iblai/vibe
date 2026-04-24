@@ -140,6 +140,7 @@ ask once for their token (https://vercel.com/account/tokens).
 - **Responsive width**: `w-full px-4` mobile, `md:w-[75vw] md:px-0` desktop
 - **Mobile safe area**: `globals.css` must have `padding-top: env(safe-area-inset-top)` (and bottom/left/right) on body, and `app/layout.tsx` metadata must include `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"` -- prevents content from overlapping the iOS notch / Android status bar
 - **Package manager**: Use `pnpm` (fall back to `npm`)
+- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app`, `iblai startapp`, or `--app-name`.
 
 ## Commands
 

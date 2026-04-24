@@ -151,6 +151,12 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > is not installed. The generated app should live in the current directory,
 > not in a subdirectory.
 >
+> **Project names MUST be all lowercase.** npm rejects package names with
+> capital letters. When running `npx create-next-app`, `iblai startapp`,
+> or passing `--app-name`, lowercase every name. If the user supplies a
+> name like `MyApp` or `AgentBot`, convert it to `my-app` / `agent-bot`
+> before using it. Allowed characters: lowercase letters, digits, `-`, `_`.
+>
 > When adding chat (`/iblai-chat`), you MUST ask the user for their
 > agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
 
