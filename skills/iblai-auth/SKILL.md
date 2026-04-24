@@ -31,6 +31,11 @@ Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
 
+Project names MUST be all lowercase — npm rejects package names with
+capital letters. If the user gives a name like `MyApp`, convert it to
+`my-app` before passing to `create-next-app`, `iblai startapp`, or
+`--app-name`. Allowed: lowercase letters, digits, `-`, `_`.
+
 When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
 
