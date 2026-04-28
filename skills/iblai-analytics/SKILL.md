@@ -228,3 +228,291 @@ Run `/iblai-ops-test` before telling the user the work is ready:
   }
   ```
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+
+## Analytics REST API Reference
+
+> **Base URL:** `${dmUrl}/api/ai-analytics/` and `${dmUrl}/api/analytics/`
+> **Authentication:** `Authorization: Token YOUR_ACCESS_TOKEN`
+> **Live OpenAPI:** <https://api.iblai.app/dm/api/docs/schema/swagger-ui/>
+
+`dmUrl` is the Data Manager base URL — read it from
+`NEXT_PUBLIC_API_BASE_URL` in `.env.local` (e.g. `https://api.iblai.app/dm`).
+The SDK passes it into `initializeDataLayer()` as the first argument and
+reuses it for every analytics call. Prefer the SDK components and RTK Query
+hooks over hand-rolled `fetch` — they handle auth, retry, dedupe, and the
+two parallel namespaces transparently.
+
+### Two namespaces
+
+The platform exposes analytics under two distinct prefixes:
+
+| Prefix | Tag | Purpose |
+|--------|-----|---------|
+| `/api/ai-analytics/` | `ai-analytics` | AI/agent analytics — chat history, mentor costs, sentiment, topics, traces, transcripts, plus learner/audience/engagement/performance dashboards |
+| `/api/analytics/` | `analytics` | LMS analytics — catalog content, financial, ratings, sessions, time tracking, conversations, messages, topics, users |
+
+Both require `PlatformApiKeyAuthentication` (Bearer token) and most are
+scoped to an org via the `{org}` path parameter (the platform/tenant key
+from `NEXT_PUBLIC_MAIN_TENANT_KEY`).
+
+### Common query parameters
+
+Most `GET` endpoints accept these query parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | `string` (ISO 8601) | Range start. Default: 7 days ago |
+| `end_date` | `string` (ISO 8601) | Range end. Default: today |
+| `date_filter` | `today` \| `7d` \| `30d` \| `90d` \| `all_time` \| `custom` | Preset range (overrides `start_date`/`end_date` unless `custom`) |
+| `granularity` | `hour` \| `day` \| `week` \| `month` | Bucket size for time-series |
+| `department_id` | `integer` | Scope to a department (with `department_mode=1`) |
+| `include_main_platform` | `boolean` | Include data from the main platform. Default: `true` |
+| `mentor_unique_id` | `uuid` | Filter to a specific mentor/agent |
+| `usergroup_ids` | `int[]` | Filter to specific user groups |
+| `platform_key` | `string` | Filter results by platform/tenant |
+| `page`, `page_size` (or `limit`) | `integer` | Pagination — `limit` capped at 100 |
+| `format` | `json` | Response format. Default: `json` |
+
+`{user_id}` in `/api/ai-analytics/orgs/{org}/users/{user_id}/...` is the
+requesting admin's user id (used for RBAC + audit), not the user being
+queried. Pass the user being queried via `filter_user_id`.
+
+### Audience — `/api/ai-analytics/audience/orgs/{org}/`
+
+Active user counts, enrollments, and registered users.
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `active-users/over-time` | Daily active user counts with change vs. previous period |
+| `GET` | `active-users/per-course` | Active user counts per course |
+| `GET` | `active-users/users` | List of active users |
+| `GET` | `enrollments/over-time` | Daily enrollment counts |
+| `GET` | `enrollments/per-course` | Enrollment counts per course |
+| `GET` | `enrollments/courses/{course_id}/over-time` | Enrollment trend for one course |
+| `GET` | `enrollments/courses/{course_id}/users` | Enrolled learners for one course |
+| `GET` | `registered-users/` | Registered user count |
+| `GET` | `registered-users/over-time` | Registration trend |
+| `GET` | `registered-users/per-course` | Registrations per course |
+
+### Engagement — `/api/ai-analytics/engagement/orgs/{org}/`
+
+Activity, course completion, time-on-platform, and video watch metrics.
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `activity` | Activity heatmap |
+| `GET` | `course_completion/over-time` | Completion trend |
+| `GET` | `course_completion/per-course` | Completion rate per course |
+| `GET` | `courses/{course_id}/time/average` | Avg. time-on-course |
+| `GET` | `courses/{course_id}/time/detail` | Detailed time breakdown |
+| `GET` | `courses/{course_id}/time/over-time` | Time-on-course over time |
+| `GET` | `courses/{course_id}/time/users` | Time per learner |
+| `GET` | `courses/{course_id}/time/users/{user_id}/detail` | Time detail for one learner |
+| `GET` | `courses/{course_id}/time/users/{user_id}/over-time` | Time over time for one learner |
+| `GET` | `courses/{course_id}/videos/` | Video stats for course |
+| `GET` | `courses/{course_id}/videos/over-time` | Video watch over time |
+| `GET` | `courses/{course_id}/videos/summary` | Video summary |
+| `GET` | `courses/{course_id}/videos/users` | Video stats per learner |
+| `GET` | `time/average-perlearner-percourse` | Avg time per learner per course |
+| `GET` | `time/average-with-over-time` | Avg time with trend |
+| `GET` | `time/over-time` | Total time over time |
+| `GET` | `time/per-course` | Total time per course |
+| `GET` | `videos/` | Org-wide video stats |
+| `GET` | `videos/over-time` | Video watch trend |
+
+### Overview — `/api/ai-analytics/overview/orgs/{org}/`
+
+Top-level dashboard cards.
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `active-users` | Total active users |
+| `GET` | `average-grade` | Average grade across courses |
+| `GET` | `courses/completions` | Total completions |
+| `GET` | `learners` | Learner count |
+| `GET` | `most-active-courses` | Top courses by activity |
+| `GET` | `registered-users` | Total registered users |
+
+### Performance — `/api/ai-analytics/performance/orgs/{org}/`
+
+Grading metrics at platform and course level.
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `grading/average` | Avg grade across all courses |
+| `GET` | `grading/per-course` | Avg grade per course |
+| `GET` | `courses/{course_id}/grading/average` | Avg grade for one course |
+| `GET` | `courses/{course_id}/grading/average-with-cutoff` | Avg with passing cutoff |
+| `GET` | `courses/{course_id}/grading/detail` | Per-assignment grade detail |
+| `GET` | `courses/{course_id}/grading/per-learner` | Grade per learner |
+| `GET` | `courses/{course_id}/grading/summary` | Grade summary stats |
+
+### Per-Learner — `/api/ai-analytics/perlearner/orgs/{org}/`
+
+Drill-down analytics for individual learners.
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `learners` | Learner roster with summary stats |
+| `GET` | `users` | Same, alternate route |
+| `GET` | `users/{user_id}/activity/` | Per-learner activity |
+| `GET` | `users/{user_id}/info` | Profile + enrollment info |
+| `GET` | `users/{user_id}/last-access` | Last access timestamp |
+| `GET` | `users/{user_id}/grades/per-course` | Grades per course |
+| `GET` | `users/{user_id}/overview/engagement-index` | Engagement score |
+| `GET` | `users/{user_id}/overview/grades/average` | Avg grade |
+| `GET` | `users/{user_id}/overview/performance-index` | Performance score |
+| `GET` | `users/{user_id}/overview/time/over-time` | Time over time |
+| `GET` | `users/{user_id}/videos/over-time` | Video watch trend |
+| `GET` | `users/{user_id}/videos/per-course` | Video stats per course |
+| `GET` | `users/{user_id}/courses/{course_id}/overview/engagement-index` | Course engagement |
+| `GET` | `users/{user_id}/courses/{course_id}/overview/grade` | Course grade |
+| `GET` | `users/{user_id}/courses/{course_id}/overview/performance-index` | Course performance |
+| `GET` | `users/{user_id}/courses/{course_id}/overview/time/over-time` | Course time trend |
+| `GET` | `users/{user_id}/courses/{course_id}/grading/cutoffs` | Grading cutoffs |
+| `GET` | `users/{user_id}/courses/{course_id}/grading/detail` | Grade detail |
+| `GET` | `users/{user_id}/courses/{course_id}/grading/summary` | Grade summary |
+| `GET` | `users/{user_id}/courses/{course_id}/videos` | Course videos |
+| `GET` | `users/{user_id}/courses/{course_id}/videos/over-time` | Course video trend |
+
+### AI Mentor / User Insights — `/api/ai-analytics/orgs/{org}/users/{user_id}/`
+
+Chat, mentor, cost, sentiment, topic, and trace analytics. The `{user_id}`
+is the requesting admin; queries operate org-wide unless `filter_user_id`
+or `mentor` is supplied.
+
+#### Chat history & conversations
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `chat-history/` | Paginated chat messages (filter by date, mentor, sentiment, topics, filter_user_id) |
+| `POST` | `chat-history/` | Create a chat history record |
+| `GET` | `chat-history-filter/` | Available filter values |
+| `GET` | `chat-history/{id}/` | Single message |
+| `PUT` `PATCH` `DELETE` | `chat-history/{id}/` | Update / delete a message |
+| `GET` | `conversation/` | Conversation list |
+| `GET` | `conversation-summary/` | Summary stats |
+| `GET` | `my-chat-history/` | Caller's own chat history |
+| `GET` | `my-chat-history/{id}/` | Single record |
+| `GET` | `my-chat-history-filter/` | Filter values |
+| `GET` `POST` | `my-chat-history-report/` | List / create export task |
+| `GET` | `my-chat-history-report/{task_id}/` | Task status |
+| `GET` | `my-chat-history-report/{task_id}/download/` | Download exported file |
+
+#### Mentors
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `mentor-detail/` | Detailed mentor stats |
+| `GET` | `mentor-summary/` | Mentor summary |
+| `GET` | `total-users-by-mentor/` | User count per mentor |
+| `GET` | `mentors/{mentor_unique_id}/cost/` | Cost for one mentor |
+
+#### Costs
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `costs/model/` | Cost grouped by model |
+| `GET` | `costs/permentor/` | Cost grouped by mentor |
+| `GET` | `costs/peruser/` | Cost grouped by user |
+| `GET` | `tenant-cost/` | Tenant-level total |
+| `GET` | `user-cost/` | Per-user cost |
+
+#### Topics, sentiment, ratings, feedback
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `most-discussed-topics/` | Top topics by message count |
+| `GET` | `topic-overview/` | Topic distribution |
+| `GET` | `topic-statistics/` | Per-topic stats |
+| `GET` | `topics/summary/` | Topic summary list |
+| `GET` | `sentiment-count/` | Sentiment distribution |
+| `GET` | `user-sentiment/` | Per-user sentiment |
+| `GET` | `rating-summary/` | Rating breakdown |
+| `GET` | `user-feedback/` | Feedback messages |
+
+#### Usage, observations, traces, transcripts
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `average-messages-per-session/` | Avg messages per session |
+| `GET` | `usage-summary/` | Usage stats |
+| `GET` | `overview-summary/` | Top-level summary |
+| `GET` | `top-students-by-chat-messages/` | Top users by message count |
+| `GET` | `user-cohorts-over-time/` | Cohort retention |
+| `GET` | `user-metrics/` | User metrics |
+| `GET` | `user-metrics-pie-chart/` | User metrics for pie chart |
+| `GET` | `registered-users-trend/` | Registration trend |
+| `GET` | `observations/` | Observations list |
+| `GET` | `observations/{id}/` | Single observation |
+| `GET` | `traces/` | LLM traces (debugging) |
+| `GET` | `traces/{id}/` | Single trace |
+| `GET` | `transcripts/` | Conversation transcripts |
+
+### Costs / Departments / User Groups
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `/api/ai-analytics/costs/pertenant/` | Cost grouped by tenant |
+| `GET` | `/api/ai-analytics/departments/orgs/{org}/` | Departments for an org |
+| `GET` | `/api/ai-analytics/user-groups/orgs/{org}/` | User groups for an org |
+
+### LMS Analytics — `/api/analytics/`
+
+Catalog, financial, and session analytics. These accept
+`date_filter`, `granularity`, `metric`, `mentor_unique_id`, `platform_key`,
+`usergroup_ids`, and pagination (`page`, `limit` ≤ 100).
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `content/` | Aggregate analytics for catalog content (`metric=course\|program\|pathway\|skill`) |
+| `GET` | `content/details/{content_id}/` | Per-item content detail |
+| `GET` | `conversations/` | Conversation analytics |
+| `GET` | `financial/` | Financial summary |
+| `GET` | `financial/details/` | Financial line items |
+| `GET` | `financial/invoice/` | Invoice data |
+| `GET` | `learners/` | Learner stats |
+| `GET` | `learners/list/` | Paginated learner list |
+| `GET` | `learner/details` | Per-learner detail |
+| `GET` | `messages/` | Message volume |
+| `GET` | `messages/details/` | Message detail |
+| `POST` | `orgs/{org}/time/update/` | Push time-on-platform updates |
+| `GET` | `ratings/` | Rating analytics |
+| `GET` | `sessions/` | Session analytics |
+| `GET` | `time/` | Time-on-platform |
+| `GET` | `time-spent/user/` | Caller's total time spent |
+| `GET` | `topics/` | Topic analytics |
+| `GET` | `topics/details/` | Topic detail |
+| `GET` | `users/` | User analytics |
+| `GET` | `users/details/` | User detail |
+
+### Quick example
+
+```bash
+# Active users over the last 30 days for org "main"
+curl "${dmUrl}/api/ai-analytics/audience/orgs/main/active-users/over-time?date_filter=30d" \
+  -H "Authorization: Token ${TOKEN}"
+
+# Catalog content analytics for courses
+curl "${dmUrl}/api/analytics/content/?metric=courses&date_filter=7d&include_overtime=true" \
+  -H "Authorization: Token ${TOKEN}"
+```
+
+### RBAC
+
+Most endpoints require one of:
+- `Ibl.Analytics/Core/read` — analytics viewer
+- `Ibl.*` — tenant admin
+
+Per-learner and chat-history endpoints also require platform admin role.
+
+### SDK usage
+
+Don't call these endpoints directly when an SDK component or RTK Query hook
+exists. The dashboard components in `@iblai/iblai-js/web-containers`
+(`AnalyticsOverview`, `AnalyticsCourses`, `AnalyticsPrograms`,
+`AnalyticsUsersStats`, `AnalyticsTopicsStats`, `AnalyticsFinancialStats`,
+`AnalyticsTranscriptsStats`, `AnalyticsReports`) wire these endpoints to
+charts and tables for you. Use `get_component_info("<Name>")` and
+`get_api_query_info("<hookName>")` via MCP to discover the relevant hook
+before writing custom UI.
