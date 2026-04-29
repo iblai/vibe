@@ -26,7 +26,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
   (`npx shadcn@latest add <component>`). Do NOT write custom components
   when an ibl.ai or shadcn equivalent exists. Both share the same
   Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
 You MUST run `/iblai-ops-test` before telling the user the work is ready.
@@ -48,6 +48,8 @@ Use the ibl.ai logo instead.
 > **Navbar:** If the user wants a navbar with the profile dropdown, guide
 > them to `/iblai-navbar` first. That skill creates the full navbar with
 > logo, page links, notification bell, and profile dropdown.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
@@ -498,213 +500,11 @@ import {
 
 ### Building a Custom Career API Slice
 
-If you need career APIs without using the SDK's built-in hooks (e.g. in
-a standalone app without the full data-layer), create your own RTK Query
-slice:
-
-```typescript
-// services/career-api.ts
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import iblConfig from "@/lib/iblai/config";
-
-interface Education {
-  id: number;
-  institution: { id: number; name: string };
-  institution_id: number;
-  degree: string;
-  field_of_study: string;
-  start_date: string;
-  end_date: string | null;
-  is_current: boolean;
-  grade: string;
-}
-
-interface Experience {
-  id: number;
-  company: { id: number; name: string };
-  company_id: number;
-  title: string;
-  employment_type: string;
-  location: string;
-  start_date: string;
-  end_date: string | null;
-  is_current: boolean;
-  description: string;
-}
-
-export const careerApiSlice = createApi({
-  reducerPath: "careerApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "",
-    prepareHeaders: (headers) => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("dm_token");
-        if (token) headers.set("Authorization", `Token ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ["education", "experience", "institution", "company", "resume"],
-  endpoints: (builder) => ({
-    // Education
-    getEducation: builder.query<Education[], { org: string; username: string }>({
-      query: ({ org, username }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/education/users/${username}/`,
-      }),
-      providesTags: ["education"],
-    }),
-    createEducation: builder.mutation<Education, {
-      org: string; username: string; education: Partial<Education> & { institution_id: number }
-    }>({
-      query: ({ org, username, education }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/education/users/${username}/`,
-        method: "POST",
-        body: education,
-      }),
-      invalidatesTags: ["education"],
-    }),
-    updateEducation: builder.mutation<Education, {
-      org: string; username: string; education_id: number; education: Partial<Education>
-    }>({
-      query: ({ org, username, education_id, education }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/education/users/${username}/?id=${education_id}`,
-        method: "PUT",
-        body: education,
-      }),
-      invalidatesTags: ["education"],
-    }),
-    deleteEducation: builder.mutation<void, {
-      org: string; username: string; education_id: number
-    }>({
-      query: ({ org, username, education_id }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/education/users/${username}/?id=${education_id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["education"],
-    }),
-
-    // Experience
-    getExperience: builder.query<Experience[], { org: string; username: string }>({
-      query: ({ org, username }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/experience/users/${username}/`,
-      }),
-      providesTags: ["experience"],
-    }),
-    createExperience: builder.mutation<Experience, {
-      org: string; username: string; experience: Partial<Experience> & { company_id: number }
-    }>({
-      query: ({ org, username, experience }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/experience/users/${username}/`,
-        method: "POST",
-        body: experience,
-      }),
-      invalidatesTags: ["experience"],
-    }),
-    updateExperience: builder.mutation<Experience, {
-      org: string; username: string; experience_id: number; experience: Partial<Experience>
-    }>({
-      query: ({ org, username, experience_id, experience }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/experience/users/${username}/?id=${experience_id}`,
-        method: "PUT",
-        body: experience,
-      }),
-      invalidatesTags: ["experience"],
-    }),
-    deleteExperience: builder.mutation<void, {
-      org: string; username: string; experience_id: number
-    }>({
-      query: ({ org, username, experience_id }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/experience/users/${username}/?id=${experience_id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["experience"],
-    }),
-
-    // Institutions (lookup for education)
-    getInstitutions: builder.query<any[], { org: string; username: string }>({
-      query: ({ org, username }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/institutions/users/${username}/`,
-      }),
-      providesTags: ["institution"],
-    }),
-    createInstitution: builder.mutation<any, {
-      org: string; username: string; institution: { name: string; institution_type: string }
-    }>({
-      query: ({ org, username, institution }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/institutions/users/${username}/`,
-        method: "POST",
-        body: institution,
-      }),
-      invalidatesTags: ["institution"],
-    }),
-
-    // Companies (lookup for experience)
-    getCompanies: builder.query<any[], { org: string; username: string }>({
-      query: ({ org, username }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/companies/users/${username}/`,
-      }),
-      providesTags: ["company"],
-    }),
-    createCompany: builder.mutation<any, {
-      org: string; username: string; company: { name: string }
-    }>({
-      query: ({ org, username, company }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/orgs/${org}/companies/users/${username}/`,
-        method: "POST",
-        body: company,
-      }),
-      invalidatesTags: ["company"],
-    }),
-
-    // Resume
-    getResume: builder.query<any, { org: string; username: string }>({
-      query: ({ org, username }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/resume/orgs/${org}/users/${username}/`,
-      }),
-      providesTags: ["resume"],
-    }),
-    uploadResume: builder.mutation<any, {
-      org: string; username: string; resume: FormData; method?: "PUT" | "POST"
-    }>({
-      query: ({ org, username, resume, method = "PUT" }) => ({
-        url: `${iblConfig.dmUrl()}/api/career/resume/orgs/${org}/users/${username}/`,
-        method,
-        body: resume,
-      }),
-      invalidatesTags: ["resume"],
-    }),
-  }),
-});
-
-export const {
-  useGetEducationQuery,
-  useCreateEducationMutation,
-  useUpdateEducationMutation,
-  useDeleteEducationMutation,
-  useGetExperienceQuery,
-  useCreateExperienceMutation,
-  useUpdateExperienceMutation,
-  useDeleteExperienceMutation,
-  useGetInstitutionsQuery,
-  useCreateInstitutionMutation,
-  useGetCompaniesQuery,
-  useCreateCompanyMutation,
-  useGetResumeQuery,
-  useUploadResumeMutation,
-} = careerApiSlice;
-```
-
-**Store registration:**
-```typescript
-// store/iblai-store.ts
-import { careerApiSlice } from "@/services/career-api";
-
-// In reducer:
-[careerApiSlice.reducerPath]: careerApiSlice.reducer,
-
-// In middleware:
-.concat(careerApiSlice.middleware)
-```
+If you need career APIs without the SDK's built-in hooks, build a standard
+RTK Query slice with `fetchBaseQuery` and one endpoint per row in the
+endpoint tables above. Use `Authorization: Token {dm_token}` (from
+localStorage), and tag invalidation on `["education", "experience",
+"institution", "company", "resume"]`.
 
 ---
 
@@ -718,110 +518,15 @@ onboarding state).
 ### Endpoints
 
 ```
-GET  /api/ai/mentor/orgs/{org}/users/{username}/metadata?mentor={mentorId}
-POST /api/ai/mentor/orgs/{org}/metadata/
+GET  {dmUrl}/api/ai/mentor/orgs/{org}/users/{username}/metadata?mentor={mentorId}
+POST {dmUrl}/api/ai/mentor/orgs/{org}/metadata/        body: { mentor_id, metadata }
 ```
 
-### RTK Query API Slice
-
-Create a service file to interact with the metadata API:
-
-```typescript
-// services/mentor-metadata-api.ts
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import iblConfig from "@/lib/iblai/config";
-
-type MetadataPayload = Record<string, any>;
-
-interface GetMetadataArgs {
-  org: string;
-  username: string;
-  mentorId: string;
-}
-
-interface SetMetadataArgs {
-  org: string;
-  mentorId: string;
-  metadata: MetadataPayload;
-}
-
-export interface MentorMetadataResponse {
-  metadata: MetadataPayload;
-}
-
-export const mentorMetadataApiSlice = createApi({
-  reducerPath: "mentorMetadataApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "",
-    prepareHeaders: (headers) => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("axd_token");
-        if (token) headers.set("Authorization", `Token ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ["mentor-metadata"],
-  endpoints: (builder) => ({
-    getMentorMetadata: builder.query<MentorMetadataResponse, GetMetadataArgs>({
-      query: ({ org, username, mentorId }) => ({
-        url: `${iblConfig.dmUrl()}/api/ai/mentor/orgs/${org}/users/${username}/metadata`,
-        params: { mentor: mentorId },
-      }),
-      providesTags: ["mentor-metadata"],
-    }),
-    setMentorMetadata: builder.mutation<MentorMetadataResponse, SetMetadataArgs>({
-      query: ({ org, mentorId, metadata }) => ({
-        url: `${iblConfig.dmUrl()}/api/ai/mentor/orgs/${org}/metadata/`,
-        method: "POST",
-        body: { mentor_id: mentorId, metadata },
-      }),
-      invalidatesTags: ["mentor-metadata"],
-    }),
-  }),
-});
-
-export const { useGetMentorMetadataQuery, useSetMentorMetadataMutation } =
-  mentorMetadataApiSlice;
-```
-
-### Usage
-
-```typescript
-const { data } = useGetMentorMetadataQuery({ org, username, mentorId });
-const [saveMeta] = useSetMentorMetadataMutation();
-
-// Read
-const myData = data?.metadata?.my_key;
-
-// Write (merges with existing metadata on the server)
-await saveMeta({ org, mentorId, metadata: { my_key: { foo: "bar" } } });
-```
-
-### Store registration
-
-Add the slice to your Redux store:
-
-```typescript
-// store/iblai-store.ts
-import { mentorMetadataApiSlice } from "@/services/mentor-metadata-api";
-
-// In reducer:
-[mentorMetadataApiSlice.reducerPath]: mentorMetadataApiSlice.reducer,
-
-// In middleware:
-.concat(mentorMetadataApiSlice.middleware)
-```
-
-### Key details
-
-- **Auth**: Uses `axd_token` from localStorage (`Authorization: Token {token}`)
-- **Scope**: Per-user, per-mentor. Each user's metadata is isolated
-- **Schema**: Arbitrary JSON -- store any structure you need
-- **Merge behavior**: The server merges new metadata keys with existing ones
-  (does not replace the entire object)
-- **Use cases**: Application progress, user preferences, onboarding state,
-  feature flags
+- **Auth**: `Authorization: Token {axd_token}` (from localStorage)
+- **Scope**: Per-user, per-mentor; isolated.
+- **Schema**: Arbitrary JSON.
+- **Merge behavior**: POST merges new keys with existing metadata
+  (does not replace the entire object).
 
 ---
 
@@ -1178,4 +883,4 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 - **Billing/Purchases**: Lives on the Account page (`/iblai-account`), not
   on the Profile page. Use `UserProfileModal` with `targetTab="billing"` and
   `billingEnabled={true}` to access it from the combined modal.
-- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

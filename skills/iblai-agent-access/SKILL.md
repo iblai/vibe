@@ -30,7 +30,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
   (`npx shadcn@latest add <component>`). Do NOT write custom components
   when an ibl.ai or shadcn equivalent exists. Both share the same
   Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
 You MUST run `/iblai-ops-test` before telling the user the work is ready.
@@ -44,6 +44,8 @@ its runtime env vars from `.env.local`.
 
 Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
@@ -161,4 +163,148 @@ Run `/iblai-ops-test` before telling the user the work is ready:
   (the default), all actions are permitted.
 - **Default roles**: `editor` and `chat`. These come from
   `DEFAULT_MENTOR_ROLES` in the package and are not configurable via props.
-- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
+
+## RBAC REST API
+
+For custom UI beyond `<AgentAccessTab>`. All endpoints are prefixed with
+`${dmUrl}/api/core/` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`. RBAC state
+is scoped per platform — pass `platform_key={key}` on every request.
+
+### Concepts
+
+- **Resource paths** are hierarchical, rooted at a platform: a policy on
+  `/platforms/1/mentors/5/` also applies to `/platforms/1/mentors/5/documents/`.
+- **Actions** look like `Ibl.Mentor/Mentors/read`, `Ibl.Mentor/Chat/action`,
+  `Ibl.*` (wildcard).
+- **Data actions** gate field-level access:
+  `Ibl.Mentor/Settings/display_name/read`. Unreadable fields return empty
+  values; unwritable fields return 403.
+- **Policies** bind a Role to Resources for Users and/or Groups. Permissions
+  are additive across all matching policies. Owner well-known roles
+  (`mentor-owner`, `document-owner`, etc.) are applied automatically when
+  the requesting user owns the resource.
+
+### Roles CRUD — `Ibl.Core/Roles/...`
+
+| Method | Path | Action |
+|---|---|---|
+| GET | `rbac/roles/?platform_key={key}` | `list` |
+| POST | `rbac/roles/` | `action` |
+| GET | `rbac/roles/{id}/?platform_key={key}` | `read` |
+| PUT/PATCH | `rbac/roles/{id}/` | `write` |
+| DELETE | `rbac/roles/{id}/?platform_key={key}` | `delete` |
+
+List params: `platform_key` (required), `include_global_roles` (default `true`),
+`name`. Body: `{ name, platform_key, actions[], data_actions[] }`.
+
+### Policies CRUD — `Ibl.Core/Policies/...`
+
+| Method | Path | Action |
+|---|---|---|
+| GET | `rbac/policies/?platform_key={key}` | `list` |
+| POST | `rbac/policies/` | `action` |
+| GET | `rbac/policies/{id}/?platform_key={key}` | `read` |
+| PUT/PATCH | `rbac/policies/{id}/` | `write` |
+| DELETE | `rbac/policies/{id}/?platform_key={key}` | `delete` |
+
+List params: `platform_key`, `role_id`, `name`, `username`, `email`, `group`,
+`include_users`, `include_groups`. Body: `{ platform_key, name, role_id,
+resources[], user_ids[], group_ids[] }`. Resources must start with
+`/platforms/` and end with `/`.
+
+### Groups CRUD — `Ibl.Core/Groups/...`
+
+| Method | Path | Action |
+|---|---|---|
+| GET | `rbac/groups/?platform_key={key}` | `list` |
+| POST | `rbac/groups/` | `action` |
+| GET | `rbac/groups/{id}/?platform_key={key}` | `read` |
+| PUT/PATCH | `rbac/groups/{id}/` | `write` |
+| DELETE | `rbac/groups/{id}/?platform_key={key}` | `delete` |
+
+List params: `platform_key`, `owner`, `name`, `username`, `email`,
+`include_users`. Body: `{ platform_key, name, unique_id, description, user_ids[] }`.
+
+### Permission check (any authenticated user)
+
+```
+POST rbac/permissions/check/
+{ "platform_key": "...", "resources": ["/mentors/", "/mentors/42/", "/usergroups/"] }
+```
+
+Returns a map of resource → `{ list/create/read/write/delete/chat/... }`.
+Accounts for owner roles automatically. Use this to gate UI actions.
+
+### Mentor access — `Ibl.Mentor/ShareMentor/...`
+
+| Method | Path | Action |
+|---|---|---|
+| POST | `rbac/mentor-access/` | `action` |
+| GET | `rbac/mentor-access/?platform_key={key}&mentor_id={id}` | `read` |
+
+Body: `{ platform_key, mentor_id, role, users_to_add[], users_to_remove[],
+groups_to_add[], groups_to_remove[] }`. Roles: `chat | viewer | editor`.
+Substitute `usernames_to_add` / `emails_to_add` if you don't have user IDs.
+
+### Team (UserGroup) sharing — `Ibl.Core/ShareUserGroups/...`
+
+| Method | Path | Action |
+|---|---|---|
+| POST | `rbac/teams/access/` | `action` |
+| GET | `rbac/teams/access/?platform_key={key}&usergroup_id={id}` | `read` |
+
+Body: `{ platform_key, usergroup_id, role, users_to_add[], ... }`. Roles:
+`read | edit | view analytics | send notifications`.
+
+### User policy bulk update — `Ibl.Core/UserPolicies/write`
+
+```
+PUT platform/users/policies/
+[{ "user_id": 101, "platform_key": "...",
+   "policies_to_add": [...], "policies_to_remove": [...], "policies_to_set": [...] }]
+```
+
+Only platform-assignable policies are allowed. `policies_to_set` replaces;
+removals run before additions.
+
+### Platform admin toggles (no extra RBAC action)
+
+| Path | Body |
+|---|---|
+| `POST rbac/student-mentor-creation/set/` | `{ platform_key, allow_students_to_create_mentors }` |
+| `GET rbac/student-mentor-creation/status/?platform_key={key}` | – |
+| `POST rbac/student-llm-access/set/` | `{ platform_key, llm_resources: ["llms/openai/models/gpt-4o", ...] }` |
+| `GET rbac/student-llm-access/status/?platform_key={key}` | – |
+
+### Response permission metadata
+
+Resource responses include a `permissions` object the UI can use to gate
+controls:
+
+```json
+"permissions": {
+  "field": { "display_name": { "read": true, "write": true } },
+  "object": { "delete": false, "write": true }
+}
+```
+
+Unreadable fields are masked (`""`, `[]`, or `{}`) and `read: false`.
+
+### Resource operations
+
+| Resource | Collection ops | Instance ops |
+|---|---|---|
+| `mentors` | list, create, chat, web_search, attach_document, voice_record, voice_call, export_chat_history, view_chat_history, view_analytics, view_prompts, share, sell_mentor | read, write, delete + above + show_settings, share_mentor, read_shared_mentor, can_use_embed, view_moderation_logs, view_safety_logs, view_disclaimers |
+| `prompts`, `documents`, `tools`, `settings`, `llms`, `mcpservers` | list, create | read, write, delete |
+| `usergroups` | list, create | read, write, delete, share_usergroup, read_shared_usergroup |
+| `users` | list, write | – |
+| `groups`, `policies`, `roles` | list, create | read, write, delete |
+| `platforms` | – | can_send_notifications, can_view_analytics, can_manage_users, can_invite |
+
+### Built-in roles
+
+Tenant Admin · Students · Mentor Viewer · Mentor Editor · Mentor Chat ·
+Student Mentor Creators · Analytics Viewer · Notification Manager ·
+Enrollment Manager · LLM Users · LLM Model Access · List Users · List Teams ·
+Create Teams · Read Team · Edit Team · Billing Manager.

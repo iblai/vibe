@@ -45,8 +45,10 @@ Follow the component hierarchy: use ibl.ai SDK components
 when an ibl.ai or shadcn equivalent exists. Both share the same
 Tailwind theme and render in ibl.ai brand colors automatically.
 
-Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
 colors, typography, spacing, and component styles.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
@@ -564,4 +566,4 @@ Other features are built using skills -- ask your AI assistant to use:
 For the complete reference implementation with all features:
   https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app
 
-**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+**Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

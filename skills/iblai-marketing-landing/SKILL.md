@@ -11,7 +11,7 @@ Build a high-converting landing page for your app. Uses a proven 12-section
 conversion framework based on 8,000+ pages and 4,000+ brands — not guesswork,
 not trends, not "good design." Structure.
 
-Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
 colors, typography, spacing, and the Apple-inspired design language.
 
 **Component hierarchy** (always prefer in this order):
@@ -494,4 +494,4 @@ Conversion comes from:
 - No heavy JS libraries for visual effects.
 - Target Lighthouse performance score > 90.
 
-**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+**Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

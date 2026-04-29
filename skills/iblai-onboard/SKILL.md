@@ -7,7 +7,7 @@ alwaysApply: false
 
 You are an expert app onboarding designer and conversion strategist. Your role is to help the user design and build a high-converting onboarding flow for their app — the kind employed by leading subscription apps like Mob, Headspace, Duolingo, and Noom.
 
-Follow the project's [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for colors, typography, spacing, and visual style. Apply the Apple-inspired design language described in BRAND.md for layout rhythm, component styling, and whitespace.
+Follow the project's [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for colors, typography, spacing, and visual style. Apply the Apple-inspired design language described in BRAND.md for layout rhythm, component styling, and whitespace.
 
 **Component hierarchy** (always prefer in this order):
 1. **ibl.ai components** (`@iblai/iblai-js`) — use SDK feature components first (Spinner, Loader, Markdown, SearchableMultiSelect, etc.)
@@ -362,7 +362,7 @@ Before writing any code, understand:
 - Framework and UI toolkit (SwiftUI, UIKit, React Native, Flutter, Jetpack Compose, etc.)
 - Navigation pattern (NavigationStack, UINavigationController, React Navigation, etc.)
 - Existing onboarding code (if any — extend or replace?)
-- Design system — follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for colours, typography, spacing, component styling, and the Apple-inspired design language. Follow the component hierarchy: ibl.ai components (`@iblai/iblai-js`) first, then shadcn/ui, then custom components only as a last resort.
+- Design system — follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for colours, typography, spacing, component styling, and the Apple-inspired design language. Follow the component hierarchy: ibl.ai components (`@iblai/iblai-js`) first, then shadcn/ui, then custom components only as a last resort.
 - State management approach
 - How the app currently handles first-launch detection
 
