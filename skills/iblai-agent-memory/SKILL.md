@@ -141,3 +141,76 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
 - **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+
+## Memory REST API
+
+For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with
+`${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`
+and `{org}` is the platform/tenant key.
+
+The system has three control levels: **Platform** (admin enables for tenant),
+**Mentor** (admin/owner enables per mentor), **User** (user opts in/out of
+capture and use).
+
+### User memory settings (per user opt-in)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `users/{user_id}/memsearch-settings/` | Read `auto_capture_enabled`, `use_memory_in_responses` |
+| PUT | `users/{user_id}/memsearch-settings/` | Update one or both flags |
+
+Defaults are `false` if no settings row exists.
+
+### Platform config (tenant admin)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `users/{user_id}/memsearch-config/` | Read `enable_memsearch` |
+| POST | `users/{user_id}/memsearch-config/` | Set `enable_memsearch` |
+| GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the tenant |
+
+### Mentor toggle
+
+| Method | Path | Purpose |
+|---|---|---|
+| PUT | `users/{user_id}/mentors/{mentor}/settings/` | Body includes `enable_memory_component: bool` |
+
+### Global memories (apply across all mentors)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `users/{user_id}/global-memories/` | List. Params: `page`, `page_size` (≤25), `user_id`, `start_date`, `end_date`, `search` |
+| POST | `users/{user_id}/global-memories/` | Create. Body `{ content }` (≥10 chars). 409 if duplicate |
+| DELETE | `users/{user_id}/global-memories/{memory_id}/` | Delete |
+
+### Mentor-specific memories (grouped by category)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `users/{user_id}/mentors/{mentor_id}/mentor-memories/` | List grouped by category. Params: `user_id`, `start_date`, `end_date`, `my_memory` |
+| POST | `users/{user_id}/mentors/{mentor_id}/mentor-memories/` | Create. Body `{ category_slug, content }` (≥10 chars) |
+| PATCH | `users/{user_id}/mentors/{mentor_id}/mentor-memories/{memory_id}/` | Partial update of `content` and/or `category_slug` |
+| DELETE | `users/{user_id}/mentors/{mentor_id}/mentor-memories/{memory_id}/` | Delete |
+
+### Memory categories (admin/owner)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `mentors/{mentor_id}/memory-categories/` | List active categories |
+| POST | `mentors/{mentor_id}/memory-categories/` | Create. 409 if slug exists |
+| PATCH | `mentors/{mentor_id}/memory-categories/{category_id}/` | Update name/description/extraction prompt |
+| DELETE | `mentors/{mentor_id}/memory-categories/{category_id}/` | Soft-delete (sets `is_active=false`) |
+
+Default categories auto-created per mentor: `knowledge_gaps`, `learning_goals`,
+`preferences`, `progress_milestones`, `personal_context`.
+
+### Common errors
+
+`400` validation (`content` <10 chars), `403` viewing another user's memories,
+`404` not found, `409` duplicate.
+
+### Visibility rule
+
+Hide memory UI unless platform `memsearch-status` is enabled AND the mentor's
+`enable_memory_component` is true. Always show the user-level toggles so users
+can opt in/out.
