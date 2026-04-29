@@ -27,7 +27,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
   (`npx shadcn@latest add <component>`). Do NOT write custom components
   when an ibl.ai or shadcn equivalent exists. Both share the same
   Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
 You MUST run `/iblai-ops-test` before telling the user the work is ready.
@@ -42,6 +42,8 @@ its runtime env vars from `.env.local`.
 Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
@@ -763,4 +765,4 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 - **Redux store**: Must include `mentorReducer`, `mentorMiddleware`, AND `workflowsApiSlice`
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

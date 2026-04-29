@@ -123,7 +123,7 @@ pnpm typecheck 2>/dev/null || npx tsc --noEmit 2>/dev/null || true
 
 If typecheck fails with new errors, surface them to the user — the SDK
 may have introduced breaking changes. Point them at the
-[CHANGELOG](https://github.com/iblai/iblai-js/blob/main/CHANGELOG.md)
+[CHANGELOG](https://raw.githubusercontent.com/iblai/iblai-js/refs/heads/main/CHANGELOG.md)
 for migration notes.
 
 ---

@@ -27,7 +27,7 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the tenant/platform name.
 Use the ibl.ai logo instead.
 
-Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
 colors, typography, spacing, and component styles.
 
 ## Creating a New App
@@ -397,4 +397,4 @@ This is safe to run even if already at the latest version.
 - Run `iblai add mcp` first to set up MCP servers and skills
 - If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
 - If you used `iblai startapp agent`, auth is already set up
-- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

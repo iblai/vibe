@@ -27,7 +27,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
   (`npx shadcn@latest add <component>`). Do NOT write custom components
   when an ibl.ai or shadcn equivalent exists. Both share the same
   Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
 You MUST run `/iblai-ops-test` before telling the user the work is ready.
@@ -41,6 +41,8 @@ its runtime env vars from `.env.local`.
 
 Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
@@ -140,4 +142,141 @@ Run `/iblai-ops-test` before telling the user the work is ready:
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
-- **Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
+
+## MCP Servers REST API
+
+For custom UI beyond `<AgentToolsTab>` — register external MCP servers and
+bind them to mentors. All endpoints are prefixed with
+`${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
+`NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
+
+### Workflow
+
+1. **Enable the MCP tool on the mentor** (so the runtime will use MCP servers).
+2. **Register an MCP server** record (URL, transport, auth_type).
+3. **Create a connection** binding credentials to a scope (`platform`, `user`,
+   or `mentor`).
+4. **Assign servers to the mentor** via the mentor settings endpoint.
+
+### 1. Enable MCP tool on the mentor
+
+| Method | Path | Body |
+|---|---|---|
+| PUT | `mentors/{mentor_id}/settings/` | `{ "tools": ["mcp-tool", ...] }` |
+
+The `tools` array **replaces** the existing list. Pass `null` to leave
+unchanged; `[]` clears all tools.
+
+### 2. MCP Servers
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `mcp-servers/` | List tenant servers |
+| POST | `mcp-servers/` | Register a new server |
+| PATCH/PUT | `mcp-servers/{id}/` | Update |
+| DELETE | `mcp-servers/{id}/` | Delete |
+| GET | `mcp-servers/oauth-find/` | Find a server by OAuth provider/service |
+
+**Create body:**
+
+```json
+{
+  "name": "Google Drive MCP",
+  "description": "Search and index Drive documents",
+  "url": "https://drive-mcp.example.com",
+  "transport": "sse",
+  "auth_type": "oauth2",
+  "is_featured": false,
+  "is_enabled": true
+}
+```
+
+- `transport`: `sse` | `websocket` | `streamable_http`
+- `auth_type`: `none` | `token` | `oauth2`
+- For `auth_type=token`, set `credentials` to the full header value
+  (e.g. `"Bearer abc123"`).
+
+### 3. MCP Server Connections
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `mcp-server-connections/` | List connections |
+| POST | `mcp-server-connections/` | Create a connection |
+| PATCH/PUT | `mcp-server-connections/{id}/` | Update / toggle `is_active` |
+| DELETE | `mcp-server-connections/{id}/` | Delete |
+
+**Token (platform scope):**
+
+```json
+{
+  "server": 9,
+  "scope": "platform",
+  "auth_type": "token",
+  "credentials": "Token super-secret",
+  "authorization_scheme": "Token",
+  "extra_headers": { "x-mcp-client": "mentor-ui" }
+}
+```
+
+**OAuth (user scope)** — requires an existing `ConnectedService` (see the
+OAuth connectors flow):
+
+```json
+{
+  "server": 9,
+  "scope": "user",
+  "auth_type": "oauth2",
+  "user": "alice",
+  "connected_service": 77
+}
+```
+
+**Mentor scope** — bind credentials to a single mentor while keeping the
+server reusable:
+
+```json
+{
+  "server": 9,
+  "scope": "mentor",
+  "auth_type": "token",
+  "mentor": 123,
+  "credentials": "Token scoped-to-mentor",
+  "authorization_scheme": "Token"
+}
+```
+
+Returned credentials are **masked** (e.g. `"******90"`); only send a new
+value when the user intentionally rotates the secret.
+
+### 4. Assign servers to a mentor
+
+| Method | Path | Body |
+|---|---|---|
+| PUT | `mentors/{mentor}/settings/` | `{ "mcp_servers": [1, 2] }` |
+
+The `mcp_servers` array replaces the mentor's current list. Pass `null` to
+leave unchanged; `[]` clears all servers.
+
+### Resolution order at runtime
+
+1. User-scoped connection (matching invoking user)
+2. Mentor-scoped connection (matching active mentor)
+3. Platform-scoped connection
+4. Featured server fallback (`is_featured=true` global platform)
+
+### Common errors
+
+- `400 Selected MCP server is not available to the current tenant.` — the
+  server belongs to another tenant and is not `is_featured=true`.
+- `400 OAuth2 connections require a connected service.` — create the OAuth
+  connector first and pass `connected_service`.
+
+### UI hints by `auth_type`
+
+- `none`: informational only.
+- `token`: inputs for `credentials`, `authorization_scheme`, optional
+  header key–value pairs.
+- `oauth2`: `ConnectedService` picker filtered by provider/service. Hide
+  the Connect action until OAuth is completed, otherwise the API returns
+  `400`.

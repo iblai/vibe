@@ -211,6 +211,6 @@ Do NOT present work to the user with visible design problems.
 
 For writing custom authenticated journey tests, auth setup, and
 multi-browser patterns, see:
-https://github.com/iblai/iblai-app-cli/blob/main/skills/testing/iblai-add-test.md
+https://raw.githubusercontent.com/iblai/iblai-app-cli/refs/heads/main/skills/testing/iblai-add-test.md
 
-**Brand guidelines**: [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md)
+**Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

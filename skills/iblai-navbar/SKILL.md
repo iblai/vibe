@@ -29,7 +29,7 @@ When building custom UI around SDK components, use the ibl.ai brand:
   (`npx shadcn@latest add <component>`). Do NOT write custom components
   when an ibl.ai or shadcn equivalent exists. Both share the same
   Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://github.com/iblai/vibe/blob/main/BRAND.md) for
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
 The navbar MUST follow BRAND.md colors:
