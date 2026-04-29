@@ -193,7 +193,10 @@ unchanged; `[]` clears all tools.
 ```
 
 - `transport`: `sse` | `websocket` | `streamable_http`
-- `auth_type`: `none` | `token` | `oauth2`
+- `auth_type`: `none` | `token` | `oauth2` — *how* credentials are presented
+- `auth_scope`: `platform` (default) | `mentor` | `user` — *whose*
+  credentials are used. `auth_type=oauth2` + `auth_scope=user` triggers
+  the in-chat OAuth handshake (see In-Chat MCP Events below).
 - For `auth_type=token`, set `credentials` to the full header value
   (e.g. `"Bearer abc123"`).
 
@@ -280,3 +283,126 @@ leave unchanged; `[]` clears all servers.
 - `oauth2`: `ConnectedService` picker filtered by provider/service. Hide
   the Connect action until OAuth is completed, otherwise the API returns
   `400`.
+
+## OAuth Connectors REST API
+
+For OAuth-backed MCP servers (`auth_type=oauth2`), each user must grant
+permission once per provider/service before a connection can reference a
+`ConnectedService`. All endpoints are under `${dmUrl}/api/accounts/`. Auth:
+`Authorization: Token {token}`.
+
+### Endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `orgs/{org}/oauth-services/` | List enabled services across all providers |
+| GET | `orgs/{org}/oauth-services/{service_name}/scopes/` | Per-service scope breakdown |
+| GET | `connected-services/orgs/{org}/users/{user_id}/{provider}/{service}/` | Start flow — returns `{ auth_url }` |
+| GET | `connected-services/callback/?code=...&state=...` | Handle vendor redirect; persists `ConnectedService` |
+| GET | `connected-services/orgs/{org}/users/{user_id}/` | List the user's connected services |
+| DELETE | `connected-services/orgs/{org}/users/{user_id}/{id}/` | Revoke a connection |
+
+### Flow
+
+1. List services → discover what's available.
+2. Start flow → open returned `auth_url` in a new window/tab.
+3. Vendor redirects to the configured `redirect_uri`; relay
+   `code` + `state` to the callback endpoint **without modification**.
+4. Callback returns the persisted `ConnectedService` (id, provider, service,
+   `expires_at`, `scope`). Tokens auto-refresh server-side.
+
+### Prereqs (admin)
+
+Tenant admin must store `auth_{provider}` credentials with `client_id`,
+`client_secret`, and `redirect_uri` in the credential store. A start
+endpoint returning `400 "No credentials found"` means this is missing.
+
+### Common errors
+
+- `400 "No credentials found"` — admin must configure `auth_{provider}`.
+- `Invalid state` — start and callback ran in different browser contexts
+  or state expired (>60 min).
+- `Could not exchange auth token` — provider rejected the code; verify
+  `redirect_uri` matches.
+
+## In-Chat MCP Events (WebSocket / SSE)
+
+When `auth_type=oauth2` + `auth_scope=user` and no user-scoped
+`MCPServerConnection` exists, the chat consumer pauses the active session
+and emits events on the existing chat socket. Parse JSON, switch on
+`type`.
+
+### `oauth_required`
+
+Backend is about to call an MCP server with no user connection. Show
+`auth_url` to the user; the backend now polls every 10s.
+
+```json
+{
+  "type": "oauth_required",
+  "server_name": "Google Drive MCP",
+  "server_id": 42,
+  "auth_url": "https://accounts.google.com/o/oauth2/v2/auth?...",
+  "message": "Authentication required for MCP server '...'."
+}
+```
+
+UI: open `auth_url` in a popup/new tab (providers block framing). Show a
+"waiting" indicator. Do NOT close the chat socket — resolution arrives on
+the same connection.
+
+### `oauth_connection_resolved`
+
+Polling detected the new connection; chat resumes automatically.
+
+```json
+{ "type": "oauth_connection_resolved", "server_name": "...", "server_id": 42, "message": "..." }
+```
+
+UI: dismiss the prompt. Optionally toast success.
+
+### `mcp_tools_retrieved`
+
+A tool fetch failed but a retry succeeded (up to 3 retries with 1s/2s/4s
+backoff). Informational only.
+
+```json
+{ "type": "mcp_tools_retrieved", "session_id": "...", "mentor_id": "..." }
+```
+
+### `warning`
+
+Non-OAuth MCP failure (server unreachable, bad config, retries exhausted).
+Chat continues without MCP tools.
+
+```json
+{ "type": "warning", "message": "...", "developer_error": "...", "code": 503 }
+```
+
+UI: non-blocking banner using `message`. Log `developer_error` (do NOT
+show to end users).
+
+### `error` (ChatValidationError)
+
+Terminates the turn. Three MCP-related cases:
+
+1. **OAuth timeout** (no completion within `MCP_OAUTH_MAX_WAIT_SECONDS` =
+   300s).
+2. **OAuth URL build failure** (missing credentials, unknown provider).
+3. **Missing connected service** (oauth2 connection record without linked
+   `ConnectedService`).
+
+```json
+{ "error": "Timed out waiting for OAuth authentication...", "status_code": 400 }
+```
+
+UI: display `error` (already user-safe). Offer Retry. WebSocket transports
+close after this; if the user finishes OAuth after the timeout, their next
+message will succeed because the connection is now in place.
+
+### Timing constants
+
+| Constant | Value |
+|---|---|
+| `MCP_OAUTH_MAX_WAIT_SECONDS` | 300 (5 min) |
+| `MCP_OAUTH_POLL_INTERVAL_SECONDS` | 10 |
