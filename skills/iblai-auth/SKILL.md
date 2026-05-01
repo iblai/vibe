@@ -50,7 +50,7 @@ colors, typography, spacing, and component styles.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-## Ask first: start from vibe-starter?
+## Step 0: Start from vibe-starter? (new projects)
 
 Before running this skill, ask the user:
 
@@ -138,7 +138,7 @@ cd -
 If `iblai` is not found, ensure Python Scripts is in your PATH.
 Typically at `%APPDATA%\Python\Python311\Scripts\`.
 
-## Step 0: Check for CLI Updates
+## Check for CLI Updates
 
 Before running any `iblai` command, ensure the CLI is
 up to date. Run `iblai --version` to check the current version, then
