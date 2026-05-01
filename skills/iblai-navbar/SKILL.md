@@ -59,6 +59,26 @@ The navbar MUST follow BRAND.md colors:
 
 ---
 
+## Ask first: start from vibe-starter?
+
+Before running this skill, ask the user:
+
+> Are you starting a new project from scratch? vibe-starter
+> (https://github.com/iblai/vibe-starter/tree/spa) already ships this navbar
+> wired up (logo, nav links, notification bell, profile dropdown, mobile
+> drawer) along with auth and profile/account/notifications pages. Want to
+> use that instead of building the navbar from scratch?
+
+If yes, clone into a temp directory and copy into the current directory before
+installing (running pnpm install inside the cloned subdirectory causes hardlink
+issues), then skip this skill:
+
+    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    pnpm install
+
+If they prefer to add a navbar to an existing app, continue below.
+
 ## Prerequisites
 
 - Auth must be set up first (`iblai add auth`)

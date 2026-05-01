@@ -51,6 +51,25 @@ Use the ibl.ai logo instead.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
+## Ask first: start from vibe-starter?
+
+Before running this skill, ask the user:
+
+> Are you starting a new project from scratch? vibe-starter
+> (https://github.com/iblai/vibe-starter/tree/spa) already ships the profile
+> dropdown and /profile page wired up, alongside auth, navbar, and
+> account/notifications. Want to use that instead?
+
+If yes, clone into a temp directory and copy into the current directory before
+installing (running pnpm install inside the cloned subdirectory causes hardlink
+issues), then skip this skill:
+
+    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    pnpm install
+
+If they prefer to add the profile features to an existing app, continue below.
+
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
@@ -236,111 +255,34 @@ read will silently erase fields you didn't include in the payload.
 
 ```bash
 # 1. Read current state
-curl -s "{lmsUrl}/api/ibl/users/manage/metadata/?username=alice" \
-  -H "Authorization: Token {axd_token}" > profile.json
+curl -s "{dmUrl}/api/career/orgs/{org}/education/users/alice/" \
+  -H "Authorization: Token {dm_token}" > education.json
 
 # 2. Merge your changes into the existing data
 # 3. Write back the full object
-curl -X POST "{lmsUrl}/api/ibl/users/manage/metadata/?username=alice" \
-  -H "Authorization: Token {axd_token}" \
+curl -X PUT "{dmUrl}/api/career/orgs/{org}/education/users/alice/?id={education_id}" \
+  -H "Authorization: Token {dm_token}" \
   -H "Content-Type: application/json" \
-  -d @profile.json
+  -d @education.json
 ```
 
-This applies to all profile endpoints: metadata, social links, education,
-experience, and resume.
+This applies to all profile endpoints: education, experience, and resume.
 
-### Two Services
+### Service
 
-Profile data lives across two backend services:
+Profile data lives in the DM (data manager) service:
 
 | Service | Base URL | Auth Header | Manages |
 |---------|----------|-------------|---------|
-| **LMS** | `config.lmsUrl()` | `Authorization: Token {axd_token}` | Basic info, social links, profile image, password, account deletion |
 | **DM** | `config.dmUrl()` | `Authorization: Token {dm_token}` | Education, experience, companies, institutions, resume |
 
-### Basic Tab
+### Basic, Social, and Profile Image
 
-Reads and updates the user's core profile: full name, email, title,
-about/bio, language preference, and display toggles.
-
-```
-GET  {lmsUrl}/api/ibl/users/manage/metadata/?username={username}
-POST {lmsUrl}/api/ibl/users/manage/metadata/?username={username}
-```
-
-**Read response fields:**
-```typescript
-{
-  fullName: string;
-  email: string;
-  username: string;
-  title: string;
-  about: string;       // bio/description
-  language: string;     // "en", "es", "fr"
-  enable_sidebar_ai_mentor_display: boolean;
-  enable_skills_leaderboard_display: boolean;
-}
-```
-
-**Update payload:**
-```typescript
-{
-  name: string;
-  username: string;
-  title: string;
-  about: string;
-  public_metadata: { language: string };
-  enable_sidebar_ai_mentor_display: boolean;
-  enable_skills_leaderboard_display: boolean;
-  email?: string;  // only include if changed
-}
-```
-
-**Profile image:**
-```
-POST {lmsUrl}/api/user/v1/accounts/{username}/image   // upload (FormData with file)
-GET  {lmsUrl}/api/user/v1/accounts/{username}          // read (returns profile_image.image_url_full)
-POST {lmsUrl}/api/profile_images/v1/{username}/remove  // remove
-```
-
-### Social Tab
-
-Reads and updates social media links (Facebook, LinkedIn, X/Twitter).
-
-Uses the same endpoint as Basic:
-```
-GET  {lmsUrl}/api/ibl/users/manage/metadata/?username={username}
-POST {lmsUrl}/api/ibl/users/manage/metadata/?username={username}
-```
-
-**Social links in response:**
-```typescript
-{
-  social_links: [
-    { platform: "facebook", social_link: "https://facebook.com/username" },
-    { platform: "twitter", social_link: "https://x.com/username" },  // stored as "twitter"
-    { platform: "linkedin", social_link: "https://linkedin.com/in/username" }
-  ]
-}
-```
-
-**Update payload:**
-```typescript
-{
-  social_links: [
-    { platform: "facebook", social_link: string },
-    { platform: "twitter", social_link: string },
-    { platform: "linkedin", social_link: string }
-  ],
-  username: string
-}
-```
-
-**Validation rules:**
-- Facebook: `https://facebook.com/` prefix, letters/numbers/hyphens/periods only
-- LinkedIn: `https://linkedin.com/in/` prefix, min 5 chars, letters/numbers/periods
-- X/Twitter: `https://x.com/` prefix, 4-15 chars, letters/numbers/underscores
+Basic info (name, email, title, bio, language), social links, profile
+image, and password reset are user-scope and not exposed via the
+platform Api-Token. Use the SDK `Profile` component, which handles
+these via the user's session — no direct REST endpoints are documented
+here.
 
 ### Education Tab
 
@@ -454,15 +396,15 @@ additional_files: File  // general file upload (not CV)
 
 ### Security Tab
 
-Password reset and account deletion.
+Account deletion.
 
 ```
-POST {lmsUrl}/account/password              // sends reset email
 POST {dmUrl}/api/core/users/delete/          // account deletion (self-retire)
 ```
 
-Password reset sends an email to the user's registered address.
-Account deletion payload: `{ username: string }`.
+Account deletion payload: `{ username: string }`. Password reset is
+user-scope and runs through the SDK / Auth SPA, not via the platform
+Api-Token.
 
 ### RTK Query Hooks (SDK Exports)
 
