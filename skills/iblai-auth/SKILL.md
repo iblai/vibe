@@ -50,6 +50,26 @@ colors, typography, spacing, and component styles.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
+## Ask first: start from vibe-starter?
+
+Before running this skill, ask the user:
+
+> Are you starting a new project from scratch? If so, vibe-starter
+> (https://github.com/iblai/vibe-starter/tree/spa) is a pre-wired Next.js 16 +
+> Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
+> and profile/account/notifications pages already in place. Want to use that
+> instead?
+
+If yes, clone into a temp directory and copy into the current directory before
+installing (running pnpm install inside the cloned subdirectory causes hardlink
+issues):
+
+    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    pnpm install
+
+If they prefer to wire auth into an existing app, continue below.
+
 ## Prerequisites
 
  **Already have auth?** If you used `iblai startapp agent`, auth is already

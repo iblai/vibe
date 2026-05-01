@@ -47,6 +47,25 @@ not in a subdirectory.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
+## Ask first: start from vibe-starter?
+
+Before running this skill, ask the user:
+
+> Are you starting a new project from scratch? vibe-starter
+> (https://github.com/iblai/vibe-starter/tree/spa) already ships the /account
+> page wired up, alongside auth, navbar, and profile/notifications. Want to
+> use that instead?
+
+If yes, clone into a temp directory and copy into the current directory before
+installing (running pnpm install inside the cloned subdirectory causes hardlink
+issues), then skip this skill:
+
+    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    pnpm install
+
+If they prefer to add the account page to an existing app, continue below.
+
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)

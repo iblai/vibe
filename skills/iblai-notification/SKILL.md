@@ -21,6 +21,25 @@ Follow the component hierarchy: use ibl.ai SDK components
 > **Navbar:** If the user wants a navbar with the bell, send them to
 > `/iblai-navbar` first.
 
+## Ask first: start from vibe-starter?
+
+Before running this skill, ask the user:
+
+> Are you starting a new project from scratch? vibe-starter
+> (https://github.com/iblai/vibe-starter/tree/spa) already ships the
+> notification bell and /notifications page wired up, alongside auth, navbar,
+> and profile/account. Want to use that instead?
+
+If yes, clone into a temp directory and copy into the current directory before
+installing (running pnpm install inside the cloned subdirectory causes hardlink
+issues), then skip this skill:
+
+    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    pnpm install
+
+If they prefer to add notifications to an existing app, continue below.
+
 ## Prerequisites
 
 - Auth set up (`/iblai-auth`)
