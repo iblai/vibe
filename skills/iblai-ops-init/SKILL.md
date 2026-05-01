@@ -69,6 +69,37 @@ pnpm install
 installing -- running `pnpm install` inside the cloned subdirectory causes
 hardlink issues.)
 
+### Ask for platform credentials and write env files
+
+After the clone completes, ask the user for their ibl.ai platform credentials
+**unless `iblai.env` already exists with real values for both `PLATFORM` and
+`TOKEN`** (in which case skip these prompts and reuse them).
+
+> What is your ibl.ai **PLATFORM** (tenant key)?
+
+> What is your ibl.ai **TOKEN** (platform API key)?
+
+Then write the values to both files:
+
+1. **`iblai.env`** -- create if missing, or update the `PLATFORM` and `TOKEN`
+   lines in place. Keep `DOMAIN=iblai.app` (or whatever the user already
+   set). Example contents:
+
+   ```
+   DOMAIN=iblai.app
+   PLATFORM=<the value the user gave>
+   TOKEN=<the value the user gave>
+   ```
+
+2. **`.env.local`** -- set `NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>`. The
+   easiest way is to run `iblai add auth` (or `iblai config set
+   NEXT_PUBLIC_MAIN_TENANT_KEY <PLATFORM>`), which reads `iblai.env` and
+   writes the derived `NEXT_PUBLIC_*` env vars into `.env.local` for you.
+   If `.env.local` does not exist yet and the starter ships an
+   `.env.example`, copy it first: `cp .env.example .env.local`.
+
+Do NOT print or echo the `TOKEN` value back to the user once captured.
+
 After the starter is in place, the user's project already has auth, navbar,
 profile, account, and notifications wired. They can skip the matching
 `/iblai-auth`, `/iblai-navbar`, `/iblai-profile`, `/iblai-account`, and
