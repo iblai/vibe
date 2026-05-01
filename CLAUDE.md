@@ -254,6 +254,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notification` | Add notification bell + center page |
+| `/iblai-credit` | Add the credit balance widget (plan badge, credits, auto-recharge, upgrade) |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |

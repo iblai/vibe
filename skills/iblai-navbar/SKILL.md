@@ -95,7 +95,8 @@ Every navbar includes all of the following — no choices, no skipping:
 - Profile (`/profile`)
 - Account (`/account`)
 
-**Right side:**
+**Right side (left → right):**
+- Credit balance widget (plan-aware dropdown with credits, auto-recharge, upgrade)
 - Notification bell (links to `/notifications`)
 - Profile dropdown (with Profile and Account links)
 
@@ -109,6 +110,7 @@ components/
     nav-bar.tsx              # Main navbar component
     navigation-drawer.tsx    # Mobile slide-out drawer (shadcn Sheet)
     logo.tsx                 # ibl.ai logo
+    credit-balance-widget.tsx # Plan-aware credit balance dropdown
     user-profile-button.tsx  # Profile dropdown wrapper
 app/
   (app)/
@@ -162,7 +164,72 @@ it locally from `public/images/`, never from an external URL.
 
 ---
 
-## Step 2 — User profile button
+## Step 2 — Credit balance widget
+
+Create `components/navbar/credit-balance-widget.tsx`. This wraps the SDK's
+`CreditBalance` (from `@iblai/iblai-js` >= 1.6.0). It is gated by the
+active tenant's `show_paywall` flag — when that flag is falsy, the widget
+renders nothing.
+
+```tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { CreditBalance } from '@iblai/iblai-js/web-containers';
+import config from '@/lib/iblai/config';
+import { resolveAppTenant } from '@/lib/iblai/tenant';
+
+export function CreditBalanceWidget() {
+  const [tenant, setTenant] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [enabled, setEnabled] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState('');
+
+  useEffect(() => {
+    setTenant(resolveAppTenant());
+
+    try {
+      const raw = localStorage.getItem('userData');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUsername(parsed.user_nicename ?? parsed.username ?? '');
+        setEmail(parsed.email ?? parsed.user_email ?? '');
+      }
+    } catch {}
+
+    try {
+      const raw = localStorage.getItem('current_tenant');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setEnabled(Boolean(parsed?.show_paywall));
+      }
+    } catch {}
+
+    setRedirectUrl(window.location.href);
+  }, []);
+
+  if (!tenant || !username) return null;
+
+  return (
+    <CreditBalance
+      tenant={tenant}
+      username={username}
+      mainPlatformKey={config.mainTenantKey()}
+      currentUserEmail={email}
+      redirectUrl={redirectUrl}
+      enabled={enabled}
+    />
+  );
+}
+```
+
+For the full props reference, panel behavior, and Playwright helpers,
+see `/iblai-credit`.
+
+---
+
+## Step 3 — User profile button
 
 Create `components/navbar/user-profile-button.tsx`. This wraps the SDK's
 `UserProfileDropdown`:
@@ -228,7 +295,7 @@ export function UserProfileButton({
 
 ---
 
-## Step 3 — Navigation drawer (mobile)
+## Step 4 — Navigation drawer (mobile)
 
 Use shadcn `Sheet` with `side="left"` for the mobile drawer. Note: shadcn
 Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild` prop is NOT
@@ -311,7 +378,7 @@ export function NavigationDrawer({
 
 ---
 
-## Step 4 — Main navbar
+## Step 5 — Main navbar
 
 Create `components/navbar/nav-bar.tsx`:
 
@@ -321,6 +388,7 @@ Create `components/navbar/nav-bar.tsx`:
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { Logo } from './logo';
+import { CreditBalanceWidget } from './credit-balance-widget';
 import { UserProfileButton } from './user-profile-button';
 import { NotificationDropdown } from '@iblai/iblai-js/web-containers';
 import { useCallback } from 'react';
@@ -349,6 +417,7 @@ interface NavBarProps {
   onTenantUpdate?: (tenant: any) => void;
   onAccountDeleted?: () => void;
   // Feature flags
+  showCreditBalance?: boolean;
   showNotifications?: boolean;
   showProfileDropdown?: boolean;
 }
@@ -366,6 +435,7 @@ export function NavBar({
   onTenantChange,
   onTenantUpdate,
   onAccountDeleted,
+  showCreditBalance = true,
   showNotifications = true,
   showProfileDropdown = true,
 }: NavBarProps) {
@@ -413,8 +483,10 @@ export function NavBar({
           </nav>
         </div>
 
-        {/* Right: notifications + profile */}
+        {/* Right: credit balance + notifications + profile */}
         <div className="flex items-center space-x-4">
+          {showCreditBalance && <CreditBalanceWidget />}
+
           {showNotifications && (
             <NotificationDropdown
               org={tenantKey}
@@ -449,7 +521,7 @@ export function NavBar({
 
 ---
 
-## Step 5 — Profile page
+## Step 6 — Profile page
 
 Create `app/(app)/profile/page.tsx`.
 
@@ -530,7 +602,7 @@ export default function ProfilePage() {
 
 ---
 
-## Step 6 — Account page
+## Step 7 — Account page
 
 Create `app/(app)/account/page.tsx`.
 
@@ -618,7 +690,7 @@ export default function AccountPage() {
 
 ---
 
-## Step 7 — Notifications page
+## Step 8 — Notifications page
 
 Create `app/(app)/notifications/[[...id]]/page.tsx`.
 
@@ -697,7 +769,7 @@ export default function NotificationsPage() {
 
 ---
 
-## Step 8 — Wire into app layout
+## Step 9 — Wire into app layout
 
 In your root layout or app layout component, render the navbar for all
 authenticated pages:
@@ -755,7 +827,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 ---
 
-## Step 9 — CSS variables
+## Step 10 — CSS variables
 
 The navbar uses CSS custom properties for theming. Add these to your
 `globals.css` (or they'll fall back to defaults):
@@ -813,3 +885,5 @@ these pages, see:
 - `/iblai-account` — `Account` props, tab visibility, billing integration
 - `/iblai-notification` — `NotificationDisplay`, `NotificationDropdown` props,
   admin vs user roles
+- `/iblai-credit` — `CreditBalance` props, plan-aware action buttons,
+  paywall gating, Playwright helpers
