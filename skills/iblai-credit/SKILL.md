@@ -5,6 +5,8 @@ widget shows the user's remaining credits, current plan, and exposes the
 upgrade / add-credits / manage-billing flows. It uses Stripe under the
 hood and is rendered by the SDK — do not build a custom version.
 
+![Credit Balance](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-credit/credit-balance.png)
+
 Do NOT add custom styles, colors, or CSS overrides to the
 `<CreditBalance>` component. It ships with its own styling, including
 the trigger icon, the dropdown panel, and the upgrade/add-credits
