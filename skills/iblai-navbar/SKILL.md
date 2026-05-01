@@ -59,7 +59,7 @@ The navbar MUST follow BRAND.md colors:
 
 ---
 
-## Ask first: start from vibe-starter?
+## Step 0: Start from vibe-starter? (new projects)
 
 Before running this skill, ask the user:
 

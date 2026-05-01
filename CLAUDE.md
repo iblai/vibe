@@ -38,6 +38,32 @@ installation options (npx or build from source).
 The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
 only to override or when `iblai.env` is not set up.
 
+> **AI Assistant:** When the user says "start a new project", "new app",
+> "scaffold an app", or anything that creates a fresh codebase, **default
+> to vibe-starter** (the option below). Only fall back to the vanilla
+> Next.js or `iblai startapp agent` paths if the user explicitly declines
+> the starter or asks for a minimal/custom setup.
+
+### vibe-starter (recommended for new projects)
+
+Pre-wired Next.js 16 + Tailwind v4 + shadcn/ui template with ibl.ai SSO
+auth, a responsive navbar, and profile/account/notifications pages
+already in place. Skips the manual `/iblai-auth`, `/iblai-navbar`,
+`/iblai-profile`, `/iblai-account`, and `/iblai-notification` skills.
+
+Clone into a temp directory and copy into the current directory before
+installing (running `pnpm install` inside the cloned subdirectory causes
+hardlink issues):
+
+```bash
+git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+pnpm install
+```
+
+Then fill in `iblai.env` with `PLATFORM` and `TOKEN` and re-run
+`iblai add auth` so the tenant key is written into `.env.local`.
+
 ### Vanilla Next.js + ibl.ai Features
 
 ```bash

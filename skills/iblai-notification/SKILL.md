@@ -21,7 +21,7 @@ Follow the component hierarchy: use ibl.ai SDK components
 > **Navbar:** If the user wants a navbar with the bell, send them to
 > `/iblai-navbar` first.
 
-## Ask first: start from vibe-starter?
+## Step 0: Start from vibe-starter? (new projects)
 
 Before running this skill, ask the user:
 

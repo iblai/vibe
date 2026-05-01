@@ -1,23 +1,83 @@
 ---
 name: iblai-ops-init
-description: Update the project CLAUDE.md with ibl.ai platform guidance
+description: Start a new ibl.ai project (default: clone vibe-starter) and write the project CLAUDE.md with ibl.ai platform guidance. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project.
 globs:
 alwaysApply: false
 ---
 
 # /iblai-ops-init
 
-Update or create a `CLAUDE.md` in the user's current working directory with
-ibl.ai platform guidance. This file tells Claude Code how to work with the
-project -- which components to use, how to add features, and what patterns
-to follow.
+Bootstrap a new ibl.ai project (defaults to cloning vibe-starter) and write
+or update the project's `CLAUDE.md` with ibl.ai platform guidance. The
+CLAUDE.md tells Claude Code how to work with the project -- which components
+to use, how to add features, and what patterns to follow.
 
 ## What This Skill Does
 
-1. Check if `CLAUDE.md` already exists in the project root
-2. If it exists, **merge** the ibl.ai section into it (do not overwrite
+1. **If the working directory is empty / a brand-new project:** clone
+   vibe-starter (Step 0) before doing anything else
+2. Check if `CLAUDE.md` already exists in the project root
+3. If it exists, **merge** the ibl.ai section into it (do not overwrite
    existing content)
-3. If it does not exist, **create** it with the full ibl.ai guidance below
+4. If it does not exist, **create** it with the full ibl.ai guidance below
+
+## Step 0: Offer vibe-starter (new projects)
+
+If the user is starting a new project from scratch (empty directory, no
+`package.json`, or they said "new project" / "scaffold" / "new app"),
+**ask whether they want to use vibe-starter** -- a pre-wired Next.js 16 +
+Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
+and profile/account/notifications pages already in place.
+
+### Check the opt-out flag first
+
+Before asking, check `iblai.env` for `USE_VIBE_STARTER`:
+
+```bash
+[ -f iblai.env ] && grep -E '^USE_VIBE_STARTER=' iblai.env
+```
+
+- If `iblai.env` exists **and** `USE_VIBE_STARTER` is set to a falsy value
+  (`false`, `0`, `no`, `off`, empty), **skip vibe-starter and skip the
+  question entirely** -- go straight to Step 1 to write CLAUDE.md, then
+  resume whatever the user originally asked for. Do NOT scaffold a vanilla
+  Next.js app.
+- Otherwise, ask the user.
+
+### Ask the user
+
+Ask a clear yes/no question:
+
+> Want to scaffold from **vibe-starter**? It's a pre-wired Next.js 16 +
+> Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive
+> navbar, and profile/account/notifications pages already wired up.
+
+- **If they say yes / use it / vibe-starter:** clone vibe-starter (below).
+- **If they say no / skip:** go straight to Step 1 to write CLAUDE.md,
+  then resume whatever the user originally asked for. Do NOT scaffold a
+  vanilla Next.js app or run `iblai startapp` -- the user said skip.
+
+### Clone vibe-starter (only if the user said yes)
+
+```bash
+git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+pnpm install
+```
+
+(Clone into a temp directory and copy into the current directory before
+installing -- running `pnpm install` inside the cloned subdirectory causes
+hardlink issues.)
+
+After the starter is in place, the user's project already has auth, navbar,
+profile, account, and notifications wired. They can skip the matching
+`/iblai-auth`, `/iblai-navbar`, `/iblai-profile`, `/iblai-account`, and
+`/iblai-notification` skills.
+
+**Skip the offer entirely if:**
+- `iblai.env` has `USE_VIBE_STARTER` set to a falsy value (see above)
+- The directory already has a `package.json` (existing project) -- in
+  that case go straight to Step 1
 
 ## Step 1: Check for Existing CLAUDE.md
 
@@ -40,6 +100,33 @@ that already has a top-level `#` heading).
 # CLAUDE.md
 
 This project is built on the ibl.ai platform using the `@iblai/iblai-js` SDK.
+
+## Starter Template
+
+When the user says "start a new project", "new app",
+"scaffold an app", or anything that creates a fresh codebase, **default
+to vibe-starter** below. Only fall back to vanilla Next.js + `iblai add`
+or `iblai startapp agent` if the user explicitly declines the starter or
+asks for a minimal/custom setup.
+
+For brand-new projects, prefer cloning vibe-starter
+(https://github.com/iblai/vibe-starter/tree/spa) -- a pre-wired Next.js 16 +
+Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
+and profile/account/notifications pages already in place. This skips the
+manual `/iblai-auth`, `/iblai-navbar`, `/iblai-profile`, `/iblai-account`,
+and `/iblai-notification` skills.
+
+Clone into a temp directory and copy into the current directory before
+installing (running `pnpm install` inside the cloned subdirectory causes
+hardlink issues):
+
+```bash
+git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+pnpm install
+```
+
+For existing projects, ignore this and use the individual skills below.
 
 ## Component Priority
 
@@ -166,7 +253,7 @@ After writing the CLAUDE.md, use the AskUserQuestion tool to ask:
 If the user selects Yes, run the following command (do not print it):
 
 ```bash
-npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/anthropics/skills --skill frontend-design --yes
 ```
 
 ## Step 4: Confirm
