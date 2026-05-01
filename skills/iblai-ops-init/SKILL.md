@@ -91,14 +91,20 @@ Then write the values to both files:
    TOKEN=<the value the user gave>
    ```
 
-2. **`.env.local`** -- set `NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>`. The
-   easiest way is to run `iblai add auth` (or `iblai config set
-   NEXT_PUBLIC_MAIN_TENANT_KEY <PLATFORM>`), which reads `iblai.env` and
-   writes the derived `NEXT_PUBLIC_*` env vars into `.env.local` for you.
-   If `.env.local` does not exist yet and the starter ships an
-   `.env.example`, copy it first: `cp .env.example .env.local`.
+2. **`.env.local`** -- write directly. Do NOT run `iblai add auth`,
+   `iblai config set`, or any other `iblai` CLI command -- the starter
+   already has everything wired and re-running the CLI can clobber the
+   starter's files. If `.env.local` does not exist yet and the starter
+   ships an `.env.example`, copy it first (`cp .env.example .env.local`),
+   then update or append both lines (write `TOKEN` as `IBLAI_API_KEY`):
 
-Do NOT print or echo the `TOKEN` value back to the user once captured.
+   ```
+   NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>
+   IBLAI_API_KEY=<TOKEN>
+   ```
+
+Do NOT print or echo the `TOKEN` / `IBLAI_API_KEY` value back to the user
+once captured.
 
 After the starter is in place, the user's project already has auth, navbar,
 profile, account, and notifications wired. They can skip the matching
