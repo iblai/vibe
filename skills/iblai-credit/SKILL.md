@@ -1,223 +1,252 @@
----
-name: iblai-credit
-description: Add a credit balance widget (plan badge, credits, auto-recharge, upgrade) to your Next.js app
-globs:
-alwaysApply: false
----
-
 # /iblai-credit
 
-Add the SDK `CreditBalance` widget — a navbar dropdown that shows the
-user's current plan (Free / Trial / Premium), remaining and consumed
-credits, the next reset date, the auto-recharge configuration, and a
-plan-aware action button (Upgrade Plan / Manage Usage + Add Credits /
-Manage Billing).
+Add the ibl.ai credit balance widget to your app's top navigation. The
+widget shows the user's remaining credits, current plan, and exposes the
+upgrade / add-credits / manage-billing flows. It uses Stripe under the
+hood and is rendered by the SDK — do not build a custom version.
 
-The widget is shipped by `@iblai/iblai-js` (SDK 1.6.0+) from
-`@iblai/iblai-js/web-containers`. It is rendered as an icon button with
-an unread/low-credits status dot and a dropdown panel on click.
+Do NOT add custom styles, colors, or CSS overrides to the
+`<CreditBalance>` component. It ships with its own styling, including
+the trigger icon, the dropdown panel, and the upgrade/add-credits
+buttons. Wrapping it, restyling it, or swapping the icon will break the
+upgrade flow and visual consistency across ibl.ai apps.
 
-Do NOT add custom styles to the SDK component — it ships with its own
-styling. Do NOT implement dark mode unless asked.
+The widget MUST follow the canonical integration:
 
-Follow the component hierarchy: use ibl.ai SDK components
-(`@iblai/iblai-js`) first, then shadcn/ui (`npx shadcn@latest add <name>`).
+- **Import path**: `@iblai/iblai-js/web-containers` (the
+  framework-agnostic bundle — NOT `/next`, NOT `/sso`)
+- **`redirectUrl`**: `window.location.origin` (the Stripe checkout return
+  URL — origin only, never `.href` or a path)
+- **`enabled`**: explicit `true`
+- **No `className`**: do not pass a `className` prop unless you have a
+  layout reason. Never use it to swap the icon, change colors, or
+  override the size
 
-> **Navbar:** The navbar created by `/iblai-navbar` already wires this
-> widget in by default between the notification bell and the profile
-> dropdown. Use this skill if you are adding the widget to a custom
-> layout, or want to render it outside the navbar.
+---
 
-## Step 0: Start from vibe-starter? (new projects)
+## Visual spec
 
-Before running this skill, ask the user:
+| Property | Value |
+|---|---|
+| Trigger | Icon-only button (Lucide `CreditCard`) provided by the SDK |
+| Trigger size | `h-5 w-5` icon inside a `ghost` icon button |
+| Status dot | Small colored dot in the top-right of the trigger when balance is low |
+| Panel width | `w-[320px]` dropdown |
+| Position in navbar | Right side, between the page links and the notification bell |
 
-> Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe-starter/tree/spa) already ships the
-> credit balance widget wired into the navbar, alongside auth, profile,
-> account, and notifications. Want to use that instead?
-
-If yes, clone into a temp directory and copy into the current directory before
-installing (running pnpm install inside the cloned subdirectory causes hardlink
-issues), then skip this skill:
-
-    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-    pnpm install
-
-If they prefer to add the widget to an existing app, continue below.
+---
 
 ## Prerequisites
 
-- Auth set up (`/iblai-auth`)
-- `@iblai/iblai-js` >= 1.6.0
-- `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing,
-  tell the user to download the template:
-  `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
+- Auth must be set up first (`iblai add auth`)
+- Navbar must be in place (`/iblai-navbar`)
+- `@iblai/iblai-js` SDK installed
+- Tailwind v4 with the SDK `@source` directives configured (see
+  Step 1 below)
+- The tenant must have paywall enabled (`currentTenant.show_paywall === true`).
+  The widget is a no-op for tenants that don't sell credits.
 
-## Tenant gate
+## What this skill creates
 
-The widget is intended to be visible only when the active tenant has
-`show_paywall = true`. Read `current_tenant` from localStorage and pass
-`enabled={Boolean(current_tenant.show_paywall)}` so the widget renders
-nothing on tenants where billing is disabled. The widget also returns
-`null` when `tenant` is empty.
+This skill does not generate any new files — it wires
+`<CreditBalance>` from the SDK into the existing navbar. It adds:
 
-## Component
+- A `<CreditBalance>` element inside the navbar's right-side cluster
+- The required `@source` directives in `iblai-styles.css` so Tailwind
+  generates the SDK's internal classes (the trigger icon depends on
+  this — without it, the icon may render at the wrong size)
+- The visibility gate so the widget only renders for users who can act
+  on it (admins or trial users, on a paywall-enabled tenant)
 
-Use MCP for full props and behaviour:
+---
 
+## Step 1 — Confirm Tailwind scans both SDK source folders
+
+The `<CreditBalance>` icon and panel use Tailwind utility classes
+authored inside the SDK's compiled JS. Tailwind v4 will not generate
+those classes unless the SDK's `source/` directories are listed as
+`@source`.
+
+Open `app/iblai-styles.css` (or `app/globals.css` if styles live there)
+and ensure BOTH directives are present:
+
+```css
+@source "../lib/iblai/sdk/web-containers/source";
+@source "../lib/iblai/sdk/web-containers/source/next";
 ```
-get_component_info("CreditBalance")
+
+If you are scanning `node_modules` directly instead of the `lib/iblai/sdk`
+symlink, the equivalent is:
+
+```css
+@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
+@source "../node_modules/@iblai/iblai-js/dist/web-containers/source/next";
 ```
 
-### `<CreditBalance>` — navbar credit balance dropdown
+Both lines are required. The `source/next` path covers the next-bundle
+classes; the SDK's icon and dropdown rely on classes from across the
+whole bundle. If only one is scanned, the credit icon may render at an
+unexpected size or without its layout utilities.
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `tenant` | `string` | yes | Active tenant/platform key |
-| `username` | `string` | yes | Current username |
-| `mainPlatformKey` | `string` | yes | Main IBL platform key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) — used by the upgrade flow |
-| `currentUserEmail` | `string` | yes | Current user's email — prefilled in Stripe checkout |
-| `redirectUrl` | `string` | yes | `success_url` returned to after Stripe checkout — typically `window.location.href` |
-| `enabled` | `boolean` | no | Default `true`. Pass `current_tenant.show_paywall` to gate visibility |
-| `className` | `string` | no | Extra classes applied to the trigger button |
+After editing, restart the dev server. Verify the build picks up the
+classes:
 
-Action button rules (driven by `useGetAccountBillingInfoQuery`):
+```bash
+rm -rf .next && pnpm build
+grep -oE 'h-5\\!|w-5\\!' .next/static/chunks/*.css | head
+```
 
-- **Free** (or `free_trial`): single **Upgrade Plan** button — calls
-  `useStripeUpgrade.handleUpgrade('premium')`
-- **Premium with payment method**: **Manage Usage** + **Add Credits**
-  buttons (open `AutoRechargeModal` and `AddCreditsModal`)
-- **Premium without payment method**: single **Manage Billing** button —
-  opens the Stripe customer portal in `payment_method_update` flow
+You should see `h-5\!` and `w-5\!` in the generated CSS.
 
-The Auto Recharge section only renders when there is a payment method
-on file AND plan is not Free. Status dot on the trigger turns amber at
-`balance <= 10` ("low") and red at `balance <= 1` ("critical"); hidden
-when "healthy".
+---
 
-## Reference implementation
+## Step 2 — Import the component
 
-Drop this client component anywhere in your layout (e.g. inside the
-navbar between the notification bell and the profile dropdown):
+Inside your navbar component (`components/navbar/nav-bar.tsx` or
+equivalent), import `CreditBalance` from the framework-agnostic bundle:
 
 ```tsx
-// components/navbar/credit-balance-widget.tsx
-'use client';
-
-import { useEffect, useState } from 'react';
-import { CreditBalance } from '@iblai/iblai-js/web-containers';
-import config from '@/lib/iblai/config';
-import { resolveAppTenant } from '@/lib/iblai/tenant';
-
-export function CreditBalanceWidget() {
-  const [tenant, setTenant] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [enabled, setEnabled] = useState(false);
-  const [redirectUrl, setRedirectUrl] = useState('');
-
-  useEffect(() => {
-    setTenant(resolveAppTenant());
-
-    try {
-      const raw = localStorage.getItem('userData');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? '');
-        setEmail(parsed.email ?? parsed.user_email ?? '');
-      }
-    } catch {}
-
-    try {
-      const raw = localStorage.getItem('current_tenant');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setEnabled(Boolean(parsed?.show_paywall));
-      }
-    } catch {}
-
-    setRedirectUrl(window.location.href);
-  }, []);
-
-  if (!tenant || !username) return null;
-
-  return (
-    <CreditBalance
-      tenant={tenant}
-      username={username}
-      mainPlatformKey={config.mainTenantKey()}
-      currentUserEmail={email}
-      redirectUrl={redirectUrl}
-      enabled={enabled}
-    />
-  );
-}
+import {
+  CreditBalance,
+  NotificationDropdown,
+} from '@iblai/iblai-js/web-containers';
 ```
 
-Render it next to the rest of the navbar actions:
+Do NOT import from `@iblai/iblai-js/web-containers/next`. The credit
+component does not require Next.js primitives, and the `/next` bundle
+re-exports a smaller surface — keeping all SDK widgets on the same
+import path simplifies the component graph.
+
+---
+
+## Step 3 — Render the widget
+
+Place `<CreditBalance>` inside the navbar's right-side cluster, before
+the notification bell:
 
 ```tsx
-import { CreditBalanceWidget } from '@/components/navbar/credit-balance-widget';
-
 <div className="flex items-center space-x-4">
-  <CreditBalanceWidget />
-  {/* notification bell, profile dropdown, etc. */}
+  {showCreditBalance &&
+    currentTenant?.show_paywall &&
+    canViewCredits &&
+    isLoggedIn && (
+      <CreditBalance
+        tenant={tenantKey}
+        enabled={true}
+        redirectUrl={window.location.origin}
+        mainPlatformKey={config.mainTenantKey()}
+        currentUserEmail={email}
+        username={username}
+      />
+    )}
+
+  <NotificationDropdown
+    org={tenantKey}
+    userId={username ?? ''}
+    isAdmin={isAdmin}
+    onViewNotifications={handleViewNotifications}
+  />
+
+  {/* Profile dropdown last */}
 </div>
 ```
 
-## Test IDs
+### Required props
 
-Stable selectors for Playwright (also exposed via the helpers in
-`@iblai/iblai-js/playwright`):
+| Prop | Source | Notes |
+|---|---|---|
+| `tenant` | Resolved tenant key (e.g. from `resolveAppTenant()`) | The tenant the user is acting under — billing is per-tenant |
+| `enabled` | Always `true` | The component itself returns `null` if `enabled` is false; pass `true` so it renders when the gating below passes |
+| `redirectUrl` | `window.location.origin` | Stripe checkout returns to this URL after success/cancel. Always use `origin` (not `href` or a path) so refreshes from Stripe land on a stable route |
+| `mainPlatformKey` | `config.mainTenantKey()` | The platform key from `NEXT_PUBLIC_MAIN_TENANT_KEY` — used by the upgrade flow to attribute revenue to the correct platform |
+| `currentUserEmail` | From `userData` in localStorage (`user_email` / `email`) | Stripe Checkout pre-fills with this |
+| `username` | From `userData` (`user_nicename` / `username`) | Used for the Stripe customer portal `userId` |
 
-| Test ID | Purpose |
-|---|---|
-| `credit-balance-trigger` | The icon button in the nav |
-| `credit-balance-panel` | The dropdown content |
-| `credit-balance-plan-badge` | Plan pill ("Free" / "Trial" / "Premium") |
+### Optional props
 
-Action buttons inside the panel are located by accessible name
-(`getByRole('button', { name: /upgrade plan/i })`, etc.).
+| Prop | Default | Notes |
+|---|---|---|
+| `className` | (none) | Reserved for layout adjustments only. Do NOT use it to override the icon, colors, or sizing |
+| `enabled` | `true` | Pass `false` to programmatically hide the widget without unmounting it (rarely useful — prefer the gating below) |
 
-## Playwright helpers
+---
 
-The SDK exports a complete set of paywall helpers — guard tests on the
-tenant flag, open the dropdown idempotently, and assert plan-specific
-states:
+## Step 4 — Gating
 
-```ts
-import {
-  expectCreditBalanceVisibilityForTenant,
-  openCreditBalanceDropdown,
-  expectCreditBalancePanelForFreePlan,
-  expectCreditBalancePanelForTrialPlan,
-  expectCreditBalancePanelForPremiumPlan,
-  expectCreditBalanceForCurrentPlan,
-  getCreditBalancePlanLabel,
-  getCreditBalanceRemaining,
-} from '@iblai/iblai-js/playwright';
+The widget MUST only render when ALL of the following are true:
 
-test('credit balance reflects the active plan', async ({ page }) => {
-  const { shouldBeVisible } = await expectCreditBalanceVisibilityForTenant(page);
-  test.skip(!shouldBeVisible, 'show_paywall=false on this tenant');
-  await expectCreditBalanceForCurrentPlan(page, { hasPaymentMethod: true });
-});
-```
+1. **The tenant sells credits** — `currentTenant?.show_paywall === true`.
+   Tenants without paywall enabled return no billing info; rendering the
+   widget there shows a permanent error state.
+2. **The user can act on credits** — typically `isAdmin || userOnFreeTrial`.
+   Regular learners on a paid plan generally cannot top up the
+   organization's balance, so showing them the widget is misleading.
+   Substitute the equivalent check for your app's role model.
+3. **The user is logged in** — the widget hits authenticated billing
+   endpoints. Render only after auth has resolved (e.g. when
+   `tenantKey`, `username`, and `email` are all populated from
+   localStorage).
 
-See `PAYWALL_HELPERS.md` in the SDK for the full helper surface
-(BillingTab assertions, plan-specific dispatchers, click helpers).
+Pull these flags into the navbar component (or its parent layout) and
+combine them in the JSX guard shown in Step 3. Do not gate solely on
+`enabled` — the SDK's `enabled` prop hides the rendered output but does
+not skip the billing query, so a real visibility gate at the JSX level
+is required.
 
-## Important Notes
+---
 
-- **Import path**: `@iblai/iblai-js/web-containers` — the framework-agnostic
-  bundle, NOT `/next`.
-- **SDK version**: requires `@iblai/iblai-js` >= 1.6.0.
-- **Tenant gate**: always pass `enabled={Boolean(current_tenant.show_paywall)}`.
-  The widget should not appear on tenants where billing is disabled.
-- **Data dependencies**: `useGetAccountBillingInfoQuery`,
-  `useCreateStripeCustomerPortalMutation`, `useStripeUpgrade`. These all
-  require the data layer + auth providers from `iblai add auth`.
-- **Do NOT override styles**: the trigger uses its own status-dot logic
-  and the panel ships with the brand colors.
+## Step 5 — Verify
+
+Start the dev server, log in, and confirm:
+
+1. The credit-card trigger icon appears between the navigation links
+   and the notification bell on a paywall-enabled tenant.
+2. Clicking the trigger opens the dropdown panel showing remaining
+   credits, consumed credits, reset date (if applicable), and a
+   billing pill.
+3. On a Free plan, the panel shows an "Upgrade Plan" CTA. After
+   adding a payment method, the buttons switch to "Manage Usage" and
+   "Add Credits".
+4. Clicking the upgrade or manage-billing button redirects to Stripe
+   Checkout / the Stripe customer portal and returns to your app's
+   origin on completion.
+
+If the icon renders larger than `h-5 w-5` or without its border-radius,
+the SDK source folders are not being scanned — go back to Step 1.
+
+---
+
+## Common mistakes
+
+- **Wrong import path**: importing from `@iblai/iblai-js/web-containers/next`
+  works for some bundles but ties the credit widget to Next-specific
+  primitives unnecessarily. Use the plain `web-containers` path.
+- **`redirectUrl={window.location.href}`**: when Stripe Checkout
+  succeeds, it redirects back to this URL. Using `.href` re-opens
+  whatever modal or query state was active when the upgrade started,
+  which can re-trigger the upgrade flow. Always use `.origin`.
+- **Missing `@source "../.../source/next"`**: the most common cause of
+  "the icon looks wrong" — Tailwind isn't generating the SDK's classes
+  because only one of the two source paths is scanned.
+- **Adding a `className` to swap icons or colors**: don't. The component
+  is a contract; downstream apps depend on it being visually consistent.
+- **Rendering on tenants without paywall**: the panel will show
+  "Unable to load credit balance" indefinitely. Always gate on
+  `currentTenant?.show_paywall`.
+- **Rendering for non-admin / non-trial users**: they cannot top up
+  the org's balance, so the panel's actions are no-ops. Hide the
+  widget for them.
+
+---
+
+## SDK component reference
+
+For the full prop surface and the underlying billing data shape, see:
+
+- `CreditBalance` — `@iblai/iblai-js/web-containers`
+  - props: `tenant`, `username`, `mainPlatformKey`, `currentUserEmail`,
+    `redirectUrl`, `className?`, `enabled?`
+- Billing data is fetched via `useGetAccountBillingInfoQuery` from the
+  data layer — no manual data fetching is required
+- Stripe portal sessions are created via
+  `useCreateStripeCustomerPortalMutation`
