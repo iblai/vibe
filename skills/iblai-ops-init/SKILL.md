@@ -1,6 +1,6 @@
 ---
 name: iblai-ops-init
-description: Start a new ibl.ai project (default: clone vibe-starter) and write the project CLAUDE.md with ibl.ai platform guidance. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project.
+description: Start a new ibl.ai project by default, clone vibe-starter, and write the project CLAUDE.md with ibl.ai platform guidance. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project.
 globs:
 alwaysApply: false
 ---
