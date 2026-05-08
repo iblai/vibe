@@ -1,6 +1,6 @@
 ---
 name: iblai-readme
-description: Write or refresh the project's README.md in the standard ibl.ai format used by vibe-starter and other reference apps. Use this when the user says "write a README", "generate a README", "standardize the README", "update the README to the ibl.ai format", or asks to bootstrap project-level documentation. Also use to refresh a stale README in an existing ibl.ai project.
+description: Write or refresh the README.md 
 globs:
 alwaysApply: false
 ---
