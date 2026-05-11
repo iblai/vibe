@@ -27,7 +27,9 @@ Run the CLI command:
 iblai deploy vercel
 ```
 
-This single command handles the full flow:
+The CLI auto-detects the deploy mode from `next.config` and adapts:
+
+**Static mode** — when `next.config` sets `output: 'export'` (Tauri shells, fully-prerendered apps):
 
 1. Builds the frontend (`pnpm build`)
 2. Writes `out/vercel.json` with `cleanUrls` + SPA rewrite
@@ -35,6 +37,22 @@ This single command handles the full flow:
 4. Disables Vercel authentication and password protection
 5. Updates `src-tauri/tauri.conf.json` `devUrl` with the deployment URL (if Tauri is set up)
 6. Prints the deployment URL
+
+**Server mode** — when `output: 'export'` is **not** set (Next.js with server actions, dynamic routes, API routes, server-only env vars):
+
+1. Deploys the repo root to Vercel (`--prod`); Vercel runs the Next.js build remotely
+2. Disables Vercel authentication and password protection
+3. **Uploads env vars from `.env.local`** to the Vercel project for production + preview environments. `NEXT_PUBLIC_*` keys are stored as `plain`; everything else as `encrypted`. Reserved (`VERCEL_*`, `NODE_ENV`, `VERCEL_TOKEN`) and placeholder values (`your-...`, empty) are skipped automatically. Idempotent: existing keys are PATCHed, new keys are POSTed.
+4. **Rebuilds (no cache) if env vars changed** — `NEXT_PUBLIC_*` values are inlined into the client bundle at build time. The CLI reruns the deploy with `--force` and `VERCEL_FORCE_NO_BUILD_CACHE=1` in the environment after any create/update; without the no-cache hint, Vercel restores the previous build's compiled bundle and the new values never reach the client.
+5. Updates `src-tauri/tauri.conf.json` `devUrl` if Tauri is set up
+6. Prints the deployment URL
+
+Override detection if needed:
+
+```bash
+iblai deploy vercel --mode static   # force static
+iblai deploy vercel --mode server   # force server
+```
 
 ## When to Deploy
 

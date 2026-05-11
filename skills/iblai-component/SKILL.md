@@ -27,8 +27,83 @@ not in a subdirectory.
 When building a navbar or header, do NOT display the tenant/platform name.
 Use the ibl.ai logo instead.
 
-Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-colors, typography, spacing, and component styles.
+[BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
+is the **default** for colors, typography, spacing, and component styles —
+but if the project already has its own design system (downloaded from
+v0, a custom theme, a partner-branded shell, etc.), **follow that
+instead**. See "Detect Existing Design Style" below.
+
+## Detect Existing Design Style
+
+Before applying any of the layout / navbar / spacing patterns later in
+this skill, check whether the project already has a design system in
+place. If it does, **the project's tokens win** — don't override them
+with ibl.ai brand defaults.
+
+### Signals that a design system is already present
+
+| Signal | Where to look | What it means |
+|--------|---------------|----------------|
+| `components.json` exists with shadcn-style entries | repo root | Project uses shadcn/ui (often via v0). Match its `style` (e.g. `new-york`), `baseColor`, and `cssVariables` settings. |
+| `components/ui/` is populated | `components/ui/*.tsx` | shadcn primitives already installed. Reuse them; don't add raw HTML or a different UI lib for the same primitives. |
+| Custom CSS variables beyond shadcn defaults | `app/globals.css`, `styles/globals.css`, `app/(*)/layout.tsx` | E.g. `--primary`, `--accent`, `--brand-*`, `--surface-*`, custom radius / shadow tokens. These define the project palette — bind components to these vars, not to ibl.ai brand hex codes. |
+| `tailwind.config.{ts,mjs,js}` extends colors / fonts | repo root | `theme.extend.colors`, `theme.extend.fontFamily`, etc. carry intent. Match them. |
+| Tailwind v4 inline theme in CSS | `@theme { ... }` block in `globals.css` | Same as above for Tailwind v4. |
+| Custom font loaded via `next/font` | `app/layout.tsx` | Don't replace it. Wrap SDK components inside elements that inherit the font. |
+| Existing app shell components | `components/{navbar,sidebar,header,footer,app-shell}.tsx` | The project already has its layout. Plug SDK content INTO that shell, don't add a second navbar/sidebar. |
+| `BRAND.md` / `DESIGN.md` / `design-tokens.*` files | repo root, `docs/`, `lib/` | The project documents its own visual language. Read it before generating anything. |
+| Build output came from v0 | comments like `// v0 generated`, `from "v0"`, or `app/page.tsx` containing v0-style scaffolds | Treat the existing components as the source of truth for style. |
+
+### What "follow it" means concretely
+
+When the project has its own design system:
+
+1. **Use the project's CSS variables** for color, radius, shadow, and
+   spacing wherever you'd otherwise reach for an ibl.ai brand hex. If
+   the project defines `--primary`, bind to that — not `#0058cc`.
+2. **Reuse existing shadcn primitives** in `components/ui/`. Don't
+   install a duplicate (e.g. a second `<Button>` from a different
+   library) and don't restyle the existing one.
+3. **Plug SDK components into the existing shell**, don't replace it.
+   If the project has `components/navbar.tsx`, add the SDK
+   `<NotificationDropdown>` and `<UserProfileDropdown>` inside it;
+   don't write a new navbar.
+4. **Wrap SDK components in the project's card pattern**, not the
+   ibl.ai default white card. If the project uses
+   `bg-card border border-border rounded-xl` everywhere, mirror that
+   when wrapping `<Profile>`, `<Account>`, `<AnalyticsLayout>`, etc.
+5. **Match the project's container widths and spacing scale**. If
+   pages use `max-w-screen-xl mx-auto px-6`, don't introduce
+   `md:w-[75vw]`.
+6. **Don't add the ibl.ai logo** unless the project's navbar uses a
+   logo at all. If the project has a custom wordmark or no logo,
+   match it.
+7. **Don't override SDK component internals.** SDK components ship
+   their own styling — your job is to bind the *surrounding container*
+   to the project's tokens, not to restyle the SDK's internals.
+
+### When to fall back to the ibl.ai defaults below
+
+If you find none of the signals above, the project has no design
+system yet — use the patterns in **Layout & Page Patterns** as the
+starting point. Those defaults are derived from
+[`iblai/vibe-starter`](https://github.com/iblai/vibe-starter) and the
+reference apps in [`iblai/vibe`](https://github.com/iblai/vibe).
+
+### Tell the user what you detected
+
+Before generating, surface what you found in one line so the user can
+correct you:
+
+> Detected: shadcn-new-york + custom `--primary` (`oklch(0.55 0.18 250)`),
+> existing `components/navbar.tsx`. I'll bind SDK components to your
+> tokens and plug them into the existing navbar instead of creating a
+> new one.
+
+If you find nothing:
+
+> No existing design system detected. I'll use the ibl.ai defaults
+> from `BRAND.md`.
 
 ## Creating a New App
 
@@ -96,6 +171,11 @@ iblai startapp agent \
 | `iblai add builds` | Tauri v2 desktop/mobile shell | |
 
 ## Layout & Page Patterns
+
+> **Use these only when the project has no existing design system** (see
+> the detection step above). When the project already defines its own
+> tokens, navbar, page widths, or card styling, mirror those instead of
+> the patterns below.
 
 ### Page background
 
