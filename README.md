@@ -140,6 +140,42 @@ What each skill does:
 - `/iblai-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
 - `/iblai-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
 
+### Marketing Skills
+
+42 conversion, growth, and go-to-market skills covering CRO, copywriting,
+SEO, paid ads, lifecycle email, content, and analytics. Several reference
+zero-dependency Node CLIs under [`tools/clis/`](tools/clis/) — run them
+from this repo root (e.g. `node tools/clis/google-ads.js`).
+
+```text
+/iblai-marketing-ab-test-setup            /iblai-marketing-onboarding-cro
+/iblai-marketing-ad-creative              /iblai-marketing-page-cro
+/iblai-marketing-ai-seo                   /iblai-marketing-paid-ads
+/iblai-marketing-analytics-tracking       /iblai-marketing-paywall-upgrade-cro
+/iblai-marketing-aso-audit                /iblai-marketing-popup-cro
+/iblai-marketing-churn-prevention         /iblai-marketing-pricing-strategy
+/iblai-marketing-cold-email               /iblai-marketing-product-context
+/iblai-marketing-co-marketing             /iblai-marketing-programmatic-seo
+/iblai-marketing-community-marketing      /iblai-marketing-psychology
+/iblai-marketing-competitor-alternatives  /iblai-marketing-referral-program
+/iblai-marketing-competitor-profiling     /iblai-marketing-revops
+/iblai-marketing-content-strategy         /iblai-marketing-sales-enablement
+/iblai-marketing-copy-editing             /iblai-marketing-schema-markup
+/iblai-marketing-copywriting              /iblai-marketing-screenshot
+/iblai-marketing-customer-research        /iblai-marketing-seo-audit
+/iblai-marketing-directory-submissions    /iblai-marketing-signup-flow-cro
+/iblai-marketing-email-sequence           /iblai-marketing-site-architecture
+/iblai-marketing-form-cro                 /iblai-marketing-social-content
+/iblai-marketing-free-tool-strategy       /iblai-marketing-video
+/iblai-marketing-ideas                    /iblai-marketing-landing
+/iblai-marketing-image                    /iblai-marketing-launch-strategy
+/iblai-marketing-lead-magnets
+```
+
+Each skill's `SKILL.md` documents when to use it, what context to gather,
+and the output format. See [`CLAUDE.md`](CLAUDE.md#marketing-skills) for
+one-line descriptions.
+
 ## What You Get
 
 | Feature | Description |
