@@ -282,6 +282,59 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 
+### Marketing Skills
+
+Conversion, growth, and go-to-market skills (CRO, copywriting, SEO, paid
+ads, lifecycle email, content, analytics, etc.). Several reference
+zero-dependency Node CLIs under [`tools/clis/`](tools/clis/) — run them
+from the vibe repo root (e.g. `node tools/clis/google-ads.js`).
+
+| Skill | Description |
+|-------|-------------|
+| `/iblai-marketing-ab-test-setup` | Design, instrument, and analyse A/B / multivariate experiments |
+| `/iblai-marketing-ad-creative` | Brief, generate, and iterate on ad creative (static + video) |
+| `/iblai-marketing-ai-seo` | Rank in AI search engines (Perplexity, ChatGPT, Claude, Google AI Mode) |
+| `/iblai-marketing-analytics-tracking` | Plan + ship product/marketing analytics (events, dashboards, attribution) |
+| `/iblai-marketing-aso-audit` | App store optimisation audit (iOS / Android) |
+| `/iblai-marketing-churn-prevention` | Reduce churn via behavior triggers, win-back, save flows |
+| `/iblai-marketing-cold-email` | Cold outbound: targeting, sequences, deliverability |
+| `/iblai-marketing-co-marketing` | Run co-marketing partnerships and joint launches |
+| `/iblai-marketing-community-marketing` | Build and grow a marketing community |
+| `/iblai-marketing-competitor-alternatives` | Build "Alternatives to X" pages that win competitor demand |
+| `/iblai-marketing-competitor-profiling` | Deep competitor profile + positioning teardown |
+| `/iblai-marketing-content-strategy` | Site content strategy, pillars, briefs, and editorial workflow |
+| `/iblai-marketing-copy-editing` | Edit and tighten existing marketing copy |
+| `/iblai-marketing-copywriting` | Write conversion copy for any page (homepage, landing, pricing, …) |
+| `/iblai-marketing-customer-research` | Discover JTBD, voice-of-customer, win/loss insights |
+| `/iblai-marketing-directory-submissions` | Submit your product to directories and aggregators |
+| `/iblai-marketing-email-sequence` | Lifecycle email sequences (onboarding, nurture, re-engagement) |
+| `/iblai-marketing-form-cro` | Optimise form length, fields, errors, and conversion |
+| `/iblai-marketing-free-tool-strategy` | Design free tools as a top-of-funnel growth lever |
+| `/iblai-marketing-ideas` | Generate prioritised marketing experiment ideas |
+| `/iblai-marketing-image` | Generate or improve marketing images |
+| `/iblai-marketing-landing` | Build a high-converting landing page (12-section framework) |
+| `/iblai-marketing-launch-strategy` | Plan + execute a product launch (Product Hunt, HN, etc.) |
+| `/iblai-marketing-lead-magnets` | Design lead magnets that convert traffic into pipeline |
+| `/iblai-marketing-onboarding-cro` | Optimise onboarding flows for activation |
+| `/iblai-marketing-page-cro` | Audit + improve any landing/feature page conversion |
+| `/iblai-marketing-paid-ads` | Plan + run paid ads (Google, Meta, LinkedIn, Reddit) |
+| `/iblai-marketing-paywall-upgrade-cro` | Optimise paywall + upgrade-prompt conversion |
+| `/iblai-marketing-popup-cro` | Design effective popups (entry, exit, scroll, intent) |
+| `/iblai-marketing-pricing-strategy` | Set + iterate on pricing, packaging, monetisation |
+| `/iblai-marketing-product-context` | Build the product-marketing context doc agents reference |
+| `/iblai-marketing-programmatic-seo` | Programmatic SEO templates + landing pages at scale |
+| `/iblai-marketing-psychology` | Apply persuasion / behavioral-design principles |
+| `/iblai-marketing-referral-program` | Build a referral / affiliate program |
+| `/iblai-marketing-revops` | Stand up revenue ops: CRM hygiene, pipeline, attribution |
+| `/iblai-marketing-sales-enablement` | Sales decks, battlecards, objection handlers |
+| `/iblai-marketing-schema-markup` | Add structured data / schema.org markup |
+| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
+| `/iblai-marketing-seo-audit` | Audit on-page / technical / content SEO |
+| `/iblai-marketing-signup-flow-cro` | Optimise signup flow conversion |
+| `/iblai-marketing-site-architecture` | Plan information architecture + internal linking |
+| `/iblai-marketing-social-content` | Social content strategy + production (LinkedIn, X, etc.) |
+| `/iblai-marketing-video` | Plan + produce marketing video |
+
 
 ## Deployment
 
