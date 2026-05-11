@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-competitor-profiling
 description: "When the user wants to research, profile, or analyze competitors from their URLs. Also use when the user mentions 'competitor profile,' 'competitor research,' 'competitor analysis,' 'profile this competitor,' 'analyze competitor,' 'competitive intelligence,' 'competitor deep dive,' 'who are my competitors,' 'competitor landscape,' 'competitor dossier,' 'competitive audit,' or 'research these competitors.' Input is a list of competitor URLs. Output is structured competitor profile markdown files. For creating comparison/alternative pages from profiles, see iblai-marketing-competitor-alternatives. For sales-specific battle cards, see iblai-marketing-sales-enablement."
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -402,10 +404,10 @@ Only ask if not answered by context or input:
 
 ## Related Skills
 
-- **competitor-alternatives**: For creating comparison/alternative pages from these profiles
-- **customer-research**: For mining reviews and community sentiment in depth
-- **content-strategy**: For using competitor content gaps to plan your own content
-- **seo-audit**: For auditing your own site relative to competitors
-- **sales-enablement**: For turning profiles into battle cards and sales collateral
-- **paid-ads**: For analyzing competitor ad strategies
-- **pricing-strategy**: For deeper pricing analysis informed by competitor profiles
+- **iblai-marketing-competitor-alternatives**: For creating comparison/alternative pages from these profiles
+- **iblai-marketing-customer-research**: For mining reviews and community sentiment in depth
+- **iblai-marketing-content-strategy**: For using competitor content gaps to plan your own content
+- **iblai-marketing-seo-audit**: For auditing your own site relative to competitors
+- **iblai-marketing-sales-enablement**: For turning profiles into battle cards and sales collateral
+- **iblai-marketing-paid-ads**: For analyzing competitor ad strategies
+- **iblai-marketing-pricing-strategy**: For deeper pricing analysis informed by competitor profiles

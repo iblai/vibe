@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-cold-email
 description: Write B2B cold emails and follow-up sequences that get replies. Use when the user wants to write cold outreach emails, prospecting emails, cold email campaigns, sales development emails, or SDR emails. Also use when the user mentions "cold outreach," "prospecting email," "outbound email," "email to leads," "reach out to prospects," "sales email," "follow-up email sequence," "nobody's replying to my emails," or "how do I write a cold email." Covers subject lines, opening lines, body copy, CTAs, personalization, and multi-touch follow-up sequences. For warm/lifecycle email sequences, see iblai-marketing-email-sequence. For sales collateral beyond emails, see iblai-marketing-sales-enablement.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -151,8 +153,8 @@ Use this data to inform your writing — not as a checklist to satisfy.
 
 ## Related Skills
 
-- **copywriting**: For landing pages and web copy
-- **email-sequence**: For lifecycle/nurture email sequences (not cold outreach)
-- **social-content**: For LinkedIn and social posts
-- **product-marketing-context**: For establishing foundational positioning
-- **revops**: For lead scoring, routing, and pipeline management
+- **iblai-marketing-copywriting**: For landing pages and web copy
+- **iblai-marketing-email-sequence**: For lifecycle/nurture email sequences (not cold outreach)
+- **iblai-marketing-social-content**: For LinkedIn and social posts
+- **iblai-marketing-product-context**: For establishing foundational positioning
+- **iblai-marketing-revops**: For lead scoring, routing, and pipeline management

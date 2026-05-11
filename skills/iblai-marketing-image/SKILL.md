@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-image
 description: "When the user wants to create, generate, edit, or optimize images for marketing — blog heroes, social graphics, product mockups, profile banners, listing visuals, or brand assets. Also use when the user mentions 'AI image generation,' 'generate an image,' 'create a graphic,' 'product mockup,' 'hero image,' 'social media graphic,' 'banner image,' 'cover photo,' 'profile banner,' 'listing screenshot,' 'Flux,' 'Midjourney,' 'DALL-E,' 'GPT Image,' 'Ideogram,' 'Gemini image,' 'Canva,' 'Figma,' 'image optimization,' 'compress images,' 'WebP,' or 'OG image.' Use this for general-purpose marketing image creation and optimization. For paid ad image creative and platform-specific ad specs, see iblai-marketing-ad-creative. For video production, see iblai-marketing-video."
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -326,10 +328,10 @@ Generate OG images programmatically for pages with dynamic content (blog posts, 
 
 ## Related Skills
 
-- **ad-creative**: For paid ad image creative, platform-specific ad specs, and scaled ad production
+- **iblai-marketing-ad-creative**: For paid ad image creative, platform-specific ad specs, and scaled ad production
 - **video**: For AI video production and programmatic video
-- **social-content**: For what to post and content strategy
-- **page-cro**: For image placement and conversion optimization on landing pages
-- **seo-audit**: For image SEO (alt text, file names, lazy loading)
-- **aso-audit**: For app store screenshot specs and optimization
-- **directory-submissions**: For Product Hunt gallery images and directory listing visuals
+- **iblai-marketing-social-content**: For what to post and content strategy
+- **iblai-marketing-page-cro**: For image placement and conversion optimization on landing pages
+- **iblai-marketing-seo-audit**: For image SEO (alt text, file names, lazy loading)
+- **iblai-marketing-aso-audit**: For app store screenshot specs and optimization
+- **iblai-marketing-directory-submissions**: For Product Hunt gallery images and directory listing visuals

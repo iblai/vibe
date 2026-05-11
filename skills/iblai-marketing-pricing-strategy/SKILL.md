@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-pricing-strategy
 description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' 'monetization,' 'how much should I charge,' 'my pricing is wrong,' 'pricing page,' 'annual vs monthly,' 'per seat pricing,' or 'should I offer a free plan.' Use this whenever someone is figuring out what to charge or how to structure their plans. For in-app upgrade screens, see iblai-marketing-paywall-upgrade-cro."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -222,10 +224,10 @@ Identifies which features customers value most:
 
 ## Related Skills
 
-- **churn-prevention**: For cancel flows, save offers, and reducing revenue churn
-- **page-cro**: For optimizing pricing page conversion
-- **copywriting**: For pricing page copy
-- **marketing-psychology**: For pricing psychology principles
-- **ab-test-setup**: For testing pricing changes
-- **revops**: For deal desk processes and pipeline pricing
-- **sales-enablement**: For proposal templates and pricing presentations
+- **iblai-marketing-churn-prevention**: For cancel flows, save offers, and reducing revenue churn
+- **iblai-marketing-page-cro**: For optimizing pricing page conversion
+- **iblai-marketing-copywriting**: For pricing page copy
+- **iblai-marketing-psychology**: For pricing psychology principles
+- **iblai-marketing-ab-test-setup**: For testing pricing changes
+- **iblai-marketing-revops**: For deal desk processes and pipeline pricing
+- **iblai-marketing-sales-enablement**: For proposal templates and pricing presentations

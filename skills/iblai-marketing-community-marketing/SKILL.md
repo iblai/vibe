@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-community-marketing
 description: "Build and leverage online communities to drive product growth and brand loyalty. Use when the user wants to create a community strategy, grow a Discord or Slack community, manage a forum or subreddit, build brand advocates, increase word-of-mouth, drive community-led growth, engage users post-signup, or turn customers into evangelists. Trigger phrases: \"build a community,\" \"community strategy,\" \"Discord community,\" \"Slack community,\" \"community-led growth,\" \"brand advocates,\" \"user community,\" \"forum strategy,\" \"community engagement,\" \"grow our community,\" \"ambassador program,\" \"community flywheel.\""
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -157,7 +159,7 @@ Always be specific. Generic advice ("be consistent," "provide value") is not use
 
 ## Related Skills
 
-- **referral-program**: For structured referral and ambassador incentive programs
-- **churn-prevention**: For retention strategies that complement community engagement
-- **social-content**: For content creation across social platforms
-- **customer-research**: For understanding your community members' needs and language
+- **iblai-marketing-referral-program**: For structured referral and ambassador incentive programs
+- **iblai-marketing-churn-prevention**: For retention strategies that complement community engagement
+- **iblai-marketing-social-content**: For content creation across social platforms
+- **iblai-marketing-customer-research**: For understanding your community members' needs and language

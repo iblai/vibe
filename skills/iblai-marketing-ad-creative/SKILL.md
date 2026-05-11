@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-ad-creative
 description: "When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad variations — for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad iterations,' 'creative testing,' 'ad performance optimization,' 'write me some ads,' 'Facebook ad copy,' 'Google ad headlines,' 'LinkedIn ad text,' or 'I need more ad variations.' Use this whenever someone needs to produce ad copy at scale or iterate on existing ads. For campaign strategy and targeting, see iblai-marketing-paid-ads. For landing page copy, see iblai-marketing-copywriting."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -355,8 +357,8 @@ node tools/clis/google-ads.js reports get --type ad_performance --date-range las
 
 ## Related Skills
 
-- **paid-ads**: For campaign strategy, targeting, budgets, and optimization
-- **copywriting**: For landing page copy (where ad traffic lands)
-- **ab-test-setup**: For structuring creative tests with statistical rigor
-- **marketing-psychology**: For psychological principles behind high-performing creative
-- **copy-editing**: For polishing ad copy before launch
+- **iblai-marketing-paid-ads**: For campaign strategy, targeting, budgets, and optimization
+- **iblai-marketing-copywriting**: For landing page copy (where ad traffic lands)
+- **iblai-marketing-ab-test-setup**: For structuring creative tests with statistical rigor
+- **iblai-marketing-psychology**: For psychological principles behind high-performing creative
+- **iblai-marketing-copy-editing**: For polishing ad copy before launch

@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-social-content
 description: "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' 'viral content,' 'what should I post,' 'repurpose this content,' 'tweet ideas,' 'LinkedIn carousel,' 'social media strategy,' 'grow my following,' 'TikTok video,' 'Reels,' 'Shorts,' 'video script,' 'video hook,' 'short-form video,' or 'create a reel.' Use this for social media content creation, repurposing, scheduling, and short-form video scripting. For broader content strategy, see iblai-marketing-content-strategy. For paid video ads, see iblai-marketing-ad-creative."
+globs:
+alwaysApply: false
 metadata:
   version: 1.3.0
 ---
@@ -403,7 +405,7 @@ Tools: CapCut (free), Descript, Captions.ai, Premiere Pro
 
 ## Related Skills
 
-- **copywriting**: For longer-form content that feeds social
-- **launch-strategy**: For coordinating social with launches
-- **email-sequence**: For nurturing social audience via email
-- **marketing-psychology**: For understanding what drives engagement
+- **iblai-marketing-copywriting**: For longer-form content that feeds social
+- **iblai-marketing-launch-strategy**: For coordinating social with launches
+- **iblai-marketing-email-sequence**: For nurturing social audience via email
+- **iblai-marketing-psychology**: For understanding what drives engagement

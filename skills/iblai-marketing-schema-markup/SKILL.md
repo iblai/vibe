@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-schema-markup
 description: When the user wants to add, fix, or optimize schema markup and structured data on their site. Also use when the user mentions "schema markup," "structured data," "JSON-LD," "rich snippets," "schema.org," "FAQ schema," "product schema," "review schema," "breadcrumb schema," "Google rich results," "knowledge panel," "star ratings in search," or "add structured data." Use this whenever someone wants their pages to show enhanced results in Google. For broader SEO issues, see iblai-marketing-seo-audit. For AI search optimization, see iblai-marketing-ai-seo.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -173,7 +175,7 @@ You can combine multiple schema types on one page using `@graph`:
 
 ## Related Skills
 
-- **seo-audit**: For overall SEO including schema review
-- **ai-seo**: For AI search optimization (schema helps AI understand content)
-- **programmatic-seo**: For templated schema at scale
-- **site-architecture**: For breadcrumb structure and navigation schema planning
+- **iblai-marketing-seo-audit**: For overall SEO including schema review
+- **iblai-marketing-ai-seo**: For AI search optimization (schema helps AI understand content)
+- **iblai-marketing-programmatic-seo**: For templated schema at scale
+- **iblai-marketing-site-architecture**: For breadcrumb structure and navigation schema planning

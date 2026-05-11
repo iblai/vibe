@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-churn-prevention
 description: "When the user wants to reduce churn, build cancellation flows, set up save offers, recover failed payments, or implement retention strategies. Also use when the user mentions 'churn,' 'cancel flow,' 'offboarding,' 'save offer,' 'dunning,' 'failed payment recovery,' 'win-back,' 'retention,' 'exit survey,' 'pause subscription,' 'involuntary churn,' 'people keep canceling,' 'churn rate is too high,' 'how do I keep users,' or 'customers are leaving.' Use this whenever someone is losing subscribers or wants to build systems to prevent it. For post-cancel win-back email sequences, see iblai-marketing-email-sequence. For in-app upgrade paywalls, see iblai-marketing-paywall-upgrade-cro."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -360,7 +362,7 @@ Test one variable at a time:
 | Offer presentation (modal vs full page) | Full page gets more attention | Save rate |
 | Copy tone (empathetic vs direct) | Empathetic reduces friction | Save rate |
 
-**How to run cancel flow experiments:** Use the **ab-test-setup** skill to design statistically rigorous tests. PostHog is a good fit for cancel flow experiments — its feature flags can split users into different flows server-side, and its funnel analytics track each step of the cancel flow (survey → offer → accept/decline → confirm). See the [PostHog integration guide](../../tools/integrations/posthog.md) for setup.
+**How to run cancel flow experiments:** Use the **iblai-marketing-ab-test-setup** skill to design statistically rigorous tests. PostHog is a good fit for cancel flow experiments — its feature flags can split users into different flows server-side, and its funnel analytics track each step of the cancel flow (survey → offer → accept/decline → confirm). See the [PostHog integration guide](../../tools/integrations/posthog.md) for setup.
 
 ---
 
@@ -416,9 +418,9 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md).
 
 ## Related Skills
 
-- **email-sequence**: For win-back email sequences after cancellation
-- **paywall-upgrade-cro**: For in-app upgrade moments and trial expiration
-- **pricing-strategy**: For plan structure and annual discount strategy
-- **onboarding-cro**: For activation to prevent early churn
-- **analytics-tracking**: For setting up churn signal events
-- **ab-test-setup**: For testing cancel flow variations with statistical rigor
+- **iblai-marketing-email-sequence**: For win-back email sequences after cancellation
+- **iblai-marketing-paywall-upgrade-cro**: For in-app upgrade moments and trial expiration
+- **iblai-marketing-pricing-strategy**: For plan structure and annual discount strategy
+- **iblai-marketing-onboarding-cro**: For activation to prevent early churn
+- **iblai-marketing-analytics-tracking**: For setting up churn signal events
+- **iblai-marketing-ab-test-setup**: For testing cancel flow variations with statistical rigor

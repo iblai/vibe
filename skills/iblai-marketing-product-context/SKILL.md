@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-product-context
 description: "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' 'who is my target audience,' 'describe my product,' 'ICP,' 'ideal customer profile,' or wants to avoid repeating foundational information across marketing tasks. Use this at the start of any new project before using other marketing skills — it creates `.agents/product-marketing-context.md` that all other skills reference for product, audience, and positioning context."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -228,7 +230,7 @@ After gathering information, create `.agents/product-marketing-context.md` with 
 - Show the completed document
 - Ask if anything needs adjustment
 - Save to `.agents/product-marketing-context.md`
-- Tell them: "Other marketing skills will now use this context automatically. Run `/product-marketing-context` anytime to update it."
+- Tell them: "Other marketing skills will now use this context automatically. Run `/iblai-marketing-product-context` anytime to update it."
 
 ---
 

@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-paid-ads
 description: "When the user wants help with paid advertising campaigns on Google Ads, Meta (Facebook/Instagram), LinkedIn, Twitter/X, or other ad platforms. Also use when the user mentions 'PPC,' 'paid media,' 'ROAS,' 'CPA,' 'ad campaign,' 'retargeting,' 'audience targeting,' 'Google Ads,' 'Facebook ads,' 'LinkedIn ads,' 'ad budget,' 'cost per click,' 'ad spend,' or 'should I run ads.' Use this for campaign strategy, audience targeting, bidding, and optimization. For bulk ad creative generation and iteration, see iblai-marketing-ad-creative. For landing page optimization, see iblai-marketing-page-cro."
+globs:
+alwaysApply: false
 metadata:
   version: 1.2.0
 ---
@@ -310,8 +312,8 @@ For tracking setup, see [references/conversion-tracking.md](references/conversio
 
 ## Related Skills
 
-- **ad-creative**: For generating and iterating ad headlines, descriptions, and creative at scale
-- **copywriting**: For landing page copy that converts ad traffic
-- **analytics-tracking**: For proper conversion tracking setup
-- **ab-test-setup**: For landing page testing to improve ROAS
-- **page-cro**: For optimizing post-click conversion rates
+- **iblai-marketing-ad-creative**: For generating and iterating ad headlines, descriptions, and creative at scale
+- **iblai-marketing-copywriting**: For landing page copy that converts ad traffic
+- **iblai-marketing-analytics-tracking**: For proper conversion tracking setup
+- **iblai-marketing-ab-test-setup**: For landing page testing to improve ROAS
+- **iblai-marketing-page-cro**: For optimizing post-click conversion rates

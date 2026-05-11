@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-co-marketing
 description: "When the user wants to find co-marketing partners, plan joint campaigns, or brainstorm partnership opportunities. Use when the user says 'co-marketing,' 'partner marketing,' 'joint campaign,' 'who should we partner with,' 'integration marketing,' 'cross-promotion,' 'collaborate with another company,' 'partnership ideas,' or 'co-brand.' For customer referral programs, see iblai-marketing-referral-program. For launch-specific partnerships, see iblai-marketing-launch-strategy."
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -284,7 +286,7 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key tools
 
 ## Related Skills
 
-- **referral-program** — For customer referral and affiliate programs (customers referring customers)
-- **launch-strategy** — For product launches with partners; covers co-marketing as a "borrowed channel"
-- **content-strategy** — For content planning including co-created content
-- **sales-enablement** — For partner-facing collateral and enablement materials
+- **iblai-marketing-referral-program** — For customer referral and affiliate programs (customers referring customers)
+- **iblai-marketing-launch-strategy** — For product launches with partners; covers co-marketing as a "borrowed channel"
+- **iblai-marketing-content-strategy** — For content planning including co-created content
+- **iblai-marketing-sales-enablement** — For partner-facing collateral and enablement materials

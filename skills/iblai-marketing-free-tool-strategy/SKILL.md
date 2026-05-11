@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-free-tool-strategy
 description: When the user wants to plan, evaluate, or build a free tool for marketing purposes — lead generation, SEO value, or brand awareness. Also use when the user mentions "engineering as marketing," "free tool," "marketing tool," "calculator," "generator," "interactive tool," "lead gen tool," "build a tool for leads," "free resource," "ROI calculator," "grader tool," "audit tool," "should I build a free tool," or "tools for lead gen." Use this whenever someone wants to build something useful and give it away to attract leads or earn links. For downloadable content lead magnets (ebooks, checklists, templates), see iblai-marketing-lead-magnets.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -172,8 +174,8 @@ Rate each factor 1-5:
 
 ## Related Skills
 
-- **lead-magnets**: For downloadable content lead magnets (ebooks, checklists, templates)
-- **page-cro**: For optimizing the tool's landing page
-- **seo-audit**: For SEO-optimizing the tool
-- **analytics-tracking**: For measuring tool usage
-- **email-sequence**: For nurturing leads from the tool
+- **iblai-marketing-lead-magnets**: For downloadable content lead magnets (ebooks, checklists, templates)
+- **iblai-marketing-page-cro**: For optimizing the tool's landing page
+- **iblai-marketing-seo-audit**: For SEO-optimizing the tool
+- **iblai-marketing-analytics-tracking**: For measuring tool usage
+- **iblai-marketing-email-sequence**: For nurturing leads from the tool

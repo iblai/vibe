@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-launch-strategy
 description: "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' 'product update,' 'how do I launch this,' 'launch checklist,' 'GTM plan,' or 'we're about to ship.' Use this whenever someone is preparing to release something publicly. For ongoing marketing after launch, see iblai-marketing-ideas."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -345,9 +347,9 @@ Even small changelog updates remind customers your product is evolving. This bui
 
 ## Related Skills
 
-- **marketing-ideas**: For additional launch tactics (#22 Product Hunt, #23 Early Access Referrals)
-- **email-sequence**: For launch and onboarding email sequences
-- **page-cro**: For optimizing launch landing pages
-- **marketing-psychology**: For psychology behind waitlists and exclusivity
-- **programmatic-seo**: For comparison pages mentioned in post-launch
-- **sales-enablement**: For launch sales collateral and enablement materials
+- **iblai-marketing-ideas**: For additional launch tactics (#22 Product Hunt, #23 Early Access Referrals)
+- **iblai-marketing-email-sequence**: For launch and onboarding email sequences
+- **iblai-marketing-page-cro**: For optimizing launch landing pages
+- **iblai-marketing-psychology**: For psychology behind waitlists and exclusivity
+- **iblai-marketing-programmatic-seo**: For comparison pages mentioned in post-launch
+- **iblai-marketing-sales-enablement**: For launch sales collateral and enablement materials

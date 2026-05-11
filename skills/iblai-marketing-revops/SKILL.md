@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-revops
 description: "When the user wants help with revenue operations, lead lifecycle management, or marketing-to-sales handoff processes. Also use when the user mentions 'RevOps,' 'revenue operations,' 'lead scoring,' 'lead routing,' 'MQL,' 'SQL,' 'pipeline stages,' 'deal desk,' 'CRM automation,' 'marketing-to-sales handoff,' 'data hygiene,' 'leads aren't getting to sales,' 'pipeline management,' 'lead qualification,' or 'when should marketing hand off to sales.' Use this for anything involving the systems and processes that connect marketing to revenue. For cold outreach emails, see iblai-marketing-cold-email. For email drip campaigns, see iblai-marketing-email-sequence. For pricing decisions, see iblai-marketing-pricing-strategy."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -337,9 +339,9 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key RevOp
 
 ## Related Skills
 
-- **cold-email**: For outbound prospecting emails
-- **email-sequence**: For lifecycle and nurture email flows
-- **pricing-strategy**: For pricing decisions and packaging
-- **analytics-tracking**: For tracking pipeline metrics and attribution
-- **launch-strategy**: For go-to-market launch planning
-- **sales-enablement**: For sales collateral, decks, and objection handling
+- **iblai-marketing-cold-email**: For outbound prospecting emails
+- **iblai-marketing-email-sequence**: For lifecycle and nurture email flows
+- **iblai-marketing-pricing-strategy**: For pricing decisions and packaging
+- **iblai-marketing-analytics-tracking**: For tracking pipeline metrics and attribution
+- **iblai-marketing-launch-strategy**: For go-to-market launch planning
+- **iblai-marketing-sales-enablement**: For sales collateral, decks, and objection handling

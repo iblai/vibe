@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-aso-audit
 description: "When the user wants to audit or optimize an App Store or Google Play listing. Also use when the user mentions 'ASO audit,' 'app store optimization,' 'optimize my app listing,' 'improve app visibility,' 'app store ranking,' 'audit my listing,' 'why aren't people downloading my app,' 'improve my app conversion,' 'keyword optimization for app,' or 'compare my app to competitors.' Use when the user shares an App Store or Google Play URL and wants to improve it."
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -306,7 +308,7 @@ the app's brand maturity tier — they may be deliberate choices for Dominant ap
 
 ## Related Skills
 
-- **page-cro**: For optimizing the conversion of web-based landing pages that drive app installs
-- **ad-creative**: For creating App Store and Google Play ad creatives
-- **analytics-tracking**: For setting up install attribution and in-app event tracking
-- **customer-research**: For understanding user needs and language to inform listing copy
+- **iblai-marketing-page-cro**: For optimizing the conversion of web-based landing pages that drive app installs
+- **iblai-marketing-ad-creative**: For creating App Store and Google Play ad creatives
+- **iblai-marketing-analytics-tracking**: For setting up install attribution and in-app event tracking
+- **iblai-marketing-customer-research**: For understanding user needs and language to inform listing copy

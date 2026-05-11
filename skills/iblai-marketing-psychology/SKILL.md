@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-psychology
 description: "When the user wants to apply psychological principles, mental models, or behavioral science to marketing. Also use when the user mentions 'psychology,' 'mental models,' 'cognitive bias,' 'persuasion,' 'behavioral science,' 'why people buy,' 'decision-making,' 'consumer behavior,' 'anchoring,' 'social proof,' 'scarcity,' 'loss aversion,' 'framing,' or 'nudge.' Use this whenever someone wants to understand or leverage how people think and make decisions in a marketing context."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -448,8 +450,8 @@ When facing a marketing challenge, consider:
 
 ## Related Skills
 
-- **page-cro**: Apply psychology to page optimization
-- **copywriting**: Write copy using psychological principles
-- **popup-cro**: Use triggers and psychology in popups
+- **iblai-marketing-page-cro**: Apply psychology to page optimization
+- **iblai-marketing-copywriting**: Write copy using psychological principles
+- **iblai-marketing-popup-cro**: Use triggers and psychology in popups
 - **pricing-page optimization**: See iblai-marketing-page-cro for pricing psychology
-- **ab-test-setup**: Test psychological hypotheses
+- **iblai-marketing-ab-test-setup**: Test psychological hypotheses

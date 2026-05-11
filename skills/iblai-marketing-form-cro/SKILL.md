@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-form-cro
 description: When the user wants to optimize any form that is NOT signup/registration — including lead capture forms, contact forms, demo request forms, application forms, survey forms, or checkout forms. Also use when the user mentions "form optimization," "lead form conversions," "form friction," "form fields," "form completion rate," "contact form," "nobody fills out our form," "form abandonment," "too many fields," "demo request form," or "lead form isn't converting." Use this for any non-signup form that captures information. For signup/registration forms, see iblai-marketing-signup-flow-cro. For popups containing forms, see iblai-marketing-popup-cro.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -423,7 +425,7 @@ Ideas to A/B test with expected outcomes
 
 ## Related Skills
 
-- **signup-flow-cro**: For account creation forms
-- **popup-cro**: For forms inside popups/modals
-- **page-cro**: For the page containing the form
-- **ab-test-setup**: For testing form changes
+- **iblai-marketing-signup-flow-cro**: For account creation forms
+- **iblai-marketing-popup-cro**: For forms inside popups/modals
+- **iblai-marketing-page-cro**: For the page containing the form
+- **iblai-marketing-ab-test-setup**: For testing form changes

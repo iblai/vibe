@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-copywriting
 description: When the user wants to write, rewrite, or improve marketing copy for any page — including homepage, landing pages, pricing pages, feature pages, about pages, or product pages. Also use when the user says "write copy for," "improve this copy," "rewrite this page," "marketing copy," "headline help," "CTA copy," "value proposition," "tagline," "subheadline," "hero section copy," "above the fold," "this copy is weak," "make this more compelling," or "help me describe my product." Use this whenever someone is working on website text that needs to persuade or convert. For email copy, see iblai-marketing-email-sequence. For popup copy, see iblai-marketing-popup-cro. For editing existing copy, see iblai-marketing-copy-editing.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -77,7 +79,7 @@ Each section should advance one argument. Build a logical flow down the page.
 - Exclamation points? (remove them)
 - Marketing buzzwords without substance?
 
-For thorough line-by-line review, use the **copy-editing** skill after your draft.
+For thorough line-by-line review, use the **iblai-marketing-copy-editing** skill after your draft.
 
 ---
 
@@ -245,8 +247,8 @@ For headlines and CTAs, provide 2-3 options:
 
 ## Related Skills
 
-- **copy-editing**: For polishing existing copy (use after your draft)
-- **page-cro**: If page structure/strategy needs work, not just copy
-- **email-sequence**: For email copywriting
-- **popup-cro**: For popup and modal copy
-- **ab-test-setup**: To test copy variations
+- **iblai-marketing-copy-editing**: For polishing existing copy (use after your draft)
+- **iblai-marketing-page-cro**: If page structure/strategy needs work, not just copy
+- **iblai-marketing-email-sequence**: For email copywriting
+- **iblai-marketing-popup-cro**: For popup and modal copy
+- **iblai-marketing-ab-test-setup**: To test copy variations

@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-paywall-upgrade-cro
 description: When the user wants to create or optimize in-app paywalls, upgrade screens, upsell modals, or feature gates. Also use when the user mentions "paywall," "upgrade screen," "upgrade modal," "upsell," "feature gate," "convert free to paid," "freemium conversion," "trial expiration screen," "limit reached screen," "plan upgrade prompt," "in-app pricing," "free users won't upgrade," "trial to paid conversion," or "how do I get users to pay." Use this for any in-product moment where you're asking users to upgrade. Distinct from public pricing pages (see iblai-marketing-page-cro) — this focuses on in-product upgrade moments where the user has already experienced value. For pricing decisions, see iblai-marketing-pricing-strategy.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -221,7 +223,7 @@ What you've accomplished:
 
 ## Related Skills
 
-- **churn-prevention**: For cancel flows, save offers, and reducing churn post-upgrade
-- **page-cro**: For public pricing page optimization
-- **onboarding-cro**: For driving to aha moment before upgrade
-- **ab-test-setup**: For testing paywall variations
+- **iblai-marketing-churn-prevention**: For cancel flows, save offers, and reducing churn post-upgrade
+- **iblai-marketing-page-cro**: For public pricing page optimization
+- **iblai-marketing-onboarding-cro**: For driving to aha moment before upgrade
+- **iblai-marketing-ab-test-setup**: For testing paywall variations

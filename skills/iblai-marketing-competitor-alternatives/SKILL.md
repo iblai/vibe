@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-competitor-alternatives
 description: "When the user wants to create competitor comparison or alternative pages for SEO and sales enablement. Also use when the user mentions 'alternative page,' 'vs page,' 'competitor comparison,' 'comparison page,' '[Product] vs [Product],' '[Product] alternative,' 'competitive landing pages,' 'how do we compare to X,' 'battle card,' or 'competitor teardown.' Use this for any content that positions your product against competitors. Covers four formats: singular alternative, plural alternatives, you vs competitor, and competitor vs competitor. For sales-specific competitor docs, see iblai-marketing-sales-enablement."
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -249,8 +251,8 @@ Recommended pages to create with priority order based on search volume.
 
 ## Related Skills
 
-- **programmatic-seo**: For building competitor pages at scale
-- **copywriting**: For writing compelling comparison copy
-- **seo-audit**: For optimizing competitor pages
-- **schema-markup**: For FAQ and comparison schema
-- **sales-enablement**: For internal sales collateral, decks, and objection docs
+- **iblai-marketing-programmatic-seo**: For building competitor pages at scale
+- **iblai-marketing-copywriting**: For writing compelling comparison copy
+- **iblai-marketing-seo-audit**: For optimizing competitor pages
+- **iblai-marketing-schema-markup**: For FAQ and comparison schema
+- **iblai-marketing-sales-enablement**: For internal sales collateral, decks, and objection docs

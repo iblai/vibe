@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-email-sequence
 description: When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions "email sequence," "drip campaign," "nurture sequence," "onboarding emails," "welcome sequence," "re-engagement emails," "email automation," "lifecycle emails," "trigger-based emails," "email funnel," "email workflow," "what emails should I send," "welcome series," or "email cadence." Use this for any multi-email automated flow. For cold outreach emails, see iblai-marketing-cold-email. For in-app onboarding, see iblai-marketing-onboarding-cro.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -302,10 +304,10 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key email
 
 ## Related Skills
 
-- **lead-magnets**: For planning lead magnets that feed into nurture sequences
-- **churn-prevention**: For cancel flows, save offers, and dunning strategy (email supports this)
-- **onboarding-cro**: For in-app onboarding (email supports this)
-- **copywriting**: For landing pages emails link to
-- **ab-test-setup**: For testing email elements
-- **popup-cro**: For email capture popups
-- **revops**: For lifecycle stages that trigger email sequences
+- **iblai-marketing-lead-magnets**: For planning lead magnets that feed into nurture sequences
+- **iblai-marketing-churn-prevention**: For cancel flows, save offers, and dunning strategy (email supports this)
+- **iblai-marketing-onboarding-cro**: For in-app onboarding (email supports this)
+- **iblai-marketing-copywriting**: For landing pages emails link to
+- **iblai-marketing-ab-test-setup**: For testing email elements
+- **iblai-marketing-popup-cro**: For email capture popups
+- **iblai-marketing-revops**: For lifecycle stages that trigger email sequences

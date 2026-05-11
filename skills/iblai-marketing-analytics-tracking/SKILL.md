@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-analytics-tracking
 description: When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," "tracking plan," "how do I measure this," "track conversions," "attribution," "Mixpanel," "Segment," "are my events firing," or "analytics isn't working." Use this whenever someone asks how to know if something is working or wants to measure marketing results. For A/B test measurement, see iblai-marketing-ab-test-setup.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -303,7 +305,7 @@ For implementation, see the [tools registry](../../tools/REGISTRY.md). Key analy
 
 ## Related Skills
 
-- **ab-test-setup**: For experiment tracking
-- **seo-audit**: For organic traffic analysis
-- **page-cro**: For conversion optimization (uses this data)
-- **revops**: For pipeline metrics, CRM tracking, and revenue attribution
+- **iblai-marketing-ab-test-setup**: For experiment tracking
+- **iblai-marketing-seo-audit**: For organic traffic analysis
+- **iblai-marketing-page-cro**: For conversion optimization (uses this data)
+- **iblai-marketing-revops**: For pipeline metrics, CRM tracking, and revenue attribution

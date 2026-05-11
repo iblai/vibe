@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-lead-magnets
 description: When the user wants to create, plan, or optimize a lead magnet for email capture or lead generation. Also use when the user mentions "lead magnet," "gated content," "content upgrade," "downloadable," "ebook," "cheat sheet," "checklist," "template download," "opt-in," "freebie," "PDF download," "resource library," "content offer," "email capture content," "Notion template," "spreadsheet template," or "what should I give away for emails." Use this for planning what to create and how to distribute it. For interactive tools as lead magnets, see iblai-marketing-free-tool-strategy. For writing the actual content, see iblai-marketing-copywriting. For the email sequence after capture, see iblai-marketing-email-sequence.
+globs:
+alwaysApply: false
 metadata:
   version: 1.0.0
 ---
@@ -116,7 +118,7 @@ Goal: Help implement. Remove friction to purchase.
 | Template | "Ready-to-Use Sales Email Templates" |
 | Free trial | "14-Day Free Trial" |
 | Implementation guide | "Migration Checklist: Switch in 30 Minutes" |
-| ROI calculator | "Calculate Your Savings" (→ see **free-tool-strategy**) |
+| ROI calculator | "Calculate Your Savings" (→ see **iblai-marketing-free-tool-strategy**) |
 
 ---
 
@@ -147,8 +149,8 @@ Rule of thumb: Ask for the minimum needed. Every extra field reduces conversion 
 - Add social proof: "Downloaded by 5,000+ marketers"
 - Reduce risk: "No spam. Unsubscribe anytime."
 
-**For form optimization**: See **form-cro** skill
-**For popup implementation**: See **popup-cro** skill
+**For form optimization**: See **iblai-marketing-form-cro** skill
+**For popup implementation**: See **iblai-marketing-popup-cro** skill
 
 ---
 
@@ -163,7 +165,7 @@ Rule of thumb: Ask for the minimum needed. Every extra field reduces conversion 
 5. **Form** — Minimal fields, clear CTA button
 6. **FAQ** — Address hesitations (Is it really free? What format?)
 
-**For landing page optimization**: See **page-cro** skill
+**For landing page optimization**: See **iblai-marketing-page-cro** skill
 
 ### Delivery Methods
 
@@ -298,13 +300,13 @@ When creating a lead magnet strategy, provide:
 
 ## Related Skills
 
-- **free-tool-strategy**: For interactive tools as lead magnets (calculators, graders, quizzes)
-- **copywriting**: For writing the lead magnet content itself
-- **email-sequence**: For nurture sequences after lead capture
-- **page-cro**: For optimizing lead magnet landing pages
-- **popup-cro**: For popup-based lead capture
-- **form-cro**: For optimizing capture forms
-- **content-strategy**: For content planning and topic selection
-- **analytics-tracking**: For measuring lead magnet performance
-- **paid-ads**: For paid promotion of lead magnets
-- **social-content**: For social media promotion
+- **iblai-marketing-free-tool-strategy**: For interactive tools as lead magnets (calculators, graders, quizzes)
+- **iblai-marketing-copywriting**: For writing the lead magnet content itself
+- **iblai-marketing-email-sequence**: For nurture sequences after lead capture
+- **iblai-marketing-page-cro**: For optimizing lead magnet landing pages
+- **iblai-marketing-popup-cro**: For popup-based lead capture
+- **iblai-marketing-form-cro**: For optimizing capture forms
+- **iblai-marketing-content-strategy**: For content planning and topic selection
+- **iblai-marketing-analytics-tracking**: For measuring lead magnet performance
+- **iblai-marketing-paid-ads**: For paid promotion of lead magnets
+- **iblai-marketing-social-content**: For social media promotion

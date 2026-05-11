@@ -1,6 +1,8 @@
 ---
 name: iblai-marketing-content-strategy
 description: When the user wants to plan a content strategy, decide what content to create, or figure out what topics to cover. Also use when the user mentions "content strategy," "what should I write about," "content ideas," "blog strategy," "topic clusters," "content planning," "editorial calendar," "content marketing," "content roadmap," "what content should I create," "blog topics," "content pillars," or "I don't know what to write." Use this whenever someone needs help deciding what content to produce, not just writing it. For writing individual pieces, see iblai-marketing-copywriting. For SEO-specific audits, see iblai-marketing-seo-audit. For social media content specifically, see iblai-marketing-social-content.
+globs:
+alwaysApply: false
 metadata:
   version: 1.1.0
 ---
@@ -118,7 +120,7 @@ Structure: Challenge → Solution → Results → Key learnings
 **Meta Content**
 Behind-the-scenes transparency. "How We Got Our First $5k MRR," "Why We Chose Debt Over VC."
 
-For programmatic content at scale, see **programmatic-seo** skill.
+For programmatic content at scale, see **iblai-marketing-programmatic-seo** skill.
 
 ---
 
@@ -356,10 +358,10 @@ Visual or structured representation of how content interconnects.
 
 ## Related Skills
 
-- **copywriting**: For writing individual content pieces
-- **seo-audit**: For technical SEO and on-page optimization
-- **ai-seo**: For optimizing content for AI search engines and getting cited by LLMs
-- **programmatic-seo**: For scaled content generation
-- **site-architecture**: For page hierarchy, navigation design, and URL structure
-- **email-sequence**: For email-based content
-- **social-content**: For social media content
+- **iblai-marketing-copywriting**: For writing individual content pieces
+- **iblai-marketing-seo-audit**: For technical SEO and on-page optimization
+- **iblai-marketing-ai-seo**: For optimizing content for AI search engines and getting cited by LLMs
+- **iblai-marketing-programmatic-seo**: For scaled content generation
+- **iblai-marketing-site-architecture**: For page hierarchy, navigation design, and URL structure
+- **iblai-marketing-email-sequence**: For email-based content
+- **iblai-marketing-social-content**: For social media content
