@@ -26,6 +26,15 @@ Add ibl.ai skills to any project with one command:
 ```bash
 npx skills add iblai/vibe
 ```
+
+For marketing skills — conversion, copywriting, SEO, paid ads, lifecycle, growth (43 skills + 62 platform CLIs + 80 integration guides) — install the companion repo side-by-side:
+
+```bash
+npx skills add iblai/vibe-marketing
+```
+
+See [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) for the full catalogue.
+
 ### ibl.ai Components for Next.js Apps
 Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
@@ -91,7 +100,6 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-course-create
 /iblai-onboard
 /iblai-build
-/iblai-marketing-screenshot
 /iblai-test
 /iblai-ops-upgrade
 /iblai-agent-search
@@ -123,7 +131,6 @@ What each skill does:
 - `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
-- `/iblai-marketing-screenshot` -- captures app store screenshots for web, iOS, and Android.
 - `/iblai-ops-test` -- validates the app before it is presented to the user.
 - `/iblai-ops-upgrade` -- upgrades the ibl.ai CLI, SDK, and vibe skills to the latest versions.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
@@ -142,39 +149,32 @@ What each skill does:
 
 ### Marketing Skills
 
-42 conversion, growth, and go-to-market skills covering CRO, copywriting,
-SEO, paid ads, lifecycle email, content, and analytics. Several reference
-zero-dependency Node CLIs under [`tools/clis/`](tools/clis/) — run them
-from this repo root (e.g. `node tools/clis/google-ads.js`).
+The 43 marketing skills (CRO, copywriting, SEO, paid ads, lifecycle,
+growth) plus the `tools/` directory (62 platform CLIs + 80 integration
+guides) now live in the companion
+[`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) repo.
 
-```text
-/iblai-marketing-ab-test-setup            /iblai-marketing-onboarding-cro
-/iblai-marketing-ad-creative              /iblai-marketing-page-cro
-/iblai-marketing-ai-seo                   /iblai-marketing-paid-ads
-/iblai-marketing-analytics-tracking       /iblai-marketing-paywall-upgrade-cro
-/iblai-marketing-aso-audit                /iblai-marketing-popup-cro
-/iblai-marketing-churn-prevention         /iblai-marketing-pricing-strategy
-/iblai-marketing-cold-email               /iblai-marketing-product-context
-/iblai-marketing-co-marketing             /iblai-marketing-programmatic-seo
-/iblai-marketing-community-marketing      /iblai-marketing-psychology
-/iblai-marketing-competitor-alternatives  /iblai-marketing-referral-program
-/iblai-marketing-competitor-profiling     /iblai-marketing-revops
-/iblai-marketing-content-strategy         /iblai-marketing-sales-enablement
-/iblai-marketing-copy-editing             /iblai-marketing-schema-markup
-/iblai-marketing-copywriting              /iblai-marketing-screenshot
-/iblai-marketing-customer-research        /iblai-marketing-seo-audit
-/iblai-marketing-directory-submissions    /iblai-marketing-signup-flow-cro
-/iblai-marketing-email-sequence           /iblai-marketing-site-architecture
-/iblai-marketing-form-cro                 /iblai-marketing-social-content
-/iblai-marketing-free-tool-strategy       /iblai-marketing-video
-/iblai-marketing-ideas                    /iblai-marketing-landing
-/iblai-marketing-image                    /iblai-marketing-launch-strategy
-/iblai-marketing-lead-magnets
+Install side-by-side with vibe:
+
+```bash
+npx skills add iblai/vibe-marketing
 ```
 
-Each skill's `SKILL.md` documents when to use it, what context to gather,
-and the output format. See [`CLAUDE.md`](CLAUDE.md#marketing-skills) for
-one-line descriptions.
+### Security Skills
+
+8 authorized-use security skills covering reconnaissance, source-code
+audits (OWASP Top 10), OSINT, disk forensics, incident triage, cloud
+configuration auditing, dependency vulnerabilities, and prompt-injection
+testing. 
+
+```text
+/iblai-security-recon              /iblai-security-incident-triage
+/iblai-security-owasp-audit        /iblai-security-cloud-audit
+/iblai-security-osint-recon        /iblai-security-dependency-audit
+/iblai-security-disk-forensics     /iblai-security-prompt-injection
+```
+
+See [`CLAUDE.md`](CLAUDE.md#security-skills) for one-line descriptions.
 
 ## What You Get
 
@@ -280,7 +280,6 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
-| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |

@@ -1,3 +1,10 @@
+---
+name: iblai-credit
+description: Add the ibl.ai credit balance widget.
+globs:
+alwaysApply: false
+---
+
 # /iblai-credit
 
 Add the ibl.ai credit balance widget to your app's top navigation. The
