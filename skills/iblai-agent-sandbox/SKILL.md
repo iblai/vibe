@@ -11,7 +11,7 @@ Add the agent **Sandbox tab** -- a three-section workspace that
 connects an agent to an OpenClaw sandbox instance, edits the
 agent-workspace prompt files (Identity, Soul, User Context, Tools,
 Agents, Bootstrap, Heartbeat, Memory) backing the agent's runtime
-behaviour, and assigns reusable Skills to the mentor with toggleable
+behaviour, and assigns reusable Skills to the agent with toggleable
 enable/disable. Push pulls the current configuration onto the
 connected sandbox; Auto Push on Save pushes after every edit.
 
@@ -170,15 +170,15 @@ component falls back to `getUserName()` (which reads from
 `localStorage.userData`). Pass it explicitly when you already have it
 to avoid the extra read.
 
-## Step 2.5: Enable the Sandbox tab for a mentor (`enable_claw`)
+## Step 2.5: Enable the Sandbox tab for an agent (`enable_claw`)
 
-The Sandbox feature is **off by default per mentor**. Whether the
+The Sandbox feature is **off by default per agent**. Whether the
 Sandbox tab is shown is governed by `enable_claw` (`boolean`) on the
-mentor's settings — `true` = show, `false`/missing = hide. The three
+agent's settings — `true` = show, `false`/missing = hide. The three
 sandbox components themselves render their UI unconditionally; it is
 the host app's job to gate the navigation entry and route based on
 this flag, so users only see the "advanced" sandbox surface for
-mentors where it has been opted in.
+agents where it has been opted in.
 
 ### Reading the flag
 
@@ -220,9 +220,9 @@ return (
 
 ### Toggling the flag
 
-`enable_claw` is set via the standard mentor-settings endpoint
+`enable_claw` is set via the standard agent-settings endpoint
 (`PUT mentors/{mentor_unique_id}/settings/`). Toggle it from wherever
-your app exposes per-mentor admin controls (e.g. the Settings tab in
+your app exposes per-agent admin controls (e.g. the Settings tab in
 `/iblai-agent-setting`, or a tenant-admin row action):
 
 ```tsx
@@ -288,10 +288,10 @@ All three components import from `@iblai/iblai-js/web-containers`.
   (`OpenClaw`), Server URL, Gateway Token. The token write-only —
   never read back from the API.
 - **Per-row actions** (kebab menu): **Connect** (binds this instance
-  to the current mentor), **Run checks** (health + connectivity
+  to the current agent), **Run checks** (health + connectivity
   ping), **Edit** (gateway token re-prompt; leave blank to keep
   existing), **Delete**.
-- **Connected Instance card** — once a mentor is bound, the table
+- **Connected Instance card** — once an agent is bound, the table
   collapses into a card showing Name, URL, Status, Health, Last
   Check, with **Run checks** and **Disconnect** actions.
 - **Auto Push on Save** — when on, every prompt edit pushes to the
@@ -331,8 +331,8 @@ Updates are upserts — the first PATCH bootstraps the row.
 - **Toggle** — flipping a skill on creates or re-enables a
   `MentorSkillAssignment` keyed by skill UUID; flipping off deletes
   it. Only `enabled=true` skills are shown in the toggle list.
-- Skill CRUD is **platform-level** (visible to every mentor in the
-  tenant); assignment is **mentor-level**.
+- Skill CRUD is **platform-level** (visible to every agent in the
+  tenant); assignment is **agent-level**.
 
 ## Related Exports
 
@@ -393,7 +393,7 @@ Run `/iblai-ops-test` before telling the user the work is ready:
   read its values via `useAgentSettings()` in the page wrapper and
   forward them.
 - **`mentorUniqueId` vs `mentorId`**: The sandbox endpoints key on the
-  mentor's UUID (called `mentorUniqueId` in the SDK), not the integer
+  agent's UUID (called `mentorUniqueId` in the SDK), not the integer
   pk. Pass the same UUID you use everywhere else in the agent-* family.
 - **Gateway token write-only**: The token is required to add an
   instance and required again when editing if you want to rotate it,
@@ -406,12 +406,12 @@ Run `/iblai-ops-test` before telling the user the work is ready:
 - **Skill UUID, not pk**: `MentorSkillAssignment.skill` is the skill's
   `unique_id`, not the integer id. Custom UI joining skills to
   assignments must key on `skill.unique_id`.
-- **404 ≠ error**: `useGetClawMentorConfigQuery` 404s when no mentor
+- **404 ≠ error**: `useGetClawMentorConfigQuery` 404s when no agent
   has been bound to a sandbox — that's the "not connected" state, not
   a failure. The component treats `isError` as `null` here. Custom
   consumers should do the same.
 - **`enable_claw` gate (advanced toggle)**: The Sandbox tab is hidden
-  per mentor until `enable_claw === true` on its settings. The SDK
+  per agent until `enable_claw === true` on its settings. The SDK
   components do not enforce this gate themselves — the host app reads
   it from `useGetMentorSettingsQuery` and decides whether to render
   the tab and route (see Step 2.5). Toggle with `editMentorJson`
@@ -425,14 +425,14 @@ For custom UI beyond these three components. All endpoints are
 prefixed with `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
 `NEXT_PUBLIC_API_BASE_URL`. Auth: `Authorization: Token <token>`.
 
-### Tab gate (mentor settings)
+### Tab gate (agent settings)
 
 | Method | Path | Body |
 |---|---|---|
 | GET | `mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw: boolean` |
-| PUT | `mentors/{mentor_unique_id}/settings/` | `{ "enable_claw": true }` to show the Sandbox tab for this mentor, `false` to hide it |
+| PUT | `mentors/{mentor_unique_id}/settings/` | `{ "enable_claw": true }` to show the Sandbox tab for this agent, `false` to hide it |
 
-`enable_claw` is the per-mentor "advanced sandbox" toggle. The host
+`enable_claw` is the per-agent "advanced sandbox" toggle. The host
 app must read it and gate the tab — the SDK components do not.
 
 ### Instances (tenant-scoped)
@@ -459,7 +459,7 @@ app must read it and gate the tab — the SDK components do not.
 
 `gateway_token` is write-only. Omit on update to keep the existing value.
 
-### Mentor configuration (binds an instance to a mentor)
+### Sandbox binding (binds an instance to an agent)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -492,11 +492,11 @@ body of the corresponding `*.md` workspace file), plus `model`
 | PATCH | `agent-skills/{id}/` | Update |
 | DELETE | `agent-skills/{id}/` | Delete |
 
-### Mentor skill assignments (mentor-level binding)
+### Agent skill assignments (per-agent binding)
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `mentors/{mentor_unique_id}/skill-assignments/` | Skills bound to this mentor |
+| GET | `mentors/{mentor_unique_id}/skill-assignments/` | Skills bound to this agent |
 | POST | `mentors/{mentor_unique_id}/skill-assignments/` | Bind — `{ "skill": "<skill-uuid>", "enabled": true }` |
 | PATCH | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Toggle `enabled` |
 | DELETE | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Unbind |
@@ -507,7 +507,7 @@ stable across skill edits.
 
 ### Common errors
 
-- `404 Not Found` on `claw-config/` — the mentor isn't connected.
+- `404 Not Found` on `claw-config/` — the agent isn't connected.
   Treat as the "not connected" state, not a failure.
 - `400 No configuration to push` — at least one prompt field must be
   populated before pushing.
