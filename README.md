@@ -71,7 +71,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). You will be redirected to [iblai.app](https://iblai.app) for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
+Open [http://localhost:3000](http://localhost:3000). You will be redirected to `login.iblai.app` for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
 
 ### Install Skills
 
