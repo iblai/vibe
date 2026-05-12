@@ -34,15 +34,7 @@ All endpoints are rooted at:
 | `api_key`   | API token used as `Authorization: Token <api_key>` | `IBLAI_API_KEY`   |
 | `mentor_id` | (Optional) Mentor UUID for memory-aware generation | `IBLAI_MENTOR_ID` |
 
-**Example defaults (current tenant):**
 
-```
-base_url     = https://base.manager.iblai.app
-org          = dc41227896544b899a0fc8ca705f8af5
-user_id      = ibljoetib
-api_key      = 6daeb3ac65b25e5b64a42a151c3daeb438566798622ce98a177a6f795dedaf16
-mentor_id    = 106fca69-6f92-4839-a58d-94e056afdb68
-```
 
 Every request MUST include:
 
