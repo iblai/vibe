@@ -15,29 +15,39 @@ Ship AI-powered apps fast. Backend included.
 
 </div>
 
-> **Note:** This toolkit runs against the hosted [iblai.app](https://iblai.app) environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
+> **Note:** This toolkit runs against the hosted `iblai.app` environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
 
 ---
 ## Quick Start
 ### Install Skills
-
+#### Vibe Skills
 Add ibl.ai skills to any project with one command:
 
 ```bash
 npx skills add iblai/vibe
 ```
+
+#### Vibe Marketing Skills
+For marketing skills — conversion, copywriting, SEO, paid ads, lifecycle, growth (43 skills + 62 platform CLIs + 80 integration guides) — install the companion repo side-by-side:
+
+```bash
+npx skills add iblai/vibe-marketing
+```
+
+See [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) for the full catalogue.
+
 ### ibl.ai Components for Next.js Apps
 Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
 ## What is Vibe
 
-A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at [iblai.app](https://iblai.app). You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
+A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
 
 **Why it matters:**
 
 - **Start building in minutes, not days** -- the CLI scaffolds a complete app with auth, AI chat, and a dashboard out of the box
-- **Backend included** -- [iblai.app](https://iblai.app) provides SSO auth, AI agent infrastructure, analytics, and tenant management (free tier available)
+- **Backend included** -- `iblai.app` provides SSO auth, AI agent infrastructure, analytics, and tenant management (free tier available)
 - **Client-side auth via SSO** -- no API tokens to store, rotate, or leak
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** -- consistent design language without the overhead of a custom design system
@@ -45,13 +55,13 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 
 ## How It Works
 
-1. **Scaffold** -- run `npx @iblai/cli startapp agent` to generate a full Next.js app with auth, AI chat, profiles, and more
-2. **Connect** -- your app connects to [iblai.app](https://iblai.app) (or your own tenant) for authentication, AI agents, and data
-3. **Customize** -- use Claude Code skills to add features, swap components, and adjust business logic
-4. **Deploy** -- push to Vercel, package with Tauri, or run in Docker
+1. **Scaffold** -- run `npx create-next-app@latest myapp` to generate a full Next.js app.
+2. **Connect** -- Use Claude Code skills to add auth, AI chat, profiles, and more components to your app to connect to `iblai.app` (or your own instance) for authentication, AI agents, and data
+3. **Customize** -- use the skills to add features, swap components, and adjust business logic
+4. **Deploy** -- push to Vercel or package with Tauri
 
 
-Get a complete app with auth, AI chat, profiles, and more in one command:
+Get a complete app with auth, AI chat, profiles, and more in one command (Check [iblai/iblai-app-cli](https://github.com/iblai/iblai-app-cli) for installation guide for the `iblai` CLI):
 
 ```bash
 iblai startapp agent -o iblai-init
@@ -72,7 +82,7 @@ npx skills add iblai/vibe
 ```
 
 
-This installs 9 skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, workflows, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
+This installs our vibe skills that teach your AI agent how to build with the ibl.ai platform -- authentication, AI chat, profiles, analytics, workflows, and more. Works with [Claude Code, Cursor, OpenCode, Copilot, and 15+ other agents](https://skills.sh).
 
 ### Skills Usage Guide
 
@@ -91,7 +101,6 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-course-create
 /iblai-onboard
 /iblai-build
-/iblai-marketing-screenshot
 /iblai-test
 /iblai-ops-upgrade
 /iblai-agent-search
@@ -123,7 +132,6 @@ What each skill does:
 - `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
-- `/iblai-marketing-screenshot` -- captures app store screenshots for web, iOS, and Android.
 - `/iblai-ops-test` -- validates the app before it is presented to the user.
 - `/iblai-ops-upgrade` -- upgrades the ibl.ai CLI, SDK, and vibe skills to the latest versions.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
@@ -140,41 +148,35 @@ What each skill does:
 - `/iblai-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
 - `/iblai-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
 
-### Marketing Skills
 
-42 conversion, growth, and go-to-market skills covering CRO, copywriting,
-SEO, paid ads, lifecycle email, content, and analytics. Several reference
-zero-dependency Node CLIs under [`tools/clis/`](tools/clis/) — run them
-from this repo root (e.g. `node tools/clis/google-ads.js`).
+### Security Skills
+
+8 authorized-use security skills covering reconnaissance, source-code
+audits (OWASP Top 10), OSINT, disk forensics, incident triage, cloud
+configuration auditing, dependency vulnerabilities, and prompt-injection
+testing. 
 
 ```text
-/iblai-marketing-ab-test-setup            /iblai-marketing-onboarding-cro
-/iblai-marketing-ad-creative              /iblai-marketing-page-cro
-/iblai-marketing-ai-seo                   /iblai-marketing-paid-ads
-/iblai-marketing-analytics-tracking       /iblai-marketing-paywall-upgrade-cro
-/iblai-marketing-aso-audit                /iblai-marketing-popup-cro
-/iblai-marketing-churn-prevention         /iblai-marketing-pricing-strategy
-/iblai-marketing-cold-email               /iblai-marketing-product-context
-/iblai-marketing-co-marketing             /iblai-marketing-programmatic-seo
-/iblai-marketing-community-marketing      /iblai-marketing-psychology
-/iblai-marketing-competitor-alternatives  /iblai-marketing-referral-program
-/iblai-marketing-competitor-profiling     /iblai-marketing-revops
-/iblai-marketing-content-strategy         /iblai-marketing-sales-enablement
-/iblai-marketing-copy-editing             /iblai-marketing-schema-markup
-/iblai-marketing-copywriting              /iblai-marketing-screenshot
-/iblai-marketing-customer-research        /iblai-marketing-seo-audit
-/iblai-marketing-directory-submissions    /iblai-marketing-signup-flow-cro
-/iblai-marketing-email-sequence           /iblai-marketing-site-architecture
-/iblai-marketing-form-cro                 /iblai-marketing-social-content
-/iblai-marketing-free-tool-strategy       /iblai-marketing-video
-/iblai-marketing-ideas                    /iblai-marketing-landing
-/iblai-marketing-image                    /iblai-marketing-launch-strategy
-/iblai-marketing-lead-magnets
+/iblai-security-recon              /iblai-security-incident-triage
+/iblai-security-owasp-audit        /iblai-security-cloud-audit
+/iblai-security-osint-recon        /iblai-security-dependency-audit
+/iblai-security-disk-forensics     /iblai-security-prompt-injection
 ```
 
-Each skill's `SKILL.md` documents when to use it, what context to gather,
-and the output format. See [`CLAUDE.md`](CLAUDE.md#marketing-skills) for
-one-line descriptions.
+See [`CLAUDE.md`](CLAUDE.md#security-skills) for one-line descriptions.
+
+### Marketing Skills
+
+The 43 marketing skills (CRO, copywriting, SEO, paid ads, lifecycle,
+growth) plus the `tools/` directory (62 platform CLIs + 80 integration
+guides) now live in the companion
+[`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) repo.
+
+Install side-by-side with vibe:
+
+```bash
+npx skills add iblai/vibe-marketing
+```
 
 ## What You Get
 
@@ -197,7 +199,7 @@ Already have a project? Install the skills and let your AI agent add features:
 npx skills add iblai/vibe
 ```
 
-Then use the CLI to add features:
+Then use the [CLI](https://github.com/iblai/iblai-app-cli) to add features:
 
 ```bash
 iblai add mcp            # MCP servers + skills (run first)
@@ -214,7 +216,7 @@ iblai add notification  # Notification bell
 Use `--yes` to skip interactive prompts:
 
 ```bash
-npx @iblai/cli startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
+iblai startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
 cp -a iblai-init/my-app/. . && rm -rf iblai-init
 rm -rf node_modules && pnpm install
 cp .env.example .env.local
@@ -222,7 +224,7 @@ cp .env.example .env.local
 
 ## The iblai Backend
 
-[iblai.app](https://iblai.app) is the production backend that powers every Vibe app. You do not need to build, host, or maintain any backend services.
+`https://api.iblai.app` is the production backend that powers every Vibe app. You do not need to build, host, or maintain any backend services.
 
 **What iblai.app provides:**
 
@@ -280,7 +282,6 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
-| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
@@ -319,15 +320,9 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 One-click deploy. Connect your repo, set your environment variables, and push.
 
 ```bash
-vercel --prod
+iblai deploy vercel
 ```
 
-### Docker
-
-```bash
-docker build -t my-vibe-app .
-docker run -p 3000:3000 my-vibe-app
-```
 
 ### Tauri (Desktop & Mobile)
 
@@ -339,10 +334,6 @@ iblai builds build            # Desktop build for current platform
 iblai builds ios init         # iOS project setup
 iblai builds ci-workflow --all  # GitHub Actions for all platforms
 ```
-
-## Built With Vibe
-
-- [**mentorAI**](https://github.com/iblai/mentorai) -- Production AI mentor platform with streaming chat, voice calls, screen sharing, analytics, RBAC, and Stripe billing
 
 ## Resources
 

@@ -243,6 +243,36 @@ See [BRAND.md](BRAND.md) for the complete brand guidelines.
 Skills are in `skills/` (symlinked to `.claude/skills/` for Claude Code discovery).
 Edit the files in `skills/` — changes are reflected automatically.
 
+**Cursor / Codex adapters** are generated from the canonical SKILL.md
+files. To regenerate after editing skills:
+
+```bash
+node scripts/build-adapters.mjs
+```
+
+This reads every `skills/<name>/SKILL.md` and writes:
+
+- `adapters/cursor/<name>.mdc` — Cursor rule format (description + globs + alwaysApply + body)
+- `adapters/codex/<name>.md`   — Codex instruction format (heading + description blockquote + body)
+
+The canonical SKILL.md files ARE the Claude Code format — no separate
+adapter needed for Claude. Use `templates/skill-template.md` as the
+starting point when authoring a new skill.
+
+**Skill validation:**
+
+```bash
+bash scripts/validate-skills.sh           # local audit against the Agent Skills spec
+bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library
+```
+
+The local validator checks every `skills/<name>/SKILL.md` for:
+- `name:` field present and matching the directory name
+- `description:` present, 1–1024 chars, with trigger phrases
+- `SKILL.md` ≤ 500 lines (warning above)
+- Optional `license`, `metadata.version` fields validated
+- `references/`, `scripts/`, `assets/` subdirs detected if present
+
 Invoke with `/` in Claude Code:
 
 | Skill | Description |
@@ -261,9 +291,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all available components |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
-| `/iblai-marketing-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
-| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
 | `/iblai-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
 | `/iblai-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-ops-test` | Test your app before showing work to the user |
@@ -284,56 +312,33 @@ Invoke with `/` in Claude Code:
 
 ### Marketing Skills
 
-Conversion, growth, and go-to-market skills (CRO, copywriting, SEO, paid
-ads, lifecycle email, content, analytics, etc.). Several reference
-zero-dependency Node CLIs under [`tools/clis/`](tools/clis/) — run them
-from the vibe repo root (e.g. `node tools/clis/google-ads.js`).
+The marketing skill catalogue (43 skills covering CRO, copywriting, SEO,
+paid ads, lifecycle email, growth, etc.) lives in the companion
+[`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) repo
+alongside `tools/` (62 platform CLIs + 80 integration guides). Install
+side-by-side with vibe:
+
+```bash
+npx skills add iblai/vibe-marketing
+```
+
+### Security Skills
+
+Authorized-use defensive security and CTF-style skills — reconnaissance,
+source-code audits, OSINT correlation, forensics, incident triage, cloud
+configuration auditing, dependency vulnerabilities, and prompt-injection
+testing.
 
 | Skill | Description |
 |-------|-------------|
-| `/iblai-marketing-ab-test-setup` | Design, instrument, and analyse A/B / multivariate experiments |
-| `/iblai-marketing-ad-creative` | Brief, generate, and iterate on ad creative (static + video) |
-| `/iblai-marketing-ai-seo` | Rank in AI search engines (Perplexity, ChatGPT, Claude, Google AI Mode) |
-| `/iblai-marketing-analytics-tracking` | Plan + ship product/marketing analytics (events, dashboards, attribution) |
-| `/iblai-marketing-aso-audit` | App store optimisation audit (iOS / Android) |
-| `/iblai-marketing-churn-prevention` | Reduce churn via behavior triggers, win-back, save flows |
-| `/iblai-marketing-cold-email` | Cold outbound: targeting, sequences, deliverability |
-| `/iblai-marketing-co-marketing` | Run co-marketing partnerships and joint launches |
-| `/iblai-marketing-community-marketing` | Build and grow a marketing community |
-| `/iblai-marketing-competitor-alternatives` | Build "Alternatives to X" pages that win competitor demand |
-| `/iblai-marketing-competitor-profiling` | Deep competitor profile + positioning teardown |
-| `/iblai-marketing-content-strategy` | Site content strategy, pillars, briefs, and editorial workflow |
-| `/iblai-marketing-copy-editing` | Edit and tighten existing marketing copy |
-| `/iblai-marketing-copywriting` | Write conversion copy for any page (homepage, landing, pricing, …) |
-| `/iblai-marketing-customer-research` | Discover JTBD, voice-of-customer, win/loss insights |
-| `/iblai-marketing-directory-submissions` | Submit your product to directories and aggregators |
-| `/iblai-marketing-email-sequence` | Lifecycle email sequences (onboarding, nurture, re-engagement) |
-| `/iblai-marketing-form-cro` | Optimise form length, fields, errors, and conversion |
-| `/iblai-marketing-free-tool-strategy` | Design free tools as a top-of-funnel growth lever |
-| `/iblai-marketing-ideas` | Generate prioritised marketing experiment ideas |
-| `/iblai-marketing-image` | Generate or improve marketing images |
-| `/iblai-marketing-landing` | Build a high-converting landing page (12-section framework) |
-| `/iblai-marketing-launch-strategy` | Plan + execute a product launch (Product Hunt, HN, etc.) |
-| `/iblai-marketing-lead-magnets` | Design lead magnets that convert traffic into pipeline |
-| `/iblai-marketing-onboarding-cro` | Optimise onboarding flows for activation |
-| `/iblai-marketing-page-cro` | Audit + improve any landing/feature page conversion |
-| `/iblai-marketing-paid-ads` | Plan + run paid ads (Google, Meta, LinkedIn, Reddit) |
-| `/iblai-marketing-paywall-upgrade-cro` | Optimise paywall + upgrade-prompt conversion |
-| `/iblai-marketing-popup-cro` | Design effective popups (entry, exit, scroll, intent) |
-| `/iblai-marketing-pricing-strategy` | Set + iterate on pricing, packaging, monetisation |
-| `/iblai-marketing-product-context` | Build the product-marketing context doc agents reference |
-| `/iblai-marketing-programmatic-seo` | Programmatic SEO templates + landing pages at scale |
-| `/iblai-marketing-psychology` | Apply persuasion / behavioral-design principles |
-| `/iblai-marketing-referral-program` | Build a referral / affiliate program |
-| `/iblai-marketing-revops` | Stand up revenue ops: CRM hygiene, pipeline, attribution |
-| `/iblai-marketing-sales-enablement` | Sales decks, battlecards, objection handlers |
-| `/iblai-marketing-schema-markup` | Add structured data / schema.org markup |
-| `/iblai-marketing-screenshot` | Capture app store screenshots for web, iOS, and Android |
-| `/iblai-marketing-seo-audit` | Audit on-page / technical / content SEO |
-| `/iblai-marketing-signup-flow-cro` | Optimise signup flow conversion |
-| `/iblai-marketing-site-architecture` | Plan information architecture + internal linking |
-| `/iblai-marketing-social-content` | Social content strategy + production (LinkedIn, X, etc.) |
-| `/iblai-marketing-video` | Plan + produce marketing video |
+| `/iblai-security-recon` | Attack-surface enumeration for authorized pentests, bug bounty, CTF |
+| `/iblai-security-owasp-audit` | Source-code security audit against OWASP Top 10 (2021) |
+| `/iblai-security-osint-recon` | Open-source intelligence gathering and correlation |
+| `/iblai-security-disk-forensics` | Disk image analysis, evidence recovery, timeline reconstruction |
+| `/iblai-security-incident-triage` | Security-incident triage following NIST SP 800-61 |
+| `/iblai-security-cloud-audit` | AWS / GCP / Azure misconfiguration and IAM auditing |
+| `/iblai-security-dependency-audit` | Third-party dependency vulnerability and supply-chain audit |
+| `/iblai-security-prompt-injection` | Test LLM applications for prompt-injection vulnerabilities |
 
 
 ## Deployment
