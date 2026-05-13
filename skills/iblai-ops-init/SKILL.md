@@ -293,7 +293,14 @@ If the user selects Yes, run the following command (do not print it):
 npx skills add https://github.com/anthropics/skills --skill frontend-design --yes
 ```
 
-## Step 4: Confirm
+## Step 4: Create `.npmrc` to prevent supply chain attacks
+Create `.npmrc` in the current directory and add the content below:
+```
+min-release-age=7
+minimum-release-age=10080
+save-exact=true
+```
+## Step 5: Confirm
 
 After writing the file, tell the user:
 
