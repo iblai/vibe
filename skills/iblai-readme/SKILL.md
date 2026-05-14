@@ -246,6 +246,8 @@ echo 'VERCEL_TOKEN=<token>' >> iblai.env
 `src-tauri/tauri.conf.json` and the WebView loads local static files
 again.
 
+> **Tip:** You can change the vercel domain name by clicking on the three-dot button on your Vercel project on [`vercel.com`](https://vercel.com) and select "Manage Domains".
+
 {{ INCLUDE if `src-tauri/tauri.conf.json` exists. Mirror the structure
 in `/iblai-ops-build` — one subsection per platform (iOS / Android /
 macOS / Linux / Surface), each with a screenshot and the relevant
