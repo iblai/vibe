@@ -335,6 +335,15 @@ iblai builds ios init         # iOS project setup
 iblai builds ci-workflow --all  # GitHub Actions for all platforms
 ```
 
+## Built with iblai/vibe
+
+Apps shipped on top of this toolkit. Open a PR to add yours.
+
+| Project | What it does |
+|---------|--------------|
+| [iblai/videoai](https://github.com/iblai/videoai) | AI video generation and editing |
+| [iblai/recruitai](https://github.com/iblai/recruitai) | AI-powered recruiting and candidate screening |
+
 ## Resources
 
 - [iblai-app-cli](https://github.com/iblai/iblai-app-cli) -- the CLI that scaffolds Vibe apps
