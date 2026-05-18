@@ -29,8 +29,7 @@ toggle.
 - A green **Connected** badge on the Stripe Connect card
 - The ability to add paywalls and pricing tiers to any item you sell
 - Buyer-facing Stripe Checkout sessions paying directly into your
-  Stripe account (with ibl.ai's platform commission deducted
-  automatically)
+  Stripe account
 
 ---
 
