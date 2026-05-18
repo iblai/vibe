@@ -307,6 +307,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-history` | Add the agent History tab (conversation history with filters and export) |
 | `/iblai-agent-llm` | Add the agent LLM tab (model provider selection) |
 | `/iblai-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
+| `/iblai-agent-privacy` | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions) |
 | `/iblai-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
