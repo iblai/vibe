@@ -290,6 +290,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |
 | `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all available components |
+| `/iblai-design` | Design, audit, polish, and iterate frontend UI (23 sub-commands); falls back to BRAND.md when the project has no design system |
 | `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
