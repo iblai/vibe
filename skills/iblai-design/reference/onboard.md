@@ -1,10 +1,10 @@
 > **Additional context needed**: the "aha moment" you want users to reach, and users' experience level.
 
-Get users to first value as fast as possible. Onboarding's job is not to teach the product. Its job is to get people to the moment that proves the product is worth their time.
+Move users to first value as quickly as you can. Onboarding's job isn't to teach the product. Its job is to bring people to the moment that proves the product is worth their time.
 
 ## Assess Onboarding Needs
 
-Understand what users need to learn and why:
+Figure out what users need to learn and why:
 
 1. **Identify the challenge**:
    - What are users trying to accomplish?
@@ -23,11 +23,11 @@ Understand what users need to learn and why:
    - What's the key action we want them to take? (First project? First invite?)
    - How do we know onboarding worked? (Completion rate? Time to value?)
 
-**CRITICAL**: Onboarding should get users to value as quickly as possible, not teach everything possible.
+**CRITICAL**: Onboarding should bring users to value as fast as possible, not teach everything that could be taught.
 
 ## Onboarding Principles
 
-Follow these core principles:
+Stick to these core principles:
 
 ### Show, Don't Tell
 - Demonstrate with working examples, not just descriptions
@@ -57,7 +57,7 @@ Follow these core principles:
 
 ## Design Onboarding Experiences
 
-Create appropriate onboarding for the context:
+Build onboarding suited to the context:
 
 ### Initial Product Onboarding
 
@@ -88,7 +88,7 @@ Create appropriate onboarding for the context:
 ### Feature Discovery & Adoption
 
 **Empty States**:
-Instead of blank space, show:
+Rather than blank space, show:
 - What will appear here (description + screenshot/illustration)
 - Why it's valuable
 - Clear CTA to create first item
@@ -208,7 +208,7 @@ localStorage.setItem('onboarding-completed', 'true');
 localStorage.setItem('feature-tooltip-seen-reports', 'true');
 ```
 
-**IMPORTANT**: Don't show same onboarding twice (annoying). Track completion and respect dismissals.
+**IMPORTANT**: Don't show the same onboarding twice (annoying). Track completion and respect dismissals.
 
 **NEVER**:
 - Force users through long onboarding before they can use product
@@ -231,4 +231,4 @@ Test with real users:
 - **Completion rate**: Are users completing? (If low, simplify)
 - **Time to value**: How long until users get first value?
 
-When users hit the aha moment fast and don't drop off, hand off to `/iblai-design polish` for the final pass.
+Once users reach the aha moment quickly and stop dropping off, hand off to `/iblai-design polish` for the final pass.

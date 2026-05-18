@@ -1,13 +1,13 @@
 # Cognitive Load Assessment
 
-Cognitive load is the total mental effort required to use an interface. Overloaded users make mistakes, get frustrated, and leave. This reference helps identify and fix cognitive overload.
+Cognitive load is the total mental effort an interface demands. Overloaded users make mistakes, get frustrated, and leave. This reference helps spot and fix cognitive overload.
 
 ---
 
 ## Three Types of Cognitive Load
 
 ### Intrinsic Load: The Task Itself
-Complexity inherent to what the user is trying to do. You can't eliminate this, but you can structure it.
+Complexity built into what the user is trying to do. You can't remove it, but you can structure it.
 
 **Manage it by**:
 - Breaking complex tasks into discrete steps
@@ -16,7 +16,7 @@ Complexity inherent to what the user is trying to do. You can't eliminate this, 
 - Grouping related decisions together
 
 ### Extraneous Load: Bad Design
-Mental effort caused by poor design choices. **Eliminate this ruthlessly.** It's pure waste.
+Mental effort created by poor design choices. **Eliminate this ruthlessly.** It's pure waste.
 
 **Common sources**:
 - Confusing navigation that requires mental mapping
@@ -38,7 +38,7 @@ Mental effort spent building understanding. This is *good* cognitive load; it le
 
 ## Cognitive Load Checklist
 
-Evaluate the interface against these 8 items:
+Assess the interface against these 8 items:
 
 - [ ] **Single focus**: Can the user complete their primary task without distraction from competing elements?
 - [ ] **Chunking**: Is information presented in digestible groups (≤4 items per group)?
@@ -57,7 +57,7 @@ Evaluate the interface against these 8 items:
 
 **Humans can hold ≤4 items in working memory at once** (Miller's Law revised by Cowan, 2001).
 
-At any decision point, count the number of distinct options, actions, or pieces of information a user must simultaneously consider:
+At any decision point, count the distinct options, actions, or pieces of information a user must hold in mind at the same time:
 - **≤4 items**: Within working memory limits, manageable
 - **5–7 items**: Pushing the boundary; consider grouping or progressive disclosure
 - **8+ items**: Overloaded; users will skip, misclick, or abandon
@@ -90,15 +90,15 @@ At any decision point, count the number of distinct options, actions, or pieces 
 **Fix**: Use plain language. If domain terms are unavoidable, define them inline.
 
 ### 5. The Visual Noise Floor
-**Problem**: Every element has the same visual weight; nothing stands out.
+**Problem**: Every element carries the same visual weight; nothing stands out.
 **Fix**: Establish clear hierarchy: one primary element, 2–3 secondary, everything else muted.
 
 ### 6. The Inconsistent Pattern
-**Problem**: Similar actions work differently in different places.
+**Problem**: Similar actions behave differently in different places.
 **Fix**: Standardize interaction patterns. Same type of action = same type of UI.
 
 ### 7. The Multi-Task Demand
-**Problem**: Interface requires processing multiple simultaneous inputs (reading + deciding + navigating).
+**Problem**: Interface requires processing several simultaneous inputs (reading + deciding + navigating).
 **Fix**: Sequence the steps. Let the user do one thing at a time.
 
 ### 8. The Context Switch

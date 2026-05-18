@@ -1,18 +1,18 @@
-Space is the most underused design tool. Find the layout's actual problem (monotone spacing, weak hierarchy, identical card grids, the centered-stack default) and fix the structure, not the surface.
+Space is design's most neglected lever. Pinpoint the layout's real failing (uniform spacing, faint hierarchy, repeated identical card grids, the default centered stack) and repair the structure rather than the surface.
 
 ---
 
 ## Register
 
-Brand: asymmetric compositions, fluid spacing with `clamp()`, intentional grid-breaking for emphasis. Rhythm through contrast: tight groupings paired with generous separations.
+Brand: asymmetric compositions, fluid spacing with `clamp()`, deliberate grid-breaking to draw emphasis. Rhythm comes from contrast: tight clusters set against generous gaps.
 
-Product: predictable grids, consistent densities, familiar navigation patterns. Responsive behavior is structural (collapse sidebar, responsive table), not fluid typography. Consistency IS an affordance.
+Product: predictable grids, uniform densities, familiar navigation conventions. Responsive behavior is structural (collapse sidebar, responsive table) rather than fluid typography. Here, consistency itself is the affordance.
 
 ---
 
 ## Assess Current Layout
 
-Analyze what's weak about the current spatial design:
+Diagnose where the existing spatial design falls short:
 
 1. **Spacing**:
    - Is spacing consistent or arbitrary? (Random padding/margin values)
@@ -39,15 +39,15 @@ Analyze what's weak about the current spatial design:
    - Is the layout too sparse? (Excessive whitespace without purpose)
    - Does density match the content type? (Data-dense UIs need tighter spacing; marketing pages need more air)
 
-**CRITICAL**: Layout problems are often the root cause of interfaces feeling "off" even when colors and fonts are fine. Space is a design material; use it with intention.
+**CRITICAL**: When colors and fonts check out but an interface still feels "off," the layout is frequently the underlying culprit. Treat space as a design material and deploy it deliberately.
 
 ## Plan Layout Improvements
 
-Consult the [spatial design reference](spatial-design.md) for detailed guidance on grids, rhythm, and container queries.
+Refer to the [spatial design reference](spatial-design.md) for in-depth guidance on grids, rhythm, and container queries.
 
-Create a systematic plan:
+Build a methodical plan:
 
-- **Spacing system**: Use a consistent scale (a framework's built-in scale like Tailwind's, rem-based tokens, or a custom system). The specific values matter less than consistency.
+- **Spacing system**: Adopt a consistent scale (a framework's built-in scale like Tailwind's, rem-based tokens, or a custom system). Consistency matters more than the exact values.
 - **Hierarchy strategy**: How will space communicate importance?
 - **Layout approach**: What structure fits the content? Flex for 1D, Grid for 2D, named areas for complex page layouts.
 - **Rhythm**: Where should spacing be tight vs generous?
@@ -56,7 +56,7 @@ Create a systematic plan:
 
 ### Establish a Spacing System
 
-- Use a consistent spacing scale (framework scales like Tailwind, rem-based tokens, or a custom scale all work). What matters is that values come from a defined set, not arbitrary numbers.
+- Adopt a consistent spacing scale (framework scales like Tailwind, rem-based tokens, or a custom scale are all fine). The key is that values are drawn from a defined set rather than picked arbitrarily.
 - Name tokens semantically if using custom properties: `--space-xs` through `--space-xl`, not `--spacing-8`
 - Use `gap` for sibling spacing instead of margins; eliminates margin collapse hacks
 - Apply `clamp()` for fluid spacing that breathes on larger screens
@@ -66,11 +66,11 @@ Create a systematic plan:
 - **Tight grouping** for related elements (8-12px between siblings)
 - **Generous separation** between distinct sections (48-96px)
 - **Varied spacing** within sections (not every row needs the same gap)
-- **Asymmetric compositions**: break the predictable centered-content pattern when it makes sense
+- **Asymmetric compositions**: depart from the expected centered-content pattern where it serves the design
 
 ### Choose the Right Layout Tool
 
-- **Use Flexbox for 1D layouts**: Rows of items, nav bars, button groups, card contents, most component internals. Flex is simpler and more appropriate for the majority of layout tasks.
+- **Use Flexbox for 1D layouts**: Rows of items, nav bars, button groups, card contents, most component internals. Flex is the simpler, more fitting choice for the bulk of layout work.
 - **Use Grid for 2D layouts**: Page-level structure, dashboards, data-dense interfaces, anything where rows AND columns need coordinated control.
 - **Don't default to Grid** when Flexbox with `flex-wrap` would be simpler and more flexible.
 - Use `repeat(auto-fit, minmax(280px, 1fr))` for responsive grids without breakpoints.
@@ -78,14 +78,14 @@ Create a systematic plan:
 
 ### Break Card Grid Monotony
 
-- Don't default to card grids for everything; spacing and alignment create visual grouping naturally
-- Use cards only when content is truly distinct and actionable. Never nest cards inside cards
-- Vary card sizes, span columns, or mix cards with non-card content to break repetition
+- Don't reach for card grids by default; spacing and alignment group content visually on their own
+- Reserve cards for content that is genuinely separate and actionable. Never nest cards inside cards
+- Break up repetition by varying card sizes, spanning columns, or interleaving cards with non-card content
 
 ### Strengthen Visual Hierarchy
 
-- Use the fewest dimensions needed for clear hierarchy. Space alone can be enough; generous whitespace around an element draws the eye. Some of the most polished designs achieve rhythm with just space and weight. Add color or size contrast only when simpler means aren't sufficient.
-- Be aware of reading flow: in LTR languages, the eye naturally scans top-left to bottom-right, but primary action placement depends on context (e.g., bottom-right in dialogs, top in navigation).
+- Use as few dimensions as the hierarchy needs to be clear. Space by itself can suffice; generous whitespace around an element pulls the eye toward it. Many of the most refined designs build rhythm from space and weight alone. Reach for color or size contrast only when the simpler approaches fall short.
+- Mind the reading flow: in LTR languages the eye scans naturally from top-left to bottom-right, yet where the primary action goes depends on context (e.g., bottom-right in dialogs, top in navigation).
 - Create clear content groupings through proximity and separation.
 
 ### Manage Depth & Elevation
@@ -96,7 +96,7 @@ Create a systematic plan:
 
 ### Optical Adjustments
 
-- If an icon looks visually off-center despite being geometrically centered, nudge it. But only if you're confident it actually looks wrong. Don't adjust speculatively.
+- When an icon reads as off-center even though it is geometrically centered, nudge it. Do so only when you're sure it genuinely looks wrong. Don't make speculative adjustments.
 
 **NEVER**:
 - Use arbitrary spacing values outside your scale
@@ -105,7 +105,7 @@ Create a systematic plan:
 - Nest cards inside cards (use spacing and dividers for hierarchy within)
 - Use identical card grids everywhere (icon + heading + text, repeated)
 - Center everything (left-aligned with asymmetry feels more designed)
-- Default to the hero metric layout (big number, small label, stats, gradient) as a template. If showing real user data, a prominent metric can work, but it should display actual data, not decorative numbers.
+- Default to the hero metric layout (big number, small label, stats, gradient) as a template. A prominent metric is acceptable when it presents real user data, but it must show actual data, not decorative numbers.
 - Default to CSS Grid when Flexbox would be simpler; use the simplest tool for the job
 - Use arbitrary z-index values (999, 9999); build a semantic scale
 
@@ -118,17 +118,17 @@ Create a systematic plan:
 - **Consistency**: Is the spacing system applied uniformly?
 - **Responsiveness**: Does the layout adapt gracefully across screen sizes?
 
-When the rhythm and hierarchy land, hand off to `/iblai-design polish` for the final pass.
+Once the rhythm and hierarchy come together, pass it to `/iblai-design polish` for the final pass.
 
 ## Live-mode signature params
 
-Each variant MUST declare a `density` param. Drive all spacing tokens in the variant's scoped CSS through `calc(var(--p-density, 1) * <base>)`: paddings, gaps, column widths. Users slide from airy to packed and see layout re-breathe with no regeneration.
+Every variant MUST declare a `density` param. Route all spacing tokens in the variant's scoped CSS through `calc(var(--p-density, 1) * <base>)`: paddings, gaps, column widths. Users slide from airy to packed and watch the layout re-breathe without any regeneration.
 
 ```json
 {"id":"density","kind":"range","min":0.6,"max":1.4,"step":0.05,"default":1,"label":"Density"}
 ```
 
-For variants whose topology genuinely changes (stacked vs. side-by-side, grid vs. bento), use a `steps` param whose scoped CSS branches via `:scope[data-p-structure="X"]`. One structure param + one density param is a powerful combo; resist adding a third.
+When a variant's topology truly shifts (stacked vs. side-by-side, grid vs. bento), use a `steps` param whose scoped CSS branches via `:scope[data-p-structure="X"]`. One structure param plus one density param is a strong combination; resist adding a third.
 
 ```json
 {"id":"structure","kind":"steps","default":"grid","label":"Structure","options":[

@@ -1,16 +1,16 @@
 # Brand register
 
-When design IS the product: brand sites, landing pages, marketing surfaces, campaign pages, portfolios, long-form content, about pages. The deliverable is the design itself; a visitor's impression is the thing being made.
+When design IS the product: brand sites, landing pages, marketing surfaces, campaign pages, portfolios, long-form content, about pages. The design itself is the deliverable; what's being built is the impression left on a visitor.
 
-The register spans every genre. A tech brand (Stripe, Linear, Vercel). A luxury brand (a hotel, a fashion house). A consumer product (a restaurant, a travel site, a CPG packaging page). A creative studio, an agency portfolio, a band's album page. They all share the stance (*communicate, not transact*) and diverge wildly in aesthetic. Don't collapse them into a single look.
+The register reaches across every genre. A tech brand (Stripe, Linear, Vercel). A luxury brand (a hotel, a fashion house). A consumer product (a restaurant, a travel site, a CPG packaging page). A creative studio, an agency portfolio, a band's album page. They all hold the same stance (*communicate, not transact*) yet diverge wildly in aesthetic. Don't flatten them into one look.
 
 ## The brand slop test
 
-If someone could look at this and say "AI made that" without hesitation, it's failed. The bar is distinctiveness; a visitor should ask "how was this made?", not "which AI made this?"
+If anyone could glance at this and say "AI made that" without pausing, it has failed. The bar is distinctiveness; a visitor should wonder "how was this made?", not "which AI made this?"
 
-Brand isn't a neutral register. AI-generated landing pages have flooded the internet, and average is no longer findable. Restraint without intent now reads as mediocre, not refined. Brand surfaces need a POV, a specific audience, a willingness to risk strangeness. Go big or go home.
+Brand isn't a neutral register. AI-generated landing pages have saturated the internet, and average can no longer be found. Restraint without intent now reads as mediocre, not refined. Brand surfaces require a POV, a particular audience, a willingness to risk strangeness. Go big or go home.
 
-**The second slop test: aesthetic lane.** Before committing to moves, name the reference. A Klim-style specimen page is one lane; Stripe-minimal is another; Liquid-Death-acid-maximalism is another. Don't drift into editorial-magazine aesthetics on a brief that isn't editorial. A hiking brand with Cormorant italic drop caps has the wrong register within the register.
+**The second slop test: aesthetic lane.** Before you commit to moves, name the reference. A Klim-style specimen page is one lane; Stripe-minimal is another; Liquid-Death-acid-maximalism is another. Don't drift into editorial-magazine aesthetics on a brief that isn't editorial. A hiking brand with Cormorant italic drop caps has the wrong register within the register.
 
 Then the inverse test: in one sentence, describe what you're about to build the way a competitor would describe theirs. If that sentence fits the modal landing page in the category, restart.
 
@@ -33,7 +33,7 @@ Fraunces · Newsreader · Lora · Crimson · Crimson Pro · Crimson Text · Play
 
 ### Reflex-reject aesthetic lanes
 
-Parallel to the font list. Currently saturated aesthetic families that have flooded brand surfaces. If a brief lands in one of these lanes without a register reason that *requires* it (a literal magazine, a literal terminal, a literal industrial signage system), it's the second-order training reflex: the trap one tier deeper than picking a Fraunces font. Look further.
+Parallel to the font list. Aesthetic families that are currently saturated and have flooded brand surfaces. If a brief lands in one of these lanes without a register reason that *requires* it (a literal magazine, a literal terminal, a literal industrial signage system), it's the second-order training reflex: the trap one tier deeper than picking a Fraunces font. Look further.
 
 - **Editorial-typographic.** Display serif (often italic) + small mono labels + ruled separators + monochromatic restraint. Klim-influenced, magazine-cover affectation. By 2026, every Stripe-adjacent and Notion-adjacent brand has landed here. The fingerprint: three rule-separated columns, an italic Fraunces / Recoleta / Newsreader headline, lowercase track-spaced metadata, no imagery.
 
@@ -43,14 +43,14 @@ The reflex-reject lists apply to **new design choices**. When the existing brand
 
 ### Pairing and voice
 
-Distinctive + refined is the goal. The specific shape depends on the brand:
+Distinctive + refined is the goal. The exact shape depends on the brand:
 
 - **Editorial / long-form / luxury**: display serif + sans body (a magazine shape).
 - **Tech / dev tools / fintech**: one committed sans, usually; custom-tight tracking, strong weight contrast inside a single family.
 - **Consumer / food / travel**: warmer pairings, often a humanist sans plus a script or display serif.
 - **Creative studios / agencies**: rule-breaking welcome. Mono-only, or display-only, or custom-drawn type as voice.
 
-Two families minimum is the rule *only* when the voice needs it. A single well-chosen family with committed weight/size contrast is stronger than a timid display+body pair.
+The two-families-minimum rule applies *only* when the voice calls for it. A single well-chosen family with committed weight/size contrast beats a timid display+body pair.
 
 Vary across projects. If the last brief was a serif-display landing page, this one isn't.
 
@@ -80,7 +80,7 @@ Brand surfaces have permission for Committed, Full palette, and Drenched strateg
 
 ## Imagery
 
-Brand surfaces lean on imagery. A restaurant, hotel, magazine, or product landing page without any imagery reads as incomplete, not as restrained. A solid-color rectangle where a hero image should go is worse than a representative stock photo.
+Brand surfaces lean on imagery. A restaurant, hotel, magazine, or product landing page with no imagery reads as incomplete, not as restrained. A solid-color rectangle standing in for a hero image is worse than a representative stock photo.
 
 **When the brief implies imagery (restaurants, hotels, magazines, photography, hobbyist communities, food, travel, fashion, product), you must ship imagery.** Zero images is a bug, not a design choice. "Restraint" is not an excuse. If the approved comp or brief is image-led, ship real project assets, generated raster assets, or a credible canvas/SVG/WebGL scene. Do not replace photographic, architectural, product, or place imagery with generic CSS panels, decorative diagrams, cards, bullets, or copy.
 
@@ -89,7 +89,7 @@ Brand surfaces lean on imagery. A restaurant, hotel, magazine, or product landin
 - **One decisive photo beats five mediocre ones.** Hero imagery should commit to a mood; padding with more stock doesn't rescue an indecisive one.
 - **Alt text is part of the voice.** "Coastal fettuccine, hand-cut, served on the terrace" beats "pasta dish".
 
-"Imagery" here is broader than stock photography: product screenshots, custom data visualizations, generated SVG, and canvas/WebGL scenes are all imagery. Text-only pages where typography alone carries the entire visual weight are the failure mode.
+"Imagery" here means more than stock photography: product screenshots, custom data visualizations, generated SVG, and canvas/WebGL scenes all count as imagery. Text-only pages where typography alone shoulders the entire visual weight are the failure mode.
 
 ## Motion
 

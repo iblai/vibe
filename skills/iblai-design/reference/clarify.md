@@ -1,22 +1,22 @@
 > **Additional context needed**: audience technical level and users' mental state in context.
 
-Find the unclear, confusing, or poorly written interface text and rewrite it. Vague copy creates support tickets and abandonment; specific copy gets users through the task.
+Locate the unclear, confusing, or poorly written interface text and rewrite it. Vague copy generates support tickets and abandonment; specific copy carries users through the task.
 
 
 ---
 
 ## Assess Current Copy
 
-Identify what makes the text unclear or ineffective:
+Pin down what makes the text unclear or ineffective:
 
 1. **Find clarity problems**:
-   - **Jargon**: Technical terms users won't understand
-   - **Ambiguity**: Multiple interpretations possible
+   - **Jargon**: Technical terms users won't grasp
+   - **Ambiguity**: More than one interpretation possible
    - **Passive voice**: "Your file has been uploaded" vs "We uploaded your file"
    - **Length**: Too wordy or too terse
-   - **Assumptions**: Assuming user knowledge they don't have
+   - **Assumptions**: Presuming user knowledge they lack
    - **Missing context**: Users don't know what to do or why
-   - **Tone mismatch**: Too formal, too casual, or inappropriate for situation
+   - **Tone mismatch**: Too formal, too casual, or wrong for the situation
 
 2. **Understand the context**:
    - Who's the audience? (Technical? General? First-time users?)
@@ -24,22 +24,22 @@ Identify what makes the text unclear or ineffective:
    - What's the action? (What do we want users to do?)
    - What's the constraint? (Character limits? Space limitations?)
 
-**CRITICAL**: Clear copy helps users succeed. Unclear copy creates frustration, errors, and support tickets.
+**CRITICAL**: Clear copy helps users succeed. Unclear copy breeds frustration, errors, and support tickets.
 
 ## Plan Copy Improvements
 
-Create a strategy for clearer communication:
+Form a strategy for clearer communication:
 
 - **Primary message**: What's the ONE thing users need to know?
 - **Action needed**: What should users do next (if anything)?
 - **Tone**: How should this feel? (Helpful? Apologetic? Encouraging?)
 - **Constraints**: Length limits, brand voice, localization considerations
 
-**IMPORTANT**: Good UX writing is invisible. Users should understand immediately without noticing the words.
+**IMPORTANT**: Good UX writing is invisible. Users should grasp it instantly without noticing the words.
 
 ## Improve Copy Systematically
 
-Refine text across these common areas:
+Tighten text across these common areas:
 
 ### Error Messages
 **Bad**: "Error 403: Forbidden"
@@ -49,7 +49,7 @@ Refine text across these common areas:
 **Good**: "Email addresses need an @ symbol. Try: name@example.com"
 
 **Principles**:
-- Explain what went wrong in plain language
+- Describe what went wrong in plain language
 - Suggest how to fix it
 - Don't blame the user
 - Include examples when helpful
@@ -66,7 +66,7 @@ Refine text across these common areas:
 - Use clear, specific labels (not generic placeholders)
 - Show format expectations with examples
 - Explain why you're asking (when not obvious)
-- Put instructions before the field, not after
+- Place instructions before the field, not after
 - Keep required field indicators clear
 
 ### Button & CTA Text
@@ -74,19 +74,19 @@ Refine text across these common areas:
 **Good**: "Create account" | "Save changes" | "Got it, thanks"
 
 **Principles**:
-- Describe the action specifically
+- Name the action specifically
 - Use active voice (verb + noun)
-- Match user's mental model
-- Be specific ("Save" is better than "OK")
+- Match the user's mental model
+- Be specific ("Save" beats "OK")
 
 ### Help Text & Tooltips
 **Bad**: "This is the username field"
 **Good**: "Choose a username. You can change this later in Settings."
 
 **Principles**:
-- Add value (don't just repeat the label)
+- Add value (don't merely echo the label)
 - Answer the implicit question ("What is this?" or "Why do you need this?")
-- Keep it brief but complete
+- Keep it brief yet complete
 - Link to detailed docs if needed
 
 ### Empty States
@@ -95,8 +95,8 @@ Refine text across these common areas:
 
 **Principles**:
 - Explain why it's empty (if not obvious)
-- Show next action clearly
-- Make it welcoming, not dead-end
+- Show the next action clearly
+- Make it welcoming, not a dead end
 
 ### Success Messages
 **Bad**: "Success"
@@ -104,8 +104,8 @@ Refine text across these common areas:
 
 **Principles**:
 - Confirm what happened
-- Explain what happens next (if relevant)
-- Be brief but complete
+- Explain what comes next (if relevant)
+- Be brief yet complete
 - Match the user's emotional moment (celebrate big wins)
 
 ### Loading States
@@ -116,7 +116,7 @@ Refine text across these common areas:
 - Set expectations (how long?)
 - Explain what's happening (when it's not obvious)
 - Show progress when possible
-- Offer escape hatch if appropriate ("Cancel")
+- Offer an escape hatch if appropriate ("Cancel")
 
 ### Confirmation Dialogs
 **Bad**: "Are you sure?"
@@ -135,40 +135,40 @@ Refine text across these common areas:
 **Principles**:
 - Be specific and descriptive
 - Use language users understand (not internal jargon)
-- Make hierarchy clear
-- Consider information scent (breadcrumbs, current location)
+- Make the hierarchy clear
+- Account for information scent (breadcrumbs, current location)
 
 ## Apply Clarity Principles
 
-Every piece of copy should follow these rules:
+Every piece of copy should obey these rules:
 
 1. **Be specific**: "Enter email" not "Enter value"
-2. **Be concise**: Cut unnecessary words (but don't sacrifice clarity)
+2. **Be concise**: Cut unnecessary words (but never at the cost of clarity)
 3. **Be active**: "Save changes" not "Changes will be saved"
 4. **Be human**: "Oops, something went wrong" not "System error encountered"
 5. **Tell users what to do**, not just what happened
-6. **Be consistent**: Use same terms throughout (don't vary for variety)
+6. **Be consistent**: Use the same terms throughout (don't vary for variety)
 
 **NEVER**:
 - Use jargon without explanation
 - Blame users ("You made an error" → "This field is required")
 - Be vague ("Something went wrong" without explanation)
-- Use passive voice unnecessarily
+- Use passive voice needlessly
 - Write overly long explanations (be concise)
 - Use humor for errors (be empathetic instead)
 - Assume technical knowledge
-- Vary terminology (pick one term and stick with it)
+- Vary terminology (settle on one term and keep it)
 - Repeat information (headers restating intros, redundant explanations)
-- Use placeholders as the only labels (they disappear when users type)
+- Use placeholders as the only labels (they vanish once users type)
 
 ## Verify Improvements
 
-Test that copy improvements work:
+Confirm the copy improvements actually land:
 
-- **Comprehension**: Can users understand without context?
+- **Comprehension**: Can users understand it without context?
 - **Actionability**: Do users know what to do next?
-- **Brevity**: Is it as short as possible while remaining clear?
-- **Consistency**: Does it match terminology elsewhere?
-- **Tone**: Is it appropriate for the situation?
+- **Brevity**: Is it as short as it can be while staying clear?
+- **Consistency**: Does it line up with terminology elsewhere?
+- **Tone**: Is it right for the situation?
 
-When the copy reads cleanly, hand off to `/iblai-design polish` for the final pass.
+Once the copy reads cleanly, hand off to `/iblai-design polish` for the final pass.

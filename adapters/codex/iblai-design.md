@@ -4,13 +4,13 @@
 
 # /iblai-design
 
-Designs and iterates production-grade frontend interfaces for ibl.ai apps. Real working code, committed design choices, exceptional craft.
+Builds and refines shippable frontend interfaces for ibl.ai apps: real working code, decisive design calls, and craft that holds up under inspection.
 
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 is the **default** design system (colors, typography, spacing, radius, shadows,
-component style) — but if the project already has its own design system
-(v0 export, custom theme, partner-branded shell, a `DESIGN.md`/`PRODUCT.md`),
-**follow that instead**. See [ibl.ai design defaults](#iblai-design-defaults-brandmd-fallback) below.
+component style). When the project already carries its own design system
+(a v0 export, a custom theme, a partner-branded shell, a `DESIGN.md`/`PRODUCT.md`),
+**defer to that instead**. See [ibl.ai design defaults](#iblai-design-defaults-brandmd-fallback) below.
 
 ## Setup
 
@@ -23,47 +23,47 @@ component style) — but if the project already has its own design system
 > install per-project. Script state (`.impeccable/`, `live/`, `critique/`)
 > is also written under the project root by design.
 
-Before any design work or file edits:
+Run all three before touching design work or editing files:
 
-1. Load context (PRODUCT.md / DESIGN.md) via the loader script.
-2. Identify the register and load the matching register reference (brand.md or product.md).
-3. **If the user invoked a sub-command (e.g. `craft`, `shape`, `audit`), load its reference file too.** This is non-negotiable: `craft` without `craft.md` loaded means you'll skip the shape-and-confirm step the user expects.
+1. Pull project context (PRODUCT.md / DESIGN.md) with the loader script.
+2. Determine the register, then open its matching reference (brand.md or product.md).
+3. **When the user invoked a sub-command (`craft`, `shape`, `audit`, ...), open that command's reference file as well.** Not optional: running `craft` without `craft.md` loaded drops the shape-and-confirm step the user is counting on.
 
-Skipping these produces generic output that ignores the project.
+Skip any of these and the result turns generic, blind to the project.
 
 ### 1. Context gathering
 
-Two files, case-insensitive. The loader looks at the project root by default and falls back to `.agents/context/` and `docs/` if the root is clean. Override with `IMPECCABLE_CONTEXT_DIR=path/to/dir` (absolute or relative to cwd).
+Two files, matched case-insensitively. By default the loader reads the project root, then falls back to `.agents/context/` and `docs/` when the root has neither. Point it elsewhere with `IMPECCABLE_CONTEXT_DIR=path/to/dir` (absolute, or relative to cwd).
 
-- **PRODUCT.md**: required. Users, brand, tone, anti-references, strategic principles.
-- **DESIGN.md**: optional, strongly recommended. Colors, typography, elevation, components.
+- **PRODUCT.md**: required. Audience, brand, tone, anti-references, strategic principles.
+- **DESIGN.md**: optional but strongly recommended. Color, typography, elevation, components.
 
-Load both in one call:
+Fetch both in a single call:
 
 ```bash
 node .claude/skills/iblai-design/scripts/load-context.mjs
 ```
 
-Consume the full JSON output. Never pipe through `head`, `tail`, `grep`, or `jq`. The output's `contextDir` field tells you where the files were resolved from.
+Read the whole JSON payload. Don't route it through `head`, `tail`, `grep`, or `jq`. Its `contextDir` field reports where the files resolved from.
 
-If the output is already in this session's conversation history, don't re-run. Exceptions requiring a fresh load: you just ran `/iblai-design teach` or `/iblai-design document` (they rewrite the files), or the user manually edited one.
+Already have this output earlier in the session? Don't re-run it. Reload only after `/iblai-design teach` or `/iblai-design document` (both rewrite the files), or after the user hand-edits one.
 
-`/iblai-design live` already warms context via `live.mjs`. If you've run `live.mjs`, don't also run `load-context.mjs` this session.
+`/iblai-design live` already warms context through `live.mjs`; once `live.mjs` has run, skip `load-context.mjs` for the rest of the session.
 
-If PRODUCT.md is missing, empty, or placeholder (`[TODO]` markers, <200 chars): run `/iblai-design teach`, then resume the user's original task with the fresh context. If the original task was `/iblai-design craft`, resume into `/iblai-design shape` before any implementation work.
+When PRODUCT.md is absent, empty, or still a placeholder (`[TODO]` markers, under 200 chars): run `/iblai-design teach` first, then pick the user's original task back up with the fresh context. If that task was `/iblai-design craft`, re-enter through `/iblai-design shape` before any implementation work.
 
-If DESIGN.md is missing: don't just nudge and run blind. Resolve a design
-system in this order (first match wins), then nudge once per session
-(*"Run `/iblai-design document` for a project-specific DESIGN.md"*) and proceed:
+If DESIGN.md is missing, don't nudge and then work blind. Resolve a design
+system in this order (first match wins), nudge once per session
+(*"Run `/iblai-design document` for a project-specific DESIGN.md"*), then proceed:
 
 1. The project's own tokens (see detection table below).
 2. The ibl.ai **BRAND.md** defaults.
 
 ### ibl.ai design defaults (BRAND.md fallback)
 
-When there is no DESIGN.md, check whether the project already defines its
-own visual language. **If it does, the project's tokens win** — never
-override them with ibl.ai brand defaults.
+With no DESIGN.md present, first check whether the project already defines
+its own visual language. **If it does, the project's tokens win** — never
+paper over them with ibl.ai brand defaults.
 
 | Signal | Where to look | What it means |
 |--------|---------------|----------------|
@@ -77,16 +77,16 @@ override them with ibl.ai brand defaults.
 | `BRAND.md` / `DESIGN.md` / `design-tokens.*` | repo root, `docs/`, `lib/` | The project documents its own language. Read it first. |
 
 **If none of those signals are present**, the project has no design
-system — use the ibl.ai
+system — adopt the ibl.ai
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 as the DESIGN.md for this session: its color palette (primary `#0058cc`,
 brand gradient `linear-gradient(135deg, #00b0ef, #0058cc)`), system
 sans-serif stack, spacing/radius/shadow scales, shadcn `new-york` +
 `neutral` + Lucide component style, and the Apple-inspired layout
-language. Treat BRAND.md tokens with the same authority a DESIGN.md
-would carry — the shared design laws below still apply on top.
+language. Give BRAND.md tokens the same authority a DESIGN.md would
+carry — the shared design laws below still stack on top.
 
-Surface what you resolved in one line before designing:
+State what you resolved in one line before designing:
 
 > Using ibl.ai BRAND.md defaults (no project design system detected).
 
@@ -96,124 +96,124 @@ or
 
 ### 2. Register
 
-Every design task is **brand** (marketing, landing, campaign, long-form content, portfolio: design IS the product) or **product** (app UI, admin, dashboard, tool: design SERVES the product).
+Each design task is one of two: **brand** (marketing, landing, campaign, long-form content, portfolio: the design IS the product) or **product** (app UI, admin, dashboard, tool: the design SERVES the product).
 
-Identify before designing. Priority: (1) cue in the task itself ("landing page" vs "dashboard"); (2) the surface in focus (the page, file, or route being worked on); (3) `register` field in PRODUCT.md. First match wins.
+Settle this before designing. Precedence: (1) a cue in the task wording ("landing page" vs "dashboard"); (2) the surface in focus (the page, file, or route under work); (3) the `register` field in PRODUCT.md. First match wins.
 
-If PRODUCT.md lacks the `register` field (legacy), infer it once from its "Users" and "Product Purpose" sections, then cache the inferred value for the session. Suggest the user run `/iblai-design teach` to add the field explicitly.
+When PRODUCT.md carries no `register` field (older files), infer it once from its "Users" and "Product Purpose" sections and cache that value for the session. Recommend `/iblai-design teach` so the field gets recorded explicitly.
 
-Load the matching reference: [reference/brand.md](reference/brand.md) or [reference/product.md](reference/product.md). The shared design laws below apply to both.
+Open the matching reference: [reference/brand.md](reference/brand.md) or [reference/product.md](reference/product.md). The shared design laws below hold for both.
 
 ## Shared design laws
 
-Apply to every design, both registers. Match implementation complexity to the aesthetic vision: maximalism needs elaborate code, minimalism needs precision. Interpret creatively. Vary across projects; never converge on the same choices. Claude is capable of extraordinary work. Don't hold back.
+These hold for every design, in both registers. Let implementation effort track the aesthetic: maximalism wants elaborate code, minimalism wants precision. Interpret with intent. Diverge between projects; never keep landing on the same choices. Claude is capable of extraordinary work here. Don't hold back.
 
 ### Color
 
-- Use OKLCH. Reduce chroma as lightness approaches 0 or 100; high chroma at extremes looks garish.
-- Never use `#000` or `#fff`. Tint every neutral toward the brand hue (chroma 0.005–0.01 is enough).
-- Pick a **color strategy** before picking colors. Four steps on the commitment axis:
+- Work in OKLCH. Pull chroma down as lightness approaches 0 or 100; high chroma at the extremes reads garish.
+- Never `#000` or `#fff`. Bias every neutral toward the brand hue (chroma 0.005–0.01 is plenty).
+- Choose a **color strategy** before choosing colors. Four points on the commitment axis:
   - **Restrained**: tinted neutrals + one accent ≤10%. Product default; brand minimalism.
-  - **Committed**: one saturated color carries 30–60% of the surface. Brand default for identity-driven pages.
-  - **Full palette**: 3–4 named roles, each used deliberately. Brand campaigns; product data viz.
-  - **Drenched**: the surface IS the color. Brand heroes, campaign pages.
-- The "one accent ≤10%" rule is Restrained only. Committed / Full palette / Drenched exceed it on purpose. Don't collapse every design to Restrained by reflex.
+  - **Committed**: one saturated color owns 30–60% of the surface. Brand default for identity-led pages.
+  - **Full palette**: 3–4 named roles, each placed on purpose. Brand campaigns; product data viz.
+  - **Drenched**: the surface IS the color. Brand heroes and campaign pages.
+- The "one accent ≤10%" cap is Restrained only. Committed / Full palette / Drenched blow past it on purpose. Don't reflexively flatten every design back to Restrained.
 
 ### Theme
 
-Dark vs. light is never a default. Not dark "because tools look cool dark." Not light "to be safe."
+Dark vs. light is never automatic. Not dark "because tools look cool dark." Not light "to play it safe."
 
-Before choosing, write one sentence of physical scene: who uses this, where, under what ambient light, in what mood. If the sentence doesn't force the answer, it's not concrete enough. Add detail until it does.
+Before deciding, write one sentence of physical scene: who uses this, where, under what ambient light, in what mood. If the sentence doesn't force the answer, it isn't concrete enough; add detail until it does.
 
-"Observability dashboard" does not force an answer. "SRE glancing at incident severity on a 27-inch monitor at 2am in a dim room" does. Run the sentence, not the category.
+"Observability dashboard" forces nothing. "SRE glancing at incident severity on a 27-inch monitor at 2am in a dim room" forces it. Reason from the sentence, not the category.
 
 ### Typography
 
-- Cap body line length at 65–75ch.
-- Hierarchy through scale + weight contrast (≥1.25 ratio between steps). Avoid flat scales.
+- Keep body measure at 65–75ch.
+- Build hierarchy from scale + weight contrast (≥1.25 ratio between steps). No flat scales.
 
 ### Layout
 
-- Vary spacing for rhythm. Same padding everywhere is monotony.
-- Cards are the lazy answer. Use them only when they're truly the best affordance. Nested cards are always wrong.
-- Don't wrap everything in a container. Most things don't need one.
+- Vary spacing for rhythm. Identical padding everywhere is monotony.
+- Cards are the lazy default. Use them only when they're genuinely the best affordance. Nested cards are always wrong.
+- Don't box everything in a container. Most things don't need one.
 
 ### Motion
 
-- Don't animate CSS layout properties.
-- Ease out with exponential curves (ease-out-quart / quint / expo). No bounce, no elastic.
+- Never animate CSS layout properties.
+- Ease out on exponential curves (ease-out-quart / quint / expo). No bounce, no elastic.
 
 ### Absolute bans
 
-Match-and-refuse. If you're about to write any of these, rewrite the element with different structure.
+Match and refuse. About to write any of these? Rebuild the element with a different structure.
 
-- **Side-stripe borders.** `border-left` or `border-right` greater than 1px as a colored accent on cards, list items, callouts, or alerts. Never intentional. Rewrite with full borders, background tints, leading numbers/icons, or nothing.
-- **Gradient text.** `background-clip: text` combined with a gradient background. Decorative, never meaningful. Use a single solid color. Emphasis via weight or size.
-- **Glassmorphism as default.** Blurs and glass cards used decoratively. Rare and purposeful, or nothing.
-- **The hero-metric template.** Big number, small label, supporting stats, gradient accent. SaaS cliché.
-- **Identical card grids.** Same-sized cards with icon + heading + text, repeated endlessly.
-- **Modal as first thought.** Modals are usually laziness. Exhaust inline / progressive alternatives first.
+- **Side-stripe borders.** A `border-left` or `border-right` over 1px used as a colored accent on cards, list items, callouts, or alerts. Never deliberate. Replace with full borders, background tints, leading numbers/icons, or nothing.
+- **Gradient text.** `background-clip: text` over a gradient background. Decoration, never signal. Use one solid color. Carry emphasis with weight or size.
+- **Glassmorphism as default.** Decorative blur and glass cards. Rare and deliberate, or absent.
+- **The hero-metric template.** Huge number, tiny label, supporting stats, gradient accent. The SaaS cliché.
+- **Identical card grids.** Equal-size cards of icon + heading + text, repeated without end.
+- **Modal as first thought.** A modal is usually the lazy route. Exhaust inline / progressive options first.
 
 ### Copy
 
-- Every word earns its place. No restated headings, no intros that repeat the title.
-- **No em dashes.** Use commas, colons, semicolons, periods, or parentheses. Also not `--`.
+- Every word pays rent. No restated headings, no intro that echoes the title.
+- **No em dashes.** Use commas, colons, semicolons, periods, or parentheses. The `--` substitute is out too.
 
 ### The AI slop test
 
-If someone could look at this interface and say "AI made that" without doubt, it's failed. Cross-register failures are the absolute bans above. Register-specific failures live in each reference.
+If a viewer could glance at the interface and say "AI made that" with no doubt, it failed. Cross-register tells are the absolute bans above. Register-specific tells live in each reference.
 
-**Category-reflex check.** Run at two altitudes; the second one catches what the first one misses.
+**Category-reflex check.** Run it at two altitudes; the second catches what the first misses.
 
-- **First-order:** if someone could guess the theme + palette from the category alone ("observability → dark blue", "healthcare → white + teal", "finance → navy + gold", "crypto → neon on black"), it's the first training-data reflex. Rework the scene sentence and color strategy until the answer isn't obvious from the domain.
-- **Second-order:** if someone could guess the aesthetic family from category-plus-anti-references ("AI workflow tool that's not SaaS-cream → editorial-typographic", "fintech that's not navy-and-gold → terminal-native dark mode"), it's the trap one tier deeper. The first reflex was avoided; the second wasn't. Rework until both answers are not obvious. The brand register's [reflex-reject aesthetic lanes](reference/brand.md) list catches the currently-saturated families.
+- **First-order:** if the theme + palette are guessable from the category alone ("observability → dark blue", "healthcare → white + teal", "finance → navy + gold", "crypto → neon on black"), that's the first training-data reflex. Rework the scene sentence and color strategy until the domain no longer gives the answer away.
+- **Second-order:** if the aesthetic family is guessable from category-plus-anti-references ("AI workflow tool that's not SaaS-cream → editorial-typographic", "fintech that's not navy-and-gold → terminal-native dark mode"), that's the trap one tier down: the first reflex was dodged, the second wasn't. Rework until neither answer is obvious. The brand register's [reflex-reject aesthetic lanes](reference/brand.md) list catches the currently-saturated families.
 
 ## Commands
 
 | Command | Category | Description | Reference |
 |---|---|---|---|
-| `craft [feature]` | Build | Shape, then build a feature end-to-end | [reference/craft.md](reference/craft.md) |
-| `shape [feature]` | Build | Plan UX/UI before writing code | [reference/shape.md](reference/shape.md) |
-| `teach` | Build | Set up PRODUCT.md and DESIGN.md context | [reference/teach.md](reference/teach.md) |
-| `document` | Build | Generate DESIGN.md from existing project code | [reference/document.md](reference/document.md) |
-| `extract [target]` | Build | Pull reusable tokens and components into design system | [reference/extract.md](reference/extract.md) |
-| `critique [target]` | Evaluate | UX design review with heuristic scoring | [reference/critique.md](reference/critique.md) |
-| `audit [target]` | Evaluate | Technical quality checks (a11y, perf, responsive) | [reference/audit.md](reference/audit.md) |
-| `polish [target]` | Refine | Final quality pass before shipping | [reference/polish.md](reference/polish.md) |
-| `bolder [target]` | Refine | Amplify safe or bland designs | [reference/bolder.md](reference/bolder.md) |
-| `quieter [target]` | Refine | Tone down aggressive or overstimulating designs | [reference/quieter.md](reference/quieter.md) |
-| `distill [target]` | Refine | Strip to essence, remove complexity | [reference/distill.md](reference/distill.md) |
-| `harden [target]` | Refine | Production-ready: errors, i18n, edge cases | [reference/harden.md](reference/harden.md) |
-| `onboard [target]` | Refine | Design first-run flows, empty states, activation | [reference/onboard.md](reference/onboard.md) |
-| `animate [target]` | Enhance | Add purposeful animations and motion | [reference/animate.md](reference/animate.md) |
-| `colorize [target]` | Enhance | Add strategic color to monochromatic UIs | [reference/colorize.md](reference/colorize.md) |
-| `typeset [target]` | Enhance | Improve typography hierarchy and fonts | [reference/typeset.md](reference/typeset.md) |
-| `layout [target]` | Enhance | Fix spacing, rhythm, and visual hierarchy | [reference/layout.md](reference/layout.md) |
-| `delight [target]` | Enhance | Add personality and memorable touches | [reference/delight.md](reference/delight.md) |
-| `overdrive [target]` | Enhance | Push past conventional limits | [reference/overdrive.md](reference/overdrive.md) |
-| `clarify [target]` | Fix | Improve UX copy, labels, and error messages | [reference/clarify.md](reference/clarify.md) |
-| `adapt [target]` | Fix | Adapt for different devices and screen sizes | [reference/adapt.md](reference/adapt.md) |
-| `optimize [target]` | Fix | Diagnose and fix UI performance | [reference/optimize.md](reference/optimize.md) |
-| `live` | Iterate | Visual variant mode: pick elements in the browser, generate alternatives | [reference/live.md](reference/live.md) |
+| `craft [feature]` | Build | Shape first, then build a feature end to end | [reference/craft.md](reference/craft.md) |
+| `shape [feature]` | Build | Plan UX and UI before any code | [reference/shape.md](reference/shape.md) |
+| `teach` | Build | Establish PRODUCT.md and DESIGN.md context | [reference/teach.md](reference/teach.md) |
+| `document` | Build | Derive DESIGN.md from existing project code | [reference/document.md](reference/document.md) |
+| `extract [target]` | Build | Lift reusable tokens and components into the design system | [reference/extract.md](reference/extract.md) |
+| `critique [target]` | Evaluate | UX review with heuristic scoring | [reference/critique.md](reference/critique.md) |
+| `audit [target]` | Evaluate | Technical quality checks: a11y, perf, responsive | [reference/audit.md](reference/audit.md) |
+| `polish [target]` | Refine | Last quality pass before shipping | [reference/polish.md](reference/polish.md) |
+| `bolder [target]` | Refine | Amplify timid or bland designs | [reference/bolder.md](reference/bolder.md) |
+| `quieter [target]` | Refine | Calm aggressive or overstimulating designs | [reference/quieter.md](reference/quieter.md) |
+| `distill [target]` | Refine | Strip to essentials, cut complexity | [reference/distill.md](reference/distill.md) |
+| `harden [target]` | Refine | Production-ready: error states, i18n, edge cases | [reference/harden.md](reference/harden.md) |
+| `onboard [target]` | Refine | Design first-run flows, empty states, and activation | [reference/onboard.md](reference/onboard.md) |
+| `animate [target]` | Enhance | Add purposeful motion and micro-interactions | [reference/animate.md](reference/animate.md) |
+| `colorize [target]` | Enhance | Inject strategic color into monochromatic UIs | [reference/colorize.md](reference/colorize.md) |
+| `typeset [target]` | Enhance | Sharpen typographic hierarchy and font choices | [reference/typeset.md](reference/typeset.md) |
+| `layout [target]` | Enhance | Repair spacing, rhythm, and visual hierarchy | [reference/layout.md](reference/layout.md) |
+| `delight [target]` | Enhance | Add personality and memorable detail | [reference/delight.md](reference/delight.md) |
+| `overdrive [target]` | Enhance | Push well past conventional limits | [reference/overdrive.md](reference/overdrive.md) |
+| `clarify [target]` | Fix | Tighten UX copy, labels, and error messages | [reference/clarify.md](reference/clarify.md) |
+| `adapt [target]` | Fix | Adapt across devices and screen sizes | [reference/adapt.md](reference/adapt.md) |
+| `optimize [target]` | Fix | Diagnose and resolve UI performance issues | [reference/optimize.md](reference/optimize.md) |
+| `live` | Iterate | Visual variant mode: select elements in the browser, generate alternatives | [reference/live.md](reference/live.md) |
 
-Plus two management commands: `pin <command>` and `unpin <command>`, detailed below.
+Two management commands round it out: `pin <command>` and `unpin <command>`, covered below.
 
 ### Routing rules
 
-1. **No argument**: render the table above as the user-facing command menu, grouped by category. Ask what they'd like to do.
-2. **First word matches a command**: load its reference file and follow its instructions. Everything after the command name is the target.
-3. **First word doesn't match**: general design invocation. Apply the setup steps, shared design laws, and the loaded register reference, using the full argument as context.
+1. **No argument**: present the table above as the command menu, grouped by category, and ask what they'd like to do.
+2. **First word matches a command**: open its reference file and follow it. Everything after the command name is the target.
+3. **First word matches nothing**: treat it as a general design request. Apply setup, the shared design laws, and the loaded register reference, with the full argument as context.
 
-Setup (context gathering, register) is already loaded by then; sub-commands don't re-invoke `/iblai-design`.
+Setup (context gathering, register) is already done by this point; sub-commands don't re-invoke `/iblai-design`.
 
-If the first word is `craft`, setup still runs first, but [reference/craft.md](reference/craft.md) owns the rest of the flow. If setup invokes `teach` as a blocker, finish teach, refresh context, then resume the original command and target.
+When the first word is `craft`, setup still runs first, but [reference/craft.md](reference/craft.md) drives the rest of the flow. If setup triggers `teach` as a blocker, finish teach, refresh context, then resume the original command and target.
 
 ## Pin / Unpin
 
-**Pin** creates a standalone shortcut so `/<command>` invokes `/iblai-design <command>` directly. **Unpin** removes it. The script writes to every harness directory present in the project.
+**Pin** registers a standalone shortcut so `/<command>` runs `/iblai-design <command>` directly. **Unpin** removes it. The script writes into every harness directory present in the project.
 
 ```bash
 node .claude/skills/iblai-design/scripts/pin.mjs <pin|unpin> <command>
 ```
 
-Valid `<command>` is any command from the table above. Report the script's result concisely. Confirm the new shortcut on success, relay stderr verbatim on error.
+`<command>` is any entry from the table above. Report the script's result tersely: confirm the new shortcut on success, relay stderr verbatim on error.

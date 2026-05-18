@@ -11,7 +11,7 @@ Timing matters more than easing. These durations feel right for most UI:
 | **300-500ms** | Layout changes | Accordion, modal, drawer |
 | **500-800ms** | Entrance animations | Page load, hero reveals |
 
-**Exit animations are faster than entrances.** Use ~75% of enter duration.
+**Exits run faster than entrances.** Use ~75% of the enter duration.
 
 ## Easing: Pick the Right Curve
 
@@ -23,7 +23,7 @@ Timing matters more than easing. These durations feel right for most UI:
 | **ease-in** | Elements leaving | `cubic-bezier(0.7, 0, 0.84, 0)` |
 | **ease-in-out** | State toggles (there → back) | `cubic-bezier(0.65, 0, 0.35, 1)` |
 
-**For micro-interactions, use exponential curves.** They feel natural because they mimic real physics (friction, deceleration):
+**For micro-interactions, reach for exponential curves.** They feel natural because they echo real physics (friction, deceleration):
 
 ```css
 /* Quart out - smooth, refined (recommended default) */
@@ -36,11 +36,11 @@ Timing matters more than easing. These durations feel right for most UI:
 --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 ```
 
-**Avoid bounce and elastic curves.** They were trendy in 2015 but now feel tacky and amateurish. Real objects don't bounce when they stop; they decelerate smoothly. Overshoot effects draw attention to the animation itself rather than the content.
+**Steer clear of bounce and elastic curves.** They were fashionable in 2015 but now feel tacky and amateurish. Real objects don't bounce when they stop; they decelerate smoothly. Overshoot effects pull attention to the animation itself instead of the content.
 
 ## Premium Motion Materials
 
-Transform and opacity are reliable defaults, not the whole palette. Premium interfaces often need atmospheric properties: blur reveals, backdrop-filter panels, saturation or brightness shifts, shadow bloom, SVG filters, masks, clip paths, gradient-position movement, and variable font or shader-driven effects.
+Transform and opacity are dependable defaults, not the entire palette. Premium interfaces frequently call for atmospheric properties: blur reveals, backdrop-filter panels, saturation or brightness shifts, shadow bloom, SVG filters, masks, clip paths, gradient-position movement, and variable font or shader-driven effects.
 
 Use the right material for the effect:
 
@@ -50,7 +50,7 @@ Use the right material for the effect:
 - **Shadow / glow / color filters**: energy, affordance, focus, warmth, active state.
 - **Grid-template rows or FLIP-style transforms**: expanding and reflowing layout without animating `height` directly.
 
-The hard rule is not "transform and opacity only." The hard rule is: avoid animating layout-driving properties casually (`width`, `height`, `top`, `left`, margins), keep expensive effects bounded to small or isolated areas, and verify in-browser that the result is smooth on the target viewports. If blur/filter makes the interaction feel significantly more premium and remains smooth, use it.
+The hard rule is not "transform and opacity only." The hard rule is: don't casually animate layout-driving properties (`width`, `height`, `top`, `left`, margins), keep expensive effects confined to small or isolated areas, and verify in-browser that it runs smoothly on the target viewports. If blur/filter makes the interaction feel meaningfully more premium and stays smooth, use it.
 
 ## Staggered Animations
 
@@ -86,7 +86,7 @@ This is not optional. Vestibular disorders affect ~35% of adults over 40.
 
 ## Perceived Performance
 
-**Nobody cares how fast your site is, just how fast it feels.** Perception can be as effective as actual performance.
+**Nobody cares how fast your site is, only how fast it feels.** Perception can work as well as actual performance.
 
 **The 80ms threshold**: Our brains buffer sensory input for ~80ms to synchronize perception. Anything under 80ms feels instant and simultaneous. This is your target for micro-interactions.
 
@@ -98,11 +98,11 @@ This is not optional. Vestibular disorders affect ~35% of adults over 40.
 
 **Easing affects perceived duration**: Ease-in (accelerating toward completion) makes tasks feel shorter because the peak-end effect weights final moments heavily. Ease-out feels satisfying for entrances, but ease-in toward a task's end compresses perceived time.
 
-**Caution**: Too-fast responses can decrease perceived value. Users may distrust instant results for complex operations (search, analysis). Sometimes a brief delay signals "real work" is happening.
+**Caution**: Too-fast responses can lower perceived value. Users may distrust instant results for complex operations (search, analysis). Sometimes a short delay signals that "real work" is happening.
 
 ## Performance
 
-Don't use `will-change` preemptively, only when animation is imminent (`:hover`, `.animating`). For scroll-triggered animations, use Intersection Observer instead of scroll events; unobserve after animating once. Create motion tokens for consistency (durations, easings, common transitions).
+Don't apply `will-change` preemptively, only when animation is imminent (`:hover`, `.animating`). For scroll-triggered animations, use Intersection Observer rather than scroll events; unobserve once it has animated. Create motion tokens for consistency (durations, easings, common transitions).
 
 ---
 

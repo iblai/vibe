@@ -40,7 +40,7 @@ Empty states are onboarding moments: (1) Acknowledge briefly, (2) Explain the va
 
 ## Voice vs Tone
 
-**Voice** is your brand's personality, consistent everywhere.
+**Voice** is your brand's personality, the same everywhere.
 **Tone** adapts to the moment.
 
 | Moment | Tone Shift |
@@ -54,13 +54,13 @@ Empty states are onboarding moments: (1) Acknowledge briefly, (2) Explain the va
 
 ## Writing for Accessibility
 
-**Link text** must have standalone meaning: "View pricing plans" not "Click here". **Alt text** describes information, not the image: "Revenue increased 40% in Q4" not "Chart". Use `alt=""` for decorative images. **Icon buttons** need `aria-label` for screen reader context.
+**Link text** must make sense on its own: "View pricing plans" not "Click here". **Alt text** describes information, not the image: "Revenue increased 40% in Q4" not "Chart". Use `alt=""` for decorative images. **Icon buttons** need `aria-label` for screen reader context.
 
 ## Writing for Translation
 
 ### Plan for Expansion
 
-German text is ~30% longer than English. Allocate space:
+German text runs ~30% longer than English. Allocate space:
 
 | Language | Expansion |
 |----------|-----------|

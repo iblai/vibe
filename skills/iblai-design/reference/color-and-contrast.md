@@ -2,17 +2,17 @@
 
 ## Color Spaces: Use OKLCH
 
-**Stop using HSL.** Use OKLCH (or LCH) instead. It's perceptually uniform, meaning equal steps in lightness *look* equal, unlike HSL where 50% lightness in yellow looks bright while 50% in blue looks dark.
+**Stop using HSL.** Reach for OKLCH (or LCH) instead. It's perceptually uniform, meaning equal steps in lightness *look* equal, unlike HSL where 50% lightness in yellow looks bright while 50% in blue looks dark.
 
-The OKLCH function takes three components: `oklch(lightness chroma hue)` where lightness is 0-100%, chroma is roughly 0-0.4, and hue is 0-360. To build a primary color and its lighter / darker variants, hold the chroma+hue roughly constant and vary the lightness, but **reduce chroma as you approach white or black**, because high chroma at extreme lightness looks garish.
+The OKLCH function takes three components: `oklch(lightness chroma hue)` where lightness is 0-100%, chroma is roughly 0-0.4, and hue is 0-360. To build a primary color and its lighter / darker variants, keep the chroma+hue roughly fixed and vary the lightness, but **reduce chroma as you near white or black**, since high chroma at extreme lightness looks garish.
 
-The hue you pick is a brand decision and should not come from a default. Do not reach for blue (hue 250) or warm orange (hue 60) by reflex; those are the dominant AI-design defaults, not the right answer for any specific brand.
+The hue you choose is a brand decision and shouldn't come from a default. Don't reach for blue (hue 250) or warm orange (hue 60) by reflex; those are the dominant AI-design defaults, not the right answer for any specific brand.
 
 ## Building Functional Palettes
 
 ### Tinted Neutrals
 
-**Pure gray is dead.** A neutral with zero chroma feels lifeless next to a colored brand. Add a tiny chroma value (0.005-0.015) to all your neutrals, hued toward whatever your brand color is. The chroma is small enough not to read as "tinted" consciously, but it creates subconscious cohesion between brand color and UI surfaces.
+**Pure gray is dead.** A neutral with zero chroma feels lifeless beside a colored brand. Add a tiny chroma value (0.005-0.015) to all your neutrals, hued toward whatever your brand color is. The chroma stays small enough not to register consciously as "tinted," yet it builds subconscious cohesion between brand color and UI surfaces.
 
 The hue you tint toward should come from THIS project's brand, not from a "warm = friendly, cool = tech" formula. If your brand color is teal, your neutrals lean toward teal. If your brand color is amber, they lean toward amber. The point is cohesion with the SPECIFIC brand, not a stock palette.
 
@@ -29,7 +29,7 @@ A complete system needs:
 | **Semantic** | Success, error, warning, info | 4 colors, 2-3 shades each |
 | **Surface** | Cards, modals, overlays | 2-3 elevation levels |
 
-**Skip secondary/tertiary unless you need them.** Most apps work fine with one accent color. Adding more creates decision fatigue and visual noise.
+**Skip secondary/tertiary unless you need them.** Most apps do fine with one accent color. Adding more breeds decision fatigue and visual noise.
 
 ### The 60-30-10 Rule (Applied Correctly)
 
@@ -67,7 +67,7 @@ These commonly fail contrast or cause readability issues:
 
 ### Never Use Pure Gray or Pure Black
 
-Pure gray (`oklch(50% 0 0)`) and pure black (`#000`) don't exist in nature; real shadows and surfaces always have a color cast. Even a chroma of 0.005-0.01 is enough to feel natural without being obviously tinted. (See tinted neutrals example above.)
+Pure gray (`oklch(50% 0 0)`) and pure black (`#000`) don't occur in nature; real shadows and surfaces always carry a color cast. Even a chroma of 0.005-0.01 is enough to feel natural without looking obviously tinted. (See tinted neutrals example above.)
 
 ### Testing
 
@@ -81,7 +81,7 @@ Don't trust your eyes. Use tools:
 
 ### Dark Mode Is Not Inverted Light Mode
 
-You can't just swap colors. Dark mode requires different design decisions:
+You can't just swap colors. Dark mode demands different design decisions:
 
 | Light Mode | Dark Mode |
 |------------|-----------|
@@ -98,7 +98,7 @@ Use two layers: primitive tokens (`--blue-500`) and semantic tokens (`--color-pr
 
 ## Alpha Is A Design Smell
 
-Heavy use of transparency (rgba, hsla) usually means an incomplete palette. Alpha creates unpredictable contrast, performance overhead, and inconsistency. Define explicit overlay colors for each context instead. Exception: focus rings and interactive states where see-through is needed.
+Heavy use of transparency (rgba, hsla) usually signals an incomplete palette. Alpha brings unpredictable contrast, performance overhead, and inconsistency. Define explicit overlay colors for each context instead. Exception: focus rings and interactive states where see-through is needed.
 
 ---
 

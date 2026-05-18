@@ -2,15 +2,15 @@
 
 ## Mobile-First: Write It Right
 
-Start with base styles for mobile, use `min-width` queries to layer complexity. Desktop-first (`max-width`) means mobile loads unnecessary styles first.
+Begin with base styles for mobile, then layer complexity with `min-width` queries. Going desktop-first (`max-width`) forces mobile to load unnecessary styles up front.
 
 ## Breakpoints: Content-Driven
 
-Don't chase device sizes; let content tell you where to break. Start narrow, stretch until design breaks, add breakpoint there. Three breakpoints usually suffice (640, 768, 1024px). Use `clamp()` for fluid values without breakpoints.
+Don't chase device sizes; let the content tell you where to break. Start narrow, widen until the design breaks, and put a breakpoint there. Three breakpoints are usually enough (640, 768, 1024px). Reach for `clamp()` to get fluid values without breakpoints.
 
 ## Detect Input Method, Not Just Screen Size
 
-**Screen size doesn't tell you input method.** A laptop with touchscreen, a tablet with keyboard. Use pointer and hover queries:
+**Screen size tells you nothing about input method.** A laptop with a touchscreen, a tablet with a keyboard. Use pointer and hover queries:
 
 ```css
 /* Fine pointer (mouse, trackpad) */
@@ -34,7 +34,7 @@ Don't chase device sizes; let content tell you where to break. Start narrow, str
 }
 ```
 
-**Critical**: Don't rely on hover for functionality. Touch users can't hover.
+**Critical**: Don't make functionality depend on hover. Touch users have no hover.
 
 ## Safe Areas: Handle the Notch
 
@@ -99,7 +99,7 @@ When you need different crops/compositions (not just resolutions):
 
 ## Testing: Don't Trust DevTools Alone
 
-DevTools device emulation is useful for layout but misses:
+DevTools device emulation helps with layout but won't show you:
 
 - Actual touch interactions
 - Real CPU/memory constraints
@@ -107,7 +107,7 @@ DevTools device emulation is useful for layout but misses:
 - Font rendering differences
 - Browser chrome/keyboard appearances
 
-**Test on at least**: One real iPhone, one real Android, a tablet if relevant. Cheap Android phones reveal performance issues you'll never see on simulators.
+**Test on at least**: One real iPhone, one real Android, a tablet if relevant. Cheap Android phones expose performance problems you'll never catch on simulators.
 
 ---
 

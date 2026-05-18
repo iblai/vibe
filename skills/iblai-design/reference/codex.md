@@ -6,12 +6,12 @@ Read this *before* generating any images. The order matters, and the per-step us
 
 ### Four stop points before code
 
-Steps A through D each end with the user. Do not advance past any of them on your own read of the situation.
+Steps A through D each end with the user. Don't advance past any of them on your own read of the situation.
 
 1. **STOP after Step A questions.** Wait for answers.
 2. **STOP after Step B palette generation.** Wait for "confirm palette."
 3. **STOP after Step C mocks.** Wait for direction approval or delegation.
-4. **Only after Step D approves a direction** do you return to craft.md Step 4 and write code.
+4. **Only after Step D approves a direction** do you go back to craft.md Step 4 and write code.
 
 Prior shape approval does **not** satisfy any of these. Shape's "confirm or override" advances you into Step A; it is not a substitute for it.
 
@@ -69,9 +69,9 @@ Common ingredients to inventory:
 - Image-native content the concept depends on
 - Typography, density, color/material treatment, motion cues
 
-Treat the mock as a north star, not a screenshot to trace. Don't rasterize core UI text. But if the live result lacks the mock's major ingredients, the implementation is wrong.
+Treat the mock as a north star, not a screenshot to trace. Don't rasterize core UI text. But if the live result is missing the mock's major ingredients, the implementation is wrong.
 
-If a photographic, architectural, product, or place-led mock becomes generic CSS scenery, decorative diagrams, bullets, or copy, stop and fix it. That's a broken implementation, not a harmless interpretation.
+If a photographic, architectural, product, or place-led mock turns into generic CSS scenery, decorative diagrams, bullets, or copy, stop and fix it. That's a broken implementation, not a harmless interpretation.
 
 Don't substitute a different hero composition or visual driver post-approval without user sign-off.
 
@@ -79,7 +79,7 @@ Don't substitute a different hero composition or visual driver post-approval wit
 
 Raster ingredients identified in Step E need clean production assets. Use the bundled `impeccable_asset_producer` subagent rather than producing inline.
 
-Spawn it as a scoped subagent. If you do not have explicit permission to use agents, stop and ask:
+Spawn it as a scoped subagent. If you don't have explicit permission to use agents, stop and ask:
 
 ```text
 Asset production will work better as a scoped subagent job. Should I spawn the Impeccable asset producer subagent for this step?

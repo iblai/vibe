@@ -1,18 +1,18 @@
-Quiet design is harder than bold design. Subtlety needs precision. Reduce visual intensity in designs that are too loud, aggressive, or overstimulating without losing personality or making the result generic.
+Quiet design is harder to pull off than bold design. Subtlety demands precision. Lower the visual intensity of designs that are too loud, aggressive, or overstimulating without stripping away personality or ending up generic.
 
 ---
 
 ## Register
 
-Brand: "quieter" means more restrained palette, more whitespace, more typographic air. Drama is reduced, not eliminated; the POV stays intact.
+Brand: "quieter" means a more restrained palette, more whitespace, more typographic air. Drama is dialed down, not removed; the POV remains intact.
 
-Product: "quieter" means reducing visual noise. Fewer background accents, flatter cards, less color, less motion. The tool should disappear more completely into the task.
+Product: "quieter" means cutting visual noise. Fewer background accents, flatter cards, less color, less motion. The tool should recede more fully into the task.
 
 ---
 
 ## Assess Current State
 
-Analyze what makes the design feel too intense:
+Work out what makes the design feel too intense:
 
 1. **Identify intensity sources**:
    - **Color saturation**: Overly bright or saturated colors
@@ -28,24 +28,24 @@ Analyze what makes the design feel too intense:
    - What's working? (Don't throw away good ideas)
    - What's the core message? (Preserve what matters)
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these stay unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
-**CRITICAL**: "Quieter" doesn't mean boring or generic. It means refined and easier on the eyes. Think luxury, not laziness.
+**CRITICAL**: "Quieter" isn't boring or generic. It means refined and easier on the eyes. Think luxury, not laziness.
 
 ## Plan Refinement
 
-Create a strategy to reduce intensity while maintaining impact:
+Build a strategy that lowers intensity while keeping impact:
 
 - **Color approach**: Desaturate or shift to more restrained tones?
 - **Hierarchy approach**: Which elements should stay bold (very few), which should recede?
 - **Simplification approach**: What can be removed entirely?
 - **Sophistication approach**: How can we signal quality through restraint?
 
-**IMPORTANT**: Subtlety requires precision. Quiet without intent collapses to generic.
+**IMPORTANT**: Subtlety requires precision. Quiet without intent collapses into generic.
 
 ## Refine the Design
 
-Systematically reduce intensity across these dimensions:
+Systematically dial down intensity across these dimensions:
 
 ### Color Refinement
 - **Reduce saturation**: Shift from fully saturated to 70-85% saturation
@@ -89,11 +89,11 @@ Systematically reduce intensity across these dimensions:
 
 ## Verify Quality
 
-Ensure refinement maintains quality:
+Confirm the refinement keeps quality:
 
 - **Still functional**: Can users still accomplish tasks easily?
 - **Still distinctive**: Does it have character, or is it generic now?
 - **Better reading**: Is text easier to read for extended periods?
 - **Restrained, not absent**: Does the POV survive the cuts?
 
-When the result feels right, hand off to `/iblai-design polish` for the final pass.
+Once the result feels right, hand off to `/iblai-design polish` for the final pass.

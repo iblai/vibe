@@ -1,19 +1,19 @@
 # Product register
 
-When design SERVES the product: app UIs, admin dashboards, settings panels, data tables, tools, authenticated surfaces, anything where the user is in a task.
+When design SERVES the product: app UIs, admin dashboards, settings panels, data tables, tools, authenticated surfaces, anything where the user is mid-task.
 
 ## The product slop test
 
-Not "would someone say AI made this." Familiarity is often a feature here. The test is: would a user fluent in the category's best tools (Linear, Figma, Notion, Raycast, Stripe come to mind) sit down and trust this interface, or pause at every subtly-off component?
+Not "would someone say AI made this." Here, familiarity is often an asset. The test is: would a user fluent in the category's best tools (Linear, Figma, Notion, Raycast, Stripe come to mind) sit down and trust this interface, or hesitate at every subtly-off component?
 
-Product UI's failure mode isn't flatness, it's strangeness without purpose: over-decorated buttons, mismatched form controls, gratuitous motion, display fonts where labels should be, invented affordances for standard tasks. The bar is earned familiarity. The tool should disappear into the task.
+Product UI's failure mode isn't flatness, it's strangeness with no purpose: over-decorated buttons, mismatched form controls, gratuitous motion, display fonts where labels belong, invented affordances for standard tasks. The bar is earned familiarity. The tool should vanish into the task.
 
 ## Typography
 
-- **System fonts are legitimate.** `-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif` gives you native feel on every platform. Inter is the common cross-platform default for a reason.
-- **One family is often right.** Product UIs don't need display/body pairing. A well-tuned sans carries headings, buttons, labels, body, data.
+- **System fonts are legitimate.** `-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif` delivers a native feel on every platform. Inter is the common cross-platform default for good reason.
+- **One family is often right.** Product UIs don't require display/body pairing. A well-tuned sans handles headings, buttons, labels, body, data.
 - **Fixed rem scale, not fluid.** Clamp-sized headings don't serve product UI. Users view at consistent DPI, and a fluid h1 that shrinks in a sidebar looks worse, not better.
-- **Tighter scale ratio.** 1.125–1.2 between steps is typical. More type elements here than on brand surfaces; exaggerated contrast creates noise.
+- **Tighter scale ratio.** 1.125–1.2 between steps is typical. There are more type elements here than on brand surfaces; exaggerated contrast creates noise.
 - **Line length still applies for prose** (65–75ch). Data and compact UI can run denser; tables at 120ch+ are fine.
 
 ## Color
@@ -26,13 +26,13 @@ Product defaults to Restrained. A single surface can earn Committed (a dashboard
 
 ## Layout
 
-- Predictable grids. Consistency IS an affordance; users navigate faster when the structure is expected.
-- Familiar patterns are features. Standard navigation (top bar, side nav), breadcrumbs, tabs, and form layouts have established user expectations. Don't reinvent for flavor.
+- Predictable grids. Consistency IS an affordance; users navigate faster when the structure is what they expect.
+- Familiar patterns are features. Standard navigation (top bar, side nav), breadcrumbs, tabs, and form layouts come with established user expectations. Don't reinvent for flavor.
 - Responsive behavior is structural (collapse sidebar, responsive table, breakpoint-driven columns), not fluid typography.
 
 ## Components
 
-Every interactive component has: default, hover, focus, active, disabled, loading, error. Don't ship with half of these.
+Every interactive component has: default, hover, focus, active, disabled, loading, error. Don't ship with only half of these.
 
 - Skeleton states for loading, not spinners in the middle of content.
 - Empty states that teach the interface, not "nothing here."

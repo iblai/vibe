@@ -1,10 +1,10 @@
-Run systematic **technical** quality checks and generate a comprehensive report. Don't fix issues; document them for other commands to address.
+Carry out systematic **technical** quality checks and produce a thorough report. Don't repair anything; record the issues so other commands can handle them.
 
-This is a code-level audit, not a design critique. Check what's measurable and verifiable in the implementation.
+This is an implementation-level audit, not a design critique. Examine what can be measured and verified in the code.
 
 ## Diagnostic Scan
 
-Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the criteria below.
+Work through thorough checks across 5 dimensions. Rate each dimension 0-4 using the criteria below.
 
 ### 1. Accessibility (A11y)
 
@@ -52,7 +52,7 @@ Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the
 
 ### 5. Anti-Patterns (CRITICAL)
 
-Check against ALL the **DON'T** guidelines from the parent impeccable skill (already loaded in this context). Look for AI slop tells (AI color palette, gradient text, glassmorphism, hero metrics, card grids, generic fonts) and general design anti-patterns (gray on color, nested cards, bounce easing, redundant copy).
+Test against EVERY one of the **DON'T** guidelines from the parent impeccable skill (already loaded in this context). Watch for AI slop tells (AI color palette, gradient text, glassmorphism, hero metrics, card grids, generic fonts) and general design anti-patterns (gray on color, nested cards, bounce easing, redundant copy).
 
 **Score 0-4**: 0=AI slop gallery (5+ tells), 1=Heavy AI aesthetic (3-4 tells), 2=Some tells (1-2 noticeable), 3=Mostly clean (subtle issues only), 4=No AI tells (distinctive, intentional design)
 
@@ -99,13 +99,13 @@ For each issue, document:
 
 ### Patterns & Systemic Issues
 
-Identify recurring problems that indicate systemic gaps rather than one-off mistakes:
+Surface recurring problems that point to systemic gaps rather than isolated mistakes:
 - "Hard-coded colors appear in 15+ components, should use design tokens"
 - "Touch targets consistently too small (<44px) throughout mobile experience"
 
 ### Positive Findings
 
-Note what's working well: good practices to maintain and replicate.
+Call out what's working well: good practices worth keeping and reusing.
 
 ## Recommended Actions
 
@@ -130,4 +130,3 @@ After presenting the summary, tell the user:
 - Skip positive findings (celebrate what works)
 - Forget to prioritize (everything can't be P0)
 - Report false positives without verification
-

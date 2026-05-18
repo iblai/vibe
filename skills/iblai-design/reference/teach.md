@@ -1,9 +1,9 @@
 # Teach Flow
 
-Gathers design context for a project and writes two complementary files at the project root:
+Collects design context for a project and writes two complementary files at the project root:
 
-- **PRODUCT.md** (strategic): root project file for register, target users, product purpose, brand personality, anti-references, strategic design principles. Answers "who/what/why".
-- **DESIGN.md** (visual): root project file for visual theme, color palette, typography, components, layout. Follows the [Google Stitch DESIGN.md format](https://stitch.withgoogle.com/docs/design-md/format/). Answers "how it looks".
+- **PRODUCT.md** (strategic): root project file covering register, target users, product purpose, brand personality, anti-references, strategic design principles. Answers "who/what/why".
+- **DESIGN.md** (visual): root project file covering visual theme, color palette, typography, components, layout. Follows the [Google Stitch DESIGN.md format](https://stitch.withgoogle.com/docs/design-md/format/). Answers "how it looks".
 
 Every other impeccable command reads these files before doing any work.
 
@@ -15,7 +15,7 @@ Run the shared loader first so you know what already exists:
 node .claude/skills/iblai-design/scripts/load-context.mjs
 ```
 
-The output tells you whether PRODUCT.md and/or DESIGN.md already exist. If `migrated: true`, legacy `.impeccable.md` was auto-renamed to `PRODUCT.md`. Mention this once to the user.
+Its output tells you whether PRODUCT.md and/or DESIGN.md already exist. If `migrated: true`, legacy `.impeccable.md` was auto-renamed to `PRODUCT.md`. Mention this once to the user.
 
 Decision tree:
 - **Neither file exists (empty project or no context yet)**: do Steps 2-4 (write PRODUCT.md), then decide on DESIGN.md based on whether there's code to analyze.
@@ -26,11 +26,11 @@ Decision tree:
 
 Never silently overwrite an existing file. Always confirm first.
 
-If teach was invoked as a setup blocker by another command, such as `/iblai-design craft landing page`, pause that command here. Complete teach, re-run the loader, then resume the original command with the freshly loaded context. For craft, resume into shape next; teach creates project context, but it is not a substitute for the task-specific shape interview and confirmed design brief.
+If teach was triggered as a setup blocker by another command, such as `/iblai-design craft landing page`, pause that command here. Finish teach, re-run the loader, then resume the original command with the freshly loaded context. For craft, resume into shape next; teach creates project context, but it is not a substitute for the task-specific shape interview and confirmed design brief.
 
 ## Step 2: Explore the codebase
 
-Before asking questions, thoroughly scan the project to discover what you can:
+Before asking questions, scan the project thoroughly to discover what you can:
 
 - **README and docs**: Project purpose, target audience, any stated goals
 - **Package.json / config files**: Tech stack, dependencies, existing design libraries
@@ -44,9 +44,9 @@ Also form a **register hypothesis** from what you find:
 - Brand signals: `/`, `/about`, `/pricing`, `/blog/*`, `/docs/*`, hero sections, big typography, scroll-driven sections, landing-page-shaped content.
 - Product signals: `/app/*`, `/dashboard`, `/settings`, `/(auth)`, forms, data tables, side/top nav, app-shell components.
 
-Register is a hypothesis at this point, not a decision; Step 3 confirms it.
+Register is still a hypothesis at this point, not a decision; Step 3 confirms it.
 
-Note what you've learned and what remains unclear. This exploration feeds both PRODUCT.md and DESIGN.md.
+Note what you've learned and what stays unclear. This exploration feeds both PRODUCT.md and DESIGN.md.
 
 ## Step 3: Ask strategic questions (for PRODUCT.md)
 
@@ -56,16 +56,16 @@ STOP and call the AskUserQuestion tool to clarify. Ask only about what you could
 
 If the repo is empty or the user's brief is sparse, run a short interview before proposing PRODUCT.md. Do **not** turn a one-sentence request into a complete inferred PRODUCT.md and ask for blanket confirmation.
 
-- Use the harness's structured question tool when one exists. Otherwise, ask directly in chat and stop.
+- Use the harness's structured question tool whenever one exists. Otherwise, ask directly in chat and stop.
 - Ask **2-3 questions per round**, then wait for answers.
-- Use inferred answers as hypotheses or options, not as finished facts.
+- Treat inferred answers as hypotheses or options, not as finished facts.
 - Complete at least one real user-answer round before drafting PRODUCT.md, unless every required answer is directly discoverable from repo docs.
 - Round 1 should establish register, users/purpose, and desired outcome.
 - Round 2 should establish brand personality or references, anti-references, and accessibility needs.
 
 ### Minimum viable interview
 
-Ask enough to complete PRODUCT.md. At minimum, cover register confirmation, users and purpose, brand personality, anti-references, and accessibility needs unless each answer is directly discoverable from repo context. After at least one interview round, you may propose inferred answers, but the user must confirm them before you write PRODUCT.md. Never synthesize PRODUCT.md from the original task prompt alone.
+Ask enough to fill out PRODUCT.md. At minimum, cover register confirmation, users and purpose, brand personality, anti-references, and accessibility needs unless each answer is directly discoverable from repo context. After at least one interview round, you may propose inferred answers, but the user must confirm them before you write PRODUCT.md. Never synthesize PRODUCT.md from the original task prompt alone.
 
 ### Register (ask first; it shapes everything below)
 
@@ -92,7 +92,7 @@ If the signal is genuinely split (e.g. a product with a big marketing landing), 
 - Specific accessibility requirements? (WCAG level, known user needs)
 - Considerations for reduced motion, color blindness, or other accommodations?
 
-Skip questions where the answer is already clear. **Do NOT ask about colors, fonts, radii, or visual styling here.** Those belong in DESIGN.md, not PRODUCT.md.
+Skip questions whose answer is already clear. **Do NOT ask about colors, fonts, radii, or visual styling here.** Those belong in DESIGN.md, not PRODUCT.md.
 
 ## Step 4: Write PRODUCT.md
 
@@ -149,8 +149,8 @@ Summarize:
 - The 3-5 strategic principles from PRODUCT.md that will guide future work
 - If DESIGN.md is pending, remind the user how to generate it later
 
-**Critical: re-run the loader to refresh session context.** After writing PRODUCT.md, run `node .claude/skills/iblai-design/scripts/load-context.mjs` one final time and let its full JSON output land in conversation. This ensures subsequent commands in this session use the freshly-written PRODUCT.md, not a stale earlier version.
+**Critical: re-run the loader to refresh session context.** After writing PRODUCT.md, run `node .claude/skills/iblai-design/scripts/load-context.mjs` one final time and let its full JSON output land in conversation. This guarantees subsequent commands in this session use the freshly-written PRODUCT.md, not a stale earlier version.
 
-If teach was invoked as a blocker by another impeccable command (e.g. the user ran `/impeccable polish` with no PRODUCT.md), resume that original task now with the fresh context.
+If teach was triggered as a blocker by another impeccable command (e.g. the user ran `/impeccable polish` with no PRODUCT.md), resume that original task now with the fresh context.
 
 Optionally STOP and call the AskUserQuestion tool to clarify. Ask whether they'd like a brief summary of PRODUCT.md appended to CLAUDE.md for easier agent reference. If yes, append a short **Design Context** pointer section there.

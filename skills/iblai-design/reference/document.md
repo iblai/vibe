@@ -1,10 +1,10 @@
-Generate a `DESIGN.md` file at the project root that captures the current visual design system, so AI agents generating new screens stay on-brand.
+Generate a `DESIGN.md` file at the project root that records the current visual design system, so AI agents building new screens stay on-brand.
 
-DESIGN.md follows the [official Google Stitch DESIGN.md format](https://stitch.withgoogle.com/docs/design-md/format/): YAML frontmatter carrying machine-readable design tokens, followed by a markdown body with exactly six sections in a fixed order. **Tokens are normative; prose provides context for how to apply them.** Sections may be omitted when not relevant, but **do not reorder them and do not rename them**. Section headers must match the spec character-for-character so the file stays parseable by other DESIGN.md-aware tools (Stitch itself, awesome-design-md, skill-rest, etc.).
+DESIGN.md follows the [official Google Stitch DESIGN.md format](https://stitch.withgoogle.com/docs/design-md/format/): YAML frontmatter holding machine-readable design tokens, then a markdown body with exactly six sections in a fixed order. **Tokens are normative; prose supplies context for how to apply them.** Sections may be dropped when not relevant, but **do not reorder them and do not rename them**. Section headers must match the spec character-for-character so the file stays parseable by other DESIGN.md-aware tools (Stitch itself, awesome-design-md, skill-rest, etc.).
 
 ## The frontmatter: token schema
 
-The YAML frontmatter is the machine-readable layer. It's what Stitch's linter validates and what the live panel renders tiles from. Keep it tight; every entry should correspond to a token the project actually uses.
+The YAML frontmatter is the machine-readable layer. It's what Stitch's linter validates and what the live panel renders tiles from. Keep it tight; every entry should map to a token the project actually uses.
 
 ```yaml
 ---
@@ -43,7 +43,7 @@ components:
 Rules that matter:
 
 - **Token refs** use `{path.to.token}` (e.g. `{colors.primary}`, `{rounded.md}`). Components may reference primitives; primitives may not reference each other.
-- **Stitch validates colors as hex sRGB only** (`#RGB` / `#RGBA` / `#RRGGBB` / `#RRGGBBAA`); OKLCH/HSL/P3 trigger a linter warning, not a hard error. YAML accepts the string either way and our own parser is format-agnostic. Choose based on project posture: (a) if the project has an "OKLCH-only" doctrine or uses Display-P3 values that don't round-trip through sRGB, put OKLCH directly in the frontmatter and accept the Stitch linter warning; (b) if the project wants strict Stitch compliance or plans to use their Tailwind/DTCG export pipeline, put hex in the frontmatter and keep OKLCH in prose as the canonical reference. Never split the source of truth without explicit reason.
+- **Stitch validates colors as hex sRGB only** (`#RGB` / `#RGBA` / `#RRGGBB` / `#RRGGBBAA`); OKLCH/HSL/P3 raise a linter warning, not a hard error. YAML accepts the string either way and our own parser is format-agnostic. Choose based on project posture: (a) if the project has an "OKLCH-only" doctrine or uses Display-P3 values that don't round-trip through sRGB, put OKLCH directly in the frontmatter and accept the Stitch linter warning; (b) if the project wants strict Stitch compliance or plans to use their Tailwind/DTCG export pipeline, put hex in the frontmatter and keep OKLCH in prose as the canonical reference. Never split the source of truth without explicit reason.
 - **Component sub-tokens** are limited to 8 props: `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`. Shadows, motion, focus rings, backdrop-filter: none of those fit. Carry them in the sidecar (Step 4b).
 - **Scale keys are open-ended.** Use whatever names the project already uses (`warm-ash-cream`, `surface-container-low`). Don't rename to Material defaults.
 - **Variants are naming convention, not schema.** `button-primary` / `button-primary-hover` / `button-primary-active` as sibling keys.
@@ -57,7 +57,7 @@ Rules that matter:
 5. `## Components`
 6. `## Do's and Don'ts`
 
-Optional evocative subtitles are allowed in the form `## 2. Colors: The [Name] Palette` (Stitch's own outputs do this), but the literal word in each header (Overview, Colors, Typography, Elevation, Components, Do's and Don'ts) must be present. Do NOT add extra top-level sections (Layout Principles, Responsive Behavior, Motion, Agent Prompt Guide). Fold that content into the six spec sections where it naturally belongs.
+Optional evocative subtitles are allowed in the form `## 2. Colors: The [Name] Palette` (Stitch's own outputs do this), but the literal word in each header (Overview, Colors, Typography, Elevation, Components, Do's and Don'ts) must be present. Do NOT add extra top-level sections (Layout Principles, Responsive Behavior, Motion, Agent Prompt Guide). Fold that content into the six spec sections wherever it naturally belongs.
 
 ## When to run
 
@@ -86,15 +86,15 @@ Search the codebase in priority order:
 3. **CSS-in-JS theme files**: styled-components, emotion, vanilla-extract, stitches; look for `theme.ts`, `tokens.ts`, or equivalent.
 4. **Design token files**: `tokens.json`, `design-tokens.json`, Style Dictionary output, W3C token community group format.
 5. **Component library**: scan the main button, card, input, navigation, dialog components. Note their variant APIs and default styles.
-6. **Global stylesheet**: the root CSS file usually has the base typography and color assignments.
+6. **Global stylesheet**: the root CSS file usually holds the base typography and color assignments.
 7. **Visible rendered output**: if browser automation tools are available, load the live site and sample computed styles from key elements (body, h1, a, button, .card). This catches values that tokens miss.
 
 ### Step 2: Auto-extract what can be auto-extracted
 
 Build a structured draft from the discovered tokens. For each token class:
 
-- **Colors**: Group into Primary / Secondary / Tertiary / Neutral (the Material-derived roles Stitch uses). If the project only has one accent, express it as Primary + Neutral; omit Secondary and Tertiary rather than inventing them.
-- **Typography**: Map observed sizes and weights to the Material hierarchy (display / headline / title / body / label). Note font-family stacks and the scale ratio.
+- **Colors**: Group into Primary / Secondary / Tertiary / Neutral (the Material-derived roles Stitch uses). If the project has only one accent, express it as Primary + Neutral; omit Secondary and Tertiary rather than inventing them.
+- **Typography**: Map observed sizes and weights onto the Material hierarchy (display / headline / title / body / label). Note font-family stacks and the scale ratio.
 - **Elevation**: Catalogue the shadow vocabulary. If the project is flat and uses tonal layering instead, that's a valid answer; state it explicitly.
 - **Components**: For each common component (button, card, input, chip, list item, tooltip, nav), extract shape (radius), color assignment, hover/focus treatment, internal padding.
 - **Spacing + layout**: Fold into Overview or relevant Components. The spec does NOT have a Layout section.
@@ -112,7 +112,7 @@ Skip anything the project doesn't have. Empty scale keys or fabricated tokens po
 
 ### Step 3: Ask the user for qualitative language
 
-The following require creative input that cannot be auto-extracted. Group them into one `AskUserQuestion` interaction:
+The following require creative input that can't be auto-extracted. Group them into one `AskUserQuestion` interaction:
 
 - **Creative North Star**: a single named metaphor for the whole system ("The Editorial Sanctuary", "The Golden State Curator", "The Lab Notebook"). Offer 2-3 options that honor PRODUCT.md's brand personality.
 - **Overview voice**: mood adjectives, aesthetic philosophy in 2-3 sentences, anti-references (what the system should not feel like).

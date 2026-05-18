@@ -1,22 +1,22 @@
 > **Additional context needed**: quality bar (MVP vs flagship).
 
-Perform a meticulous final pass to catch all the small details that separate good work from great work. The difference between shipped and polished.
+Make one careful, deliberate sweep to catch every small detail that separates good work from great work. That gap is the difference between merely shipped and truly polished.
 
-Detector and automated QA output are defect evidence only. A clean script result is never proof that the design is strong; gather browser evidence and inspect the real interaction path.
+Detector and automated QA output only point to defects. A passing script never proves the design is solid; collect browser evidence and walk the actual interaction path yourself.
 
 ## Design System Discovery
 
-Aligning the feature to the design system is **not optional**. Polish without alignment is decoration on top of drift, and it makes the next person's job harder. Discovery comes before any other polish work.
+Bringing the feature into line with the design system is **not optional**. Polishing without that alignment just dresses up drift, and it leaves the next person worse off. Do discovery before any other polish work begins.
 
-1. **Find the design system**: Search for design system documentation, component libraries, style guides, or token definitions. Study the core patterns: design principles, target audience, color tokens, spacing scale, typography styles, component API, motion conventions.
-2. **Note the conventions**: How are shared components imported? What spacing scale is used? Which colors come from tokens vs hard-coded values? What motion and interaction patterns are established? What flow shapes are used for comparable actions (modal vs full-page, inline vs route, save-on-blur vs explicit submit)?
-3. **Identify drift, then name the root cause**: For every deviation, classify it as a **missing token** (the value should exist in the system but doesn't), a **one-off implementation** (a shared component already exists but wasn't used), or a **conceptual misalignment** (the feature's flow, IA, or hierarchy doesn't match neighboring features). The fix differs by category: patch the value, swap to the shared component, or rework the flow. Fixing the symptom without naming the cause is how drift compounds.
+1. **Find the design system**: Hunt for design system docs, component libraries, style guides, or token definitions. Learn the core patterns: design principles, target audience, color tokens, spacing scale, typography styles, component API, motion conventions.
+2. **Note the conventions**: How do shared components get imported? Which spacing scale applies? Which colors are token-driven versus hard-coded? Which motion and interaction patterns are already established? What flow shapes do comparable actions take (modal vs full-page, inline vs route, save-on-blur vs explicit submit)?
+3. **Identify drift, then name the root cause**: For each deviation, label it a **missing token** (the value belongs in the system but isn't there), a **one-off implementation** (a shared component exists but went unused), or a **conceptual misalignment** (the feature's flow, IA, or hierarchy doesn't match its neighbors). Each category calls for a different fix: patch the value, switch to the shared component, or rework the flow. Treating the symptom without identifying the cause is exactly how drift compounds.
 
-If a design system exists, polish **must** align the feature with it. If none exists, polish against the conventions visible in the codebase. **If anything about the system is ambiguous, ask. Never guess at design system principles.**
+When a design system is present, polish **must** align the feature to it. With no system, polish against the conventions already visible in the codebase. **When anything about the system is unclear, ask. Never guess at design system principles.**
 
 ## Pre-Polish Assessment
 
-Understand the current state and goals before touching anything:
+Get a read on the current state and the goals before you touch anything:
 
 1. **Review completeness**:
    - Is it functionally complete?
@@ -24,7 +24,7 @@ Understand the current state and goals before touching anything:
    - What's the quality bar? (MVP vs flagship feature?)
    - When does it ship? (How much time for polish?)
 
-2. **Think experience-first**: Who actually uses this, and what's the best possible experience for them? Effective design beats decorative polish; a feature that looks beautiful but fights the user's flow is not polished. Walk the path from their perspective before opening DevTools.
+2. **Think experience-first**: Who genuinely uses this, and what's the best possible experience for them? Effective design wins over decorative polish; a feature that looks beautiful yet fights the user's flow isn't polished. Walk their path from their point of view before you open DevTools.
 
 3. **Identify polish areas**:
    - Visual inconsistencies
@@ -35,16 +35,16 @@ Understand the current state and goals before touching anything:
    - Loading and transition smoothness
    - Information architecture and flow drift (does this feature reveal complexity the way neighboring features do?)
 
-4. **Pull in any prior critique** (optional signal): If `/iblai-design critique` has been run on the same target, its priority issues are a useful prior for what to address first. Resolve the target to a file path or URL, then:
+4. **Pull in any prior critique** (optional signal): When `/iblai-design critique` has already run against the same target, its priority issues are a helpful starting point for what to tackle first. Resolve the target to a file path or URL, then:
    ```bash
    slug=$(node .claude/skills/iblai-design/scripts/critique-storage.mjs slug "<resolved>")
    node .claude/skills/iblai-design/scripts/critique-storage.mjs latest "$slug"
    ```
-   Exit 0 with body = found; fold the P0/P1 items into your polish list and mention the snapshot path so the user sees what you read. Exit 2 = no snapshot, continue without it. The critique is one input among many. Do your own pass either way.
+   Exit 0 with body = found; fold the P0/P1 items into your polish list and mention the snapshot path so the user sees what you read. Exit 2 = no snapshot, continue without it. The critique is just one input among several. Do your own pass regardless.
 
-5. **Triage cosmetic vs functional**: Classify each issue as **cosmetic** (looks off, doesn't impede the user) or **functional** (breaks, blocks, or confuses the experience). When polish time is tight, functional issues ship first; cosmetic ones can land in a follow-up. Quality should be consistent; never perfect one corner while leaving another rough.
+5. **Triage cosmetic vs functional**: Sort each issue as **cosmetic** (looks off but doesn't get in the user's way) or **functional** (breaks, blocks, or confuses the experience). When polish time runs short, functional issues go first; cosmetic ones can follow up later. Keep quality even; never perfect one corner while another stays rough.
 
-**CRITICAL**: Polish is the last step, not the first. Don't polish work that's not functionally complete.
+**CRITICAL**: Polish is the last step, not the first. Don't polish work that isn't functionally complete.
 
 ## Polish Systematically
 
@@ -66,13 +66,13 @@ Work through these dimensions methodically:
 
 ### Information Architecture & Flow
 
-Visual polish on a misshapen flow is wasted work. Match the *shape* of the experience to the system, not just the surface.
+Visual polish applied to a misshapen flow is wasted effort. Match the *shape* of the experience to the system, not just its surface.
 
-- **Progressive disclosure**: Match how much is revealed when, compared to neighboring features. A settings page exposing 40 fields when the rest of the app reveals 5 at a time is drift, even if every field is perfectly styled.
-- **Established user flows**: Multi-step actions follow the same shape as comparable flows elsewhere: modal vs full-page, inline edit vs separate route, save-on-blur vs explicit submit, optimistic vs pessimistic updates.
-- **Hierarchy & complexity**: The same conceptual weight gets the same visual weight throughout. Primary actions don't become tertiary in one corner of the product, and tertiary actions don't shout.
-- **Empty, loading, and arrival transitions**: How content arrives, updates, and leaves matches how it does in adjacent features.
-- **Naming and mental model**: The feature uses the same nouns and verbs as the rest of the system. A "Workspace" here shouldn't be a "Project" three screens away.
+- **Progressive disclosure**: Match how much gets revealed and when, relative to neighboring features. A settings page showing 40 fields when the rest of the app reveals 5 at a time is drift, even when every field is styled perfectly.
+- **Established user flows**: Multi-step actions take the same shape as comparable flows elsewhere: modal vs full-page, inline edit vs separate route, save-on-blur vs explicit submit, optimistic vs pessimistic updates.
+- **Hierarchy & complexity**: Equal conceptual weight earns equal visual weight throughout. Primary actions shouldn't drop to tertiary in one corner of the product, and tertiary actions shouldn't shout.
+- **Empty, loading, and arrival transitions**: How content arrives, updates, and departs matches how it does in adjacent features.
+- **Naming and mental model**: The feature uses the same nouns and verbs as the rest of the system. A "Workspace" here shouldn't become a "Project" three screens away.
 
 ### Typography Refinement
 
@@ -205,9 +205,9 @@ Go through systematically:
 - [ ] Respects reduced motion preference
 - [ ] Code is clean (no TODOs, console.logs, commented code)
 
-**IMPORTANT**: Polish is about details. Zoom in. Squint at it. Use it yourself. The little things add up.
+**IMPORTANT**: Polish is all about details. Zoom in. Squint at it. Use it yourself. The little things add up.
 
-Sweat the details. Zoom in until the alignment is right and the spacing reads as deliberate. Then ship.
+Obsess over the details. Zoom in until the alignment is right and the spacing reads as intentional. Then ship.
 
 **NEVER**:
 - Polish before it's functionally complete
@@ -230,13 +230,13 @@ Before marking as done:
 - **Ask someone else to review**: Fresh eyes catch things.
 - **Compare to design**: Match intended design.
 - **Check all states**: Don't just test happy path.
-- **Treat automation carefully**: Run detector or QA commands when they are available and relevant, fix their defects, but never cite a clean result as proof that the work is polished.
+- **Treat automation carefully**: Run detector or QA commands when they're available and relevant, fix their defects, but never cite a clean result as proof the work is polished.
 
 ## Clean Up
 
-After polishing, ensure code quality:
+Once polishing is done, secure code quality:
 
-- **Replace custom implementations**: If the design system provides a component you reimplemented, switch to the shared version.
-- **Remove orphaned code**: Delete unused styles, components, or files made obsolete by polish.
-- **Consolidate tokens**: If you introduced new values, check whether they should be tokens.
-- **Verify DRYness**: Look for duplication introduced during polishing and consolidate.
+- **Replace custom implementations**: When the design system already offers a component you reimplemented, switch over to the shared version.
+- **Remove orphaned code**: Delete styles, components, or files that polish made obsolete.
+- **Consolidate tokens**: If you added new values, check whether they belong as tokens.
+- **Verify DRYness**: Find any duplication that crept in during polishing and consolidate it.

@@ -1,18 +1,18 @@
-Typography carries most of the information on the page. Replace generic defaults (Inter, Roboto, system fallback at flat scale) with type that reflects the brand and scales with intentional contrast.
+Most of what a page communicates rides on its typography. Swap out generic defaults (Inter, Roboto, system fallback at a flat scale) for type that expresses the brand and scales with deliberate contrast.
 
 ---
 
 ## Register
 
-Brand: run the font selection procedure in [brand.md](brand.md). Pairing follows the brand's lane (display serif + sans body for editorial/luxury, one committed sans for tech, etc.). Fluid `clamp()` scale, ≥1.25 ratio between steps.
+Brand: follow the font selection procedure in [brand.md](brand.md). Pairing tracks the brand's lane (display serif + sans body for editorial/luxury, one committed sans for tech, etc.). Fluid `clamp()` scale, ≥1.25 ratio between steps.
 
-Product: system fonts and familiar sans stacks are legitimate here. One well-tuned family typically carries the whole UI. Fixed `rem` scale, 1.125–1.2 ratio between more closely-spaced steps.
+Product: system fonts and familiar sans stacks are perfectly valid here. A single well-tuned family usually carries the entire UI. Fixed `rem` scale, 1.125–1.2 ratio between more closely-spaced steps.
 
 ---
 
 ## Assess Current Typography
 
-Analyze what's weak or generic about the current type:
+Diagnose what's weak or generic about the existing type:
 
 1. **Font choices**:
    - Are we using invisible defaults? (Inter, Roboto, Arial, Open Sans, system defaults)
@@ -39,13 +39,13 @@ Analyze what's weak or generic about the current type:
    - Are font weights used consistently? (Not bold in one section, semibold in another for the same role)
    - Is letter-spacing intentional or default everywhere?
 
-**CRITICAL**: The goal isn't to make text "fancier." It's to make it clearer, more readable, and more intentional. Good typography is invisible; bad typography is distracting.
+**CRITICAL**: The aim isn't to make text "fancier." It's to make it clearer, more readable, and more deliberate. Good typography goes unnoticed; bad typography pulls focus.
 
 ## Plan Typography Improvements
 
-Consult the [typography reference](typography.md) for detailed guidance on scales, pairing, and loading strategies.
+Refer to the [typography reference](typography.md) for in-depth guidance on scales, pairing, and loading strategies.
 
-Create a systematic plan:
+Build a methodical plan:
 
 - **Font selection**: Do fonts need replacing? What fits the brand/context?
 - **Type scale**: Establish a modular scale (e.g., 1.25 ratio) with clear hierarchy
@@ -109,16 +109,16 @@ Build a clear type scale:
 - **Performance**: Are web fonts loading efficiently without layout shift?
 - **Accessibility**: Does text meet WCAG contrast ratios? Is it zoomable to 200%?
 
-When the type carries the hierarchy on its own, hand off to `/iblai-design polish` for the final pass.
+Once the type holds the hierarchy on its own, pass it to `/iblai-design polish` for the final pass.
 
 ## Live-mode signature params
 
-Each variant MUST declare a `scale` param controlling the hierarchy ratio. Express all font sizes in the variant's scoped CSS through `calc(var(--p-scale, 1) * <base>)` or, better, scale the type ramp via `clamp(min, calc(var(--p-scale, 1) * Npx), max)`. Users slide from subdued to commanding.
+Every variant MUST declare a `scale` param that controls the hierarchy ratio. Express every font size in the variant's scoped CSS through `calc(var(--p-scale, 1) * <base>)` or, preferably, scale the type ramp via `clamp(min, calc(var(--p-scale, 1) * Npx), max)`. Users slide from subdued to commanding.
 
 ```json
 {"id":"scale","kind":"range","min":0.85,"max":1.3,"step":0.05,"default":1,"label":"Scale"}
 ```
 
-Where the variant riffs on a specific pairing, expose the pairing choice as a `steps` param (e.g. "serif display + sans body" vs. "mono display + sans body" vs. "all-sans"). Each branch routes through `:scope[data-p-pairing="X"]` selectors in scoped CSS.
+When the variant plays on a particular pairing, surface the pairing choice as a `steps` param (e.g. "serif display + sans body" vs. "mono display + sans body" vs. "all-sans"). Each branch is routed through `:scope[data-p-pairing="X"]` selectors in scoped CSS.
 
 See `reference/live.md` for the full params contract.

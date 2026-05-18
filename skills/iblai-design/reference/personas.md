@@ -1,151 +1,151 @@
 # Persona-Based Design Testing
 
-Test the interface through the eyes of 5 distinct user archetypes. Each persona exposes different failure modes that a single "design director" perspective would miss.
+Evaluate the interface from the viewpoint of 5 separate user archetypes. Each archetype surfaces distinct failure modes that one "design director" lens would overlook.
 
-**How to use**: Select 2–3 personas most relevant to the interface being critiqued. Walk through the primary user action as each persona. Report specific red flags, not generic concerns.
+**How to use**: Pick the 2–3 personas that best fit the interface under critique. Run through the primary user action while inhabiting each persona. Call out concrete red flags rather than generic worries.
 
 ---
 
 ## 1. Impatient Power User: "Alex"
 
 
-**Profile**: Expert with similar products. Expects efficiency, hates hand-holding. Will find shortcuts or leave.
+**Profile**: Seasoned with comparable tools. Demands speed, dislikes being coddled. Will discover shortcuts or move on.
 
 **Behaviors**:
-- Skips all onboarding and instructions
-- Looks for keyboard shortcuts immediately
-- Tries to bulk-select, batch-edit, and automate
-- Gets frustrated by required steps that feel unnecessary
-- Abandons if anything feels slow or patronizing
+- Bypasses every bit of onboarding and instruction
+- Hunts for keyboard shortcuts right away
+- Attempts bulk selection, batch edits, and automation
+- Becomes annoyed by mandatory steps that seem pointless
+- Leaves the moment something feels sluggish or condescending
 
 **Test Questions**:
-- Can Alex complete the core task in under 60 seconds?
-- Are there keyboard shortcuts for common actions?
-- Can onboarding be skipped entirely?
-- Do modals have keyboard dismiss (Esc)?
-- Is there a "power user" path (shortcuts, bulk actions)?
+- Can Alex finish the core task in less than 60 seconds?
+- Do common actions have keyboard shortcuts?
+- Is it possible to skip onboarding completely?
+- Can modals be dismissed via the keyboard (Esc)?
+- Does a "power user" route exist (shortcuts, bulk actions)?
 
 **Red Flags** (report these specifically):
-- Forced tutorials or unskippable onboarding
-- No keyboard navigation for primary actions
-- Slow animations that can't be skipped
-- One-item-at-a-time workflows where batch would be natural
-- Redundant confirmation steps for low-risk actions
+- Mandatory tutorials or onboarding that can't be skipped
+- Primary actions lacking keyboard navigation
+- Slow animations with no skip option
+- One-at-a-time flows where batching would be the natural fit
+- Extra confirmation steps for actions that carry little risk
 
 ---
 
 ## 2. Confused First-Timer: "Jordan"
 
-**Profile**: Never used this type of product. Needs guidance at every step. Will abandon rather than figure it out.
+**Profile**: Has never touched this kind of product. Requires guidance at each step. Will give up instead of working it out.
 
 **Behaviors**:
-- Reads all instructions carefully
-- Hesitates before clicking anything unfamiliar
-- Looks for help or support constantly
-- Misunderstands jargon and abbreviations
-- Takes the most literal interpretation of any label
+- Reads every instruction with care
+- Pauses before clicking anything unfamiliar
+- Constantly seeks help or support
+- Misreads jargon and abbreviations
+- Interprets every label in the most literal way
 
 **Test Questions**:
-- Is the first action obviously clear within 5 seconds?
-- Are all icons labeled with text?
-- Is there contextual help at decision points?
-- Does terminology assume prior knowledge?
-- Is there a clear "back" or "undo" at every step?
+- Is the first action obvious within 5 seconds?
+- Does every icon carry a text label?
+- Is contextual help present at decision points?
+- Does the terminology presume prior knowledge?
+- Is a clear "back" or "undo" available at each step?
 
 **Red Flags** (report these specifically):
-- Icon-only navigation with no labels
-- Technical jargon without explanation
+- Icon-only navigation lacking labels
+- Technical jargon left unexplained
 - No visible help option or guidance
-- Ambiguous next steps after completing an action
-- No confirmation that an action succeeded
+- Unclear next steps once an action is done
+- No confirmation that an action worked
 
 ---
 
 ## 3. Accessibility-Dependent User: "Sam"
 
-**Profile**: Uses screen reader (VoiceOver/NVDA), keyboard-only navigation. May have low vision, motor impairment, or cognitive differences.
+**Profile**: Relies on a screen reader (VoiceOver/NVDA) and keyboard-only navigation. May have low vision, a motor impairment, or cognitive differences.
 
 **Behaviors**:
-- Tabs through the interface linearly
-- Relies on ARIA labels and heading structure
-- Cannot see hover states or visual-only indicators
-- Needs adequate color contrast (4.5:1 minimum)
-- May use browser zoom up to 200%
+- Moves through the interface linearly via Tab
+- Depends on ARIA labels and heading structure
+- Cannot perceive hover states or visual-only cues
+- Requires sufficient color contrast (4.5:1 minimum)
+- May zoom the browser as high as 200%
 
 **Test Questions**:
-- Can the entire primary flow be completed keyboard-only?
-- Are all interactive elements focusable with visible focus indicators?
-- Do images have meaningful alt text?
+- Can the whole primary flow be done with the keyboard alone?
+- Are all interactive elements focusable, with visible focus indicators?
+- Do images carry meaningful alt text?
 - Is color contrast WCAG AA compliant (4.5:1 for text)?
 - Does the screen reader announce state changes (loading, success, errors)?
 
 **Red Flags** (report these specifically):
-- Click-only interactions with no keyboard alternative
-- Missing or invisible focus indicators
-- Meaning conveyed by color alone (red = error, green = success)
-- Unlabeled form fields or buttons
-- Time-limited actions without extension option
-- Custom components that break screen reader flow
+- Click-only interactions with no keyboard equivalent
+- Focus indicators that are missing or invisible
+- Meaning carried by color alone (red = error, green = success)
+- Form fields or buttons with no labels
+- Time-limited actions offering no extension
+- Custom components that disrupt screen reader flow
 
 ---
 
 ## 4. Deliberate Stress Tester: "Riley"
 
-**Profile**: Methodical user who pushes interfaces beyond the happy path. Tests edge cases, tries unexpected inputs, and probes for gaps in the experience.
+**Profile**: A methodical user who drives interfaces past the happy path. Probes edge cases, feeds in unexpected inputs, and searches for gaps in the experience.
 
 **Behaviors**:
-- Tests edge cases intentionally (empty states, long strings, special characters)
+- Deliberately exercises edge cases (empty states, long strings, special characters)
 - Submits forms with unexpected data (emoji, RTL text, very long values)
-- Tries to break workflows by navigating backwards, refreshing mid-flow, or opening in multiple tabs
-- Looks for inconsistencies between what the UI promises and what actually happens
-- Documents problems methodically
+- Attempts to break flows by going backward, refreshing mid-flow, or opening multiple tabs
+- Hunts for mismatches between what the UI promises and what actually occurs
+- Records problems methodically
 
 **Test Questions**:
-- What happens at the edges (0 items, 1000 items, very long text)?
-- Do error states recover gracefully or leave the UI in a broken state?
-- What happens on refresh mid-workflow? Is state preserved?
-- Are there features that appear to work but produce broken results?
-- How does the UI handle unexpected input (emoji, special chars, paste from Excel)?
+- What occurs at the extremes (0 items, 1000 items, very long text)?
+- Do error states recover cleanly or leave the UI broken?
+- What happens on a mid-workflow refresh? Is state kept?
+- Are there features that seem to function but yield broken outcomes?
+- How does the UI cope with unexpected input (emoji, special chars, paste from Excel)?
 
 **Red Flags** (report these specifically):
-- Features that appear to work but silently fail or produce wrong results
-- Error handling that exposes technical details or leaves UI in a broken state
-- Empty states that show nothing useful ("No results" with no guidance)
-- Workflows that lose user data on refresh or navigation
-- Inconsistent behavior between similar interactions in different parts of the UI
+- Features that look like they work but silently fail or return wrong results
+- Error handling that leaks technical details or leaves the UI broken
+- Empty states offering nothing useful ("No results" with no guidance)
+- Flows that discard user data on refresh or navigation
+- Inconsistent behavior across similar interactions in different parts of the UI
 
 ---
 
 ## 5. Distracted Mobile User: "Casey"
 
-**Profile**: Using phone one-handed on the go. Frequently interrupted. Possibly on a slow connection.
+**Profile**: On a phone, one-handed, while moving. Interrupted often. Possibly on a slow connection.
 
 **Behaviors**:
-- Uses thumb only; prefers bottom-of-screen actions
-- Gets interrupted mid-flow and returns later
-- Switches between apps frequently
-- Has limited attention span and low patience
-- Types as little as possible, prefers taps and selections
+- Uses only the thumb; favors actions at the bottom of the screen
+- Gets interrupted mid-flow and comes back later
+- Switches between apps often
+- Has a short attention span and little patience
+- Types as little as possible, preferring taps and selections
 
 **Test Questions**:
-- Are primary actions in the thumb zone (bottom half of screen)?
-- Is state preserved if the user leaves and returns?
-- Does it work on slow connections (3G)?
-- Can forms use autocomplete and smart defaults?
+- Are primary actions within the thumb zone (lower half of the screen)?
+- Is state retained when the user leaves and returns?
+- Does it function on slow connections (3G)?
+- Can forms leverage autocomplete and smart defaults?
 - Are touch targets at least 44×44pt?
 
 **Red Flags** (report these specifically):
-- Important actions positioned at the top of the screen (unreachable by thumb)
+- Key actions placed at the top of the screen (out of thumb reach)
 - No state persistence; progress lost on tab switch or interruption
-- Large text inputs required where selection would work
-- Heavy assets loading on every page (no lazy loading)
-- Tiny tap targets or targets too close together
+- Large text inputs demanded where a selection would suffice
+- Heavy assets loaded on every page (no lazy loading)
+- Tiny tap targets or targets packed too closely together
 
 ---
 
 ## Selecting Personas
 
-Choose personas based on the interface type:
+Pick personas based on the kind of interface:
 
 | Interface Type | Primary Personas | Why |
 |---------------|-----------------|-----|
@@ -160,11 +160,11 @@ Choose personas based on the interface type:
 
 ## Project-Specific Personas
 
-If `CLAUDE.md` contains a `## Design Context` section (generated by `impeccable teach`), derive 1–2 additional personas from the audience and brand information:
+If `CLAUDE.md` includes a `## Design Context` section (created by `impeccable teach`), build 1–2 extra personas from the audience and brand details:
 
-1. Read the target audience description
-2. Identify the primary user archetype not covered by the 5 predefined personas
-3. Create a persona following this template:
+1. Read the description of the target audience
+2. Pinpoint the main user archetype not already covered by the 5 predefined personas
+3. Build a persona using this template:
 
 ```
 ### [Role]: "[Name]"
@@ -176,4 +176,4 @@ If `CLAUDE.md` contains a `## Design Context` section (generated by `impeccable 
 **Red Flags**: [3-4 things that would alienate this specific user type]
 ```
 
-Only generate project-specific personas when real Design Context data is available. Don't invent audience details; use the 5 predefined personas when no context exists.
+Create project-specific personas only when genuine Design Context data exists. Don't fabricate audience details; fall back to the 5 predefined personas whenever no context is present.

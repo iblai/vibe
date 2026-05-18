@@ -1,20 +1,20 @@
 > **Additional context needed**: existing brand colors.
 
-Replace timid grayscale or single-accent designs with a strategic palette: pick a color strategy, choose a hue family that fits the brand, then apply color with intent. More color ≠ better. Strategic color beats rainbow vomit.
+Swap timid grayscale or single-accent designs for a strategic palette: choose a color strategy, settle on a hue family that suits the brand, then apply color deliberately. More color ≠ better. Strategic color beats rainbow vomit.
 
 ---
 
 ## Register
 
-Brand: palette IS voice. Pick a color strategy first per SKILL.md (Restrained / Committed / Full palette / Drenched) and follow its dosage. Committed, Full palette, and Drenched deliberately exceed the ≤10% rule; that rule is Restrained only. Unexpected combinations are allowed; a dominant color can own the page when the chosen strategy calls for it.
+Brand: palette IS voice. Choose a color strategy first per SKILL.md (Restrained / Committed / Full palette / Drenched) and follow its dosage. Committed, Full palette, and Drenched intentionally break past the ≤10% rule; that rule applies to Restrained only. Unexpected combinations are fair game; a dominant color can own the page when the chosen strategy demands it.
 
-Product: semantic-first and almost always Restrained. Accent color is reserved for primary action, current selection, and state indicators. Not decoration. Every color has a consistent meaning across every screen.
+Product: semantic-first and nearly always Restrained. Accent color is held back for primary action, current selection, and state indicators. Not decoration. Every color carries a consistent meaning on every screen.
 
 ---
 
 ## Assess Color Opportunity
 
-Analyze the current state and identify opportunities:
+Analyze the current state and surface opportunities:
 
 1. **Understand current state**:
    - **Color absence**: Pure grayscale? Limited neutrals? One timid accent?
@@ -30,24 +30,24 @@ Analyze the current state and identify opportunities:
    - **Wayfinding**: Helping users navigate and understand structure
    - **Delight**: Moments of visual interest and personality
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these stay unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
-**CRITICAL**: More color ≠ better. Strategic color beats rainbow vomit every time. Every color should have a purpose.
+**CRITICAL**: More color ≠ better. Strategic color beats rainbow vomit every time. Every color should serve a purpose.
 
 ## Plan Color Strategy
 
-Create a purposeful color introduction plan:
+Build a deliberate plan for introducing color:
 
-- **Color palette**: What colors match the brand/context? (Choose 2-4 colors max beyond neutrals)
+- **Color palette**: Which colors fit the brand/context? (Choose 2-4 colors max beyond neutrals)
 - **Dominant color**: Which color owns 60% of colored elements?
-- **Accent colors**: Which colors provide contrast and highlights? (30% and 10%)
+- **Accent colors**: Which colors supply contrast and highlights? (30% and 10%)
 - **Application strategy**: Where does each color appear and why?
 
-**IMPORTANT**: Color should enhance hierarchy and meaning, not create chaos. Less is more when it matters more.
+**IMPORTANT**: Color should reinforce hierarchy and meaning, not breed chaos. Less is more when it matters more.
 
 ## Introduce Color Strategically
 
-Add color systematically across these dimensions:
+Layer in color methodically across these dimensions:
 
 ### Semantic Color
 - **State indicators**:
@@ -68,12 +68,12 @@ Add color systematically across these dimensions:
 - **Hover states**: Introduce color on interaction
 
 ### Background & Surfaces
-- **Tinted backgrounds**: Replace pure gray (`#f5f5f5`) with warm neutrals (`oklch(97% 0.01 60)`) or cool tints (`oklch(97% 0.01 250)`)
+- **Tinted backgrounds**: Swap pure gray (`#f5f5f5`) for warm neutrals (`oklch(97% 0.01 60)`) or cool tints (`oklch(97% 0.01 250)`)
 - **Colored sections**: Use subtle background colors to separate areas
 - **Gradient backgrounds**: Add depth with subtle, intentional gradients (not generic purple-blue)
 - **Cards & surfaces**: Tint cards or surfaces slightly for warmth
 
-**Use OKLCH for color**: It's perceptually uniform, meaning equal steps in lightness *look* equal. Great for generating harmonious scales.
+**Use OKLCH for color**: It's perceptually uniform, so equal steps in lightness *look* equal. Excellent for generating harmonious scales.
 
 ### Data Visualization
 - **Charts & graphs**: Use color to encode categories or values
@@ -81,13 +81,13 @@ Add color systematically across these dimensions:
 - **Comparison**: Color coding for different datasets or timeframes
 
 ### Borders & Accents
-- **Hairline borders**: 1px colored borders on full perimeter (not side-stripes; see the absolute ban on `border-left/right > 1px`)
+- **Hairline borders**: 1px colored borders on the full perimeter (not side-stripes; see the absolute ban on `border-left/right > 1px`)
 - **Underlines**: Color underlines for emphasis or active states
 - **Dividers**: Subtle colored dividers instead of gray lines
 - **Focus rings**: Colored focus indicators matching brand
 - **Surface tints**: A 4-8% background wash of the accent color instead of a stripe
 
-**NEVER**: `border-left` or `border-right` greater than 1px as a colored accent stripe. This is one of the three absolute bans in the parent skill. If you want to mark a card as "active" or "warning", use a full hairline border, a background tint, a leading glyph, or a numbered prefix. Not a side stripe.
+**NEVER**: `border-left` or `border-right` greater than 1px as a colored accent stripe. This is one of the three absolute bans in the parent skill. To mark a card as "active" or "warning", use a full hairline border, a background tint, a leading glyph, or a numbered prefix. Not a side stripe.
 
 ### Typography Color
 - **Colored headings**: Use brand colors for section headings (maintain contrast)
@@ -102,7 +102,7 @@ Add color systematically across these dimensions:
 
 ## Balance & Refinement
 
-Ensure color addition improves rather than overwhelms:
+Make sure adding color improves rather than overwhelms:
 
 ### Maintain Hierarchy
 - **Dominant color** (60%): Primary brand color or most used accent
@@ -116,15 +116,15 @@ Ensure color addition improves rather than overwhelms:
 - **Test for color blindness**: Verify red/green combinations work for all users
 
 ### Cohesion
-- **Consistent palette**: Use colors from defined palette, not arbitrary choices
+- **Consistent palette**: Use colors from the defined palette, not arbitrary choices
 - **Systematic application**: Same color meanings throughout (green always = success)
 - **Temperature consistency**: Warm palette stays warm, cool stays cool
 
 **NEVER**:
 - Use every color in the rainbow (choose 2-4 colors beyond neutrals)
-- Apply color randomly without semantic meaning
+- Apply color randomly with no semantic meaning
 - Put gray text on colored backgrounds. It looks washed out; use a darker shade of the background color or transparency instead
-- Use pure gray for neutrals. Add subtle color tint (warm or cool) for depth
+- Use pure gray for neutrals. Add a subtle color tint (warm or cool) for depth
 - Use pure black (`#000`) or pure white (`#fff`) for large areas
 - Violate WCAG contrast requirements
 - Use color as the only indicator (accessibility issue)
@@ -133,15 +133,15 @@ Ensure color addition improves rather than overwhelms:
 
 ## Verify Color Addition
 
-Test that colorization improves the experience:
+Confirm the colorization improves the experience:
 
-- **Better hierarchy**: Does color guide attention appropriately?
+- **Better hierarchy**: Does color steer attention appropriately?
 - **Clearer meaning**: Does color help users understand states/categories?
 - **More engaging**: Does the interface feel warmer and more inviting?
 - **Still accessible**: Do all color combinations meet WCAG standards?
 - **Not overwhelming**: Is color balanced and purposeful?
 
-When the palette earns its place, hand off to `/iblai-design polish` for the final pass.
+Once the palette earns its place, hand off to `/iblai-design polish` for the final pass.
 
 ## Live-mode signature params
 

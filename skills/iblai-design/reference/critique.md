@@ -2,53 +2,53 @@
 
 ### Setup: Resolve Target and Load Ignore List
 
-Before gathering assessments, do two small bookkeeping steps. They cost almost nothing and they're what makes critique iterative across runs.
+Before collecting assessments, handle two small bookkeeping steps. They cost almost nothing and they're what lets critique stay iterative across runs.
 
-1. **Resolve the primary artifact.** The user's phrasing ("the homepage", "the pricing flow") is not stable enough to track across runs. Resolve it to a concrete file path or URL: the same one you'd already need to scan code or open in a browser. Examples:
+1. **Resolve the primary artifact.** The user's wording ("the homepage", "the pricing flow") isn't stable enough to track from run to run. Pin it down to a concrete file path or URL: the same one you'd need anyway to scan code or open in a browser. Examples:
    - "the homepage" → `site/pages/index.astro` (or `http://localhost:3000/` if you're inspecting live)
    - "the settings modal" → the primary component file (e.g., `src/components/Settings.tsx`)
    - "this page" → the URL or the page's source file
-   Prefer the source file path over the dev-server URL when both exist; ports drift between runs (`bun dev` vs `bun preview`), file paths don't.
+   Favor the source file path over the dev-server URL when both are available; ports shift between runs (`bun dev` vs `bun preview`), file paths don't.
 
 2. **Compute the slug.** Run:
    ```bash
    node .claude/skills/iblai-design/scripts/critique-storage.mjs slug "<resolved-path-or-url>"
    ```
-   Keep the printed slug. It identifies this target's stream across runs. If the command exits non-zero ("no stable slug for input"), skip persistence for this run and tell the user; the trend won't update but the critique still goes ahead.
+   Hold on to the printed slug. It identifies this target's stream across runs. If the command exits non-zero ("no stable slug for input"), skip persistence for this run and let the user know; the trend won't update but the critique proceeds anyway.
 
-3. **Read the ignore list** at `.impeccable/critique/ignore.md` if it exists. Plain markdown; each non-empty, non-comment line is something the user has marked as "do not re-raise" (deferred tradeoffs, designer-intended deviations, detector false-positives the user accepts). When a finding's text matches a line here (case-insensitive substring against rule name or snippet), **drop it silently**. Do not mention it in the report. This is the ONLY input critique consumes from prior runs; anchoring on prior findings would defeat the point of independent assessment.
+3. **Read the ignore list** at `.impeccable/critique/ignore.md` if it's present. Plain markdown; every non-empty, non-comment line is something the user has flagged as "do not re-raise" (deferred tradeoffs, designer-intended deviations, detector false-positives the user accepts). When a finding's text matches a line here (case-insensitive substring against rule name or snippet), **drop it silently**. Don't mention it in the report. This is the ONLY input critique takes from prior runs; anchoring on earlier findings would defeat the purpose of independent assessment.
 
 ### Gather Assessments
 
-Launch two independent assessments. **Neither may see the other's output.** This isolation is what makes the combined score honest. Running both in one head silently anchors them to each other; do not shortcut it for cost, speed, or context-size reasons.
+Kick off two independent assessments. **Neither may see the other's output.** This isolation is what keeps the combined score honest. Running both in one head quietly anchors them to each other; don't shortcut it for cost, speed, or context-size reasons.
 
-Delegate each assessment to a separate sub-agent (Claude Code's `Agent` tool, Codex's subagent spawning, etc.). Each returns structured findings as text. Do NOT output findings to the user yet.
+Hand each assessment to a separate sub-agent (Claude Code's `Agent` tool, Codex's subagent spawning, etc.). Each returns structured findings as text. Do NOT output findings to the user yet.
 
-Fall back to sequential in-head work only if the environment genuinely cannot spawn sub-agents.
+Fall back to sequential in-head work only when the environment genuinely can't spawn sub-agents.
 
-**Tab isolation**: When browser automation is available, each assessment MUST create its own new tab. Never reuse an existing tab, even if one is already open at the correct URL. This prevents the two assessments from interfering with each other's page state.
+**Tab isolation**: When browser automation is available, each assessment MUST open its own new tab. Never reuse an existing tab, even one already open at the correct URL. This keeps the two assessments from interfering with each other's page state.
 
 #### Assessment A: LLM Design Review
 
-Read the relevant source files (HTML, CSS, JS/TS) and, if browser automation is available, visually inspect the live page. **Create a new tab** for this; do not reuse existing tabs. After navigation, label the tab by setting the document title:
+Read the relevant source files (HTML, CSS, JS/TS) and, when browser automation is available, visually inspect the live page. **Open a new tab** for this; don't reuse existing tabs. After navigation, label the tab by setting the document title:
 ```javascript
 document.title = '[LLM] ' + document.title;
 ```
 Think like a design director. Evaluate:
 
-**AI Slop Detection (CRITICAL)**: Does this look like every other AI-generated interface? Review against ALL **DON'T** guidelines from the parent impeccable skill (already loaded in this context). Check for AI color palette, gradient text, dark glows, glassmorphism, hero metric layouts, identical card grids, generic fonts, and all other tells. **The test**: If someone said "AI made this," would you believe them immediately?
+**AI Slop Detection (CRITICAL)**: Does this look like every other AI-generated interface? Review against ALL **DON'T** guidelines from the parent impeccable skill (already loaded in this context). Check for AI color palette, gradient text, dark glows, glassmorphism, hero metric layouts, identical card grids, generic fonts, and all the other tells. **The test**: If someone said "AI made this," would you believe them instantly?
 
 **Holistic Design Review**: visual hierarchy (eye flow, primary action clarity), information architecture (structure, grouping, cognitive load), emotional resonance (does it match brand and audience?), discoverability (are interactive elements obvious?), composition (balance, whitespace, rhythm), typography (hierarchy, readability, font choices), color (purposeful use, cohesion, accessibility), states & edge cases (empty, loading, error, success), microcopy (clarity, tone, helpfulness).
 
 **Cognitive Load** (consult [cognitive-load](cognitive-load.md)):
-- Run the 8-item cognitive load checklist. Report failure count: 0-1 = low (good), 2-3 = moderate, 4+ = critical.
+- Run the 8-item cognitive load checklist. Report the failure count: 0-1 = low (good), 2-3 = moderate, 4+ = critical.
 - Count visible options at each decision point. If >4, flag it.
 - Check for progressive disclosure: is complexity revealed only when needed?
 
 **Emotional Journey**:
 - What emotion does this interface evoke? Is that intentional?
 - **Peak-end rule**: Is the most intense moment positive? Does the experience end well?
-- **Emotional valleys**: Check for anxiety spikes at high-stakes moments (payment, delete, commit). Are there design interventions (progress indicators, reassurance copy, undo options)?
+- **Emotional valleys**: Look for anxiety spikes at high-stakes moments (payment, delete, commit). Are there design interventions (progress indicators, reassurance copy, undo options)?
 
 **Nielsen's Heuristics** (consult [heuristics-scoring](heuristics-scoring.md)):
 Score each of the 10 heuristics 0-4. This scoring will be presented in the report.
@@ -64,27 +64,27 @@ Run the bundled deterministic detector, which flags 27 specific patterns (AI slo
 npx impeccable detect --json [--fast] [target]
 ```
 
-- Pass HTML/JSX/TSX/Vue/Svelte files or directories as `[target]` (anything with markup). Do not pass CSS-only files.
+- Pass HTML/JSX/TSX/Vue/Svelte files or directories as `[target]` (anything with markup). Don't pass CSS-only files.
 - For URLs, skip the CLI scan (it requires Puppeteer). Use browser visualization instead.
 - For large directories (200+ scannable files), use `--fast` (regex-only, skips jsdom)
 - For 500+ files, narrow scope or ask the user
 - Exit code 0 = clean, 2 = findings
 
-**Browser visualization**: **required** when browser automation tools are available AND the target is a viewable page. The `[Human]` overlay tab is the user-facing deliverable; the critique is incomplete without it. Skip only if the target is not a viewable page (CSS-only file, non-browser target).
+**Browser visualization**: **required** when browser automation tools are available AND the target is a viewable page. The `[Human]` overlay tab is the user-facing deliverable; the critique is incomplete without it. Skip only when the target is not a viewable page (CSS-only file, non-browser target).
 
-The overlay is a **visual aid for the user**. It highlights issues directly in their browser. Do NOT scroll through the page to screenshot overlays. Instead, read the console output to get the results programmatically.
+The overlay is a **visual aid for the user**. It highlights issues directly in their browser. Do NOT scroll through the page to screenshot overlays. Instead, read the console output to pull the results programmatically.
 
 1. **Start the live detection server**:
    ```bash
    npx impeccable live &
    ```
    Note the port printed to stdout (auto-assigned). Use `--port=PORT` to fix it.
-2. **Create a new tab** and navigate to the page (use dev server URL for local files, or direct URL). Do not reuse existing tabs.
-3. **Label the tab** via `javascript_tool` so the user can distinguish it:
+2. **Open a new tab** and navigate to the page (use dev server URL for local files, or direct URL). Don't reuse existing tabs.
+3. **Label the tab** via `javascript_tool` so the user can tell it apart:
    ```javascript
    document.title = '[Human] ' + document.title;
    ```
-4. **Scroll to top** to ensure the page is scrolled to the very top before injection
+4. **Scroll to top** to make sure the page is scrolled all the way up before injection
 5. **Inject** via `javascript_tool` (replace PORT with the port from step 1):
    ```javascript
    const s = document.createElement('script'); s.src = 'http://localhost:PORT/detect.js'; document.head.appendChild(s);
@@ -102,7 +102,7 @@ Return: CLI findings (JSON), browser console findings (if applicable), and any f
 
 ### Generate Combined Critique Report
 
-Synthesize both assessments into a single report. Do NOT simply concatenate. Weave the findings together, noting where the LLM review and detector agree, where the detector caught issues the LLM missed, and where detector findings are false positives.
+Synthesize both assessments into one report. Do NOT simply concatenate. Weave the findings together, noting where the LLM review and detector agree, where the detector caught issues the LLM missed, and where detector findings are false positives.
 
 Structure your feedback as a design director would:
 
@@ -125,15 +125,15 @@ Present the Nielsen's 10 heuristics scores as a table:
 | 10 | Help and Documentation | ? | |
 | **Total** | | **??/40** | **[Rating band]** |
 
-Be honest with scores. A 4 means genuinely excellent. Most real interfaces score 20-32.
+Be honest with the scores. A 4 means genuinely excellent. Most real interfaces land at 20-32.
 
 #### Anti-Patterns Verdict
 
 **Start here.** Does this look AI-generated?
 
-**LLM assessment**: Your own evaluation of AI slop tells. Cover overall aesthetic feel, layout sameness, generic composition, missed opportunities for personality.
+**LLM assessment**: Your own evaluation of AI slop tells. Cover the overall aesthetic feel, layout sameness, generic composition, missed opportunities for personality.
 
-**Deterministic scan**: Summarize what the automated detector found, with counts and file locations. Note any additional issues the detector caught that you missed, and flag any false positives.
+**Deterministic scan**: Summarize what the automated detector found, with counts and file locations. Note any extra issues the detector caught that you missed, and flag any false positives.
 
 **Visual overlays** (if browser was used): Tell the user that overlays are now visible in the **[Human]** tab in their browser, highlighting the detected issues. Summarize what the console output reported.
 
@@ -157,7 +157,7 @@ For each issue, tag with **P0-P3 severity** (consult [heuristics-scoring](heuris
 
 Auto-select 2-3 personas most relevant to this interface type (use the selection table in the reference). If `CLAUDE.md` contains a `## Design Context` section from `impeccable teach`, also generate 1-2 project-specific personas from the audience/brand info.
 
-For each selected persona, walk through the primary user action and list specific red flags found:
+For each selected persona, walk through the primary user action and list the specific red flags found:
 
 **Alex (Power User)**: No keyboard shortcuts detected. Form requires 8 clicks for primary action. Forced modal onboarding. High abandonment risk.
 
@@ -186,7 +186,7 @@ Provocative questions that might unlock better solutions:
 
 Once the report above is finalized, write it to `.impeccable/critique/` so the user can refer back, and so `/iblai-design polish` can pick up the priority issues without a copy-paste.
 
-Skip this step if the Setup slug was null (vague or root-level target).
+Skip this step when the Setup slug was null (vague or root-level target).
 
 1. **Write the body to a temp file** so you can pipe it to the helper. Use the full report (heuristic table, anti-patterns verdict, priority issues, persona red flags) but stop before the "Ask the User" / "Recommended Actions" sections that come later.
 
@@ -210,7 +210,7 @@ Skip this step if the Setup slug was null (vague or root-level target).
 
    If this is the first run for the slug, the trend is just one score; say so: "First run for this target, no trend yet."
 
-This is fire-and-forget. Do not show the user the helper's JSON output; only the human-readable trend line and the written path. Failures here should not block the rest of the flow; print the error and move on.
+This is fire-and-forget. Don't show the user the helper's JSON output; only the human-readable trend line and the written path. Failures here should not block the rest of the flow; print the error and move on.
 
 ### Ask the User
 
@@ -224,7 +224,7 @@ Ask questions along these lines (adapt to the specific findings; do NOT ask gene
 
 3. **Scope**: Ask how much the user wants to take on. For example: "I found N issues. Want to address everything, or focus on the top 3?" Offer scope options like "Top 3 only", "All issues", "Critical issues only".
 
-4. **Constraints** (optional; only ask if relevant): If the findings touch many areas, ask if anything is off-limits. For example: "Should any sections stay as-is?" This prevents the plan from touching things the user considers done.
+4. **Constraints** (optional; only ask if relevant): If the findings touch many areas, ask whether anything is off-limits. For example: "Should any sections stay as-is?" This keeps the plan from touching things the user considers done.
 
 **Rules for questions**:
 - Every question must reference specific findings from the report. Never ask generic "who is your audience?" questions.

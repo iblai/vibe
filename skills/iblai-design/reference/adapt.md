@@ -1,13 +1,13 @@
 > **Additional context needed**: target platforms/devices and usage contexts.
 
-Adapt an existing design to a different context: another screen size, device, platform, or use case. The trap is treating adaptation as scaling. The job is rethinking the experience for the new context.
+Take an existing design and adapt it to a different context: a different screen size, device, platform, or use case. The trap is treating adaptation as scaling. The real job is rethinking the experience for the new context.
 
 
 ---
 
 ## Assess Adaptation Challenge
 
-Understand what needs adaptation and why:
+Work out what needs adapting and why:
 
 1. **Identify the source context**:
    - What was it designed for originally? (Desktop web? Mobile app?)
@@ -27,11 +27,11 @@ Understand what needs adaptation and why:
    - What won't work? (Hover states on touch, tiny touch targets)
    - What's inappropriate? (Desktop patterns on mobile, mobile patterns on desktop)
 
-**CRITICAL**: Adaptation is rethinking the experience for the new context, not scaling pixels.
+**CRITICAL**: Adaptation means rethinking the experience for the new context, not scaling pixels.
 
 ## Plan Adaptation Strategy
 
-Create context-appropriate strategy:
+Build a strategy that suits the context:
 
 ### Mobile Adaptation (Desktop → Mobile)
 
@@ -124,11 +124,11 @@ Create context-appropriate strategy:
 
 ## Implement Adaptations
 
-Apply changes systematically:
+Roll out the changes systematically:
 
 ### Responsive Breakpoints
 
-Choose appropriate breakpoints:
+Pick fitting breakpoints:
 - Mobile: 320px-767px
 - Tablet: 768px-1023px
 - Desktop: 1024px+
@@ -164,7 +164,7 @@ Choose appropriate breakpoints:
 - Persistent side navigation on desktop
 - Breadcrumbs on smaller screens for context
 
-**IMPORTANT**: Test on real devices. Device emulation in DevTools is helpful but not perfect.
+**IMPORTANT**: Test on real devices. Device emulation in DevTools helps but isn't perfect.
 
 **NEVER**:
 - Hide core functionality on mobile (if it matters, make it work)
@@ -187,4 +187,4 @@ Test thoroughly across contexts:
 - **Edge cases**: Very small screens (320px), very large screens (4K)
 - **Slow connections**: Test on throttled network
 
-When the adaptation feels native to each context, hand off to `/iblai-design polish` for the final pass.
+Once the adaptation feels native to each context, hand off to `/iblai-design polish` for the final pass.

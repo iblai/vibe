@@ -1,28 +1,28 @@
-Interactive live variant mode: select elements in the browser, pick a design action, and get AI-generated HTML+CSS variants hot-swapped via the dev server's HMR.
+Interactive live variant mode: pick elements in the browser, choose a design action, and receive AI-generated HTML+CSS variants hot-swapped through the dev server's HMR.
 
 ## Prerequisites
 
-A running dev server with hot module replacement (Vite, Next.js, Bun, etc.), OR a static HTML file open in the browser.
+Either a dev server running with hot module replacement (Vite, Next.js, Bun, etc.), or a static HTML file already opened in the browser.
 
 ## The contract (read once)
 
-Execute in order. No step skipped, no step reordered.
+Run these in sequence. Skip nothing, reorder nothing.
 
 1. `live.mjs`: boot.
-2. Navigate to the URL that serves `pageFile` (infer from `package.json`, docs, terminal output, or an open tab). If you can't infer it confidently, tell the user once to open their dev/preview URL. Never use `serverPort` as that URL; it's the helper, not the app.
-3. Poll loop with the default long timeout (600000 ms). After every event or `--reply`, run `live-poll.mjs` again immediately. Never pass a short `--timeout=`.
-4. On `generate`: read screenshot if present; load the action's reference; plan three distinct directions; write all variants in one edit; `--reply done`; poll again.
-5. On `accept` / `discard`: the poll script runs `live-accept.mjs`, acknowledges the delivered event, and prints `_completionAck`. Plain accepts/discards are terminal immediately; carbonize accepts remain recoverable until you finish cleanup, run `live-complete.mjs --id EVENT_ID`, and only then poll again.
-6. If interrupted, run `live-status.mjs` or `live-resume.mjs` before guessing. The durable journal replays unacknowledged work after helper restart.
-7. On `exit`: run the cleanup at the bottom.
+2. Go to the URL serving `pageFile` (deduce it from `package.json`, docs, terminal output, or an open tab). If confident inference isn't possible, tell the user once to open their dev/preview URL. The `serverPort` is never that URL; it's the helper, not the app.
+3. Poll loop using the default long timeout (600000 ms). Immediately re-run `live-poll.mjs` after every event or `--reply`. Never supply a short `--timeout=`.
+4. On `generate`: read the screenshot if one exists; load the action's reference; plan three distinct directions; write every variant in one edit; `--reply done`; poll again.
+5. On `accept` / `discard`: the poll script invokes `live-accept.mjs`, acknowledges the delivered event, and prints `_completionAck`. Plain accepts/discards finish immediately; carbonize accepts stay recoverable until cleanup is done, you run `live-complete.mjs --id EVENT_ID`, and only then do you poll again.
+6. If interrupted, run `live-status.mjs` or `live-resume.mjs` rather than guessing. The durable journal replays unacknowledged work after a helper restart.
+7. On `exit`: perform the cleanup described at the bottom.
 
 Harness policy:
-- **Claude Code**: run the poll as a **background task** (no short timeout). The harness notifies you when it completes, so the main conversation stays free. Do not block the shell.
-- **Cursor**: run the poll in the **foreground** (blocking shell; not a background terminal, not a subagent). Cursor background terminals and subagents do not reliably resume the chat with poll stdout.
-- **Codex**: run the poll in the **foreground** (blocking shell; not a background task, not a subagent). Codex background exec sessions do not reliably surface poll stdout back into the conversation at the moment events arrive, so a "fire-and-forget" background poll will stall live mode.
-- **Other harnesses**: foreground unless you know stdout reliably returns to this session.
+- **Claude Code**: run the poll as a **background task** (no short timeout). The harness notifies you on completion, leaving the main conversation free. Don't block the shell.
+- **Cursor**: run the poll in the **foreground** (blocking shell; not a background terminal, not a subagent). Cursor background terminals and subagents don't reliably resume the chat with poll stdout.
+- **Codex**: run the poll in the **foreground** (blocking shell; not a background task, not a subagent). Codex background exec sessions don't reliably surface poll stdout back into the conversation the moment events arrive, so a "fire-and-forget" background poll will stall live mode.
+- **Other harnesses**: foreground unless you're certain stdout reliably returns to this session.
 
-Chat is overhead. No recap, no tutorial output, no pasting PRODUCT / DESIGN bodies. Spend tokens on tools and edits; on failure, one or two short sentences.
+Chat is overhead. Skip recaps, tutorial output, and pasting PRODUCT / DESIGN bodies. Spend tokens on tools and edits; on failure, one or two short sentences.
 
 ## Start
 
@@ -30,7 +30,7 @@ Chat is overhead. No recap, no tutorial output, no pasting PRODUCT / DESIGN bodi
 node .claude/skills/iblai-design/scripts/live.mjs
 ```
 
-Output JSON: `{ ok, serverPort, serverToken, pageFiles, hasProduct, product, productPath, hasDesign, design, designPath, migrated }`. `pageFiles` is the list of HTML entries the live script was injected into. Keep PRODUCT.md and DESIGN.md in mind for variant generation; **DESIGN.md wins on visual decisions; PRODUCT.md wins on strategic/voice decisions.** When DESIGN.md is missing, identity is **not** absent; extract it from CSS variables, computed styles, and sibling components on the page (see Step 4 Phase A). Identity preservation is the default; departure from existing identity requires an explicit trigger from PRODUCT.md anti-references or the user's freeform prompt. If `migrated: true`, the loader auto-renamed legacy `.impeccable.md` to `PRODUCT.md`; mention this once and suggest `/impeccable document` for the matching DESIGN.md.
+Output JSON: `{ ok, serverPort, serverToken, pageFiles, hasProduct, product, productPath, hasDesign, design, designPath, migrated }`. `pageFiles` lists the HTML entries the live script was injected into. Keep PRODUCT.md and DESIGN.md in mind when generating variants; **DESIGN.md wins on visual decisions; PRODUCT.md wins on strategic/voice decisions.** A missing DESIGN.md does **not** mean identity is absent; derive it from CSS variables, computed styles, and sibling components on the page (see Step 4 Phase A). Preserving identity is the default; departing from the existing identity needs an explicit trigger from PRODUCT.md anti-references or the user's freeform prompt. If `migrated: true`, the loader auto-renamed legacy `.impeccable.md` to `PRODUCT.md`; note this once and suggest `/impeccable document` for the matching DESIGN.md.
 
 `serverPort` and `serverToken` belong to the small **Impeccable live helper** HTTP server (serves `/live.js`, SSE, and `/poll`). That port is **not** your dev server and is usually not the URL you open to view the app. The browser page is whatever origin serves one of the `pageFiles` entries (Vite / Next / Bun / tunnel / LAN hostname).
 
@@ -53,9 +53,9 @@ LOOP:
 
 ## Recovery commands
 
-The live helper persists an append-only journal under `.impeccable/live/sessions/`. Browser checkpoints are advisory but durable; the journal is canonical. This is local durable recovery state, not project source.
+The live helper keeps an append-only journal under `.impeccable/live/sessions/`. Browser checkpoints are advisory but durable; the journal is canonical. This is local durable recovery state, not project source.
 
-Use these commands when the chat was interrupted, polling was missed, the helper restarted, or the browser reloaded:
+Reach for these commands when the chat was interrupted, polling was missed, the helper restarted, or the browser reloaded:
 
 ```bash
 node .claude/skills/iblai-design/scripts/live-status.mjs
@@ -63,32 +63,32 @@ node .claude/skills/iblai-design/scripts/live-resume.mjs --id SESSION_ID
 node .claude/skills/iblai-design/scripts/live-complete.mjs --id SESSION_ID
 ```
 
-- `live-status.mjs` prints connected helper state, active durable sessions, and queued pending events. It works even when the helper is down by reading the journal directly.
+- `live-status.mjs` prints connected helper state, active durable sessions, and queued pending events. It still works while the helper is down by reading the journal directly.
 - `live-resume.mjs` prints the active snapshot, pending event, checkpoint phase, visible variant, parameter values, and the next safe agent action.
-- `live-complete.mjs` is the canonical manual final acknowledgement. Use it after carbonize/manual cleanup is verified and no further poll acknowledgement will happen automatically.
+- `live-complete.mjs` is the canonical manual final acknowledgement. Use it once carbonize/manual cleanup is verified and no further poll acknowledgement will occur automatically.
 
-Server restart rule: start `live-server.mjs` again, then poll. Startup requeues unacknowledged pending events from the journal, so do not ask the user to click Go again unless `live-resume.mjs` says no active session exists.
+Server restart rule: launch `live-server.mjs` again, then poll. Startup requeues unacknowledged pending events from the journal, so don't ask the user to click Go again unless `live-resume.mjs` reports no active session exists.
 
 ## Handle `generate`
 
 Event: `{id, action, freeformPrompt?, count, pageUrl, element, screenshotPath?, comments?, strokes?}`.
 
-Speed matters; the user is watching a spinner. Minimize tool calls by using the `wrap` helper and writing all variants in a single edit.
+Speed matters; the user is staring at a spinner. Keep tool calls minimal by using the `wrap` helper and writing all variants in a single edit.
 
 ### 1. Read the screenshot (if present)
 
-`event.screenshotPath` is **only sent when the user placed at least one comment or stroke before Go.** When present, it's an absolute path to a PNG of the element as rendered with the annotations baked in. **Read it before planning**: annotations encode user intent not recoverable from `element.outerHTML` alone.
+`event.screenshotPath` is **only sent when the user placed at least one comment or stroke before Go.** When present, it's an absolute path to a PNG of the element rendered with the annotations baked in. **Read it before planning**: annotations encode user intent that `element.outerHTML` alone can't recover.
 
-When `screenshotPath` is absent, don't ask for one and don't go looking for the current rendering. The omission is deliberate: without annotations, a screenshot would anchor the model on the existing design and fight the three-distinct-directions brief. Work from `element.outerHTML`, the computed styles in `event.element`, and the freeform prompt if present.
+When `screenshotPath` is absent, don't request one and don't hunt for the current rendering. The omission is intentional: without annotations, a screenshot would anchor the model on the existing design and undermine the three-distinct-directions brief. Work from `element.outerHTML`, the computed styles in `event.element`, and the freeform prompt if there is one.
 
-`event.comments` and `event.strokes` carry structured metadata alongside the visual. Treat the screenshot as primary; use the structured data for specifics worth quoting (e.g. the exact text of a comment).
+`event.comments` and `event.strokes` carry structured metadata alongside the visual. Treat the screenshot as primary; use the structured data for specifics worth quoting (e.g. a comment's exact text).
 
 Reading annotations precisely:
 
-- **Comment position carries meaning.** Its `{x, y}` is element-local CSS px (same coord space as `element.boundingRect`). Find the child under that point and apply the comment text LOCALLY to that sub-element. A comment near the title is about the title, not a global description.
-- **Comments and strokes are independent annotations** unless clearly paired by overlap or tight proximity. Don't let the visual weight of a prominent stroke override the precise location of a textually-specific comment elsewhere.
+- **Comment position carries meaning.** Its `{x, y}` is element-local CSS px (the same coord space as `element.boundingRect`). Locate the child beneath that point and apply the comment text LOCALLY to that sub-element. A comment near the title concerns the title, not a global description.
+- **Comments and strokes are independent annotations** unless clearly paired by overlap or tight proximity. Don't let a prominent stroke's visual weight override the precise location of a textually-specific comment elsewhere.
 - **Strokes are gestures; read them by shape.** Closed loop = "this thing" (emphasis / focus); arrow = direction (move / point to); cross or slash = delete; free scribble = emphasis or delete depending on context. A loop around region X means "pay attention to X," not "only change pixels inside X."
-- **When a stroke's intent is ambiguous** (circle or arrow? emphasis or move?), state your reading in one sentence of rationale rather than silently guessing. If the uncertainty materially changes the brief, ask one short clarifying question before generating.
+- **When a stroke's intent is ambiguous** (circle or arrow? emphasis or move?), state your reading in one sentence of rationale instead of silently guessing. If the uncertainty materially shifts the brief, ask one short clarifying question before generating.
 
 ### 2. Wrap the element
 
@@ -96,39 +96,39 @@ Reading annotations precisely:
 node .claude/skills/iblai-design/scripts/live-wrap.mjs --id EVENT_ID --count EVENT_COUNT --element-id "ELEMENT_ID" --classes "class1,class2" --tag "div" --text "TEXT_SNIPPET"
 ```
 
-Flag mapping. Keep them separate, don't collapse into `--query`:
+Flag mapping. Keep them separate; don't collapse into `--query`:
 
 - `--element-id` ← `event.element.id`
 - `--classes` ← `event.element.classes` joined with commas
 - `--tag` ← `event.element.tagName`
 - `--text` ← first ~80 chars of `event.element.textContent` (trim, single-line). **Pass this every call.** When the picked element shares classes + tag with sibling components (a list of `<Card>`s, repeating sections), this is what disambiguates which branch in source to wrap. Without it, wrap silently lands on the first match and may rewrite the wrong element.
 
-The helper searches ID first, then classes, then tag + class combo. If `event.pageUrl` implies the file (e.g. `/` is usually `index.html`), pass `--file PATH` to skip the search. `--query` is a fallback for raw text search only; do not use it for normal element lookups.
+The helper searches ID first, then classes, then tag + class combo. If `event.pageUrl` implies the file (e.g. `/` is usually `index.html`), pass `--file PATH` to skip the search. `--query` is a fallback for raw text search only; don't use it for normal element lookups.
 
 If `--text` matches multiple candidates equally well, wrap exits with `{ error: "element_ambiguous", candidates: [...] }` and `fallback: "agent-driven"`: read the candidate line ranges, decide which one matches the picked element from page context, and write the wrapper manually per the fallback flow.
 
 Output on success: `{ file, insertLine, commentSyntax, styleMode, styleTag, cssSelectorPrefixExamples, cssAuthoring }`.
 
-`styleMode` controls how preview CSS must be authored. Treat it as a detected capability mode, not a framework guess:
+`styleMode` governs how preview CSS must be authored. Treat it as a detected capability mode, not a framework guess:
 
 - `scoped`: use `@scope ([data-impeccable-variant="N"])` rules.
-- `astro-global-prefixed`: use explicit `[data-impeccable-variant="N"]` selector prefixes and the exact `styleTag` returned by the tool.
+- `astro-global-prefixed`: use explicit `[data-impeccable-variant="N"]` selector prefixes plus the exact `styleTag` the tool returned.
 
-Use `cssAuthoring` as the source of truth for the current file. It includes the exact `styleTag`, selector strategy, selector examples, requirements, and forbidden patterns. Do not apply a framework-specific exception unless the returned `styleMode` / `cssAuthoring.mode` says to.
+Treat `cssAuthoring` as the source of truth for the current file. It includes the exact `styleTag`, selector strategy, selector examples, requirements, and forbidden patterns. Don't apply a framework-specific exception unless the returned `styleMode` / `cssAuthoring.mode` says to.
 
 **Fallback errors.** Wrap only writes into files it judges to be source (tracked by git, not marked GENERATED, not listed in config's `generatedFiles`). If it can't land on a source file, it errors without writing; accepting a variant into a generated file is silent data loss. Three shapes:
 
 - `{ error: "file_is_generated", file, hint }`: user-supplied `--file` points at a generated file.
-- `{ error: "element_not_in_source", generatedMatch, hint }`: element exists only in a generated file (the next build would wipe any edits).
-- `{ error: "element_not_found", hint }`: element isn't in any project file; likely runtime-injected (JS component, dynamic render from data).
+- `{ error: "element_not_in_source", generatedMatch, hint }`: the element exists only in a generated file (the next build would wipe any edits).
+- `{ error: "element_not_found", hint }`: the element isn't in any project file; likely runtime-injected (JS component, dynamic render from data).
 
 All three carry `fallback: "agent-driven"`. Follow **Handle fallback** below.
 
 ### 3. Load the action's reference
 
-If `event.action` is `impeccable` (the default freeform action), use SKILL.md's shared laws plus the loaded register reference (`brand.md` or `product.md`). Do not load a sub-command reference. **Freeform is not a pass to skip parameters:** you still follow the composition budget and the freeform bias in **§7 Parameters** below. Sub-command files list MUST-have signature knobs; freeform has no such file, so sizing knobs from surface weight and primary axes is entirely on you.
+If `event.action` is `impeccable` (the default freeform action), use SKILL.md's shared laws plus the loaded register reference (`brand.md` or `product.md`). Don't load a sub-command reference. **Freeform is not a pass to skip parameters:** you still follow the composition budget and the freeform bias in **§7 Parameters** below. Sub-command files list MUST-have signature knobs; freeform has no such file, so sizing knobs from surface weight and primary axes is entirely your responsibility.
 
-Any other `event.action` (`bolder`, `quieter`, `distill`, `polish`, `typeset`, `colorize`, `layout`, `adapt`, `animate`, `delight`, `overdrive`): Read `reference/<action>.md` before planning. Each sub-command encodes a specific discipline; skipping its reference produces generic output. Those files may require specific params; layer them on top of the §7 budget, not instead of it.
+Any other `event.action` (`bolder`, `quieter`, `distill`, `polish`, `typeset`, `colorize`, `layout`, `adapt`, `animate`, `delight`, `overdrive`): Read `reference/<action>.md` before planning. Each sub-command encodes a specific discipline; skipping its reference yields generic output. Those files may require specific params; layer them on top of the §7 budget, not instead of it.
 
 ### 4. Plan three variants: identity first, then mode, then axes
 
@@ -138,14 +138,14 @@ Four phases. Do them in order.
 
 #### Phase A: Extract the identity (non-skippable)
 
-The existing surface has an identity already. Read it before planning anything. Sources, in priority order:
+The existing surface already has an identity. Read it before planning anything. Sources, in priority order:
 
 1. **DESIGN.md** if loaded: read the visual system fields (palette, type pairing, motion, components). This is the authoritative answer.
 2. **CSS custom properties** in the page's stylesheets (`:root { --color-...; --font-...; ... }`): these are de-facto tokens.
 3. **Computed styles** on the picked element and its parent: colors, fonts, spacing scales, corner radii.
-4. **Sibling components on the page**: what visual rhetoric do existing components use? (Asymmetric or centered? Dense or airy? Bold or quiet?)
+4. **Sibling components on the page**: what visual rhetoric do the existing components use? (Asymmetric or centered? Dense or airy? Bold or quiet?)
 
-Write down what you see in **one sentence**. The sentence describes the surface that's actually on screen; it is not aspirational, not opinionated, not edited toward what the brand "should" be. Capture, in roughly this order:
+Record what you see in **one sentence**. The sentence describes the surface that's actually on screen; it is not aspirational, not opinionated, not edited toward what the brand "should" be. Capture, in roughly this order:
 
 - The dominant surface color and accent color, by hex or token name (use the actual values, not categories like "warm" or "neutral").
 - The type pairing: the actual font names loaded, primary first.
@@ -153,11 +153,11 @@ Write down what you see in **one sentence**. The sentence describes the surface 
 - The surface treatment: corners, borders, shadows, density of decoration.
 - The voice tone you read off the copy itself, not off the aesthetic feel.
 
-Be specific. "Modern" is not a color, "elegant" is not a type pairing, "clean" is not a layout. If you can't extract a real value for an axis, skip it rather than fabricate. The point is to record what is, not to describe what you wish it were.
+Be specific. "Modern" is not a color, "elegant" is not a type pairing, "clean" is not a layout. If you can't extract a real value for an axis, skip it rather than fabricate. The point is to record what is, not what you wish it were.
 
-Do not include adjectives that name an aesthetic family ("editorial-leaning", "terminal-flavored", "brutalist"); those are conclusions, not data. They belong to Phase C lane selection in departure mode, not to identity description. Letting them sneak into Phase A is how the identity-lock collapses into a self-fulfilling prophecy.
+Don't include adjectives that name an aesthetic family ("editorial-leaning", "terminal-flavored", "brutalist"); those are conclusions, not data. They belong to Phase C lane selection in departure mode, not to identity description. Letting them slip into Phase A is how the identity-lock collapses into a self-fulfilling prophecy.
 
-This sentence is the **identity lock**. Every variant must be readable as the same brand if rendered side by side. Skipping this phase is the primary cause of off-brand variants. Absence of DESIGN.md is never an excuse; extract from CSS and computed styles instead.
+This sentence is the **identity lock**. Every variant must read as the same brand if rendered side by side. Skipping this phase is the primary cause of off-brand variants. A missing DESIGN.md is never an excuse; extract from CSS and computed styles instead.
 
 #### Phase B: Pick mode (default vs departure)
 
@@ -165,14 +165,14 @@ This sentence is the **identity lock**. Every variant must be readable as the sa
 
 **Departure mode**: the existing identity is rejected. Variants propose alternatives consistent with PRODUCT.md voice. Trigger only when at least one is true:
 
-- PRODUCT.md anti-references explicitly call out the current surface ("the current `index.html` is itself an example"; "diffuse away from this"; "the page on screen is the failure"). Generic anti-references that describe what to avoid in general do **not** trigger departure mode; only ones that point at *this* surface specifically.
+- PRODUCT.md anti-references explicitly call out the current surface ("the current `index.html` is itself an example"; "diffuse away from this"; "the page on screen is the failure"). Generic anti-references describing what to avoid in general do **not** trigger departure mode; only ones aimed at *this* surface specifically.
 - The user's freeform prompt explicitly asks for departure ("rebuild this from scratch", "what if it weren't editorial at all", "show me something completely different").
 
 If you're unsure, you're in default mode. The cost of being wrong about default is "three on-brand variants with similar feel": recoverable, the user picks none. The cost of being wrong about departure is "three off-brand variants": unrecoverable, the user is annoyed.
 
 #### Phase C: Plan three variants
 
-**Default mode.** Each variant commits to a different **primary axis** of difference, while preserving the identity sentence. The six axes:
+**Default mode.** Each variant commits to a different **primary axis** of difference while preserving the identity sentence. The six axes:
 
 1. **Hierarchy**: which element commands the eye?
 2. **Layout topology**: stacked / side-by-side / grid / asymmetric / overlay
@@ -181,7 +181,7 @@ If you're unsure, you're in default mode. The cost of being wrong about default 
 5. **Density**: minimal / comfortable / dense
 6. **Structural decomposition**: merge, split, progressive disclosure
 
-Three variants → three DIFFERENT axes. The trio reads as *the same brand at three angles*. Do not introduce new fonts, new palette hues, or new aesthetic-family signals; those belong to departure mode.
+Three variants → three DIFFERENT axes. The trio reads as *the same brand at three angles*. Don't introduce new fonts, new palette hues, or new aesthetic-family signals; those belong to departure mode.
 
 **While planning each variant, also name its 2–3 parameter knobs** (per the §7 budget table). Parameters are part of the design, not a decoration added afterward. If the variant explores density, expose a density knob. If it explores color commitment, expose a color-amount range. Deciding "what's tunable" during planning produces better knobs than retrofitting them onto finished HTML.
 
@@ -189,19 +189,19 @@ Three variants → three DIFFERENT axes. The trio reads as *the same brand at th
 
 Instead, work from the brand:
 
-1. Read PRODUCT.md's Brand Personality words. What physical, spatial, or material experiences would embody those words if design were not involved? (A personality described as "specific, earned, unmistakable" evokes a hand-stamped letter, a numbered print, a watchmaker's loupe. A personality described as "restless, loud, unfiltered" evokes a concert poster, a spray-painted wall, a megaphone.)
+1. Read PRODUCT.md's Brand Personality words. What physical, spatial, or material experiences would embody those words if design weren't involved? (A personality described as "specific, earned, unmistakable" evokes a hand-stamped letter, a numbered print, a watchmaker's loupe. A personality described as "restless, loud, unfiltered" evokes a concert poster, a spray-painted wall, a megaphone.)
 2. From those physical experiences, derive three visual directions that are genuinely different from each other AND from the current surface you're departing.
-3. Avoid the **reflex-reject lanes** in [brand.md](brand.md). Don't trade one monoculture for another. If you find yourself reaching for "Swiss-grid" or "Terminal" or "Industrial-signage" by reflex, you are pattern-matching a catalog in your training data, not reading the brand. Start over from the personality words.
-4. Each direction must be expressible in one concrete sentence that names a real-world referent ("a museum exhibition label system for a contemporary art gallery" not "clean and minimal"). If your sentence contains only adjectives, it's not concrete enough.
-5. **While planning each direction, also name its 2–3 parameter knobs** (per the §7 budget table). The same principle as default mode: decide "what's tunable" during planning, not after writing the HTML. A departure-mode hero with 0 parameters is not "bold creative vision," it's a missed opportunity for the user to fine-tune the direction they pick.
+3. Avoid the **reflex-reject lanes** in [brand.md](brand.md). Don't trade one monoculture for another. If you catch yourself reaching for "Swiss-grid" or "Terminal" or "Industrial-signage" by reflex, you're pattern-matching a catalog in your training data, not reading the brand. Start over from the personality words.
+4. Each direction must be expressible in one concrete sentence naming a real-world referent ("a museum exhibition label system for a contemporary art gallery" not "clean and minimal"). If your sentence contains only adjectives, it's not concrete enough.
+5. **While planning each direction, also name its 2–3 parameter knobs** (per the §7 budget table). Same principle as default mode: decide "what's tunable" during planning, not after writing the HTML. A departure-mode hero with 0 parameters is not "bold creative vision," it's a missed opportunity for the user to fine-tune the direction they pick.
 
 #### Phase D: Squint test
 
-**Default mode squint.** Read each variant's identity sentence and compare to the locked identity from Phase A. If any variant has drifted to a different palette, type voice, or visual rhetoric, it has crossed into departure mode by accident; rework. Then check that each variant commits to a different primary axis. Three "tighter density" variants is failure.
+**Default mode squint.** Read each variant's identity sentence and compare it to the locked identity from Phase A. If any variant has drifted to a different palette, type voice, or visual rhetoric, it has crossed into departure mode by accident; rework. Then verify each variant commits to a different primary axis. Three "tighter density" variants is failure.
 
 **Departure mode squint.** Two passes, family before sentence:
 
-1. **Family pass.** Label each variant with one design-family word of your own choosing (any concrete noun: *exhibition, storefront, cockpit, recipe-card, playbill, field-manual*). If any two variants share a label, or if the label could apply to the other variants equally well, rework. Do not use a fixed vocabulary list for the labels. *This pass is non-negotiable in departure mode and catches the monoculture failure that the sentence pass misses.*
+1. **Family pass.** Label each variant with one design-family word of your own choosing (any concrete noun: *exhibition, storefront, cockpit, recipe-card, playbill, field-manual*). If any two variants share a label, or if the label could apply equally well to the other variants, rework. Don't use a fixed vocabulary list for the labels. *This pass is non-negotiable in departure mode and catches the monoculture failure the sentence pass misses.*
 2. **Sentence pass.** Write three one-sentence descriptions side by side. If two of them rhyme ("both feature big type" / "both are stacks of sections" / "both center the CTA"), rework the offender.
 
 **When the primary axis is color or theme, forbid the trio from sharing theme + dominant hue.** Two dark-plus-one-dark is not distinct. Aim for three color worlds, not three shades of the same.
@@ -232,9 +232,9 @@ When the prompt and PRODUCT.md anti-references conflict (the prompt asks for X, 
 
 ### 6. Write all variants in a single edit
 
-Complete HTML replacement of the original element for each variant, not a CSS-only patch. Consider the element's context (computed styles, parent structure, CSS variables from `event.element`).
+Complete HTML replacement of the original element for each variant, not a CSS-only patch. Account for the element's context (computed styles, parent structure, CSS variables from `event.element`).
 
-Write CSS + all variants in ONE edit at the `insertLine` reported by `wrap`. Colocate CSS as a `<style>` tag inside the variant wrapper; `<style>` works anywhere in modern browsers and this ensures CSS and HTML arrive atomically (no FOUC).
+Write CSS + all variants in ONE edit at the `insertLine` reported by `wrap`. Colocate CSS as a `<style>` tag inside the variant wrapper; `<style>` works anywhere in modern browsers and this guarantees CSS and HTML arrive atomically (no FOUC).
 
 Use the `cssAuthoring` object returned by `live-wrap.mjs` to author the temporary preview CSS. The style opening tag shown below is the common case; replace it with `cssAuthoring.styleTag` when the tool returns a different one. The variant markup shape is otherwise stable:
 
@@ -281,13 +281,13 @@ The wrap script already gives you a single-rooted JSX wrapper: a `<div data-impe
 
 ### 7. Parameters (composition-sized, 0–4 per variant)
 
-Each variant can expose **coarse** knobs alongside the full HTML/CSS replacement. The browser docks a small panel to the right of the outline with one control per parameter. The user drags/clicks and sees instant feedback: there is zero regeneration cost because the knob toggles a CSS variable or data attribute that the variant's scoped CSS is already authored against.
+Each variant can expose **coarse** knobs alongside the full HTML/CSS replacement. The browser docks a small panel to the right of the outline with one control per parameter. The user drags/clicks and gets instant feedback: there is zero regeneration cost because the knob toggles a CSS variable or data attribute the variant's scoped CSS is already authored against.
 
 **What “optional” does not mean.** Parameters are not nice-to-have decoration on large work. The word meant “omit controls that are redundant or cosmetic,” not “default to zero because three variants were enough work.”
 
 **When to add.** As soon as the variant’s scoped CSS has a meaningful continuous or stepped axis: density, color amount, type scale, motion intensity, column weight, and so on. If you can imagine the user muttering “a bit tighter” or “a touch more accent” **without** wanting a full regeneration, wire that axis. **Not** micro-margins or one-off nudges; those are not parameters.
 
-**Freeform (`action` is `impeccable`) bias.** You did not load a sub-command reference, so you must **choose** signature axes yourself. Match the budget table: for a hero or large composition, that means **2–3 axes per variant**, not 1. Prefer knobs that sit on the dimensions where your three variants actually differ (if density varies, expose it as a `steps` knob; if color commitment varies, expose it as a `range`). A hero that ships with **0** params is almost always a mistake, not a judgment call. A hero with exactly **1** param is underweight unless the design is genuinely a fixed-point comparison. Start from the budget table, not from zero.
+**Freeform (`action` is `impeccable`) bias.** You didn't load a sub-command reference, so you must **choose** signature axes yourself. Match the budget table: for a hero or large composition, that means **2–3 axes per variant**, not 1. Prefer knobs sitting on the dimensions where your three variants actually differ (if density varies, expose it as a `steps` knob; if color commitment varies, expose it as a `range`). A hero shipping with **0** params is almost always a mistake, not a judgment call. A hero with exactly **1** param is underweight unless the design is genuinely a fixed-point comparison. Start from the budget table, not from zero.
 
 **Budget scales with the element's visual weight, not token budget.** Knobs need real estate to read as tunable; three sliders on a single control are noise.
 
@@ -298,7 +298,7 @@ Each variant can expose **coarse** knobs alongside the full HTML/CSS replacement
 
 **When in doubt, ask whether a dial exists before defaulting to zero.** The user can always request more variants, but the point of live mode is instant tuning without another Go. Crowding the panel is bad; **under-shipping** knobs on a dense composition is the more common failure for freeform. Count by **visual** children, not DOM depth; a shallow-but-wide hero is still large.
 
-**Hard cap per variant**: at most **four** parameters so the panel stays legible; rare fifth only if the reference explicitly allows it.
+**Hard cap per variant**: at most **four** parameters so the panel stays legible; a rare fifth only if the reference explicitly allows it.
 
 **How to declare.** Put a JSON manifest on the variant wrapper:
 
@@ -322,7 +322,7 @@ Each variant can expose **coarse** knobs alongside the full HTML/CSS replacement
 - `steps`: segmented radio. Drives a data attribute `data-p-<id>` on the variant wrapper. Author CSS with `:scope[data-p-density="airy"] .grid { ... }`. Fields: `options` (array of `{value, label}`), `default` (string), `label`.
 - `toggle`: on/off switch. Drives BOTH a CSS var (`--p-<id>: 0|1`) and a data attribute (present when on, absent when off). Use whichever is more convenient. Fields: `default` (boolean), `label`.
 
-**Signature params per action.** For named sub-commands, read that action’s `reference/<action>.md` for one or two **MUST** params (e.g. `layout` → `density`). Those are non-negotiable when the design can express them. **Freeform has no file-level MUST**; the **Freeform (`impeccable`) bias** in this section is the stand-in. If the user’s action is both stylized and sub-command (e.g. `colorize`), the sub-command’s MUST list takes precedence for its axes; still respect the **Hard cap** and add no redundant duplicate knobs.
+**Signature params per action.** For named sub-commands, read that action’s `reference/<action>.md` for one or two **MUST** params (e.g. `layout` → `density`). Those are non-negotiable when the design can express them. **Freeform has no file-level MUST**; the **Freeform (`impeccable`) bias** in this section is the stand-in. If the user’s action is both stylized and a sub-command (e.g. `colorize`), the sub-command’s MUST list takes precedence for its axes; still respect the **Hard cap** and add no redundant duplicate knobs.
 
 **Reset on variant switch.** User dials density on v1, flips to v2, v2 starts at v2's declared defaults. Known limitation; preservation across variants may land later.
 
@@ -358,7 +358,7 @@ Don't run `live-accept --discard` for this; that's a pure file mutator, the brow
 
 When wrap returns `fallback: "agent-driven"`, the deterministic flow doesn't apply. Pick up here.
 
-The goal is the same: give the user three variants to choose from AND persist the accepted one in a place the next build won't wipe. The difference is that you have to pick the right source file yourself.
+The goal is the same: give the user three variants to choose from AND persist the accepted one somewhere the next build won't wipe. The difference is that you have to pick the right source file yourself.
 
 ### Step 1: Identify where the element actually lives
 
@@ -378,7 +378,7 @@ The browser bar is waiting for variants. Even without a wrapper in source, you s
 2. Insert your three variant divs inside it, same shape as the deterministic path.
 3. Signal done with `--reply EVENT_ID done --file <served file>`. The browser's no-HMR fallback will fetch and inject.
 
-This served-file edit is **temporary**: next regen wipes it, and that's fine. The real work happens on accept.
+This served-file edit is **temporary**: the next regen wipes it, and that's fine. The real work happens on accept.
 
 ### Step 3: On accept, write to true source
 
@@ -398,7 +398,7 @@ Remove the wrapper you inserted in Step 2. Nothing else to do.
 
 Event: `{id, variantId, _acceptResult, _completionAck}`. The poll script already ran `live-accept.mjs` to handle the file operation deterministically, then acknowledged event delivery to the helper. The browser DOM is already updated.
 
-- `_completionAck.ok !== true`: do not poll yet. Run `live-status.mjs` / `live-resume.mjs`, complete the cleanup manually if needed, then run `live-complete.mjs --id EVENT_ID`.
+- `_completionAck.ok !== true`: don't poll yet. Run `live-status.mjs` / `live-resume.mjs`, complete the cleanup manually if needed, then run `live-complete.mjs --id EVENT_ID`.
 - `_acceptResult.handled: true` and `carbonize: false`: nothing to do. Poll again.
 - `_acceptResult.handled: true` and `carbonize: true`: **post-accept cleanup is required before the next poll.** See the "Required after accept (carbonize)" section below. The `event._acceptResult.todo` field, `_completionAck.requiresComplete`, and a stderr banner all point at this required follow-up; none are decorative. After cleanup, run `live-complete.mjs --id EVENT_ID`, then poll again.
 - `_acceptResult.handled: false, mode: "fallback"`: the session lived in a generated file and the script refused to persist there. You've already written the accepted variant into true source during Handle fallback Step 3; just clean up the temporary wrapper in the served file if any, and poll again.
@@ -408,7 +408,7 @@ Event: `{id, variantId, _acceptResult, _completionAck}`. The poll script already
 
 When `_acceptResult.carbonize === true`, the accepted variant was stitched into source with helper markers and inline CSS so the browser can render it immediately with no visual gap. That stitch-in is **temporary**. The agent must rewrite it into permanent form before doing anything else. Skipping this leaves dead `@scope` rules for unaccepted variants, a pointless `data-impeccable-variant` wrapper, and `impeccable-carbonize-start/end` comment noise in the source file; all of which accumulate across sessions.
 
-Do these five steps in the current thread, synchronously, before the next poll. Do not poll again until the file is clean.
+Do these five steps in the current thread, synchronously, before the next poll. Don't poll again until the file is clean.
 
 1. **Locate the carbonize block** in the source file (`_acceptResult.file`). It's bracketed by `<!-- impeccable-carbonize-start SESSION_ID -->` and `<!-- impeccable-carbonize-end SESSION_ID -->` and contains a `<style data-impeccable-css="SESSION_ID">` element. If the variant declared parameters, an `<!-- impeccable-param-values SESSION_ID: {...} -->` comment sits alongside the style tag with the user's chosen values; read it first; it drives steps 3 and 4 below.
 2. **Move the CSS rules** into the project's real stylesheet. Which stylesheet depends on the project (e.g. `site/styles/workflow.css` for an Astro project, or the component's co-located CSS file for a Vite/Next project; pick whichever already owns styling for the surrounding element).
@@ -416,9 +416,9 @@ Do these five steps in the current thread, synchronously, before the next poll. 
 4. **Unwrap the accepted content.** Delete the `<div data-impeccable-variant="N" style="display: contents">` that wraps it. Drop `data-impeccable-params` and any `data-p-*` attributes from it; those are live-mode plumbing, not source.
 5. **Delete the inline `<style>` block, the `<!-- impeccable-param-values -->` comment if present, and both `<!-- impeccable-carbonize-start/end -->` markers.** Also drop any `@scope` rules for variants other than the accepted one; those are dead code now.
 
-After the file is clean, run `live-complete.mjs --id SESSION_ID`, verify it reports `phase: "completed"`, then poll again.
+Once the file is clean, run `live-complete.mjs --id SESSION_ID`, confirm it reports `phase: "completed"`, then poll again.
 
-A background agent may be used for the rewrite, but the current thread is responsible for verifying the five steps are complete before issuing the next poll. In practice, inline is usually faster and less error-prone.
+A background agent may handle the rewrite, but the current thread is responsible for verifying the five steps are complete before issuing the next poll. In practice, inline is usually faster and less error-prone.
 
 ## Handle `discard`
 
@@ -478,7 +478,7 @@ Schema:
 
 `exclude` (optional) is a list of glob patterns matching files to skip, even if a `files` glob would have included them. Use for email templates, demo fixtures, or any HTML that isn't a live page.
 
-`cspChecked` tracks whether the CSP detection step below has already run. Absent on first setup; set to `true` after CSP is checked (whether patched, declined, or not needed).
+`cspChecked` tracks whether the CSP detection step below has already run. Absent on first setup; set it to `true` after CSP is checked (whether patched, declined, or not needed).
 
 **Hard-excluded paths (cannot be overridden).** `**/node_modules/**` and `**/.git/**` are never matched regardless of what the user writes. These are vendor/metadata directories and injecting into them would silently instrument third-party code.
 
@@ -494,7 +494,7 @@ Schema:
 | Astro | `[" <root layout .astro>"]` | `</body>` | `html` |
 | Multi-page (separate HTML per route) | `["public/**/*.html"]`: a glob covering the served directory | `</body>` | `html` |
 
-Pick an anchor that exists in every file (`</body>` almost always works). Use `insertAfter` if the anchor should match **after** a specific line.
+Pick an anchor present in every file (`</body>` almost always works). Use `insertAfter` if the anchor should match **after** a specific line.
 
 For multi-page sites, **prefer a glob over a literal file list**. New pages added later are picked up automatically on the next `live-inject.mjs` run; no config maintenance needed.
 
@@ -617,6 +617,6 @@ Reference outputs:
 
 ### Troubleshooting
 
-If a user says "no" to the CSP patch at setup time and later complains that live doesn't work: their dev CSP blocks `http://localhost:8400`. Fix: delete `cspChecked` from `.impeccable/live/config.json` and re-run `live.mjs`: setup will ask again.
+If a user says "no" to the CSP patch at setup time and later complains live doesn't work: their dev CSP blocks `http://localhost:8400`. Fix: delete `cspChecked` from `.impeccable/live/config.json` and re-run `live.mjs`: setup will ask again.
 
 Then re-run `live.mjs`.

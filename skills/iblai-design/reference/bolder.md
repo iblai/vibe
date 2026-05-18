@@ -1,4 +1,4 @@
-When asked for "bolder," AI defaults to the same tired tricks: cyan/purple gradients, glassmorphism, neon accents on dark backgrounds, gradient text on metrics. These are the opposite of bold. Reject them first, then increase visual impact and personality through stronger hierarchy, committed scale, and decisive type.
+Asked for "bolder," AI falls back on the same worn-out tricks: cyan/purple gradients, glassmorphism, neon accents over dark backgrounds, gradient text on metrics. These are the opposite of bold. Reject them first, then raise visual impact and personality through stronger hierarchy, committed scale, and decisive type.
 
 ---
 
@@ -6,13 +6,13 @@ When asked for "bolder," AI defaults to the same tired tricks: cyan/purple gradi
 
 Brand: "bolder" means distinctive. Extreme scale, unexpected color, typographic risk, committed POV.
 
-Product: "bolder" rarely means theatrics; those undermine trust. It means stronger hierarchy, clearer weight contrast, one sharper accent, more committed density. The amplification is in clarity, not drama.
+Product: "bolder" rarely means theatrics; those erode trust. It means stronger hierarchy, clearer weight contrast, one sharper accent, more committed density. The amplification lives in clarity, not drama.
 
 ---
 
 ## Assess Current State
 
-Analyze what makes the design feel too safe or boring:
+Diagnose what makes the design feel too safe or boring:
 
 1. **Identify weakness sources**:
    - **Generic choices**: System fonts, basic colors, standard layouts
@@ -28,26 +28,26 @@ Analyze what makes the design feel too safe or boring:
    - Who's the audience? (What will resonate?)
    - What are the constraints? (Brand guidelines, accessibility, performance)
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these can't be determined from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
 **CRITICAL**: "Bolder" doesn't mean chaotic or garish. It means distinctive, memorable, and confident. Think intentional drama, not random chaos.
 
-**WARNING - AI SLOP TRAP**: Review ALL the DON'T guidelines from the parent impeccable skill (already loaded in this context) before proceeding. Bold means distinctive, not "more effects."
+**WARNING - AI SLOP TRAP**: Go back over ALL the DON'T guidelines from the parent impeccable skill (already loaded in this context) before you proceed. Bold means distinctive, not "more effects."
 
 ## Plan Amplification
 
-Create a strategy to increase impact while maintaining coherence:
+Devise a strategy that raises impact while keeping things coherent:
 
 - **Focal point**: What should be the hero moment? (Pick ONE, make it amazing)
 - **Personality direction**: Maximalist chaos? Elegant drama? Playful energy? Dark moody? Choose a lane.
 - **Risk budget**: How experimental can we be? Push boundaries within constraints.
 - **Hierarchy amplification**: Make big things BIGGER, small things smaller (increase contrast)
 
-**IMPORTANT**: Bold design must still be usable. Impact without function is just decoration.
+**IMPORTANT**: Bold design must remain usable. Impact without function is just decoration.
 
 ## Amplify the Design
 
-Systematically increase impact across these dimensions:
+Methodically raise impact across these dimensions:
 
 ### Typography Amplification
 - **Replace generic fonts**: Swap system fonts for distinctive choices (see the parent skill's typography guidelines and [typography.md](typography.md) for inspiration)
@@ -99,7 +99,7 @@ Systematically increase impact across these dimensions:
 
 ## Verify Quality
 
-Ensure amplification maintains usability and coherence:
+Confirm that the amplification keeps usability and coherence intact:
 
 - **NOT AI slop**: Does this look like every other AI-generated "bold" design? If yes, start over.
 - **Still functional**: Can users accomplish tasks without distraction?
@@ -110,4 +110,4 @@ Ensure amplification maintains usability and coherence:
 
 **The test**: If you showed this to someone and said "AI made this bolder," would they believe you immediately? If yes, you've failed. Bold means distinctive, not "more AI effects."
 
-When the result feels right, hand off to `/iblai-design polish` for the final pass.
+Once the result feels right, pass it to `/iblai-design polish` for the final pass.

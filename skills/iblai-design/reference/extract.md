@@ -1,16 +1,16 @@
 # Extract Flow
 
-Identify reusable patterns, components, and design tokens, then extract and consolidate them into the design system for systematic reuse.
+Spot reusable patterns, components, and design tokens, then pull them out and consolidate them into the design system for systematic reuse.
 
 ## Step 1: Discover the Design System
 
-Find the design system, component library, or shared UI directory. Understand its structure: component organization, naming conventions, design token structure, import/export conventions.
+Locate the design system, component library, or shared UI directory. Get a feel for its structure: component organization, naming conventions, design token structure, import/export conventions.
 
-**CRITICAL**: If no design system exists, STOP and call the AskUserQuestion tool to clarify. before creating one. Understand the preferred location and structure first.
+**CRITICAL**: If no design system exists, STOP and call the AskUserQuestion tool to clarify. before creating one. Nail down the preferred location and structure first.
 
 ## Step 2: Identify Patterns
 
-Look for extraction opportunities in the target area:
+Scan the target area for extraction opportunities:
 
 - **Repeated components**: Similar UI patterns used 3+ times (buttons, cards, inputs)
 - **Hard-coded values**: Colors, spacing, typography, shadows that should be tokens
@@ -19,11 +19,11 @@ Look for extraction opportunities in the target area:
 - **Type styles**: Repeated font-size + weight + line-height combinations
 - **Animation patterns**: Repeated easing, duration, or keyframe combinations
 
-Assess value: only extract things used 3+ times with the same intent. Premature abstraction is worse than duplication.
+Weigh the value: only extract things used 3+ times with the same intent. Premature abstraction is worse than duplication.
 
 ## Step 3: Plan Extraction
 
-Create a systematic plan:
+Lay out a systematic plan:
 
 - **Components to extract**: Which UI elements become reusable components?
 - **Tokens to create**: Which hard-coded values become design tokens?
@@ -43,7 +43,7 @@ Build improved, reusable versions:
 
 ## Step 5: Migrate
 
-Replace existing uses with the new shared versions:
+Swap existing uses over to the new shared versions:
 
 - **Find all instances**: Search for the patterns you extracted
 - **Replace systematically**: Update each use to consume the shared version
@@ -66,4 +66,3 @@ Update design system documentation:
 - Skip proper TypeScript types or prop documentation
 - Create tokens for every single value (tokens should have semantic meaning)
 - Extract things that differ in intent (two buttons that look similar but serve different purposes should stay separate)
-

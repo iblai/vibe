@@ -1,8 +1,8 @@
-Designs that only work with perfect data aren't production-ready. Harden the interface against the inputs, errors, languages, and network conditions that real users will throw at it.
+An interface that holds up only under flawless data isn't ready for production. Toughen it against the inputs, failures, languages, and connectivity conditions that actual users will subject it to.
 
 ## Assess Hardening Needs
 
-Identify weaknesses and edge cases:
+Pinpoint fragile spots and edge cases:
 
 1. **Test with extreme inputs**:
    - Very long text (names, descriptions, titles)
@@ -28,11 +28,11 @@ Identify weaknesses and edge cases:
    - Number formats (1,000 vs 1.000)
    - Currency symbols
 
-**CRITICAL**: Designs that only work with perfect data aren't production-ready. Harden against reality.
+**CRITICAL**: An interface that functions only with flawless data isn't production-ready. Toughen it against reality.
 
 ## Hardening Dimensions
 
-Systematically improve resilience:
+Improve resilience methodically:
 
 ### Text Overflow & Wrapping
 
@@ -77,18 +77,18 @@ Systematically improve resilience:
 ```
 
 **Responsive text sizing**:
-- Use `clamp()` for fluid typography
-- Set minimum readable sizes (14px on mobile)
-- Test text scaling (zoom to 200%)
-- Ensure containers expand with text
+- Apply `clamp()` for fluid typography
+- Establish minimum readable sizes (14px on mobile)
+- Verify text scaling (zoom to 200%)
+- Make sure containers grow along with text
 
 ### Internationalization (i18n)
 
 **Text expansion**:
-- Add 30-40% space budget for translations
+- Budget an extra 30-40% of space for translations
 - Use flexbox/grid that adapts to content
-- Test with longest language (usually German)
-- Avoid fixed widths on text containers
+- Verify against the longest language (usually German)
+- Steer clear of fixed widths on text containers
 
 ```jsx
 // ❌ Bad: Assumes short English text
@@ -110,10 +110,10 @@ border-inline-end: 1px solid; /* Not border-right */
 ```
 
 **Character set support**:
-- Use UTF-8 encoding everywhere
-- Test with Chinese/Japanese/Korean (CJK) characters
-- Test with emoji (they can be 2-4 bytes)
-- Handle different scripts (Latin, Cyrillic, Arabic, etc.)
+- Apply UTF-8 encoding throughout
+- Verify with Chinese/Japanese/Korean (CJK) characters
+- Verify with emoji (they can be 2-4 bytes)
+- Accommodate different scripts (Latin, Cyrillic, Arabic, etc.)
 
 **Date/Time formatting**:
 ```javascript
@@ -139,11 +139,11 @@ t('items', { count }) // Handles complex plural rules
 ### Error Handling
 
 **Network errors**:
-- Show clear error messages
-- Provide retry button
-- Explain what happened
+- Display clear error messages
+- Supply a retry button
+- Explain what went wrong
 - Offer offline mode (if applicable)
-- Handle timeout scenarios
+- Account for timeout scenarios
 
 ```jsx
 // Error states with recovery
@@ -156,14 +156,14 @@ t('items', { count }) // Handles complex plural rules
 ```
 
 **Form validation errors**:
-- Inline errors near fields
-- Clear, specific messages
-- Suggest corrections
-- Don't block submission unnecessarily
-- Preserve user input on error
+- Place inline errors near the relevant fields
+- Use clear, specific messages
+- Propose corrections
+- Avoid blocking submission without cause
+- Retain user input when an error occurs
 
 **API errors**:
-- Handle each status code appropriately
+- Respond to each status code appropriately
   - 400: Show validation errors
   - 401: Redirect to login
   - 403: Show permission error
@@ -200,8 +200,8 @@ t('items', { count }) // Handles complex plural rules
 - Don't load all 10,000 items at once
 
 **Concurrent operations**:
-- Prevent double-submission (disable button while loading)
-- Handle race conditions
+- Block double-submission (disable button while loading)
+- Account for race conditions
 - Optimistic updates with rollback
 - Conflict resolution
 
@@ -227,9 +227,9 @@ t('items', { count }) // Handles complex plural rules
 - Custom validation rules
 
 **Server-side validation** (always):
-- Never trust client-side only
-- Validate and sanitize all inputs
-- Protect against injection attacks
+- Never rely on client-side alone
+- Validate and sanitize every input
+- Guard against injection attacks
 - Rate limiting
 
 **Constraint handling**:
@@ -250,7 +250,7 @@ t('items', { count }) // Handles complex plural rules
 ### Accessibility Resilience
 
 **Keyboard navigation**:
-- All functionality accessible via keyboard
+- Every feature reachable via keyboard
 - Logical tab order
 - Focus management in modals
 - Skip links for long content
@@ -273,9 +273,9 @@ t('items', { count }) // Handles complex plural rules
 ```
 
 **High contrast mode**:
-- Test in Windows high contrast mode
-- Don't rely only on color
-- Provide alternative visual cues
+- Verify in Windows high contrast mode
+- Don't depend solely on color
+- Supply alternative visual cues
 
 ### Performance Resilience
 
@@ -286,7 +286,7 @@ t('items', { count }) // Handles complex plural rules
 - Offline support (service workers)
 
 **Memory leaks**:
-- Clean up event listeners
+- Tear down event listeners
 - Cancel subscriptions
 - Clear timers/intervals
 - Abort pending requests on unmount
@@ -303,13 +303,13 @@ const throttledScroll = throttle(handleScroll, 100);
 ## Testing Strategies
 
 **Manual testing**:
-- Test with extreme data (very long, very short, empty)
-- Test in different languages
-- Test offline
-- Test slow connection (throttle to 3G)
-- Test with screen reader
-- Test keyboard-only navigation
-- Test on old browsers
+- Try extreme data (very long, very short, empty)
+- Try different languages
+- Try offline
+- Try a slow connection (throttle to 3G)
+- Try with a screen reader
+- Try keyboard-only navigation
+- Try old browsers
 
 **Automated testing**:
 - Unit tests for edge cases
@@ -318,7 +318,7 @@ const throttledScroll = throttle(handleScroll, 100);
 - Visual regression tests
 - Accessibility tests (axe, WAVE)
 
-**IMPORTANT**: Hardening is about expecting the unexpected. Real users will do things you never imagined.
+**IMPORTANT**: Hardening means anticipating the unexpected. Real users will do things you never imagined.
 
 **NEVER**:
 - Assume perfect input (validate everything)
@@ -332,7 +332,7 @@ const throttledScroll = throttle(handleScroll, 100);
 
 ## Verify Hardening
 
-Test thoroughly with edge cases:
+Exercise edge cases thoroughly:
 
 - **Long text**: Try names with 100+ characters
 - **Emoji**: Use emoji in all text fields
@@ -344,4 +344,4 @@ Test thoroughly with edge cases:
 - **Errors**: Force API errors, test all error states
 - **Empty**: Remove all data, test empty states
 
-When edge cases are covered, hand off to `/iblai-design polish` for the final pass.
+Once the edge cases are handled, pass it on to `/iblai-design polish` for the final pass.

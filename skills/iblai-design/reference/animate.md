@@ -1,27 +1,27 @@
 > **Additional context needed**: performance constraints.
 
-Add motion that conveys state, gives feedback, and clarifies hierarchy. Cut motion that exists only for decoration. Animation fatigue is a real cost; spend the budget on the moments that need it.
+Introduce motion that signals state, supplies feedback, and clarifies hierarchy. Remove motion whose only role is decoration. Animation fatigue carries a genuine cost; invest the budget in the moments that truly need it.
 
 ---
 
 ## Register
 
-Brand: orchestrated page-load sequences, staggered reveals, scroll-driven animation. Motion is part of the voice; one well-rehearsed entrance beats scattered micro-interactions.
+Brand: choreographed page-load sequences, staggered reveals, scroll-driven animation. Motion belongs to the voice; one well-rehearsed entrance outperforms scattered micro-interactions.
 
-Product: 150–250 ms on most transitions. Motion conveys state: feedback, reveal, loading, transitions between views. No page-load choreography; users are in a task and won't wait for it.
+Product: 150–250 ms on most transitions. Motion communicates state: feedback, reveal, loading, transitions between views. No page-load choreography; users are mid-task and won't wait for it.
 
 ---
 
 ## Assess Animation Opportunities
 
-Analyze where motion would improve the experience:
+Work out where motion would strengthen the experience:
 
 1. **Identify static areas**:
-   - **Missing feedback**: Actions without visual acknowledgment (button clicks, form submission, etc.)
+   - **Missing feedback**: Actions with no visual acknowledgment (button clicks, form submission, etc.)
    - **Jarring transitions**: Instant state changes that feel abrupt (show/hide, page loads, route changes)
    - **Unclear relationships**: Spatial or hierarchical relationships that aren't obvious
    - **Lack of delight**: Functional but joyless interactions
-   - **Missed guidance**: Opportunities to direct attention or explain behavior
+   - **Missed guidance**: Chances to steer attention or explain behavior
 
 2. **Understand the context**:
    - What's the personality? (Playful vs serious, energetic vs calm)
@@ -29,24 +29,24 @@ Analyze where motion would improve the experience:
    - Who's the audience? (Motion-sensitive users? Power users who want speed?)
    - What matters most? (One hero animation vs many micro-interactions?)
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these stay unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
-**CRITICAL**: Respect `prefers-reduced-motion`. Always provide non-animated alternatives for users who need them.
+**CRITICAL**: Respect `prefers-reduced-motion`. Always supply non-animated alternatives for users who need them.
 
 ## Plan Animation Strategy
 
-Create a purposeful animation plan:
+Build a deliberate animation plan:
 
 - **Hero moment**: What's the ONE signature animation? (Page load? Hero section? Key interaction?)
 - **Feedback layer**: Which interactions need acknowledgment?
 - **Transition layer**: Which state changes need smoothing?
 - **Delight layer**: Where can we surprise and delight?
 
-**IMPORTANT**: One well-orchestrated experience beats scattered animations everywhere. Focus on high-impact moments.
+**IMPORTANT**: One well-orchestrated experience outperforms animations scattered everywhere. Concentrate on high-impact moments.
 
 ## Implement Animations
 
-Add motion systematically across these categories:
+Layer in motion methodically across these categories:
 
 ### Entrance Animations
 - **Page load choreography**: Stagger element reveals (100-150ms delays), fade + slide combinations
@@ -93,7 +93,7 @@ Add motion systematically across these categories:
 
 ## Technical Implementation
 
-Use appropriate techniques for each animation:
+Apply the right technique for each animation:
 
 ### Timing & Easing
 
@@ -115,7 +115,7 @@ Use appropriate techniques for each animation:
 /* elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6); */
 ```
 
-**Exit animations are faster than entrances.** Use ~75% of enter duration.
+**Exit animations run faster than entrances.** Use ~75% of enter duration.
 
 ### CSS Animations
 ```css
@@ -135,9 +135,9 @@ Use appropriate techniques for each animation:
 ```
 
 ### Performance
-- **Motion materials**: Use transform/opacity for reliable movement, but use blur, filters, masks, shadows, and color shifts when they materially improve the effect
-- **Layout safety**: Avoid casual animation of layout-driving properties (`width`, `height`, `top`, `left`, margins)
-- **will-change**: Add sparingly for known expensive animations
+- **Motion materials**: Lean on transform/opacity for reliable movement, but reach for blur, filters, masks, shadows, and color shifts when they materially improve the effect
+- **Layout safety**: Steer clear of casually animating layout-driving properties (`width`, `height`, `top`, `left`, margins)
+- **will-change**: Apply sparingly for known expensive animations
 - **Bound expensive effects**: Keep blur/filter/shadow areas small or isolated, use `contain` where appropriate
 - **Monitor FPS**: Ensure 60fps on target devices
 
@@ -153,8 +153,8 @@ Use appropriate techniques for each animation:
 ```
 
 **NEVER**:
-- Use bounce or elastic easing curves; they feel dated and draw attention to the animation itself
-- Animate layout properties casually (`width`, `height`, `top`, `left`, margins) when transform, FLIP, or grid-based techniques would work
+- Use bounce or elastic easing curves; they feel dated and pull focus to the animation itself
+- Casually animate layout properties (`width`, `height`, `top`, `left`, margins) when transform, FLIP, or grid-based techniques would do the job
 - Use durations over 500ms for feedback (it feels laggy)
 - Animate without purpose (every animation needs a reason)
 - Ignore `prefers-reduced-motion` (this is an accessibility violation)
@@ -167,9 +167,9 @@ Test animations thoroughly:
 
 - **Smooth at 60fps**: No jank on target devices
 - **Feels natural**: Easing curves feel organic, not robotic
-- **Appropriate timing**: Not too fast (jarring) or too slow (laggy)
+- **Appropriate timing**: Neither too fast (jarring) nor too slow (laggy)
 - **Reduced motion works**: Animations disabled or simplified appropriately
 - **Doesn't block**: Users can interact during/after animations
 - **Adds value**: Makes interface clearer or more delightful
 
-When the motion clarifies state instead of decorating it, hand off to `/iblai-design polish` for the final pass.
+Once the motion clarifies state rather than decorating it, hand off to `/iblai-design polish` for the final pass.

@@ -1,20 +1,20 @@
 > **Additional context needed**: what's appropriate for the domain (playful vs professional vs quirky vs elegant).
 
-Find the moments where personality and unexpected polish would turn a functional interface into one users remember and tell other people about. Add only where the moment earns it; delight everywhere reads as noise.
+Locate the moments where personality and unexpected polish would transform a functional interface into one users remember and recommend to others. Add it only where the moment deserves it; delight scattered everywhere reads as noise.
 
 ---
 
 ## Register
 
-Brand: delight can be distributed across copy voice, section transitions, discovery rewards, seasonal touches, personality across the whole surface.
+Brand: delight can be spread across copy voice, section transitions, discovery rewards, seasonal touches, personality throughout the entire surface.
 
-Product: delight at specific moments, not pages. Completion, first-time actions, error recovery, milestone crossings. Reliability and consistency carry the rest of the experience; delight pushed everywhere reads as noise.
+Product: delight at particular moments, not pages. Completion, first-time actions, error recovery, milestone crossings. Reliability and consistency hold up the rest of the experience; delight pushed everywhere reads as noise.
 
 ---
 
 ## Assess Delight Opportunities
 
-Identify where delight would enhance (not distract from) the experience:
+Find where delight would strengthen (not distract from) the experience:
 
 1. **Find natural delight moments**:
    - **Success states**: Completed actions (save, send, publish)
@@ -37,41 +37,41 @@ Identify where delight would enhance (not distract from) the experience:
    - **Helpful surprises**: Anticipating needs before users ask (productivity tools)
    - **Sensory richness**: Satisfying sounds, smooth animations (creative tools)
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these can't be determined from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
-**CRITICAL**: Delight should enhance usability, never obscure it. If users notice the delight more than accomplishing their goal, you've gone too far.
+**CRITICAL**: Delight should strengthen usability, never obscure it. If users notice the delight more than they notice accomplishing their goal, you've overdone it.
 
 ## Delight Principles
 
 Follow these guidelines:
 
 ### Delight Amplifies, Never Blocks
-- Delight moments should be quick (< 1 second)
-- Never delay core functionality for delight
-- Make delight skippable or subtle
-- Respect user's time and task focus
+- Delight moments should be brief (< 1 second)
+- Never hold up core functionality for delight
+- Keep delight skippable or subtle
+- Respect the user's time and task focus
 
 ### Surprise and Discovery
-- Hide delightful details for users to discover
+- Tuck delightful details away for users to find
 - Reward exploration and curiosity
 - Don't announce every delight moment
 - Let users share discoveries with others
 
 ### Appropriate to Context
-- Match delight to emotional moment (celebrate success, empathize with errors)
+- Fit delight to the emotional moment (celebrate success, empathize with errors)
 - Respect the user's state (don't be playful during critical errors)
 - Match brand personality and audience expectations
-- Cultural sensitivity (what's delightful varies by culture)
+- Cultural sensitivity (what counts as delightful varies by culture)
 
 ### Compound Over Time
-- Delight should remain fresh with repeated use
-- Vary responses (not same animation every time)
-- Reveal deeper layers with continued use
+- Delight should stay fresh through repeated use
+- Vary responses (not the same animation every time)
+- Reveal deeper layers as use continues
 - Build anticipation through patterns
 
 ## Delight Techniques
 
-Add personality and joy through these methods:
+Add personality and joy with these methods:
 
 ### Micro-interactions & Animation
 
@@ -97,7 +97,7 @@ Add personality and joy through these methods:
 **Loading delight**:
 - Playful loading animations (not just spinners)
 - Personality in loading messages (write product-specific ones, not generic AI filler)
-- Progress indication with encouraging messages
+- Progress indication paired with encouraging messages
 - Skeleton screens with subtle animations
 
 **Success animations**:
@@ -141,7 +141,7 @@ Add personality and joy through these methods:
 "Rescue me" (tooltip)
 ```
 
-**IMPORTANT**: Match copy personality to brand. Banks shouldn't be wacky, but they can be warm.
+**IMPORTANT**: Match copy personality to the brand. Banks shouldn't be wacky, though they can be warm.
 
 ### Illustrations & Visual Personality
 
@@ -201,7 +201,7 @@ Add personality and joy through these methods:
 
 **IMPORTANT**:
 - Respect system sound settings
-- Provide mute option
+- Provide a mute option
 - Keep volumes quiet (subtle cues, not alarms)
 - Don't play on every interaction (sound fatigue is real)
 
@@ -223,8 +223,8 @@ Add personality and joy through these methods:
 **Contextual personality**:
 - Different messages based on time of day
 - Responses to specific user actions
-- Randomized variations (not same every time)
-- Progressive reveals with continued use
+- Randomized variations (not the same every time)
+- Progressive reveals as use continues
 
 ### Loading & Waiting States
 
@@ -243,7 +243,7 @@ Loading messages: write ones specific to your product, not generic AI filler:
 - "Checking for updates since yesterday..."
 ```
 
-**WARNING**: Avoid cliched loading messages like "Herding pixels", "Teaching robots to dance", "Consulting the magic 8-ball", "Counting backwards from infinity". These are AI-slop copy, instantly recognizable as machine-generated. Write messages that are specific to what your product actually does.
+**WARNING**: Steer clear of cliched loading messages like "Herding pixels", "Teaching robots to dance", "Consulting the magic 8-ball", "Counting backwards from infinity". These are AI-slop copy, instantly recognizable as machine-generated. Write messages that are specific to what your product actually does.
 
 ### Celebration Moments
 
@@ -279,24 +279,24 @@ Loading messages: write ones specific to your product, not generic AI filler:
 **IMPORTANT**: File size matters. Compress images, optimize animations, lazy load delight features.
 
 **NEVER**:
-- Delay core functionality for delight
-- Force users through delightful moments (make skippable)
-- Use delight to hide poor UX
+- Hold up core functionality for delight
+- Force users through delightful moments (make them skippable)
+- Use delight to mask poor UX
 - Overdo it (less is more)
 - Ignore accessibility (animate responsibly, provide alternatives)
-- Make every interaction delightful (special moments should be special)
-- Sacrifice performance for delight
-- Be inappropriate for context (read the room)
+- Make every interaction delightful (special moments should stay special)
+- Trade performance for delight
+- Be inappropriate for the context (read the room)
 
 ## Verify Delight Quality
 
-Test that delight actually delights:
+Check that the delight genuinely delights:
 
 - **User reactions**: Do users smile? Share screenshots?
-- **Doesn't annoy**: Still pleasant after 100th time?
+- **Doesn't annoy**: Still pleasant after the 100th time?
 - **Doesn't block**: Can users opt out or skip?
 - **Performant**: No jank, no slowdown
 - **Appropriate**: Matches brand and context
 - **Accessible**: Works with reduced motion, screen readers
 
-When the moments feel earned, hand off to `/iblai-design polish` for the final pass.
+Once the moments feel earned, pass it on to `/iblai-design polish` for the final pass.

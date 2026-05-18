@@ -1,11 +1,11 @@
-Strip a design to its essence. Remove anything that doesn't earn its place: redundant elements, repeated information, decorative noise, cosmetic complexity.
+Pare a design down to its core. Cut anything that doesn't earn its keep: redundant elements, repeated information, decorative noise, cosmetic complexity.
 
 
 ---
 
 ## Assess Current State
 
-Analyze what makes the design feel complex or cluttered:
+Diagnose what makes the design feel complex or cluttered:
 
 1. **Identify complexity sources**:
    - **Too many elements**: Competing buttons, redundant information, visual clutter
@@ -21,24 +21,24 @@ Analyze what makes the design feel complex or cluttered:
    - What can be removed, hidden, or combined?
    - What's the 20% that delivers 80% of value?
 
-If any of these are unclear from the codebase, STOP and call the AskUserQuestion tool to clarify.
+If any of these can't be determined from the codebase, STOP and call the AskUserQuestion tool to clarify.
 
-**CRITICAL**: Simplicity is not about removing features. It's about removing obstacles between users and their goals. Every element should justify its existence.
+**CRITICAL**: Simplicity isn't about stripping out features. It's about clearing obstacles between users and their goals. Every element must justify why it's there.
 
 ## Plan Simplification
 
-Create a ruthless editing strategy:
+Devise a ruthless editing strategy:
 
 - **Core purpose**: What's the ONE thing this should accomplish?
 - **Essential elements**: What's truly necessary to achieve that purpose?
 - **Progressive disclosure**: What can be hidden until needed?
 - **Consolidation opportunities**: What can be combined or integrated?
 
-**IMPORTANT**: Simplification is hard. It requires saying no to good ideas to make room for great execution. Be ruthless.
+**IMPORTANT**: Simplification is hard. It demands saying no to good ideas to clear space for great execution. Be ruthless.
 
 ## Simplify the Design
 
-Systematically remove complexity across these dimensions:
+Methodically strip out complexity across these dimensions:
 
 ### Information Architecture
 - **Reduce scope**: Remove secondary actions, optional features, redundant information
@@ -93,7 +93,7 @@ Systematically remove complexity across these dimensions:
 
 ## Verify Simplification
 
-Ensure simplification improves usability:
+Confirm the simplification improves usability:
 
 - **Faster task completion**: Can users accomplish goals more quickly?
 - **Reduced cognitive load**: Is it easier to understand what to do?
@@ -103,9 +103,9 @@ Ensure simplification improves usability:
 
 ## Document Removed Complexity
 
-If you removed features or options:
+If you took out features or options:
 - Document why they were removed
 - Consider if they need alternative access points
 - Note any user feedback to monitor
 
-When the cuts feel right, hand off to `/iblai-design polish` for the final pass. As Antoine de Saint-Exupéry put it: "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away."
+Once the cuts feel right, pass it to `/iblai-design polish` for the final pass. As Antoine de Saint-Exupéry put it: "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away."

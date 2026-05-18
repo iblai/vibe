@@ -1,8 +1,8 @@
-Performance is a feature. Identify the actual bottleneck for THIS interface, fix it, then measure. Don't optimize what isn't slow.
+Performance is a feature. Find the real bottleneck for THIS interface, fix it, then measure. Don't optimize what isn't slow.
 
 ## Assess Performance Issues
 
-Understand current performance and identify problems:
+Understand the current performance and pinpoint problems:
 
 1. **Measure current state**:
    - **Core Web Vitals**: LCP, FID/INP, CLS scores
@@ -17,21 +17,21 @@ Understand current performance and identify problems:
    - How bad is it? (Perceivable? Annoying? Blocking?)
    - Who's affected? (All users? Mobile only? Slow connections?)
 
-**CRITICAL**: Measure before and after. Premature optimization wastes time. Optimize what actually matters.
+**CRITICAL**: Measure before and after. Premature optimization wastes time. Optimize what genuinely matters.
 
 ## Optimization Strategy
 
-Create systematic improvement plan:
+Build a systematic improvement plan:
 
 ### Loading Performance
 
 **Optimize Images**:
 - Use modern formats (WebP, AVIF)
-- Proper sizing (don't load 3000px image for 300px display)
+- Proper sizing (don't load a 3000px image for a 300px display)
 - Lazy loading for below-fold images
 - Responsive images (`srcset`, `picture` element)
 - Compress images (80-85% quality is usually imperceptible)
-- Use CDN for faster delivery
+- Use a CDN for faster delivery
 
 ```html
 <img 
@@ -57,16 +57,16 @@ const HeavyChart = lazy(() => import('./HeavyChart'));
 
 **Optimize CSS**:
 - Remove unused CSS
-- Critical CSS inline, rest async
+- Critical CSS inline, the rest async
 - Minimize CSS files
 - Use CSS containment for independent regions
 
 **Optimize Fonts**:
 - Use `font-display: swap` or `optional`
-- Subset fonts (only characters you need)
+- Subset fonts (only the characters you need)
 - Preload critical fonts
-- Use system fonts when appropriate
-- Limit font weights loaded
+- Use system fonts where appropriate
+- Limit the font weights loaded
 
 ```css
 @font-face {
@@ -102,7 +102,7 @@ elements.forEach((el, i) => {
 ```
 
 **Optimize Rendering**:
-- Use CSS `contain` property for independent regions
+- Use the CSS `contain` property for independent regions
 - Minimize DOM depth (flatter is faster)
 - Reduce DOM size (fewer elements)
 - Use `content-visibility: auto` for long lists
@@ -176,7 +176,7 @@ const observer = new IntersectionObserver((entries) => {
 
 **Optimize APIs**:
 - Use pagination (don't load everything)
-- GraphQL to request only needed fields
+- GraphQL to request only the needed fields
 - Response compression (gzip, brotli)
 - HTTP caching headers
 - CDN for static assets
@@ -193,7 +193,7 @@ const observer = new IntersectionObserver((entries) => {
 - Optimize hero images
 - Inline critical CSS
 - Preload key resources
-- Use CDN
+- Use a CDN
 - Server-side rendering
 
 ### First Input Delay (FID < 100ms) / INP (< 200ms)
@@ -205,7 +205,7 @@ const observer = new IntersectionObserver((entries) => {
 ### Cumulative Layout Shift (CLS < 0.1)
 - Set dimensions on images and videos
 - Don't inject content above existing content
-- Use `aspect-ratio` CSS property
+- Use the `aspect-ratio` CSS property
 - Reserve space for ads/embeds
 - Avoid animations that cause layout shifts
 
@@ -233,7 +233,7 @@ const observer = new IntersectionObserver((entries) => {
 - Bundle size
 - Request count
 
-**IMPORTANT**: Measure on real devices with real network conditions. Desktop Chrome with fast connection isn't representative.
+**IMPORTANT**: Measure on real devices under real network conditions. Desktop Chrome on a fast connection isn't representative.
 
 **NEVER**:
 - Optimize without measuring (premature optimization)
@@ -246,13 +246,13 @@ const observer = new IntersectionObserver((entries) => {
 
 ## Verify Improvements
 
-Test that optimizations worked:
+Confirm the optimizations worked:
 
 - **Before/after metrics**: Compare Lighthouse scores
 - **Real user monitoring**: Track improvements for real users
-- **Different devices**: Test on low-end Android, not just flagship iPhone
-- **Slow connections**: Throttle to 3G, test experience
-- **No regressions**: Ensure functionality still works
+- **Different devices**: Test on low-end Android, not just a flagship iPhone
+- **Slow connections**: Throttle to 3G, test the experience
+- **No regressions**: Make sure functionality still works
 - **User perception**: Does it *feel* faster?
 
-When the user-facing numbers move, hand off to `/iblai-design polish` for the final pass.
+Once the user-facing numbers move, pass it on to `/iblai-design polish` for the final pass.
