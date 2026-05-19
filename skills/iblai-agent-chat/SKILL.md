@@ -26,6 +26,13 @@ Do NOT add custom styles, colors, or CSS overrides to the SDK `Chat`
 component. It ships with its own styling. Keep the component as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
 
+> **This is a revised skill.** It folds in everything learned from a
+> real brownfield integration (Next.js App Router, React 19, RTK, pnpm,
+> sub-path `basePath`). Greenfield apps can mostly follow the happy
+> path; brownfield apps must read the **Brownfield** and **Known
+> issues** notes — most of the integration cost lives there, not in the
+> happy path.
+
 > **Common setup (brand, conventions, env files, verification):** see
 > [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -36,15 +43,48 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 - A working store, providers, and SSO callback route — i.e. an app that
   already passes `/iblai-auth` verification.
 - An agent/mentor ID (a UUID) — get one at https://mentorai.iblai.app.
+- **Minimum SDK versions.** The `Chat` component and its required hooks
+  are only present in recent SDKs. Older-but-recent installs silently
+  lack them. Require at least:
+
+  | package | min version |
+  |---|---|
+  | `@iblai/iblai-js` | `^1.10.3` |
+  | `@iblai/web-containers` | `1.6.14` |
+  | `@iblai/web-utils` | `1.6.9` |
+  | `@iblai/data-layer` | `1.5.7` |
+
+- **Pre-flight export check (do this before writing any code):**
+
+  ```bash
+  grep -qE "declare function Chat\b|type ChatConfig" \
+    node_modules/@iblai/web-containers/dist/next/index.d.ts \
+    && echo "Chat present" \
+    || echo "MISSING — upgrade the SDK packages (see Step 3)"
+  ```
+
+  `@iblai/iblai-js/web-containers/next` re-exports `@iblai/web-containers/next`;
+  the component physically lives in `@iblai/web-containers`. If the
+  check fails, the rest of this skill cannot work — upgrade first.
+
+> **Caveat: the SDK `.d.ts` is incomplete and sometimes misleading.**
+> Several runtime props/args (e.g. `getChatHistory`'s `userId` path
+> param) are absent from the type defs, and some documented slot props
+> are typed but not implemented. When something doesn't match, verify
+> against `node_modules/@iblai/web-containers/dist/next/index.esm.js`
+> (the actual bundle), not just the types.
 
 ## What Gets Wired
 
 | File | Change |
 |------|--------|
-| `package.json` | Adds SDK packages as direct deps + peer dependencies (Step 3) |
-| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; adds `skip={isSsoLoginRoute}` to `<TenantProvider>` (Step 4) |
-| `store/index.ts` | Registers `chat`, `chatInput`, `rbac`, `subscription`, `topBanner` reducers (Step 5) |
-| `app/agents/[mentorId]/chat-new/page.tsx` | New route rendering `<Chat>` with all props wired (Step 6) |
+| `package.json` | Adds SDK packages + peers (Step 3) |
+| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; `skip={isSsoLoginRoute}` on Auth/Tenant providers (Step 4) |
+| `public/sw.js` | The SDK offline service worker — required by `ServiceWorkerProvider` (Step 4) |
+| `next.config.*` | `Service-Worker-Allowed` header for sub-path mounts; `reactStrictMode:false` (Step 4, Known issues) |
+| `store/index.ts` | Registers `chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner` reducers (Step 5) |
+| `app/agents/[mentorId]/chat-new/page.tsx` | New route rendering `<Chat>` with resume/new-chat handling (Step 6) |
+| `components/radix-pointer-events-guard.tsx` | Host recovery for the SDK prompt-gallery teardown bug (Known issues) |
 
 ## Step 1: Check Environment
 
@@ -60,6 +100,10 @@ NEXT_PUBLIC_AGENT_URL=http://localhost:3000
 NEXT_PUBLIC_MAIN_TENANT_KEY=<your-platform-key>
 NEXT_PUBLIC_SUPPORT_EMAIL=support@ibl.ai
 ```
+
+Note: some host `config` helpers don't expose `supportEmail()`. If
+yours doesn't, read `process.env.NEXT_PUBLIC_SUPPORT_EMAIL` directly in
+`ChatConfig` (Step 6) — don't assume the helper has every field.
 
 ## Step 2: Get the Agent ID
 
@@ -78,6 +122,7 @@ to create an agent.
 
 ```bash
 pnpm add @iblai/data-layer @iblai/web-containers @iblai/web-utils \
+         @iblai/agent-ai \
          react-paginate livekit-client \
          @livekit/components-react @livekit/components-styles \
          @tauri-apps/plugin-os @tauri-apps/api
@@ -87,25 +132,42 @@ Why each one:
 
 | Package | Used by |
 |---------|---------|
-| `@iblai/data-layer`, `@iblai/web-containers`, `@iblai/web-utils` | Hoist SDK packages to the top-level `node_modules` so Webpack resolves them from the host (avoids deep-tree resolution failures with pnpm) |
-| `react-paginate` | Optional peer of `@iblai/web-containers` (agent search pagination) |
-| `livekit-client`, `@livekit/components-react`, `@livekit/components-styles` | Voice call and screen-sharing features in the chat surface |
-| `@tauri-apps/plugin-os`, `@tauri-apps/api` | OS detection (Tauri desktop wrapper); optional peers of `@iblai/web-utils` |
+| `@iblai/data-layer`, `@iblai/web-containers`, `@iblai/web-utils` | Hoist SDK packages to top-level `node_modules` so the bundler resolves them from the host |
+| `@iblai/agent-ai` | Voice/agent web component — **dynamically imported by `<Chat>`** (`import('@iblai/agent-ai')`). Easy to miss; its absence is a hard build error |
+| `react-paginate` | Peer of `@iblai/web-containers` (agent search pagination) |
+| `livekit-client`, `@livekit/components-react`, `@livekit/components-styles` | Voice call / screen-sharing |
+| `@tauri-apps/plugin-os`, `@tauri-apps/api` | OS detection (Tauri desktop wrapper) |
 
-## Step 4: Wire the Providers
+> **All of these are build-time-required, even the runtime-guarded
+> ones.** `<Chat>` statically/dynamically imports them; a missing
+> package is a hard `Module not found` from Turbopack/Webpack, **not** a
+> soft runtime fallback. Don't defer any of them "until needed".
+
+If on a fresh upgrade you hit `Module not found: Can't resolve
+'@iblai/...'` for a name you *did* install, the export may have moved
+between subpaths — e.g. `AgentSearchResult` moved from
+`@iblai/iblai-js/web-containers` to `@iblai/iblai-js/web-containers/next`.
+Expect to fix a few import paths after an SDK bump; the
+`/web-containers` vs `/web-containers/next` split is real (the chat
+component lives under `/next`).
+
+## Step 4: Wire the Providers + Service Worker
 
 The `Chat` component uses `useAuthContext`, `useTenantContext`,
 `useEmbedMode`, `useServiceWorker`, and several Redux hooks. The host
-needs all of these set up.
+needs all of these.
+
+### 4a. Providers
 
 In `providers/index.tsx`:
 
 1. Import `ServiceWorkerProvider` from `@iblai/iblai-js/web-utils`.
 2. Wrap the existing `<AuthProvider>` tree in `<ServiceWorkerProvider>`.
 3. Pass `skip={isSsoLoginRoute}` to **both** `<AuthProvider>` and
-   `<TenantProvider>` so the `/sso-login-complete` callback page
-   doesn't crash on missing context (the SSO callback page intentionally
-   runs outside the auth/tenant flow).
+   `<TenantProvider>` so the `/sso-login-complete` callback page doesn't
+   crash on missing context.
+4. **Pass `basePath` if the app is mounted under a sub-path** (e.g.
+   `NEXT_PUBLIC_BASE_PATH=/hq`):
 
 ```tsx
 import {
@@ -115,81 +177,104 @@ import {
   ServiceWorkerProvider,
 } from "@iblai/iblai-js/web-utils";
 
-// ...inside Providers
 return (
-  <ServiceWorkerProvider>
-    <AuthProvider
-      redirectToAuthSpa={redirectToAuthSpa}
-      hasNonExpiredAuthToken={hasNonExpiredAuthToken}
-      username={username}
-      pathname={pathname}
-      middleware={new Map()}
-      skip={isSsoLoginRoute}
-    >
-      <TenantProvider
-        currentTenant={mainTenantKey}
-        requestedTenant={(params.tenantKey as string) || mainTenantKey}
-        handleTenantSwitch={handleTenantSwitch}
-        saveCurrentTenant={saveCurrentTenant}
-        saveUserTenants={saveUserTenants}
-        skip={isSsoLoginRoute}
-      >
-        <MentorProvider {...mentorProps}>
-          {children}
-        </MentorProvider>
+  <ServiceWorkerProvider basePath={config.basePath() /* "" or "/hq" */}>
+    <AuthProvider /* …, */ skip={isSsoLoginRoute}>
+      <TenantProvider /* …, */ skip={isSsoLoginRoute}>
+        <MentorProvider {...mentorProps}>{children}</MentorProvider>
       </TenantProvider>
     </AuthProvider>
   </ServiceWorkerProvider>
 );
 ```
 
+### 4b. Ship the service worker (required)
+
+`ServiceWorkerProvider` calls
+`navigator.serviceWorker.register(`${basePath}/sw.js`, { scope: basePath || "/" })`.
+**The host must provide `public/sw.js`** — the SDK does not ship a
+copyable one. Without it, registration 404s (non-fatal but noisy, and
+offline is disabled). Use the SDK's standard offline worker (generic;
+cache-in-background, serve-from-cache only when Tauri+offline). A known
+working `sw.js` is bundled with this skill — copy it to `public/sw.js`.
+
+### 4c. `Service-Worker-Allowed` header (sub-path mounts only)
+
+If the app is under a `basePath`, the script lives at `/hq/sw.js`,
+whose default max scope is `/hq/`, but the provider registers with
+`scope: "/hq"` → `SecurityError: scope ('/hq') is not under the max
+scope allowed ('/hq/')`. Fix in `next.config`:
+
+```js
+async headers() {
+  return [
+    {
+      source: '/sw.js', // Next prefixes basePath → matches /hq/sw.js
+      headers: [{ key: 'Service-Worker-Allowed', value: basePath || '/' }],
+    },
+  ]
+}
+```
+
+(No-op safe when there's no basePath: header value `/`.)
+
 ## Step 5: Register Store Reducers
 
-In `store/index.ts`, add five reducers alongside whatever the existing
-auth/data-layer setup already registers:
+In `store/index.ts`, register these reducers. **The SDK's selectors
+hard-code these exact keys** (`state.chat`, `state.rbac`, …) — they are
+non-negotiable:
 
 ```ts
-import { configureStore } from "@reduxjs/toolkit";
 import {
-  coreApiSlice,
-  mentorReducer,
-  mentorMiddleware,
+  coreApiSlice, mentorReducer, mentorMiddleware,
 } from "@iblai/iblai-js/data-layer";
 import {
-  chatSliceReducerShared,
-  chatInputSliceReducer,
-  filesReducer,
   hostChatReducer,
+  chatInputSliceReducer,
+  chatSliceReducerShared,
+  filesReducer,
   rbacReducer,
   subscriptionReducer,
   topBannerReducer,
 } from "@iblai/iblai-js/web-utils";
 
-export const makeStore = () =>
-  configureStore({
-    reducer: {
-      chat: hostChatReducer,
-      chatInput: chatInputSliceReducer,
-      chatSliceShared: chatSliceReducerShared,
-      files: filesReducer,
-      rbac: rbacReducer,
-      subscription: subscriptionReducer,
-      topBanner: topBannerReducer,
-      [coreApiSlice.reducerPath]: coreApiSlice.reducer,
-      ...mentorReducer,
-    },
-    middleware: (gdm) =>
-      gdm().concat(coreApiSlice.middleware, ...mentorMiddleware),
-  });
+reducer: {
+  chat: hostChatReducer,
+  chatInput: chatInputSliceReducer,
+  chatSliceShared: chatSliceReducerShared, // used by useAdvancedChat; NOT in mentorReducer
+  files: filesReducer,
+  rbac: rbacReducer,
+  subscription: subscriptionReducer,
+  topBanner: topBannerReducer,
+  [coreApiSlice.reducerPath]: coreApiSlice.reducer,
+  ...mentorReducer,
+}
 ```
 
-The slice **keys matter** — the SDK's selectors hard-code paths like
-`state.chat.enableChatActionsPopup` and `state.rbac.rbacPermissions`.
-Don't rename them.
+> **Brownfield: store-key collisions.** A mature app very likely already
+> has its own `chat` / `files` (or `rbac`/`subscription`/…) slices with
+> different shapes. The SDK's keys are fixed, so **rename the host's
+> slices**, not the SDK's. Find collisions first:
+>
+> ```bash
+> grep -rn "state\.\(chat\|files\|rbac\|subscription\|topBanner\|chatInput\)\b" \
+>   --include="*.ts" --include="*.tsx" app components lib hooks
+> ```
+>
+> Rename each host slice (e.g. `chat → v0Chat`) and migrate **every
+> selector** that reads it (slice `name` and action creators are
+> key-agnostic — only `useSelector(s => s.<key>)` accesses change).
+> `mentorReducer` is RTK Query API slices only; it does **not** shadow
+> plain feature slices like `chat`/`files`.
+
+The slice **keys matter** — don't rename them. `mentorMiddleware` is
+still concatenated as before.
 
 ## Step 6: Create the Route
 
-Create `app/agents/[mentorId]/chat-new/page.tsx`:
+Create `app/agents/[mentorId]/chat-new/page.tsx`. This version handles
+session resume, new-chat, the `useSearchParams` Suspense requirement,
+and the mounting discipline (see notes after the code):
 
 ```tsx
 "use client";
@@ -197,19 +282,18 @@ Create `app/agents/[mentorId]/chat-new/page.tsx`:
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Chat, type ChatConfig } from "@iblai/iblai-js/web-containers/next";
 import {
-  useUsername,
-  useAxdToken,
-  useUserTenants,
-  useVisitingTenant,
-  useIsAdmin,
+  useUsername, useAxdToken, useUserTenants, useVisitingTenant,
+  useIsAdmin, useCachedSessionId,
 } from "@iblai/iblai-js/web-utils";
 import { redirectToAuthSpa } from "@/lib/utils";
 import { config } from "@/lib/config";
 
 export default function AgentChatPageWrapper() {
+  // `useSearchParams()` requires a Suspense boundary in the App Router
+  // (the SDK <Chat> tree uses it too).
   return (
     <Suspense fallback={null}>
       <AgentChatPage />
@@ -220,8 +304,43 @@ export default function AgentChatPageWrapper() {
 function AgentChatPage() {
   const { mentorId } = useParams<{ mentorId: string }>();
   const router = useRouter();
-  const [tenantKey, setTenantKey] = useState("");
+  const searchParams = useSearchParams();
 
+  // Resume (`?session=<id>`) or new chat (`?new=<nonce>`). The SDK reads
+  // its per-mentor cached-session map (`useCachedSessionId`,
+  // localStorage `{ [mentorId]: sessionId }`) ONCE at <Chat> mount
+  // (`isNewSession = cachedSessionId[mentorId] ? false : true`). So seed
+  // (resume) or clear (new) BEFORE mount, gate the render until done,
+  // and key <Chat> on session/new so switching remounts it.
+  const restoreSessionId = searchParams.get("session") ?? undefined;
+  const newParam = searchParams.get("new") ?? undefined;
+  const [cachedSessionId, saveCachedSessionId] = useCachedSessionId();
+  const [seededFor, setSeededFor] = useState<string | undefined>(
+    restoreSessionId || newParam ? undefined : "none",
+  );
+  useEffect(() => {
+    if (!mentorId) { setSeededFor("none"); return; }
+    const map = { ...((cachedSessionId ?? {}) as Record<string, string>) };
+    if (restoreSessionId) {
+      if (map[mentorId] !== restoreSessionId) {
+        saveCachedSessionId({ ...map, [mentorId]: restoreSessionId });
+      }
+      setSeededFor(restoreSessionId);
+    } else if (newParam) {
+      if (map[mentorId]) { delete map[mentorId]; saveCachedSessionId(map); }
+      setSeededFor(`new:${newParam}`);
+    } else {
+      setSeededFor("none");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restoreSessionId, newParam, mentorId]);
+  const sessionReady = restoreSessionId
+    ? seededFor === restoreSessionId
+    : newParam
+      ? seededFor === `new:${newParam}`
+      : true;
+
+  const [tenantKey, setTenantKey] = useState("");
   useEffect(() => {
     const appTenant = localStorage.getItem("app_tenant");
     const tenant = localStorage.getItem("tenant");
@@ -230,9 +349,7 @@ function AgentChatPage() {
       currentTenant =
         JSON.parse(localStorage.getItem("current_tenant") ?? "{}")?.key ?? "";
     } catch {}
-    setTenantKey(
-      appTenant || currentTenant || tenant || config.mainTenantKey(),
-    );
+    setTenantKey(appTenant || currentTenant || tenant || config.mainTenantKey());
   }, []);
 
   const username = useUsername();
@@ -242,8 +359,10 @@ function AgentChatPage() {
   const isAdmin = useIsAdmin();
 
   const chatConfig: ChatConfig = {
-    baseWsUrl: () => config.wsUrl(),
-    supportEmail: () => config.supportEmail(),
+    baseWsUrl: () => config.baseWsUrl(),
+    // Host config may not expose supportEmail — fall back to env.
+    supportEmail: () =>
+      process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@ibl.ai",
     authUrl: () => config.authUrl(),
     mainTenantKey: config.mainTenantKey(),
     navigateToAdminBilling: () =>
@@ -252,16 +371,24 @@ function AgentChatPage() {
     navigateToMentor: (id) => router.push(`/agents/${id}`),
   };
 
-  if (!tenantKey) return null;
+  if (!tenantKey || !sessionReady) return null;
 
   return (
     <div className="flex h-screen w-full flex-col">
       <Chat
+        // Key on mentor+session+new so an intentional switch remounts
+        // <Chat> and the SDK re-reads the cached session. Do NOT remount
+        // it any other way (see "Mounting discipline").
+        key={`${mentorId}:${restoreSessionId ?? ""}:${newParam ?? ""}`}
         isPreviewMode={false}
         mentorId={mentorId}
         tenantKey={tenantKey}
         config={chatConfig}
-        redirectToAuthSpa={redirectToAuthSpa}
+        // Wrap so the callback is `=> void` (host helpers are often
+        // async / extra-arg; SDK type wants `(…) => void`).
+        redirectToAuthSpa={(to, key, logout) =>
+          void redirectToAuthSpa(to, key, logout)
+        }
         username={username ?? null}
         userTenants={userTenants ?? []}
         visitingTenant={visitingTenant}
@@ -277,12 +404,56 @@ function AgentChatPage() {
 
 | Item | Why |
 |------|-----|
-| `"use client"` | `Chat` is a client component (uses hooks, WebSocket, localStorage). |
-| `export const dynamic = "force-dynamic"` | Prevents Next.js from trying to statically pre-render this page. |
-| `<Suspense fallback={null}>` | The `Chat` tree uses `useSearchParams()`, which requires a Suspense boundary in App Router. |
-| `redirectToAuthSpa` from `@/lib/utils` | Host-owned redirect to the auth SPA. The SDK never owns navigation. |
-| `config` from `@/lib/config` | Reads runtime env (`window.__ENV__`) so the same build runs across environments. |
-| Read `tenantKey` from localStorage with `mainTenantKey` fallback | Matches what `/iblai-auth` writes after SSO completes. |
+| `"use client"` + `dynamic = "force-dynamic"` | `Chat` is client-only; prevent static pre-render |
+| `<Suspense>` wrapper | `useSearchParams()` requires a Suspense boundary in App Router |
+| `useCachedSessionId` seeding + render gate | only way to resume / start-new (no `sessionId` prop, no URL handling — see "Resuming / starting sessions") |
+| `key={mentor:session:new}` | the ONLY safe remount; switching session needs it |
+| `void redirectToAuthSpa(...)` wrapper | SDK type is `(…) => void`; host helper is often `async` |
+| env fallback for `supportEmail` | host `config` may not expose it |
+
+## Mounting discipline
+
+The SDK reads session/voice state **once at `<Chat>` mount** and has an
+`isMounted` defect (see Known issues), so an unintended remount is
+destructive (loses session, wedges voice). Rules:
+
+- **Never** conditionally swap subtrees around `<Chat>`
+  (`isMobile ? <A/> : <B/>` with `<Chat>` in both → remount on
+  breakpoint resolve). Use one stable tree and change **layout via
+  props** (e.g. `ResizablePanelGroup direction`), not subtree swaps.
+- The **only** legitimate remount is an intentional session/new-chat
+  `key` change (Step 6).
+- `const el = (<Chat .../>)` reused in the same JSX position is fine
+  (React reconciles — not a remount).
+
+## Resuming / starting sessions
+
+`<Chat>` has **no `sessionId` prop** and does **not** read a `session`
+URL param. Sessions live in `localStorage` via `useCachedSessionId()`
+→ `{ [mentorId]: sessionId }`, read once at mount.
+
+- **Resume** (e.g. host history link → `?session=<id>`): seed
+  `cachedSessionId[mentorId] = id` before mount, gate render, key
+  `<Chat>` on the id (Step 6).
+- **New chat:** `delete cachedSessionId[mentorId]` + remount via a
+  changing key nonce (`?new=<ts>`). Just navigating does **not** start a
+  new chat — the SDK resumes the persisted session.
+- **There is no host-readable "conversation loaded" signal.**
+  `isLoadingChats` is internal to `useAdvancedChat`; `chatSliceShared`
+  is not reset between sessions, so `selectSessionId` /
+  `selectNumberOfActiveChatMessages` read **stale** on first render.
+  For a "loading" overlay during resume, use a guaranteed-minimum +
+  hard-capped **timer**, not a slice-derived condition.
+
+### Host history list (`getChatHistory`)
+
+Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
+- `userId` → **URL path** `{user_id}` (required to form the URL; absent
+  from the d.ts arg type but real).
+- `filterUserId` → **`filter_user_id` query** — what actually restricts
+  results. For an **org admin** the path alone returns org-wide; pass
+  **both** `userId` and `filterUserId` (= signed-in username) to scope
+  to the current user.
 
 ## Props
 
@@ -290,76 +461,125 @@ function AgentChatPage() {
 |------|------|----------|-------------|
 | `mentorId` | `string` | yes | Agent/mentor UUID |
 | `tenantKey` | `string` | yes | Platform/tenant key |
-| `config` | `ChatConfig` | yes | URLs + navigation callbacks (see below) |
-| `redirectToAuthSpa` | `(redirectTo?, platformKey?, logout?) => void` | yes | Host-owned auth redirect |
+| `config` | `ChatConfig` | yes | URLs + navigation callbacks |
+| `redirectToAuthSpa` | `(redirectTo?, platformKey?, logout?) => void` | yes | Host-owned auth redirect (wrap async helpers to `=> void`) |
 | `username` | `string \| null` | yes | Current user; `null` for anonymous |
-| `userTenants` | `Tenant[]` | yes | User's accessible tenants (from `useUserTenants`) |
+| `userTenants` | `Tenant[]` | yes | From `useUserTenants` |
 | `axdToken` | `string` | yes | AXD auth token |
 | `userIsStudent` | `boolean` | yes | RBAC role hint |
-| `visitingTenant` | `Tenant \| undefined` | no | Set when viewing another tenant's mentor |
-| `isPreviewMode` | `boolean` | yes | `true` for admin preview surfaces |
-| `mode` | `"default" \| "advanced"` | no | `"advanced"` enables the builder UI |
-| `isPublicRoute` | `boolean` | no | Set for unauthenticated share links |
-| `canvasView` / `disclaimerModal` / `advancedChatHeader` / `advancedChatBuilder` / `liveKitChat` / `liveKitScreenSharing` / `welcomeChat` / `promptGalleryModal` | `React.ComponentType<...>` | no | Slot overrides — pass your own component to replace, omit to use the bundled defaults |
-| `onSubscriptionGate` | `(action, isAdminAction?) => void` | no | Gate sends behind a billing/quota check |
-| `on402Error` | `(data) => void` | no | Handle HTTP 402 from the chat backend |
-| `canPerformAction` | `(resource) => boolean` | no | RBAC predicate forwarded to the input form |
-| `renderDocumentSidebar` | `(sessionId) => ReactNode` | no | Document sidebar slot for mobile/tablet |
-| `projectId` / `onExploreClick` / `onMentorClick` / `projectLandingPage` | mixed | no | Welcome-surface customization |
+| `visitingTenant` | `Tenant \| undefined` | no | Viewing another tenant's mentor |
+| `isPreviewMode` | `boolean` | yes | `true` for admin preview |
+| `mode` | `"default" \| "advanced"` | no | `"advanced"` enables builder UI |
+| `isPublicRoute` | `boolean` | no | Unauthenticated share links |
+| slot overrides (`canvasView`, `disclaimerModal`, `advancedChatHeader`, `advancedChatBuilder`, `liveKitChat`, `liveKitScreenSharing`, `welcomeChat`, `promptGalleryModal`) | `React.ComponentType<…>` | no | **Availability is SDK-version-dependent. As of `web-containers@1.6.14` these are NOT implemented** — `Chat` does not destructure them and they're absent from `index.d.ts`. Verify in `dist/next/index.d.ts` before relying on any of them; do not assume a slot override will take effect. |
+| `onSubscriptionGate`, `on402Error`, `canPerformAction`, `renderDocumentSidebar`, `projectId`, `onExploreClick`, `onMentorClick`, `projectLandingPage` | mixed | no | As available in your SDK version |
 
 ### `ChatConfig`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `baseWsUrl` | `() => string` | WebSocket origin (`wss://asgi.data.iblai.org`) |
-| `supportEmail` | `() => string` | Footer / error-toast support email |
+| `baseWsUrl` | `() => string` | WebSocket origin |
+| `supportEmail` | `() => string` | Footer / error-toast email (env fallback if host config lacks it) |
 | `authUrl` | `() => string` | Auth SPA origin |
 | `mainTenantKey` | `string` | Default tenant key |
 | `navigateToAdminBilling` | `() => void` | Open the billing tab |
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
-| `navigateToMentor` | `(mentorUniqueId: string) => void` | Open an individual mentor |
-| `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync-status banner |
+| `navigateToMentor` | `(id: string) => void` | Open an individual mentor |
+| `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync banner |
+
+## Known issues & host workarounds
+
+These are SDK-side defects/limitations confirmed against
+`web-containers@1.6.14` / `web-utils@1.6.9`. Fix upstream if you can;
+otherwise apply the host workaround.
+
+### Voice "Processing…" hangs forever (React StrictMode / remounts)
+
+`useVoiceChat`'s `isMounted` ref is only ever reset to `false` (effect
+cleanup), never back to `true` on setup. React StrictMode (Next default)
+double-invokes effects in dev (mount→cleanup→remount) → the ref stays
+`false` → audio-to-text resolves but the `isMounted`-guarded
+`setProcessing(false)` is skipped → stuck "Processing…". Any `<Chat>`
+remount reproduces it.
+
+- **Workaround:** `reactStrictMode: false` in `next.config` (dev-only
+  behavior; prod runs effects once) **and** follow "Mounting
+  discipline" so `<Chat>` doesn't remount.
+- **Real fix (upstream):** add `isMounted.current = true;` to the
+  effect setup in `useVoiceChat`.
+
+### Prompt-gallery dialog wedges the whole app
+
+The bundled `PromptGalleryModal` is a Radix dialog whose teardown leaves
+`document.body { pointer-events: none }` and sibling
+`inert`/`aria-hidden` after close → the entire app becomes unclickable.
+The `promptGalleryModal` slot override **does not exist** in this SDK
+(see Props), so it can't be replaced via API.
+
+- **Workaround:** mount a global recovery component at the app root that
+  clears the stuck lock **only when no Radix dialog is open** (no-op
+  while a modal is legitimately open):
+
+```tsx
+"use client";
+import { useEffect } from "react";
+const OPEN = '[role="dialog"][data-state="open"],[role="alertdialog"][data-state="open"],[data-radix-popper-content-wrapper]';
+function recover() {
+  if (document.querySelector(OPEN)) return;
+  if (document.body.style.pointerEvents === "none") document.body.style.pointerEvents = "";
+  for (const el of Array.from(document.body.children)) {
+    if (el.hasAttribute("inert")) el.removeAttribute("inert");
+    if (el.getAttribute("aria-hidden") === "true") el.removeAttribute("aria-hidden");
+  }
+}
+export function RadixPointerEventsGuard() {
+  useEffect(() => {
+    recover();
+    const mo = new MutationObserver(recover);
+    mo.observe(document.body, { attributes: true, attributeFilter: ["style","inert","aria-hidden"], childList: true, subtree: true });
+    const onDown = () => recover();
+    document.addEventListener("pointerdown", onDown, true);
+    return () => { mo.disconnect(); document.removeEventListener("pointerdown", onDown, true); };
+  }, []);
+  return null;
+}
+```
+
+  Mount it once next to your store/providers. This is recovery, not a
+  root-cause fix — the gallery still tears down wrong, but the app stays
+  usable.
+- **Real fix (upstream):** correct the dialog teardown, or actually
+  implement the `promptGalleryModal` slot so hosts can supply a
+  cleanly-unmounting modal.
 
 ## Step 7: Verify
 
-Start the dev server and walk the flow:
-
-1. `pnpm build` — must pass with zero errors.
-2. `pnpm dev` — open
-   `http://localhost:3000/agents/<NEXT_PUBLIC_DEFAULT_AGENT_ID>/chat-new`.
-3. You'll be bounced to `auth.iblai.org/login`. Sign in (password or
-   magic link). Auth redirects you to `/sso-login-complete`, which
-   writes `axd_token`, `userData`, `current_tenant`, and `tenants` to
-   localStorage and forwards you back into the app.
-4. Navigate back to `/agents/<id>/chat-new`. The page should render:
-   - the mentor's name and greeting at the top,
-   - an "Ask anything" textarea,
-   - action buttons: Attach file, Canvas, Screen Sharing, Voice input,
-     Voice call, Send message,
-   - conversation starters underneath.
-5. Type a message and hit Send. On the first send you'll see a
-   **User Agreement** modal — click "I Accept". The message bubble
-   renders, the "is generating a response…" indicator appears, and
-   guided prompts get fetched. Whether the agent's reply streams back
-   successfully depends on the mentor's LLM configuration — if you see
-   a "Sorry about that! An error occurred." toast, that's a server-side
-   issue with the langflow runtime, not the client wiring.
+1. `pnpm build` — must pass with zero errors. (Watch for
+   `Module not found` on the Step 3 peers, esp. `@iblai/agent-ai`.)
+2. `pnpm test` — host unit suite still green (esp. any slices you
+   renamed in the Brownfield step).
+3. `pnpm dev` — open the route, sign in, and walk:
+   - mentor name + greeting, "Ask anything" textarea, action buttons
+     (attach / canvas / screen share / voice input / voice call / send),
+     conversation starters;
+   - send a message → "I Accept" the User Agreement → bubble + "is
+     generating…" indicator;
+   - **voice**: record → transcription clears "Processing…" (if it
+     hangs, the StrictMode workaround isn't applied or `<Chat>` is
+     remounting);
+   - **prompt gallery**: open then close → app still clickable (guard
+     working);
+   - **resume/new** (if wired): history link loads the conversation;
+     "new chat" starts empty.
 
 ## CLI Integration (proposal — not yet implemented)
 
-This skill is a manual flow. A future `iblai add agent-chat` command
-should:
-
-1. **Install deps** — the nine packages from Step 3.
-2. **Patch `providers/index.tsx`** — wrap with `ServiceWorkerProvider`,
-   add `skip={isSsoLoginRoute}` to `TenantProvider`.
-3. **Patch `store/index.ts`** — register `chat`, `chatInput`, `rbac`,
-   `subscription`, `topBanner` slices alongside whatever already
-   exists.
-4. **Scaffold the route** — write
-   `app/agents/[mentorId]/chat-new/page.tsx` parameterized on the
-   host's existing `redirectToAuthSpa` and `config` helpers.
-5. **Skip if already added** — detect existing slice keys / provider
-   wraps and no-op rather than duplicate.
+A future `iblai add agent-chat` should: install the Step 3 deps
+(incl. `@iblai/agent-ai`); patch providers (wrap `ServiceWorkerProvider`
++ `skip`, pass `basePath`); copy `public/sw.js`; add the
+`Service-Worker-Allowed` header + `reactStrictMode:false`; register the
+Step 5 reducers (detecting + renaming host key collisions); scaffold the
+Step 6 route; drop in `RadixPointerEventsGuard`; and no-op if already
+added.
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
