@@ -181,7 +181,7 @@ When adding UI features, follow this priority order:
 | Account / org settings | `/iblai-account` skill + `Account` from SDK | Custom settings page |
 | Analytics dashboard | `/iblai-analytics` skill + `AnalyticsOverview`, `AnalyticsLayout` from SDK | Chart library from scratch |
 | Notifications | `/iblai-notification` skill + `NotificationDropdown` from SDK | Custom notification system |
-| Chat / AI assistant | `/iblai-chat` skill + `<mentor-ai>` web component | Custom chat UI |
+| Chat / AI assistant | `/iblai-agent-chat` skill + `Chat` from SDK | Custom chat UI |
 | Auth / login | `/iblai-auth` skill + `AuthProvider`, `SsoLogin` from SDK | Custom auth flow |
 | Invite users | `/iblai-invite` skill + `InviteUserDialog` from SDK | Custom invite form |
 | Workflow builder | `/iblai-workflow` skill + workflow components from SDK | Custom node editor |
@@ -220,7 +220,7 @@ you through the remaining manual steps:
 
 ```
 /iblai-auth          # SSO authentication (run first)
-/iblai-chat          # AI chat widget
+/iblai-agent-chat    # In-process agent chat surface
 /iblai-profile       # Profile dropdown + settings page
 /iblai-account       # Account/org settings page
 /iblai-analytics     # Analytics dashboard

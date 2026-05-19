@@ -119,7 +119,6 @@ npx create-next-app@latest iblai-init --yes
 cp -a iblai-init/. . && rm -rf iblai-init
 rm -rf node_modules && pnpm install
 iblai add auth
-iblai add chat
 pnpm dev
 ```
 
@@ -161,7 +160,7 @@ iblai startapp agent \
 |---------|-------------|-------|
 | `iblai add mcp` | MCP servers + skills (run first) | |
 | `iblai add auth` | SSO authentication | `/iblai-auth` |
-| `iblai add chat` | AI chat widget (requires agent ID) | `/iblai-chat` |
+| (skill only) | Full in-process agent chat surface | `/iblai-agent-chat` |
 | `iblai add profile` | User profile dropdown | `/iblai-profile` |
 | `iblai add account` | Account/organization settings | `/iblai-account` |
 | `iblai add analytics` | Analytics dashboard | `/iblai-analytics` |

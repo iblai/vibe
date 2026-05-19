@@ -71,7 +71,6 @@ npx create-next-app@latest iblai-init --yes
 cp -a iblai-init/. . && rm -rf iblai-init
 rm -rf node_modules && pnpm install
 iblai add auth
-iblai add chat
 pnpm dev
 ```
 
@@ -92,12 +91,12 @@ pnpm dev
 
 ```bash
 iblai add auth           # SSO authentication
-iblai add chat           # AI chat widget
 ```
 
-Other features (profile, account, analytics, notifications, invitations,
-workflows) are built using skills -- see `/iblai-profile`, `/iblai-account`,
-`/iblai-analytics`, `/iblai-notification`, `/iblai-invite`, `/iblai-workflow`.
+Other features (chat, profile, account, analytics, notifications,
+invitations, workflows) are built using skills -- see `/iblai-agent-chat`,
+`/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
+`/iblai-notification`, `/iblai-invite`, `/iblai-workflow`.
 
 ## Architecture
 
@@ -183,7 +182,7 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > name like `MyApp` or `AgentBot`, convert it to `my-app` / `agent-bot`
 > before using it. Allowed characters: lowercase letters, digits, `-`, `_`.
 >
-> When adding chat (`/iblai-chat`), you MUST ask the user for their
+> When adding chat (`/iblai-agent-chat`), you MUST ask the user for their
 > agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
 
 ## Commands
@@ -205,7 +204,6 @@ iblai open              # Open localhost:3000 in browser
 ```bash
 iblai add mcp            # MCP servers + skills (run first)
 iblai add auth           # SSO authentication + Redux store + providers
-iblai add chat           # AI chat widget (<mentor-ai> web component)
 iblai add profile        # User profile dropdown
 iblai add account        # Account/organization settings page
 iblai add analytics      # Analytics dashboard page
@@ -278,7 +276,7 @@ Invoke with `/` in Claude Code:
 | Skill | Description |
 |-------|-------------|
 | `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
-| `/iblai-chat` | Add AI chat widget |
+| `/iblai-agent-chat` | Add the full in-process agent chat surface (message stream, canvas, voice, prompts) |
 | `/iblai-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |

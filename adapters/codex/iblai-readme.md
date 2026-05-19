@@ -330,7 +330,6 @@ Use the iblai CLI and Claude Code skills to add new features:
 
 ```bash
 iblai add auth           # SSO authentication
-iblai add chat           # AI chat widget
 iblai add profile        # User profile
 iblai add account        # Account/org settings
 iblai add analytics      # Analytics dashboard

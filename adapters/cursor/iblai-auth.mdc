@@ -566,17 +566,11 @@ localhost, leaving the app in a broken state.
 ## Next Steps
 
 
-After auth is set up, add more features:
-
-```bash
-iblai add chat           # AI chat widget (requires agent ID)
-```
-
-Other features are built using skills -- ask your AI assistant to use:
+After auth is set up, add more features using skills -- ask your AI assistant to use:
 
 | Skill | What It Adds |
 |-------|-------------|
-| `/iblai-chat` | AI chat widget |
+| `/iblai-agent-chat` | In-process agent chat surface |
 | `/iblai-profile` | User profile dropdown + settings page |
 | `/iblai-account` | Account/organization settings page |
 | `/iblai-analytics` | Analytics dashboard page |

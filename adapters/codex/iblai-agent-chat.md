@@ -1,9 +1,6 @@
----
-name: iblai-agent-chat
-description: Add the in-process Chat SDK component (full agent surface — message stream, canvas, file attach, voice, prompts) to a Next.js app
-globs:
-alwaysApply: false
----
+# iblai-agent-chat
+
+> Add the in-process Chat SDK component (full agent surface — message stream, canvas, file attach, voice, prompts) to a Next.js app
 
 # /iblai-agent-chat
 
