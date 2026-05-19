@@ -17,13 +17,10 @@ auth session.
 ![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-chat/iblai-agent-chat-1-welcome.png)
 ![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-chat/iblai-agent-chat-2-message-sent.png)
 
-> **When to use this vs `/iblai-chat`:**
-> - `/iblai-chat` drops in a `<mentor-ai>` web component (iframe).
->   Fastest setup, isolated from host state, limited customization.
-> - `/iblai-agent-chat` (this skill) wires the SDK's `Chat` component
->   directly into your app. More setup, but you get the full feature
->   surface, can intercept actions, share auth/store with the rest of
->   your app, and theme it with your Tailwind config.
+> **What you get:** the SDK's `Chat` component wired directly into your
+> app (in-process, not an iframe). Full feature surface, intercept
+> actions, shared auth/store with the rest of your app, themeable with
+> your Tailwind config.
 
 Do NOT add custom styles, colors, or CSS overrides to the SDK `Chat`
 component. It ships with its own styling. Keep the component as-is.
