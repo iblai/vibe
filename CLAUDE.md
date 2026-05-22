@@ -94,8 +94,8 @@ iblai add auth           # SSO authentication
 ```
 
 Other features (chat, profile, account, analytics, notifications,
-invitations, workflows) are built using skills -- see `/iblai-agent-chat`,
-`/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
+invitations, projects, workflows) are built using skills -- see `/iblai-agent-chat`,
+`/iblai-project`, `/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
 `/iblai-notification`, `/iblai-invite`, `/iblai-workflow`.
 
 ## Architecture
@@ -277,6 +277,7 @@ Invoke with `/` in Claude Code:
 |-------|-------------|
 | `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-agent-chat` | Add the full in-process agent chat surface (message stream, canvas, voice, prompts) |
+| `/iblai-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |

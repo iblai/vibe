@@ -91,6 +91,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 ```text
 /iblai-auth
 /iblai-agent-chat
+/iblai-project
 /iblai-profile
 /iblai-account
 /iblai-analytics
@@ -122,6 +123,7 @@ What each skill does:
 
 - `/iblai-auth` -- adds authentication and configures the app for ibl.ai login.
 - `/iblai-agent-chat` -- adds the full in-process agent chat surface.
+- `/iblai-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
 - `/iblai-profile` -- adds profile UI and profile settings flows.
 - `/iblai-account` -- adds account and organization settings.
 - `/iblai-analytics` -- adds analytics dashboards and reporting views.
@@ -269,6 +271,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 |-------|-------------|
 | `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-agent-chat` | Add the full in-process agent chat surface |
+| `/iblai-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-profile` | Add profile dropdown + settings page |
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
