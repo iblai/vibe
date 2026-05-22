@@ -1,11 +1,10 @@
 ---
-name: iblai-projects
-description: Add the in-process Projects surface (project landing page — chat input + project files + instructions + assigned agents) to a Next.js app
+description: "Add the in-process Projects surface (project landing page — chat input + project files + instructions + assigned agents) to a Next.js app"
 globs:
 alwaysApply: false
 ---
 
-# /iblai-projects
+# /iblai-project
 
 Add the ibl.ai **project** surface to your Next.js app: project files,
 project instructions, list of agents assigned to a project, and the
@@ -15,8 +14,8 @@ welcome/explore surface for `ProjectLandingPage`. The same `<Chat>` you
 already mounted for `/iblai-agent-chat` does both modes; this skill
 just adds the routing + URL plumbing.
 
-![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-projects/iblai-projects-1-landing.png)
-![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-projects/iblai-projects-2-files-modal.png)
+![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-project/iblai-project-1-landing.png)
+![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-project/iblai-project-2-files-modal.png)
 
 > **What you get:** a route at `/agents/[mentorId]/projects/[projectId]`
 > that reads both IDs from the URL, hands them to `<Chat>`, and the SDK
