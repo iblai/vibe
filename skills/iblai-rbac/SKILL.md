@@ -362,14 +362,6 @@ SEND_NOTIFICATIONS = {
     "data_actions": [],
 }
 
-# Allows user to sell access to a mentor. Applied to a mentor at /platforms/pk/mentors/pk/
-SELL_MENTOR = {
-    "actions": [
-        "Ibl.Mentor/CanSellMentor/action",
-    ],
-    "data_actions": [],
-}
-
 # Allows user to sell items on the platform. Gates access to selling any items on the platform.
 SELL_ITEMS = {
     "actions": [
