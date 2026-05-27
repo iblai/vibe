@@ -4,6 +4,10 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-05-27
+### Added
+- **iblai-rbac** skill that lists default roles on the platform and their permissions
+
 ## [1.2.0] - 2026-05-25
 
 ### Added
