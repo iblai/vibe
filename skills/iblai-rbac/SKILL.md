@@ -1,463 +1,141 @@
 ---
 name: iblai-rbac
-description: List of default RBAC roles and how to find all action definitions
+description: Use when building, auditing, or extending ibl.ai role-based access control — default roles seeded by the platform, the action-definitions endpoint, and the SDK components (Admin, RolesTab, PoliciesTab) that render the Roles + Policies management UI. For agent-scoped sharing (editor / chat roles on a single mentor) see /iblai-agent-access; for mounting the host Account modal see /iblai-account.
 globs:
 alwaysApply: false
 ---
 
-# Rbac Roles
-A list of all actions can be found [here](https://base.manager.iblai.app/api/core/rbac/actions/definitions/) (requires a DM token in the Authorization header: `Authorization: Token <token>`)
+# /iblai-rbac
 
-## Default Roles
-```python
-# Requirements to chat 
-STUDENT = {
-    "actions": [
-        "Ibl.Mentor/Settings/read",
-        "Ibl.Mentor/Chat/action",
-        "Ibl.Mentor/Mentors/read",
-        "Ibl.Mentor/Prompts/list",
-        "Ibl.Mentor/Prompts/read",
-        "Ibl.Mentor/Tools/list",
-        "Ibl.Mentor/Tools/read",
-        "Ibl.Mentor/Disclaimers/list",
-        "Ibl.Mentor/Disclaimers/read",
-        "Ibl.Mentor/Artifacts/*",
-        "Ibl.Mentor/ConnectedServices/list",
-        "Ibl.Mentor/ConnectedServices/action",
-        "Ibl.Mentor/GetRedirectUrl/action",
-        "Ibl.Mentor/MCPServers/list",
-        "Ibl.Mentor/MCPServers/read",
-        "Ibl.Mentor/MCPServerConnections/list",
-        "Ibl.Mentor/MCPServerConnections/action",
-        "Ibl.Mentor/MemoryCategory/list",
-    ],
-    "data_actions": [
-        "Ibl.Mentor/Settings/id/read",
-        "Ibl.Mentor/Settings/display_name/read",
-        "Ibl.Mentor/Settings/profile_image/read",
-        "Ibl.Mentor/Settings/embed_custom_image/read",
-        "Ibl.Mentor/Settings/initial_message/read",
-        "Ibl.Mentor/Settings/suggested_message/read",
-        "Ibl.Mentor/Settings/theme/read",
-        "Ibl.Mentor/Settings/user_message_color/read",
-        "Ibl.Mentor/Settings/mentor_bubble_color/read",
-        "Ibl.Mentor/Settings/align_mentor_bubble/read",
-        "Ibl.Mentor/Settings/mentor/read",
-        "Ibl.Mentor/Settings/mentor_slug/read",
-        "Ibl.Mentor/Settings/mentor_unique_id/read",
-        "Ibl.Mentor/Settings/metadata/read",
-        "Ibl.Mentor/Settings/mentor_visibility/read",
-        "Ibl.Mentor/Settings/enable_image_generation/read",
-        "Ibl.Mentor/Settings/enable_web_browsing/read",
-        "Ibl.Mentor/Settings/enable_code_interpreter/read",
-        "Ibl.Mentor/Settings/custom_css/read",
-        "Ibl.Mentor/Settings/allow_anonymous/read",
-        "Ibl.Mentor/Settings/mentor_description/read",
-        "Ibl.Mentor/Settings/suggested_prompts/read",
-        "Ibl.Mentor/Settings/proactive_response/read",
-        "Ibl.Mentor/Settings/greeting_method/read",
-        "Ibl.Mentor/Settings/mentor_tools/read",
-        "Ibl.Mentor/Settings/can_use_tools/read",
-        "Ibl.Mentor/Settings/llm_name/read",
-        "Ibl.Mentor/Settings/proactive_prompt/read",
-        "Ibl.Mentor/Settings/disclaimer/read",
-        "Ibl.Mentor/Settings/enable_memory_component/read",
-        "Ibl.Mentor/Settings/enable_email_chat/read",
-        "Ibl.Mentor/Settings/enable_spaced_repetition/read",
-        "Ibl.Mentor/Settings/enable_instruction_mode/read",
-        "Ibl.Mentor/Settings/enable_socratic_mode/read",
-        "Ibl.Mentor/Settings/is_guided_mentor/read",
-        "Ibl.Mentor/Settings/enable_guided_prompts/read",
-        "Ibl.Mentor/Settings/enable_moderation/read",
-        "Ibl.Mentor/Settings/enable_post_processing_system/read",
-        "Ibl.Mentor/Settings/enable_safety_system/read",
-        "Ibl.Mentor/Settings/forkable/read",
-        "Ibl.Mentor/Settings/forkable_with_training_data/read",
-        "Ibl.Mentor/Settings/mentor_name/read",
-        "Ibl.Mentor/Settings/categories/read",
-        "Ibl.Mentor/Settings/recently_accessed_at/read",
-        "Ibl.Mentor/Settings/created_by/read",
-        "Ibl.Mentor/Settings/created_at/read",
-        "Ibl.Mentor/Settings/updated_at/read",
-        "Ibl.Mentor/Settings/platform_key/read",
-        "Ibl.Mentor/Settings/show_attachment/read",
-        "Ibl.Mentor/Settings/show_voice_call/read",
-        "Ibl.Mentor/Settings/show_voice_record/read",
-        "Ibl.Mentor/Settings/starter_prompts/read",
-        "Ibl.Mentor/Settings/embed_is_context_aware/read",
-        "Ibl.Mentor/Settings/embed_open_by_default/read",
-        "Ibl.Mentor/Settings/embed_show_attachment/read",
-        "Ibl.Mentor/Settings/embed_show_voice_call/read",
-        "Ibl.Mentor/Settings/embed_show_voice_record/read",
-        "Ibl.Mentor/Mentors/id/read",
-        "Ibl.Mentor/Mentors/name/read",
-        "Ibl.Mentor/Mentors/unique_id/read",
-        "Ibl.Mentor/Mentors/allow_anonymous/read",
-        "Ibl.Mentor/Mentors/can_use_tools/read",
-        "Ibl.Mentor/Mentors/tools/read",
-        "Ibl.Mentor/Mentors/disable_chathistory/read",
-        "Ibl.Mentor/Mentors/profile_image/read",
-        "Ibl.Mentor/Mentors/embed_custom_image/read",
-        "Ibl.Mentor/Mentors/description/read",
-        "Ibl.Mentor/Mentors/platform_key/read",
-        "Ibl.Mentor/Mentors/metadata/read",
-        "Ibl.Mentor/Mentors/llm_name/read",
-        "Ibl.Mentor/Mentors/llm_provider/read",
-        "Ibl.Mentor/Mentors/created_at/read",
-        "Ibl.Mentor/Mentors/created_by/read",
-        "Ibl.Mentor/Mentors/updated_at/read",
-        "Ibl.Mentor/Mentors/recently_accessed_at/read",
-        "Ibl.Mentor/Mentors/last_accessed_by/read",
-        "Ibl.Mentor/Mentors/mentor_visibility/read",
-        "Ibl.Mentor/Mentors/categories/read",
-        "Ibl.Mentor/Mentors/slug/read",
-        "Ibl.Mentor/Mentors/starred/read",
-        "Ibl.Mentor/Mentors/uploaded_profile_image/read",
-        "Ibl.Mentor/Prompts/*/read",
-        "Ibl.Mentor/Tools/*/read",
-        "Ibl.Mentor/Artifacts/*",
-        "Ibl.Mentor/MCPServers/*/read",
-    ],
-}
+Reference skill for the ibl.ai role-based access control system. Lists
+the default RBAC roles the platform seeds (Tenant Admin, Students,
+Mentor Editor / Viewer, Analytics Viewer, Notification Manager,
+Enrollment Manager, CRM roles, etc.) and points to the live endpoint
+that returns every action definition. Use this when you need to
+build, audit, or extend RBAC behavior — most apps only need the SDK's
+drop-in management UI (`<Admin>` → Roles + Policies tabs) plus
+per-resource gating via `checkRbacPermission`. Mention or open this
+skill before writing custom RBAC UI from scratch.
 
-# Tenant admins have the highest level of permissions and can do everything within their tenant
-TENANT_ADMIN = {
-  "actions": ["Ibl.*"], 
-  "data_actions": ["Ibl.*"]
-}
+![Account Management — Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-rbac/account-management-policies.png)
 
-# Allows user to view the analytics dashboards in skills and access analytics for UserGroups (Teams)
-# they have access to.
-# Requires Ibl.Analytics/Core/read or Ibl.Analaytics/Reports/read on /platforms/pk/usergroups/pk/ or /platforms/pk/users/pk/
-ANALYTICS_VIEWER = {
-    "actions": ["Ibl.Analytics/CanViewAnalytics/action"],
-    "data_actions": [],
-}
+Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+They ship with their own styling. Keep the components as-is.
+Do NOT implement dark mode unless the user explicitly asks for it.
 
-# Allows user to send notifications and manage notification templates.
-# Only allows user to send notifications to Users/Teams they have access to.
-# Requires Ibl.Notifications/Notification/action on /platforms/pk/users/pk/ or /platforms/pk/usergroups/pk/
-NOTIFICATION_MANAGER = {
-    "actions": [
-        "Ibl.Notifications/CanSendNotifications/action",
-        "Ibl.Notifications/NotificationTemplate/*",
-    ],
-    "data_actions": [],
-}
+When building custom UI around SDK components, use the ibl.ai brand:
+- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+- Follow the component hierarchy: use ibl.ai SDK components
+  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
+  (`npx shadcn@latest add <component>`). Do NOT write custom components
+  when an ibl.ai or shadcn equivalent exists. Both share the same
+  Tailwind theme and render in ibl.ai brand colors automatically.
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
+  colors, typography, spacing, and component styles.
 
-# ALlows user to manage inviting users to various aspects of the platform
-ENROLLMENT_MANAGER = {
-    "actions": [
-        "Ibl.Catalog/CourseEnrollments/*",
-        "Ibl.Catalog/PathwayEnrollments/*",
-        "Ibl.Catalog/ProgramEnrollments/*",
-        "Ibl.Catalog/PlatformInvitations/*",
-        "Ibl.Catalog/CourseInvitations/*",
-        "Ibl.Catalog/PathwayInvitations/*",
-        "Ibl.Catalog/ProgramInvitations/*",
-        "Ibl.Catalog/CanInvite/action",
-    ],
-    "data_actions": [],
-}
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-# Allows user to create mentors
-MENTOR_CREATORS = {
-    "actions": [
-        "Ibl.Mentor/Mentors/action",
-    ],
-    "data_actions": [],
-}
+## SDK components — drop-in Roles + Policies UI
 
-# Allows all students to list mentors. What is returned depends on which mentors they have access to.
-# Requires Ibl.Mentor/Mentors/read on /platforms/pk/mentors/pk/
-STUDENT_MENTOR_VIEWERS = {
-    "actions": [
-        "Ibl.Mentor/Mentors/list",
-    ],
-    "data_actions": [], 
-}
+For 99% of apps the management UI doesn't need to be hand-rolled. The
+SDK ships the components that the Account dialog uses (the screenshot
+above is the Policies tab inside `<Admin>`):
 
-# Allows users to list LLMs they have access to
-LLM_USERS = {
-    "actions": [
-        "Ibl.Mentor/LLMs/list",
-    ], 
-    "data_actions": [],
-}
+| Component | Description |
+|-----------|-------------|
+| `<Admin>` | Full management surface — Users, Groups, **Roles**, **Policies**, Teams, Alerts. Tabs are permission-gated via the `has*TabPermission` props (e.g. `hasRolesTabPermission`, `hasPoliciesTabPermission`). Pass `enableRbac` + `rbacPermissions` to drive those flags from `checkRbacPermission` results. Already mounted inside the SDK `<Account>` modal — most apps reach it via `/iblai-account`. |
+| `<RolesTab tenant={key} />` | Standalone Roles tab — table of roles for the tenant + create/edit/delete dialogs. The "actions" / "data_actions" pickers list every action definition from the endpoint below. |
+| `<PoliciesTab tenant={key} />` | Standalone Policies tab — bind a role to a set of resources for users/groups. Resources are hierarchical (`/platforms/<pk>/mentors/<pk>/`) and the picker handles that. |
 
-# Grants user access to an LLM provider or model
-LLM_MODEL_ACCESS = {
-    "actions": [
-        "Ibl.Mentor/LLMs/read",
-    ],  
-    "data_actions": [],
-}
+All three live in `@iblai/iblai-js/web-containers`. For agent-scoped
+sharing (editor / chat roles on a single mentor) use `<AgentAccessTab>`
+from `/iblai-agent-access` instead — it wraps the underlying
+`Ibl.Mentor/ShareMentor/...` API. For per-action permission gating in
+your own UI use `checkRbacPermission(rbacPermissions, path, enableRbac)`
+from `@iblai/iblai-js/web-utils`.
 
-# Grants user read access to a mentor. Applied to /platforms/pk/mentors/pk/
-MENTOR_VIEWER = {
-    "actions": [
-        "Ibl.Mentor/Settings/read",
-        "Ibl.Mentor/Chat/action",
-        "Ibl.Mentor/Mentors/read",
-        "Ibl.Mentor/Prompts/read",
-        "Ibl.Mentor/Prompts/list",
-        "Ibl.Mentor/Documents/read",
-        "Ibl.Mentor/Documents/list",
-        "Ibl.Mentor/ShowSettings/action",
-        "Ibl.Analytics/Reports/read",
-        "Ibl.Mentor/Artifacts/list",
-        "Ibl.Mentor/Artifacts/read",
-        "Ibl.Mentor/Tools/list",
-        "Ibl.Mentor/LLMs/list",
-        "Ibl.Mentor/MCPServers/list",
-        "Ibl.Mentor/ShareMentor/read",
-        "Ibl.Mentor/ModerationLogs/list",
-        "Ibl.Mentor/SafetyLogs/list",
-        "Ibl.Mentor/Disclaimers/list",
-        "Ibl.Mentor/Disclaimers/read",
-        "Ibl.Mentor/ChatHistory/list",
-        "Ibl.Mentor/ViewPromptsMenu/action",
-        "Ibl.Mentor/ViewToolsMenu/action",
-        "Ibl.Mentor/ViewDisclaimersMenu/action",
-        "Ibl.Mentor/CanEmbed/action",
-        "Ibl.Mentor/GraderConfigurations/read",
-        "Ibl.Mentor/GraderCriteria/read",
-        "Ibl.Mentor/GraderCriteria/list",
-    ],
-    "data_actions": [
-        "Ibl.Mentor/Mentors/*/read",  
-        "Ibl.Mentor/Settings/*/read",
-        "Ibl.Mentor/Prompts/*/read", 
-        "Ibl.Mentor/Documents/*/read", 
-        "Ibl.Mentor/Artifacts/*/read",
-    ],
-}
+## Action definitions endpoint
 
-# Grants user editor access to a mentor. Applied to /platforms/pk/mentors/pk/
-MENTOR_EDITOR = {
-    "actions": [
-        "Ibl.Mentor/Mentors/write",
-        "Ibl.Mentor/Settings/write",
-        "Ibl.Mentor/Settings/read",
-        "Ibl.Mentor/Mentors/read",
-        "Ibl.Mentor/Prompts/read",
-        "Ibl.Mentor/Prompts/delete",
-        "Ibl.Mentor/Prompts/list",
-        "Ibl.Mentor/Prompts/write",
-        "Ibl.Mentor/Prompts/action",
-        "Ibl.Mentor/Documents/read",
-        "Ibl.Mentor/Documents/list",
-        "Ibl.Mentor/Documents/write",
-        "Ibl.Mentor/Documents/action",
-        "Ibl.Mentor/Documents/delete",
-        "Ibl.Mentor/Tools/list",
-        "Ibl.Mentor/LLMs/list",
-        "Ibl.Mentor/MCPServers/list",
-        "Ibl.Mentor/ShareMentor/action",
-        "Ibl.Mentor/ShareMentor/read",
-        "Ibl.Mentor/ShowSettings/action",
-        "Ibl.Mentor/Chat/action",
-        "Ibl.Analytics/Reports/read",
-        "Ibl.Mentor/Artifacts/list",
-        "Ibl.Mentor/Artifacts/read",
-        "Ibl.Mentor/Artifacts/write",
-        "Ibl.Mentor/Artifacts/action",
-        "Ibl.Mentor/Artifacts/delete",
-        "Ibl.Mentor/ModerationLogs/list",
-        "Ibl.Mentor/SafetyLogs/list",
-        "Ibl.Mentor/Disclaimers/list",
-        "Ibl.Mentor/Disclaimers/action",
-        "Ibl.Mentor/Disclaimers/read",
-        "Ibl.Mentor/Disclaimers/write",
-        "Ibl.Mentor/ChatHistory/list",
-        "Ibl.Mentor/CanEmbed/action",
-        "Ibl.Mentor/ViewPromptsMenu/action",
-        "Ibl.Mentor/ViewToolsMenu/action",
-        "Ibl.Mentor/ViewDisclaimersMenu/action",
-        "Ibl.Mentor/GraderConfigurations/action",
-        "Ibl.Mentor/GraderConfigurations/read",
-        "Ibl.Mentor/GraderConfigurations/write",
-        "Ibl.Mentor/GraderCriteria/action",
-        "Ibl.Mentor/GraderCriteria/read",
-        "Ibl.Mentor/GraderCriteria/list",
-        "Ibl.Mentor/GraderCriteria/write",
-        "Ibl.Mentor/GraderCriteria/delete",
-    ],
-    "data_actions": [
-        "Ibl.Mentor/Settings/*",
-        "Ibl.Mentor/Mentors/*",
-        "Ibl.Mentor/Prompts/*",
-        "Ibl.Mentor/Documents/*",
-        "Ibl.Mentor/Artifacts/*",
-    ],
-}
-
-# Allows user to read an RBAC Group
-GROUP_MENTOR_MANAGER = {
-    "actions": ["Ibl.Core/Groups/list", "Ibl.Core/Groups/read"],
-    "data_actions": ["Ibl.Core/Groups/*/read"], 
-}
-
-# Allows user to view analytics for a mentor
-MENTOR_ANALYTICS_VIEWER = {
-    "actions": [
-        "Ibl.Analytics/CanViewMentorAnalytics/action",
-        "Ibl.Analytics/Mentors/read",
-        "Ibl.Analytics/Reports/read",
-    ]
-    + STDDENT["actions"],
-    "data_actions": STDDENT["data_actions"],
-}
-
-# Allows users to list users at various points throughout the application
-LIST_USERS = {
-    "actions": ["Ibl.Core/Users/list"],
-    "data_actions": [],
-}
-
-# Allows user to list UserGroups (Teams) at various point throughout the application
-LIST_TEAMS = {
-    "actions": ["Ibl.Core/UserGroups/list"],
-    "data_actions": [],
-}
-
-# Allows user to create UserGroups (Teams)
-CREATE_TEAMS = {
-    "actions": ["Ibl.Core/UserGroups/action"],
-    "data_actions": [],
-}
-
-# Allows user to read UserGroups (Teams) they have access to. Applied to /platforms/pk/usergroups/pk/
-READ_TEAM = {
-    "actions": ["Ibl.Core/UserGroups/read"],
-    "data_actions": ["Ibl.Core/UserGroups/*/read"],
-}
-
-# Allows user to edit UserGroups (Teams) they have access to. Applied to /platforms/pk/usergroups/pk/
-EDIT_TEAM = {
-    "actions": [
-        "Ibl.Core/UserGroups/read",
-        "Ibl.Core/UserGroups/write",
-    ],
-    "data_actions": ["Ibl.Core/UserGroups/*"],
-}
-
-# Allows user to view analytics for a User or UserGroup (Team) they have access to. 
-# Applied to /platforms/pk/usergroups/pk/ or /platforms/pk/users/pk/
-READ_ANALYTICS = {
-    "actions": [
-        "Ibl.Analytics/Core/read",
-        "Ibl.Analytics/Reports/read",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to send notifications to Users or UserGroups (Teams) they have access to.
-# Applied to /platforms/pk/usergroups/pk/ or /platforms/pk/users/pk/
-SEND_NOTIFICATIONS = {
-    "actions": [
-        "Ibl.Notifications/Notification/action",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to sell items on the platform. Gates access to selling any items on the platform.
-SELL_ITEMS = {
-    "actions": [
-        "Ibl.Billing/CanSellItems/action",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to manage platform credit settings
-BILLING_MANAGER = {
-    "actions": [
-        "Ibl.Billing/Credits/read",
-        "Ibl.Billing/Credits/write",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to view CRM data
-CRM_VIEWER = {
-    "actions": [
-        "Ibl.CRM/Persons/read",
-        "Ibl.CRM/Persons/list",
-        "Ibl.CRM/Organizations/read",
-        "Ibl.CRM/Organizations/list",
-        "Ibl.CRM/Pipelines/read",
-        "Ibl.CRM/Pipelines/list",
-        "Ibl.CRM/Deals/read",
-        "Ibl.CRM/Deals/list",
-        "Ibl.CRM/Activities/read",
-        "Ibl.CRM/Activities/list",
-        "Ibl.CRM/Tags/read",
-        "Ibl.CRM/Tags/list",
-    ],
-    "data_actions": [],
-}
-
-# Allows a user to User the CRM system
-CRM_USER = {
-    "actions": [
-        "Ibl.CRM/Persons/*",
-        "Ibl.CRM/Organizations/*",
-        "Ibl.CRM/Deals/*",
-        "Ibl.CRM/Activities/*",
-        "Ibl.CRM/Tags/*",
-        "Ibl.CRM/Pipelines/read",
-        "Ibl.CRM/Pipelines/list",
-    ],
-    "data_actions": [],
-}
-
-# Allows users to administer the CRM system
-CRM_MANAGER = {
-    "actions": [
-        "Ibl.CRM/*",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to invite leads in the CRM to the platform
-CRM_INVITER = {
-    "actions": [
-        "Ibl.CRM/Persons/read",
-        "Ibl.CRM/Persons/list",
-        "Ibl.CRM/Invite/action",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to read a Watched Group
-WATCHED_GROUP_READ = {
-    "actions": [
-        "Ibl.Core/WatchedGroups/read",
-        "Ibl.Core/Watchers/list",
-        "Ibl.Core/WatchedUsers/list",
-        "Ibl.Core/WatchedUsers/read",
-    ],
-    "data_actions": [
-        "Ibl.Core/WatchedGroups/*/read",
-        "Ibl.Core/WatchedUsers/*/read",
-    ],
-}
-
-# Additional grants granted on watchers on a WatchedGroup.
-WATCHED_GROUP_WATCHER_GRANTS = {
-    "actions": [
-        "Ibl.Analytics/Core/read",
-        "Ibl.Analytics/Reports/read",
-    ],
-    "data_actions": [],
-}
-
-# Allows user to list watched groups, returning what they have access to.
-# Requires Ibl.Core/WatchedGroups/read on /platforms/pk/watchedgroups/pk/
-WATCHED_GROUP_LIST = {
-    "actions": ["Ibl.Core/WatchedGroups/list"],
-    "data_actions": [],
-}
+The full list of every action the platform recognizes:
 
 ```
+GET https://base.manager.iblai.app/api/core/rbac/actions/definitions/
+Authorization: Token <dm-token>
+```
+
+Use this when authoring a custom role's `actions` / `data_actions`
+array or when validating that an action string is real before you ship
+it in a policy migration. `<RolesTab>` calls this endpoint internally
+to populate its action picker.
+
+## Default roles
+
+The seed bundles the platform ships with. Use them as starting points
+when authoring new roles via `<RolesTab>` or `POST rbac/roles/` (see
+`/iblai-agent-access` → "Roles CRUD" for the REST contract).
+
+Full Python definitions of every default role (with their `actions` and
+`data_actions` arrays) live in
+[`references/default-roles.py`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-rbac/references/default-roles.py).
+Open or copy that file when you need the exact action strings.
+
+| Role | Summary |
+|------|---------|
+| `TENANT_ADMIN` | `Ibl.*` everywhere — full tenant control. |
+| `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for mentors granted to them; reads field-level mentor + settings data. |
+| `STUDENT_MENTOR_VIEWERS` | List mentors (filtered to what they have access to). |
+| `MENTOR_VIEWER` | Read-only mentor + settings + prompts + documents + reports + chat. Apply to `/platforms/{pk}/mentors/{pk}/`. |
+| `MENTOR_EDITOR` | Mentor read + write across settings, prompts, documents, artifacts, disclaimers, grader. Apply to `/platforms/{pk}/mentors/{pk}/`. |
+| `MENTOR_CREATORS` | Create new mentors (`Ibl.Mentor/Mentors/action`). |
+| `MENTOR_ANALYTICS_VIEWER` | View per-mentor analytics; subsumes `STUDENT`. |
+| `ANALYTICS_VIEWER` | View the analytics dashboard. Pair with `Ibl.Analytics/Core/read` or `Ibl.Analytics/Reports/read` on a user/team scope. |
+| `READ_ANALYTICS` | Per-target analytics + report reads. Apply to `/platforms/{pk}/users/{pk}/` or `/platforms/{pk}/usergroups/{pk}/`. |
+| `NOTIFICATION_MANAGER` | Send notifications + manage templates (scope-gated). |
+| `SEND_NOTIFICATIONS` | Send notifications to a specific user / team. Apply to `/platforms/{pk}/users/{pk}/` or `/platforms/{pk}/usergroups/{pk}/`. |
+| `ENROLLMENT_MANAGER` | Manage course / pathway / program enrollments and invitations. |
+| `LIST_USERS` / `LIST_TEAMS` | List users / teams for pickers. |
+| `CREATE_TEAMS` | Create a UserGroup (team). |
+| `READ_TEAM` / `EDIT_TEAM` | Per-team read / write. Apply to `/platforms/{pk}/usergroups/{pk}/`. |
+| `GROUP_MENTOR_MANAGER` | List + read RBAC groups. |
+| `LLM_USERS` / `LLM_MODEL_ACCESS` | List or read individual LLM providers / models the user is allowed to use. |
+| `SELL_ITEMS` | Gate that allows selling items on the platform. |
+| `BILLING_MANAGER` | Read + write platform credit settings. |
+| `CRM_VIEWER` / `CRM_USER` / `CRM_MANAGER` / `CRM_INVITER` | Tiered CRM access — read / use / administer / invite leads. |
+| `WATCHED_GROUP_LIST` / `WATCHED_GROUP_READ` | List / read watched groups for alerts. |
+| `WATCHED_GROUP_WATCHER_GRANTS` | Extra analytics grants given to watchers on a WatchedGroup. |
+
+## Step-by-step: define a custom role
+
+1. **Pick the action strings.** Fetch the live action definitions
+   endpoint above (or open `references/default-roles.py` for known-good
+   examples). Use `Ibl.*` wildcards sparingly — they bypass field-level
+   reads.
+2. **Pick the resources the role applies to.** Resources are
+   hierarchical and rooted at `/platforms/{pk}/...`. Granting on
+   `/platforms/{pk}/mentors/` covers every mentor; granting on
+   `/platforms/{pk}/mentors/{pk}/` scopes to one.
+3. **Create the role via `<RolesTab>` (UI) or `POST rbac/roles/` (API).**
+   Body: `{ name, platform_key, actions[], data_actions[] }`. See
+   `/iblai-agent-access` → "Roles CRUD" for the full REST contract.
+4. **Bind the role to users / groups via `<PoliciesTab>` (UI) or
+   `POST rbac/policies/`.** Body: `{ platform_key, name, role_id,
+   resources[], user_ids[], group_ids[] }`. Resources must start with
+   `/platforms/` and end with `/`.
+5. **Gate UI in your app** with `checkRbacPermission(rbacPermissions,
+   path, enableRbac)` after calling `POST rbac/permissions/check/` to
+   hydrate `rbacPermissions`. The `permissions` object on each resource
+   response also exposes per-field / per-object flags you can use
+   directly.
+
+## Related skills
+
+- `/iblai-agent-access` -- agent-scoped sharing (editor / chat roles on
+  a single mentor) via `<AgentAccessTab>`. Documents the underlying
+  REST contract (`rbac/roles/`, `rbac/policies/`, `rbac/groups/`,
+  `rbac/mentor-access/`, `rbac/teams/access/`, etc.).
+- `/iblai-account` -- mounts the SDK `<Account>` modal that hosts the
+  `<Admin>` management UI (Users · Groups · Roles · Policies · Teams ·
+  Alerts).
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
