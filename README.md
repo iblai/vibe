@@ -15,9 +15,11 @@ Ship AI-powered apps fast. Backend included.
 
 **Built with iblai/vibe**
 
-| [os.ibl.ai](https://os.ibl.ai) | [video.ibl.ai](https://video.ibl.ai) | [course.ibl.ai](https://course.ibl.ai) |
-| :-: | :-: | :-: |
-| Agentic OS | AI video | AI-powered course creation |
+|  |  |
+| :-: | :-- |
+| [os.ibl.ai](https://os.ibl.ai) | Agentic OS |
+| [video.ibl.ai](https://video.ibl.ai) | AI video |
+| [course.ibl.ai](https://course.ibl.ai) | AI-powered course creation |
 
 </div>
 
