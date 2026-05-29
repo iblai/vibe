@@ -1,0 +1,33 @@
+# Cargo dependencies for the Rust side of the local-LLM contract.
+# Append these to `src-tauri/Cargo.toml` under `[dependencies]`.
+#
+# The entries below cover the typical implementation:
+#   - reqwest: HTTP to the Ollama daemon + downloads
+#   - tokio / futures-util: async / streaming for ollama_chat_stream
+#   - serde / serde_json: payload (de)serialization
+#   - sysinfo: free-disk-space probe
+#   - sha2 / hex: checksum verification for installer downloads
+#   - chrono: log timestamps
+#   - http: status-code helpers
+
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "stream",
+    "blocking",
+    "rustls-tls",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
+sysinfo = "0.30"
+sha2 = "0.10"
+hex = "0.4"
+chrono = "0.4"
+http = "1.0"
+
+# Already present after `iblai add builds` (listed here for reference):
+# tauri = { version = "2", features = ["protocol-asset", "devtools"] }
+# tauri-plugin-shell = "2"
+# tauri-plugin-opener = "2.0.0"
+# tauri-plugin-os = "2.3.2"

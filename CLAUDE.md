@@ -286,6 +286,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-credit` | Add the credit balance widget (plan badge, credits, auto-recharge, upgrade) |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
+| `/iblai-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |
 | `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all available components |

@@ -106,6 +106,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-notification
 /iblai-invite
 /iblai-workflow
+/iblai-local-llm
 /iblai-course-access
 /iblai-course-create
 /iblai-onboard
@@ -139,6 +140,7 @@ What each skill does:
 - `/iblai-notification` -- adds notifications UI and notification center flows.
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
+- `/iblai-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
 - `/iblai-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
 - `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
@@ -288,6 +290,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-notification` | Add notification bell + center page |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
+| `/iblai-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |
 | `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all components + app creation paths |
