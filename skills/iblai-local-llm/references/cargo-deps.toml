@@ -9,6 +9,14 @@
 #   - sha2 / hex: checksum verification for installer downloads
 #   - chrono: log timestamps
 #   - http: status-code helpers
+#
+# Minimal set actually needed for the daemon-HTTP-API implementation
+# (pull + chat over /api/*, no installer-checksum verification):
+#   reqwest { json, stream, rustls-tls }, tokio { full }, futures-util,
+#   sysinfo, chrono, serde, serde_json.
+# `blocking`, `sha2`, `hex`, and `http` are only needed if you download
+# and verify the Ollama installer yourself. `rustls-tls` (not the
+# default native-tls) avoids an OpenSSL system dependency.
 
 reqwest = { version = "0.12", default-features = false, features = [
     "json",

@@ -47,11 +47,16 @@ The contract this skill documents, in layers.
 
 ### Download
 
-1. `download_phi3_model` shells out to `ollama pull phi3:mini` and
-   tails its stdout.
-2. Each progress line is parsed and re-emitted as a Tauri event
-   `model:download-progress` with shape
-   `{ status, completed, total, percentage, digest, message }`.
+1. `download_phi3_model` gets progress for the pull. Two ways:
+   - **Recommended:** `POST 127.0.0.1:11434/api/pull`
+     `{"model":"phi3:mini","stream":true}` and read the NDJSON stream —
+     each line is `{status, completed, total, digest}`, which maps
+     straight onto the event payload, and you cancel by breaking the
+     stream loop on a shared `AtomicBool`.
+   - Or shell out to `ollama pull phi3:mini` and tail stdout (more
+     fragile to parse; cancel by killing the child).
+2. Each line is re-emitted as a Tauri event `model:download-progress`
+   with shape `{ status, completed, total, percentage, digest, message }`.
 3. The React hook subscribes via `listen()` and writes the events
    into its own state, persisted to `localStorage` so the progress
    bar survives app restarts.

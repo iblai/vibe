@@ -90,34 +90,35 @@ shape. Names match the `TAURI_COMMANDS` enum in
 
 ## Front-end constants
 
-Names live in `assets/nextjs/types/tauri.ts`. The two enums you'll
-import everywhere:
+**`assets/nextjs/types/tauri.ts` is the single source of truth** for
+`TAURI_COMMANDS` / `TAURI_EVENTS` — copy it verbatim into your project
+and import from there; don't retype the names. Earlier inline copies in
+this doc drifted from the asset, especially the Foundry commands. The
+asset's Foundry names are the canonical `*_foundry_local_*` form, e.g.:
 
 ```ts
-export const TAURI_COMMANDS = {
-  INSTALL_OLLAMA:        'install_ollama',
-  CHECK_OLLAMA_STATUS:   'check_ollama_status',
-  CHECK_DISK_SPACE:      'check_disk_space_for_model',
-  DOWNLOAD_MODEL:        'download_phi3_model',
-  CANCEL_DOWNLOAD:       'cancel_model_download',
-  CHECK_NETWORK_STATUS:  'check_network_status',
-  GET_OS_TYPE:           'get_os_type',
-  OLLAMA_CHAT:           'ollama_chat',
-  OLLAMA_CHAT_STREAM:    'ollama_chat_stream',
-  // Foundry (registered only when you wire the foundry_* modules):
-  CHECK_FOUNDRY_STATUS:           'check_foundry_status',
-  LOAD_FOUNDRY_MODEL:             'load_foundry_model',
-  SAVE_SELECTED_FOUNDRY_MODEL:    'save_selected_foundry_model',
-  GET_SELECTED_FOUNDRY_MODEL:     'get_selected_foundry_model',
-  INSTALL_FOUNDRY:                'install_foundry',
-  DOWNLOAD_FOUNDRY_MODEL:         'download_foundry_model_cmd',
-  GET_RECOMMENDED_FOUNDRY_MODELS: 'get_recommended_foundry_models',
-} as const;
-
-export const TAURI_EVENTS = {
-  DOWNLOAD_PROGRESS: 'model:download-progress',
-  INSTALLATION_LOG:  'model:installation-log',
-  DISK_SPACE_ERROR:  'model:disk-space-error',
-  OLLAMA_STATUS:     'model:ollama-status',
-} as const;
+CHECK_FOUNDRY_STATUS:       'check_foundry_local_status',   // not 'check_foundry_status'
+START_FOUNDRY_SERVICE:      'start_foundry_local_service',
+LOAD_FOUNDRY_MODEL:         'load_foundry_local_model',     // not 'load_foundry_model'
+SET_SELECTED_FOUNDRY_MODEL: 'set_selected_foundry_model',   // not 'save_…'
 ```
+
+The Ollama-path command names (`install_ollama`, `check_ollama_status`,
+`check_disk_space_for_model`, `download_phi3_model`,
+`cancel_model_download`, `check_network_status`, `get_os_type`,
+`ollama_chat`, `ollama_chat_stream`) and the `model:*` events are stable.
+
+The **inference stream events are separate** from `TAURI_EVENTS` and are
+keyed by `generation_id`: `ollama:chunk` / `ollama:done` /
+`ollama:error`. The SDK subscribes to these itself when it routes chat
+locally — you only emit them from `ollama_chat_stream`.
+
+## Download via the daemon API (recommended)
+
+`download_phi3_model` is cleaner implemented against the daemon's HTTP
+`/api/pull` than by scraping the CLI: `POST 127.0.0.1:11434/api/pull`
+with `{"model":"phi3:mini","stream":true}` returns NDJSON lines
+(`{status, completed, total, digest}`) that map directly onto the
+`model:download-progress` payload. Cancel by checking a shared
+`AtomicBool` each chunk and breaking the loop (the
+`cancel_model_download` command flips it) — no child process to kill.

@@ -1,9 +1,6 @@
----
-name: iblai-local-llm
-description: Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app. Documents the contract a vibe app must implement so the SDK can route chat through a local model via `localLLMProps` — the Tauri command names, event names, and the React hook shape. Mention before wiring "offline AI", "local model", "on-device LLM", or "Ollama" support into a desktop build.
-globs:
-alwaysApply: false
----
+# iblai-local-llm
+
+> Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app. Documents the contract a vibe app must implement so the SDK can route chat through a local model via `localLLMProps` — the Tauri command names, event names, and the React hook shape. Mention before wiring "offline AI", "local model", "on-device LLM", or "Ollama" support into a desktop build.
 
 # /iblai-local-llm
 

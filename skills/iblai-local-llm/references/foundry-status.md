@@ -10,7 +10,12 @@ shape the SDK consumes; the implementation is up to you.
 
 ## Commands the hook calls
 
-Names live in `assets/nextjs/types/tauri.ts` under `TAURI_COMMANDS`:
+Use the names from `assets/nextjs/types/tauri.ts` (`TAURI_COMMANDS`) —
+they are canonical and use the `*_foundry_local_*` form
+(`check_foundry_local_status`, `start_foundry_local_service`,
+`load_foundry_local_model`, `set_selected_foundry_model`). The shorter
+names sketched below are illustrative of the *contract surface*, not the
+exact strings to invoke:
 
 ```
 check_foundry_status            -> { is_windows, is_supported, is_available,

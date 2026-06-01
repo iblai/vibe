@@ -99,6 +99,48 @@ target features. Either build on Windows itself or add the right
 target with `rustup target add x86_64-pc-windows-msvc` and run
 `cargo build --target x86_64-pc-windows-msvc`.
 
+## `install_ollama` does nothing / fails silently on Linux
+
+The official `install.sh` installs to `/usr/local/bin/ollama` and sets
+up an `ollama` systemd service + user — all via `sudo`. When a non-root
+Tauri app spawns `sh -c "curl -fsSL https://ollama.com/install.sh | sh"`
+there's no TTY for `sudo` to prompt on, so the privileged steps fail and
+the model never appears.
+
+- Install Ollama once yourself (`curl … | sh` in a terminal with sudo,
+  or your package manager) — then `check_ollama_status` finds it and the
+  home-dir-only `download_phi3_model` works without root.
+- Or make `install_ollama` rootless: download the static `ollama` binary
+  into `~/.local/bin` and run `ollama serve` from there.
+- Or detect-and-guide: if not installed, show instructions instead of
+  auto-running the privileged script.
+
+## Tauri build can't find `../out`, or `next build` errors on `generateStaticParams`
+
+The Tauri shell defaults to a static export (`frontendDist: "../out"`),
+but a server-rendered app with dynamic routes can't be exported:
+
+```
+Error: Page "/x/[id]/[[...slug]]" is missing "generateStaticParams()"
+so it cannot be used with "output: export" config.
+```
+
+Don't try to convert every route. Keep `output: 'standalone'` and point
+Tauri **dev** at the running Next server with `beforeDevCommand:
+"pnpm dev"` + `devUrl: "http://localhost:3000"` (see SKILL.md "Field
+notes"). For production, host the frontend and point `frontendDist` at
+that URL.
+
+## `cargo` build panics in `libdbus-sys` / `webkit2gtk-sys` (not your code)
+
+A failure like `libdbus-sys … build.rs panicked` or a `pkg-config` "No
+package 'dbus-1' found" is a **missing system library**, not a bug in
+your Rust. These GUI/system-binding crates are tauri dependencies and
+compile *before* your crate, so they mask your own errors. Install the
+dev libs (Linux: `libdbus-1-dev`, `libwebkit2gtk-4.1-dev`,
+`libsoup-3.0-dev`, …) and re-run; only then does `cargo check` reach
+`src-tauri/src/` and report real issues in your commands.
+
 ## Cleanup
 
 To wipe local state for a fresh start:
