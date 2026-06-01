@@ -4,6 +4,16 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-02
+
+### Added
+- **iblai-local-llm** skill — contract for on-device LLM inference in a Tauri desktop build: the Tauri command + event names, the `localLLMProps` hook shape the SDK reads, Rust command signatures, and Cargo deps for an Ollama backend (with an optional Foundry Local path for Windows NPUs). Includes field notes from a production integration — static export vs. `devUrl` for server-rendered apps, downloading via the daemon `/api/pull` stream, and the Linux root-install caveat
+- **iblai-rbac** — `references/default-roles.py` enumerating the platform's default roles and their permissions, plus an account-management-policies screenshot
+- "Built with iblai/vibe" showcase in `README.md` (os.ibl.ai, video.ibl.ai, course.ibl.ai)
+
+### Changed
+- **iblai-rbac** — streamlined the skill doc, moving inline role detail into the new `references/default-roles.py`
+
 ## [1.3.0] - 2026-05-27
 ### Added
 - **iblai-rbac** skill that lists default roles on the platform and their permissions
