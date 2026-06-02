@@ -90,7 +90,11 @@ onboarding URL, and the SDK redirects you to it via
 
 You'll land on a Stripe-hosted **Connect Express onboarding** page
 (see [stripe.com/connect/onboarding](https://stripe.com/connect/onboarding)
-for the full spec). Stripe will ask for:
+for the full spec).
+
+![Stripe Connect Express onboarding — Let's get started](./admin-monetization-sample-stripe-onboarding.png)
+
+Stripe will ask for:
 
 - **Business details** — legal entity name, business type, country,
   address, tax ID / EIN
