@@ -312,6 +312,12 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
+| `/iblai-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
+| `/iblai-crm-lead-flow` | Add the CRM top-of-funnel surface (lead capture, contacts table, person detail, link/invite/merge) |
+| `/iblai-crm-deal-flow` | Add the CRM revenue surface (pipelines, stages, lead sources, kanban deal board, move-stage/won/lost) |
+| `/iblai-crm-activity` | Add the CRM activity timeline panel for persons and deals (calls, meetings, notes, tasks, reminders, mark-done) |
+| `/iblai-crm-tag` | Add the CRM tag manager + chips + attach/detach controls + tag filters across persons/orgs/deals |
+| `/iblai-crm-notification` | Reference for the three CRM notification types (`CRM_PERSON_CREATED`, `CRM_DEAL_STAGE_CHANGED`, `CRM_PERSON_LINKED_TO_USER`) and recipient routing |
 
 ### Marketing Skills
 

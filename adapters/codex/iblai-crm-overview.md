@@ -1,0 +1,138 @@
+# iblai-crm-overview
+
+> Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ — auth, seeded defaults (default Pipeline + 6 stages + 4 Lead Sources), the four CRM RBAC roles (Viewer/User/Manager/Inviter), and the workflow sub-skill map. Use when the user mentions CRM, leads, pipelines, deals, contacts, or asks where a CRM workflow lives. See /iblai-crm-lead-flow for people + onboarding, /iblai-crm-deal-flow for pipelines + kanban, /iblai-crm-activity for the timeline, /iblai-crm-tag for tags, /iblai-crm-notification for CRM event routing, /iblai-auth for token wiring, /iblai-rbac for role assignment.
+
+# /iblai-crm-overview
+
+Reference skill for the ibl.ai CRM. Covers authentication, seeded
+defaults, the four CRM RBAC roles, and points to every sub-skill in
+the `iblai-crm-*` family. This skill builds no UI — open it first when
+you need orientation, then jump to the workflow skill that matches the
+surface you are building.
+
+Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+They ship with their own styling. Keep the components as-is.
+Do NOT implement dark mode unless the user explicitly asks for it.
+
+When building custom UI around SDK components, use the ibl.ai brand:
+- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+- Follow the component hierarchy: use ibl.ai SDK components
+  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
+  (`npx shadcn@latest add <component>`). Do NOT write custom components
+  when an ibl.ai or shadcn equivalent exists. Both share the same
+  Tailwind theme and render in ibl.ai brand colors automatically.
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
+  colors, typography, spacing, and component styles.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## Authentication
+
+Every CRM endpoint lives under `/api/crm/` and requires a
+Platform-scoped token:
+
+```
+Authorization: Token <your-access-token>
+```
+
+Tokens bind to exactly one Platform at the moment of issue. The
+Platform is inferred from the token on every request — there is no
+`?platform_key=` query parameter on the consumer surface, and supplying
+one will not change the Platform a request resolves to.
+
+Records belonging to a different Platform return **`404 Not Found`,
+never `403 Forbidden`**. This is intentional: returning `403` would
+leak the existence of cross-Platform records. Treat a `404` on a
+record you just created as a sign you are pointing at the wrong
+Platform; a `403` always means "authenticated but the role does not
+grant this action."
+
+The full REST contract (base URL, pagination envelope, ID types per
+resource, side effects) is in
+[`references/api-overview.md`](./references/api-overview.md). For
+token wiring inside a Next.js app see `/iblai-auth`.
+
+## Seeded defaults
+
+The first time a Platform is provisioned, the CRM seeds a working
+configuration. You do not need to create any of these yourself — they
+exist on every Platform and back-fill into existing Platforms via a
+data migration.
+
+- **One default Pipeline** with `code="default"`, `is_default=true`,
+  `rotten_days=30`.
+- **Six default Stages** on that Pipeline, referenced by stable `code`:
+  `new` → `qualified` → `proposal` → `negotiation` → `won` (terminal,
+  `is_won=true`) and `lost` (terminal, `is_lost=true`).
+- **Four default Lead Sources**: `web`, `referral`, `cold_call`,
+  `advertisement`.
+
+The stage and lead-source `code` fields are stable across environments
+(dev / staging / prod) and across renames. Numeric `id` values are not
+— always reference seeds by `code` in client code, save the pipeline
+`id` only for the immediate deal payload.
+
+Full seeded tables (every stage's `probability` / `sort_order` /
+terminal flags, every lead source `name`) are in
+[`references/seeded-defaults.md`](./references/seeded-defaults.md).
+
+## RBAC
+
+The CRM ships four roles per Platform. Roles are seeded automatically
+on Platform provisioning and assigned through the standard
+role-management surface — the CRM does not expose its own
+role-assignment endpoints. A user may hold more than one role;
+effective permissions are the union.
+
+| Role | One-line mandate |
+|---|---|
+| **CRM Viewer** | Read everything across the CRM. Write nothing. |
+| **CRM User** | Day-to-day operator — full CRUD on people, organizations, deals, activities, tags. Pipelines are read-only. No invitations. |
+| **CRM Manager** | Wildcard CRM access — pipeline / stage / lead-source administration plus invitations. |
+| **CRM Inviter** | Narrow role — read people and send invitations only. Cannot edit or create people. |
+
+Two non-obvious rules worth a second look:
+- **Invitation is its own bucket.** `Ibl.CRM/Persons/write` does not
+  imply `Ibl.CRM/Invite/action`. Gate the "Invite" affordance
+  independently.
+- **Tag attach/detach requires `Ibl.CRM/Tags/write`.** A role with
+  `Ibl.CRM/Persons/write` cannot tag a person without it.
+
+Full HTTP-verb → action-code mapping and the action-by-action matrix
+are in [`references/rbac-matrix.md`](./references/rbac-matrix.md). For
+the management UI that lists and binds roles, see `/iblai-rbac`.
+
+## The CRM skill family
+
+Every CRM skill is prefixed `iblai-crm-*`. There is no bare umbrella
+skill — this skill is the index. Pick the one that matches the
+surface you are building.
+
+| Skill | Role | Covers |
+|---|---|---|
+| `/iblai-crm-overview` | Reference / index (this skill) | Auth, seeded defaults, RBAC roles, family map |
+| `/iblai-crm-lead-flow` | Build UI | People + Organizations + lifecycle stage + onboarding (link / invite / merge) |
+| `/iblai-crm-deal-flow` | Build UI | Pipelines + Stages + Lead Sources + Deals (kanban + move-stage / won / lost state machine) |
+| `/iblai-crm-activity` | Build UI | Activity timeline (calls, meetings, notes, tasks; schedule / remind / done) on persons and deals |
+| `/iblai-crm-tag` | Build UI | Tag CRUD + attach / detach for persons, organizations, deals |
+| `/iblai-crm-notification` | Reference | Three CRM notification types (`CRM_PERSON_CREATED`, `CRM_DEAL_STAGE_CHANGED`, `CRM_PERSON_LINKED_TO_USER`) + recipient routing |
+
+When in doubt, start with `/iblai-crm-lead-flow` (a deal needs a
+person), then `/iblai-crm-deal-flow`, then layer `/iblai-crm-activity`
+and `/iblai-crm-tag` on the detail pages.
+
+## Related skills
+
+- `/iblai-crm-lead-flow` — People + Organizations + onboarding
+- `/iblai-crm-deal-flow` — Pipelines + Stages + Lead Sources + Deals
+- `/iblai-crm-activity` — Activity timeline for persons and deals
+- `/iblai-crm-tag` — Tag CRUD + attach / detach
+- `/iblai-crm-notification` — CRM notification types and recipient routing
+- `/iblai-auth` — Token wiring; every CRM call uses the same
+  `Authorization: Token <token>` header.
+- `/iblai-rbac` — Role-management UI (`<Admin>` → Roles + Policies
+  tabs) and the action-definitions endpoint. The four CRM roles are
+  assigned here.
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
