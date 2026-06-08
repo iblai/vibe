@@ -1,2 +1,5 @@
 .env
 .env.local
+
+# Personal daily work log — never commit
+.daily-work-log/
