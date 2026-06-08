@@ -313,6 +313,8 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
+| `/iblai-crm-lead-flow` | Add the CRM top-of-funnel surface (lead capture, contacts table, person detail, link/invite/merge) |
+| `/iblai-crm-deal-flow` | Add the CRM revenue surface (pipelines, stages, lead sources, kanban deal board, move-stage/won/lost) |
 
 ### Marketing Skills
 
