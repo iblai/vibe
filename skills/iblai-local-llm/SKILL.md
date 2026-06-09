@@ -60,7 +60,7 @@ Drop [`assets/nextjs/types/tauri.ts`](assets/nextjs/types/tauri.ts) into
 your project at `types/tauri.ts`. It exports:
 
 - `TAURI_COMMANDS` — every `#[tauri::command]` name your Rust side
-  must register (`install_ollama`, `download_phi3_model`,
+  must register (`install_ollama`, `get_system_memory`, `download_model`,
   `ollama_chat_stream`, …)
 - `TAURI_EVENTS` — every `app.emit(...)` name your Rust side must
   use (`model:download-progress`, `model:installation-log`, …)
@@ -82,15 +82,22 @@ minimum (Ollama path):
 
 ```
 install_ollama                  -> Result<String, String>
+stop_ollama                     -> Result<(), String>        (onStopManager / toggle off)
 check_ollama_status             -> Result<OllamaStatus, String>
 check_disk_space_for_model      -> Result<bool, String>      (emits disk-space-error)
-download_phi3_model             -> Result<(), String>        (emits download-progress)
+get_system_memory               -> SystemMemory              (sync; RAM via sysinfo, VRAM via nvidia-smi)
+download_model(model_id)        -> Result<(), String>        (emits download-progress)
 cancel_model_download           -> Result<(), String>
 check_network_status            -> Result<bool, String>
 get_os_type                     -> String
 ollama_chat                     -> Result<String, String>
 ollama_chat_stream              -> Result<(), String>        (emits ollama:chunk/done/error)
 ```
+
+`download_model` takes the Ollama tag as an argument (the SDK's Local-LLM
+tab owns the catalog and passes the chosen id) — it is **not** the old
+hardcoded `download_phi3_model`. `get_system_memory` is a synchronous
+probe used to warn before pulling a model too big for the host.
 
 Wire them into `.invoke_handler(tauri::generate_handler![...])`. Add
 the Cargo deps listed in
@@ -102,20 +109,22 @@ the Cargo deps listed in
 surfaces (see "Use it"). **Grep your installed `@iblai/web-containers`
 `.d.ts` for `localLLMProps` and match its exact shape** — it is the
 ground truth, and it differs from earlier drafts of this skill. As of
-`@iblai/web-containers` 1.7.x the shape is:
+`@iblai/web-containers` 1.8.x the shape is:
 
 ```ts
 {
   isAvailable: boolean              // isTauriApp() && commands registered
   state: ModelDownloadState         // status/progress/message/logs/lastUpdated
   ollamaStatus: OllamaStatus | null
+  systemMemory?: SystemMemory | null  // { ram_total, vram_total } from get_system_memory
   isUsingFoundry?: boolean          // Windows NPU path
   foundryStatus?: FoundryStatus | null
   foundryModels?: FoundryModel[]
   selectedFoundryModel?: string | null
-  onStartDownload: () => void       // install (if needed) + pull the model
+  onStartDownload: (modelId?: string) => void  // install (if needed) + pull that tag
   onCancelDownload: () => void
   onInstallOllama: () => void
+  onStopManager?: () => void        // stop_ollama — fired when the toggle goes off
   onInstallFoundry?: () => void
   onCheckStatus: () => void
   onResetState: () => void
@@ -124,18 +133,31 @@ ground truth, and it differs from earlier drafts of this skill. As of
 ```
 
 Note the callbacks are **`on*`-prefixed and return `void`** (they fire
-the `invoke` internally — don't return the promise). Internally the hook
-should:
+the `invoke` internally — don't return the promise). `onStartDownload`
+now takes an optional `modelId` — the tab passes the catalog entry the
+user picked, and the SDK forwards it to `download_model`.
+
+**The SDK ships the hook.** `@iblai/web-containers` exports
+`useModelDownload()`, which already does the work below and returns
+`{ isAvailable, state, ollamaStatus, systemMemory, startDownload(modelId?),
+cancelDownload, installOllama, stopManager, checkStatus, resetState, … }`.
+Wire its output into `localLLMProps` (renaming to the `on*` callbacks)
+rather than re-implementing — that's how the shipped desktop app does it.
+If you do hand-roll the hook, it must:
 - `invoke(TAURI_COMMANDS.CHECK_OLLAMA_STATUS)` on mount, after an
   opportunistic `CHECK_FOUNDRY_STATUS` that silently falls back when the
   Foundry commands aren't registered (the `invoke` just rejects),
+- `invoke(TAURI_COMMANDS.GET_SYSTEM_MEMORY)` once on mount and keep
+  `systemMemory` so a Download click can be pre-flighted against host
+  capacity (see "Field notes"),
 - `listen` on every `model:*` event to drive `state`,
 - persist `state` to `localStorage.model_download_state` so progress
   survives reload — **hydrate it in an effect, not the initial
   `useState`**, or you'll get an SSR hydration mismatch.
 
-`onStartDownload` calls `install_ollama` (if not installed) then
-`download_phi3_model`; `onCancelDownload` calls `cancel_model_download`.
+`onStartDownload(modelId)` calls `install_ollama` (if not installed) then
+`download_model(modelId)`; `onCancelDownload` calls
+`cancel_model_download`; `onStopManager` calls `stop_ollama`.
 
 ## Use it
 
@@ -183,6 +205,33 @@ the Foundry-specific command names and lifecycle.
 
 ## Field notes (from a production integration)
 
+- **Warn before downloading a model too big for the machine.** Call
+  `get_system_memory` → `{ ram_total, vram_total }` (bytes) and size the
+  model against `usable = max(ram_total, vram_total)`. `vram_total` comes
+  from `nvidia-smi` and is **`0`** on integrated graphics, Apple unified
+  memory, and AMD/Intel GPUs — so thresholding on VRAM alone wrongly
+  flags every Mac; always fall back to RAM via the `max`. Parse the
+  catalog's human size (`"2.2 GB"` → bytes) and, when it exceeds
+  `usable * FRACTION`, show a confirm dialog instead of pulling:
+
+  ```ts
+  const usableMemoryBytes = (m?: SystemMemory | null) =>
+    m ? Math.max(m.ram_total, m.vram_total) : 0;          // VRAM 0 ⇒ use RAM
+  const modelExceedsCapacity = (model, m) => {
+    const bytes = parseModelSizeBytes(model.size);         // "2.2 GB" → number
+    if (bytes == null) return false;                       // unknown size ⇒ don't warn
+    return bytes > usableMemoryBytes(m) * MODEL_SIZE_WARN_FRACTION;
+  };
+  ```
+
+  `MODEL_SIZE_WARN_FRACTION` is the share of usable memory a model may
+  occupy before the warning trips (a realistic ceiling is ~0.5–0.8; the
+  shipped tab ships a deliberately tiny test value so the dialog is easy
+  to trigger — set it sanely before release). **Gotcha:** read memory
+  *before* any catalog-lookup / early-return guard, or the `invoke`
+  silently never fires — see [troubleshooting](references/troubleshooting.md)
+  "A command never runs".
+
 - **Server-rendered apps can't use the default static export.** The
   Tauri shell defaults to `frontendDist: "../out"` (a `next build`
   static export). An app with runtime-dynamic routes (e.g.
@@ -203,8 +252,8 @@ the Foundry-specific command names and lifecycle.
   rather than shipping a static export.)
 
 - **Download via the daemon HTTP API, not the CLI.** Implementing
-  `download_phi3_model` as `POST 127.0.0.1:11434/api/pull
-  {"model":"phi3:mini","stream":true}` and reading the NDJSON stream
+  `download_model(modelId)` as `POST 127.0.0.1:11434/api/pull
+  {"model": modelId, "stream":true}` and reading the NDJSON stream
   (`{status,completed,total,digest}`) is cleaner than scraping
   `ollama pull` stdout — it maps straight onto the `DownloadProgress`
   fields and cancels by breaking the stream loop on a shared
@@ -222,7 +271,10 @@ the Foundry-specific command names and lifecycle.
 - **Minimal Cargo deps** for the HTTP-API approach:
   `reqwest { json, stream, rustls-tls }`, `tokio { full }`,
   `futures-util`, `sysinfo`, `chrono`. `blocking` / `sha2` / `hex` /
-  `http` are only needed if you verify installer checksums.
+  `http` are only needed if you verify installer checksums. `sysinfo`
+  also backs `get_system_memory`'s RAM figure (`System::total_memory()`);
+  VRAM is read by shelling out to `nvidia-smi`, so it needs **no extra
+  crate** — and contributes `0` wherever that binary is absent.
 
 ## References
 

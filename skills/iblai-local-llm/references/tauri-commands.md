@@ -33,6 +33,26 @@ shape. Names match the `TAURI_COMMANDS` enum in
 - **Returns**: `"windows" | "macos" | "linux" | "unknown"`. Drives
   platform-specific install copy in the UI.
 
+### `get_system_memory`
+- **Signature**: `fn () -> SystemMemory` (synchronous — pure probe, no
+  `AppHandle`, no `Result`)
+- **Returns**:
+  ```ts
+  { ram_total: number; vram_total: number }   // bytes
+  ```
+- **What it does**: `ram_total` from `sysinfo`
+  (`System::total_memory()`); `vram_total` from `nvidia-smi
+  --query-gpu=memory.total --format=csv,noheader,nounits`, taking the
+  **largest single GPU** (a model runs on one device, not the summed
+  pool) and converting MiB→bytes.
+- **Notes**: returns `vram_total: 0` whenever `nvidia-smi` is absent or
+  errors — integrated graphics, Apple unified memory, AMD/Intel GPUs.
+  Callers must therefore size a model against
+  `max(ram_total, vram_total)`, not `vram_total` alone. Used to warn
+  before downloading a model too big for the machine (see SKILL.md
+  "Field notes"). Add `sysinfo` to `Cargo.toml`; `nvidia-smi` is a
+  subprocess, not a crate.
+
 ## Install
 
 ### `install_ollama`
@@ -43,12 +63,26 @@ shape. Names match the `TAURI_COMMANDS` enum in
   `check_ollama_status` after.
 - **Emits**: `model:installation-log` for every stage.
 
+### `stop_ollama`
+- **Signature**: `async () -> Result<(), String>`
+- **What it does**: stops the running model manager (Ollama) daemon.
+  Wired to `onStopManager` — fired when the user turns the Local-LLM
+  toggle off so the daemon isn't left running in the background.
+
 ## Model download
 
-### `download_phi3_model`
-- **Signature**: `async (AppHandle) -> Result<(), String>`
-- **What it does**: shells out to `ollama pull phi3:mini` and streams
-  the progress to the UI.
+### `download_model`
+- **Signature**:
+  ```rust
+  async (app: AppHandle, model_id: String) -> Result<(), String>
+  ```
+- **What it does**: pulls the model whose Ollama tag is `model_id`
+  (e.g. `"phi3:mini"`, `"llama3.2"`, `"qwen3"`) and streams progress to
+  the UI. The command is **parameterized by model id** — the catalog of
+  offered models lives in the SDK's Local-LLM tab, and the chosen id
+  flows through `onStartDownload(modelId)` → `startDownload(modelId)` →
+  `invoke(DOWNLOAD_MODEL, { modelId })`. (Earlier builds hardcoded a
+  single `download_phi3_model`; it is now one command taking the id.)
 - **Emits**:
   - `model:download-progress` `{ status, completed, total, percentage, digest, message }`
   - `model:installation-log` for each non-progress log line
@@ -103,10 +137,18 @@ LOAD_FOUNDRY_MODEL:         'load_foundry_local_model',     // not 'load_foundry
 SET_SELECTED_FOUNDRY_MODEL: 'set_selected_foundry_model',   // not 'save_…'
 ```
 
-The Ollama-path command names (`install_ollama`, `check_ollama_status`,
-`check_disk_space_for_model`, `download_phi3_model`,
-`cancel_model_download`, `check_network_status`, `get_os_type`,
-`ollama_chat`, `ollama_chat_stream`) and the `model:*` events are stable.
+The Ollama-path command names (`install_ollama`, `stop_ollama`,
+`check_ollama_status`, `check_disk_space_for_model`, `get_system_memory`,
+`download_model`, `cancel_model_download`, `check_network_status`,
+`get_os_type`, `ollama_chat`, `ollama_chat_stream`) and the `model:*`
+events are stable.
+
+`log_fe` (`LOG_FE: 'log_fe'`) is a small diagnostics bridge: the React
+side calls `invoke(LOG_FE, { s: '[Local Models] …' })` to write a line
+to the **Rust** process stdout (`async fn log_fe(s: Option<String>)`),
+so front-end events show up in the same terminal as the backend logs —
+useful when a `tauri dev` webview has no devtools open. Optional, but the
+shipped Local-LLM tab uses it on the download path.
 
 The **inference stream events are separate** from `TAURI_EVENTS` and are
 keyed by `generation_id`: `ollama:chunk` / `ollama:done` /
@@ -115,9 +157,9 @@ locally — you only emit them from `ollama_chat_stream`.
 
 ## Download via the daemon API (recommended)
 
-`download_phi3_model` is cleaner implemented against the daemon's HTTP
+`download_model` is cleaner implemented against the daemon's HTTP
 `/api/pull` than by scraping the CLI: `POST 127.0.0.1:11434/api/pull`
-with `{"model":"phi3:mini","stream":true}` returns NDJSON lines
+with `{"model": model_id, "stream":true}` returns NDJSON lines
 (`{status, completed, total, digest}`) that map directly onto the
 `model:download-progress` payload. Cancel by checking a shared
 `AtomicBool` each chunk and breaking the loop (the

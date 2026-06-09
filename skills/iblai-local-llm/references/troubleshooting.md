@@ -11,9 +11,11 @@ Your Rust commands aren't registered. Verify:
 // src-tauri/src/lib.rs
 .invoke_handler(tauri::generate_handler![
     install_ollama,        // ← every name from TAURI_COMMANDS goes here
+    stop_ollama,
     check_ollama_status,
     check_disk_space_for_model,
-    download_phi3_model,
+    get_system_memory,
+    download_model,
     cancel_model_download,
     check_network_status,
     get_os_type,
@@ -24,6 +26,46 @@ Your Rust commands aren't registered. Verify:
 
 Rebuild after editing — Tauri's command registry is baked at compile
 time.
+
+## A command never runs — no `println!` / no error, just silence
+
+A command that's correctly registered can still *never fire*. Two
+distinct causes, both of which look identical from the terminal (the
+backend `println!` you added simply never prints):
+
+**1 — a front-end guard returns before the `invoke`.** If the click
+handler does a catalog lookup or capacity check *before* calling the
+command, an early `return` skips it. This bit `get_system_memory`: the
+handler returned on "unknown model" before ever reading memory, so the
+probe never ran. Fix — **invoke the backend command first, unconditionally**,
+then branch on the result:
+
+```ts
+const handleDownload = async (modelId: string) => {
+  // hit the backend FIRST so the call always happens
+  let mem: SystemMemory | null = null;
+  try { mem = await invoke<SystemMemory>(TAURI_COMMANDS.GET_SYSTEM_MEMORY); }
+  catch { mem = systemMemory ?? null; }   // fall back to the value read on mount
+
+  const model = CATALOG.find((m) => m.id === modelId);
+  if (!model) { startDownloadNow(modelId); return; }   // guard AFTER the invoke
+  if (modelExceedsCapacity(model, mem)) { setPendingModel(model); return; }
+  startDownloadNow(modelId);
+};
+```
+
+**2 — registered in only one of the two handler blocks.** Tauri v2 apps
+have two entry points — `main.rs` (desktop binary) and `lib.rs` (mobile
+`cdylib`), and `lib.rs` often carries **two** `generate_handler!` blocks
+(`#[cfg(not(any(ios, android)))]` desktop + `#[cfg(any(ios, android))]`
+mobile). A command added to `main.rs` but missing from the `lib.rs`
+desktop block (or vice-versa) is absent in whichever binary you actually
+launched. Add every new command to **all** `generate_handler!` blocks
+and confirm which entry point `tauri dev` builds.
+
+Verify the call even reaches Rust by tailing the `tauri dev` terminal,
+or from the webview devtools:
+`await window.__TAURI_INTERNALS__.invoke('get_system_memory')`.
 
 ## `useLocalLLM` reports `isAvailable: false` in a Tauri dev build
 
@@ -86,9 +128,14 @@ concurrently, listeners can race. Confirm:
 Phi-3 Mini needs ~4 GB resident. On 8 GB machines you'll see swap
 and sluggish UI. Either:
 
-- Use a smaller model: `ollama pull phi3:mini-128k_npu` (1.8 GB) or
-  `qwen2.5:0.5b` (1 GB). Update the default in your
-  `download_phi3_model` accordingly.
+- **Warn before the download.** Call `get_system_memory` and compare the
+  catalog size against `max(ram_total, vram_total)`; gate oversized
+  pulls behind a confirm dialog (see SKILL.md "Field notes"). Remember
+  `vram_total` is `0` on integrated/Apple-unified GPUs, so always fall
+  back to `ram_total` — never threshold on VRAM alone.
+- Offer a smaller model: `qwen2.5:0.5b` (~1 GB) or `llama3.2` (~2 GB).
+  Because `download_model` takes the tag as an argument, this is just a
+  different catalog entry — no Rust change.
 - Tell the Ollama daemon to evict idle models faster:
   `OLLAMA_KEEP_ALIVE=30s` before launching.
 
@@ -109,7 +156,7 @@ the model never appears.
 
 - Install Ollama once yourself (`curl … | sh` in a terminal with sudo,
   or your package manager) — then `check_ollama_status` finds it and the
-  home-dir-only `download_phi3_model` works without root.
+  home-dir-only `download_model` works without root.
 - Or make `install_ollama` rootless: download the static `ollama` binary
   into `~/.local/bin` and run `ollama serve` from there.
 - Or detect-and-guide: if not installed, show instructions instead of

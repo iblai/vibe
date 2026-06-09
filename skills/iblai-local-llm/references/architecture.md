@@ -15,9 +15,11 @@ The contract this skill documents, in layers.
                ▼
 ┌─────────────────────────────────────────────┐
 │  Tauri commands                             │
-│  ├─ install_ollama / check_ollama_status    │
+│  ├─ install_ollama / stop_ollama            │
+│  ├─ check_ollama_status                      │
 │  ├─ check_disk_space_for_model              │
-│  ├─ download_phi3_model / cancel_*          │
+│  ├─ get_system_memory  (RAM/VRAM probe)     │
+│  ├─ download_model(id) / cancel_*           │
 │  ├─ ollama_chat / ollama_chat_stream        │
 │  └─ get_os_type / check_network_status      │
 └──────────────┬──────────────────────────────┘
@@ -41,23 +43,31 @@ The contract this skill documents, in layers.
    - **not installed** → show "Download local model" CTA → triggers
      `install_ollama`.
    - **installed but model missing** → CTA triggers
-     `download_phi3_model`.
+     `download_model(modelId)` for the catalog entry the user picked.
    - **ready** → `state.status === 'completed'`, SDK routes chat
      through `ollama_chat_stream`.
+5. In parallel the hook calls `get_system_memory` once and stashes
+   `{ ram_total, vram_total }` so a Download click can be pre-flighted
+   against the machine's capacity before the pull starts.
 
 ### Download
 
-1. `download_phi3_model` gets progress for the pull. Two ways:
+1. The user picks a model from the catalog; its Ollama tag is passed as
+   `download_model(modelId)`. Before pulling, the tab compares the
+   model's catalog size against `max(ram_total, vram_total)` and, if it
+   exceeds the threshold, shows a "may not run on your system" confirm
+   dialog (see SKILL.md "Field notes").
+2. `download_model` gets progress for the pull. Two ways:
    - **Recommended:** `POST 127.0.0.1:11434/api/pull`
-     `{"model":"phi3:mini","stream":true}` and read the NDJSON stream —
+     `{"model": modelId, "stream":true}` and read the NDJSON stream —
      each line is `{status, completed, total, digest}`, which maps
      straight onto the event payload, and you cancel by breaking the
      stream loop on a shared `AtomicBool`.
-   - Or shell out to `ollama pull phi3:mini` and tail stdout (more
+   - Or shell out to `ollama pull <modelId>` and tail stdout (more
      fragile to parse; cancel by killing the child).
-2. Each line is re-emitted as a Tauri event `model:download-progress`
+3. Each line is re-emitted as a Tauri event `model:download-progress`
    with shape `{ status, completed, total, percentage, digest, message }`.
-3. The React hook subscribes via `listen()` and writes the events
+4. The React hook subscribes via `listen()` and writes the events
    into its own state, persisted to `localStorage` so the progress
    bar survives app restarts.
 

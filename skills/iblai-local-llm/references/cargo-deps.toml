@@ -5,7 +5,8 @@
 #   - reqwest: HTTP to the Ollama daemon + downloads
 #   - tokio / futures-util: async / streaming for ollama_chat_stream
 #   - serde / serde_json: payload (de)serialization
-#   - sysinfo: free-disk-space probe
+#   - sysinfo: free-disk-space probe + RAM total for get_system_memory
+#             (VRAM in get_system_memory shells out to `nvidia-smi` — no crate)
 #   - sha2 / hex: checksum verification for installer downloads
 #   - chrono: log timestamps
 #   - http: status-code helpers
