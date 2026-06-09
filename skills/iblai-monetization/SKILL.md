@@ -133,7 +133,7 @@ ibl.ai**, use `/iblai-credit`.
 - Navbar must be in place (`/iblai-navbar`)
 - Profile page must exist (`/iblai-profile`)
 - Account page must exist (`/iblai-account`)
-- MCP and skills must be set up: `iblai add mcp`
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `@iblai/iblai-js` SDK installed (`>=` the version that ships the
   monetization slice)
 - The tenant must have:
@@ -148,15 +148,6 @@ ibl.ai**, use `/iblai-credit`.
 Both tenant flags are stored on the `Tenant` record (`packages/web-utils/src/types/index.ts`)
 and surface in the `tenants` array in localStorage. They are configured
 by an ibl.ai operator — there is no in-app toggle.
-
-## Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date. Run
-`iblai --version` to check the current version, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
 
 ## Step 1: Check Environment
 

@@ -1,0 +1,191 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with this project.
+
+## MCP Server (Use First)
+
+`.mcp.json` is configured with `@iblai/mcp`. **Always use MCP tools first** before searching the codebase:
+
+```
+get_component_info("Profile")                  # Full props interface for any SDK component
+get_hook_info("useAdvancedChat")               # Hook parameters and return types
+get_api_query_info("useGetUserMetadataQuery")  # RTK Query endpoint details
+get_provider_setup("auth")                     # Provider hierarchy and setup code
+create_page_template("Dashboard", "mentor")    # Generate a page template
+```
+
+## Project Overview
+
+**{{ app_name }}** — a Next.js 16 App Router project with ibl.ai SSO authentication, Redux Toolkit store, and pre-built SDK components.
+
+{% if has_mentor_id %}
+- **Template**: agent (full-screen ChatWidget via `<mentor-ai>` web component)
+- **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
+{% else %}
+- **Template**: base (auth + store + blank canvas)
+- **Extend with**: `iblai add auth|chat|profile|notifications|mcp|tauri`
+{% endif %}
+{% if builds %}
+- **Desktop/mobile**: Tauri v2 shell (`src-tauri/`)
+{% endif %}
+
+## Commands
+
+```bash
+# Development
+pnpm dev                # Start dev server (localhost:3000)
+pnpm build              # Production build
+pnpm lint               # ESLint
+pnpm typecheck          # TypeScript type checking
+
+# E2E tests (edit e2e/.env.development with credentials first)
+pnpm test:e2e           # Headless (Chromium + Firefox + WebKit)
+pnpm test:e2e:ui        # Interactive Playwright UI
+pnpm test:e2e:headed    # Headed browser mode
+{% if builds %}
+
+# Tauri desktop/mobile
+iblai builds dev                     # Dev mode (Next.js + native shell)
+iblai builds build                   # Production build for current platform
+iblai builds icon path/to/icon.png   # Generate all icon sizes
+pnpm tauri:build:msix               # Windows MSIX package (x64)
+pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
+{% endif %}
+```
+
+## Architecture
+
+### Route Groups
+
+```
+app/
+├── (auth)/sso-login-complete/   # SSO callback — runs OUTSIDE providers
+└── (app)/                       # Authenticated routes — wrapped by AppShell
+    ├── layout.tsx               # AppShell + providers
+    └── page.tsx                 # Home page
+```
+
+The SSO callback is in `(auth)/` to avoid the auth provider deadlock — it must store tokens before `AuthProvider` initializes.
+
+### Providers (`providers/index.tsx`)
+
+```
+AuthProvider > TenantProvider > {children}
+```
+
+`initializeDataLayer` is called synchronously in a `useState` initializer with **5 arguments** (data-layer v1.2+):
+
+```typescript
+initializeDataLayer(dmUrl, lmsUrl, legacyLmsUrl, storageService, httpErrorHandler)
+```
+
+This must happen before any child component's RTK Query hooks fire.
+
+### Redux Store (`store/index.ts`)
+
+```typescript
+coreApiSlice      // Core IBL API endpoints
+mentorReducer     // Mentor/user/tenant API slices
+mentorMiddleware  // RTK Query middleware for all slices
+```
+
+`@reduxjs/toolkit` is deduplicated via webpack `resolve.alias` in `next.config.ts`. Without deduplication, SDK components use a different `ReactReduxContext` and RTK Query hooks silently return `undefined` with zero HTTP requests.
+
+### Pre-built Components (`components/iblai/`)
+
+| Component | Description |
+|-----------|-------------|
+| `ChatWidget` | `<mentor-ai>` web component wrapper — full-screen AI chat |
+| `ProfileDropdown` | Avatar dropdown with profile link and logout |
+| `IblaiNotificationBell` | Bell icon with unread count badge |
+
+{% if has_mentor_id %}
+### `<mentor-ai>` Web Component
+
+Auth tokens are delivered via `redirectToAuthSPA()` which sends `{ ...localStorage }` to the iframe when `authrelyonhost="true"`. The method name is misleading — it does NOT redirect when `authRelyOnHost` is true; it posts a message instead.
+
+{% endif %}
+## Environment (`.env.local`)
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app        # Consolidated API base
+NEXT_PUBLIC_AUTH_URL=https://login.iblai.app            # Auth SPA URL
+NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.app     # WebSocket endpoint
+NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app             # Fallback domain pattern
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform           # Platform key
+{% if has_mentor_id %}
+NEXT_PUBLIC_DEFAULT_AGENT_ID=your-mentor-id            # Mentor/agent ID
+{% endif %}
+```
+
+Copy `.env.example` to `.env.local` and fill in your values.
+
+## SDK Versions (Locked)
+
+| Package | Version |
+|---------|---------|
+| `@iblai/iblai-js` | 1.1.9 |
+| `@iblai/iblai-web-mentor` | 2.0.1 |
+| `@iblai/iblai-api` | 4.166.0-ai |
+| `@reduxjs/toolkit` | 2.11.2 |
+| `next` | 16.2.1 |
+
+These versions are pinned and tested together. Do not upgrade individually — the SDK has strict peer dependency requirements.
+
+## Add Features
+
+```bash
+iblai add auth           # SSO authentication + Redux store + providers
+iblai add chat           # AI chat widget (<mentor-ai> web component)
+iblai add profile        # User profile dropdown
+iblai add notification  # Notification bell with unread badge
+iblai add mcp            # MCP server config + Claude/OpenCode skills
+iblai add builds          # Tauri v2 desktop/mobile shell
+```
+
+## Skills
+
+Available in `.claude/skills/` (invoke with `/` in Claude Code):
+
+| Skill | Description |
+|-------|-------------|
+| `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
+| `/iblai-add-auth` | Add SSO authentication to an existing project |
+| `/iblai-add-chat` | AI chat widget + customization |
+| `/iblai-add-profile` | Profile dropdown + full settings page |
+| `/iblai-add-account` | Organization/account settings |
+| `/iblai-add-analytics` | Analytics dashboard |
+| `/iblai-add-notification` | Notification bell + center page |
+| `/iblai-add-component` | Generic guide for any SDK component |
+| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
+| `/iblai-add-test` | Playwright E2E test patterns |
+| `/iblai-build-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
+| `/iblai-iconography` | Generate all Tauri icon sizes from a source image |
+| `/iblai-deslop` | Audit and harden codebases for production readiness |
+
+## UI Blocks (shadcnspace)
+
+`components.json` is configured for shadcn/ui:
+
+```bash
+npx shadcn@latest add @shadcn-space/hero-01
+npx shadcn@latest add @shadcn-space/dashboard-shell-01
+```
+
+Browse: https://shadcnspace.com/blocks
+
+## ibl.ai CLI Repo
+
+For detailed implementation examples and source templates:
+
+  https://github.com/iblai/iblai-app-cli
+
+Key paths in the repo:
+- `examples/iblai-agent-app/` — complete reference app with all features
+- `skills/` — AI assistant skills with step-by-step implementation guides
+- `BRAND.md` — ibl.ai brand identity and design tokens
+- `.iblai/iblai/templates/` — Jinja2 source templates for all generated files
+
+Find CLI version and commit: `iblai --version`
+
+THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.

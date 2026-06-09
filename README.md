@@ -147,6 +147,11 @@ What each skill does:
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-ops-test` -- validates the app before it is presented to the user.
 - `/iblai-ops-upgrade` -- upgrades the ibl.ai CLI, SDK, and vibe skills to the latest versions.
+- `/iblai-scaffold` -- scaffolds a new app or adds features (`iblai startapp` / `iblai add`); holds the base + agent project templates and documents the command behavior.
+- `/iblai-iconography` -- generates every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from a single source image.
+- `/iblai-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
+- `/iblai-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
+- `/iblai-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
 - `/iblai-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
 - `/iblai-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
@@ -299,6 +304,11 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
+| `/iblai-scaffold` | Scaffold a new app or add features (`iblai startapp` / `iblai add`) — the base/agent project templates + command behavior |
+| `/iblai-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
+| `/iblai-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
+| `/iblai-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
+| `/iblai-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
 | `/iblai-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |

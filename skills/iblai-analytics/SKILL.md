@@ -13,6 +13,10 @@ Reports. Each tab is a Next.js route under `/analytics/`.
 
 ![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-analytics/analytics-page.png)
 
+> **Template:** the page this skill creates is bundled as
+> [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
+
 Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
 mode unless asked. Follow the component hierarchy: ibl.ai SDK
 (`@iblai/iblai-js`) first, then shadcn/ui (`npx shadcn@latest add`).
@@ -20,19 +24,15 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 ## Prerequisites
 
 - Auth set up (`/iblai-auth`)
-- MCP and skills set up (`iblai add mcp`)
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 
-## Generate
+## Create the Page
 
-```bash
-iblai --version    # upgrade if outdated: pip install --upgrade iblai-app-cli OR npm i -g @iblai/cli@latest
-iblai add analytics
-```
-
-Generated: `app/(app)/analytics/page.tsx` (overview only). You create
-the layout and sub-pages manually.
+Render [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2) into
+`app/(app)/analytics/page.tsx` (overview only). You create the layout and
+sub-pages manually (below).
 
 ## Layout
 

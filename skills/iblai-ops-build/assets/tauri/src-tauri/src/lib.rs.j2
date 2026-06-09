@@ -1,0 +1,843 @@
+{% raw %}
+// Hide console window on Windows in release builds
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+use tauri::{Emitter, Manager, WebviewWindowBuilder};
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use tauri::Url;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use tauri_plugin_deep_link::DeepLinkExt;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use tauri::Listener;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Mutex;
+// OpenerExt is used for all non-iOS platforms (desktop and Android)
+#[cfg(not(target_os = "ios"))]
+use tauri_plugin_opener::OpenerExt;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+use {
+    block::ConcreteBlock,
+    objc::{class, msg_send, sel, sel_impl},
+    objc::runtime::{Class, Object, BOOL, YES},
+    objc::declare::ClassDecl,
+    std::ffi::{CStr, CString},
+    std::ptr,
+    std::sync::Once,
+};
+
+// Global storage for pending deep links (mobile only)
+#[cfg(any(target_os = "ios", target_os = "android"))]
+static PENDING_DEEP_LINK: std::sync::OnceLock<Mutex<Option<String>>> = std::sync::OnceLock::new();
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+fn get_pending_deep_link() -> &'static Mutex<Option<String>> {
+    PENDING_DEEP_LINK.get_or_init(|| Mutex::new(None))
+}
+
+// OAuth provider URL patterns — intercepted and opened externally
+const OAUTH_URL_PATTERNS: &[&str] = &[
+    "accounts.google.com",
+    "google.com/o/oauth",
+    "googleapis.com/oauth",
+    "google-oauth2",
+    "/auth/login/google",
+    "/login/google",
+    "appleid.apple.com",
+    "/auth/login/apple",
+    "/login/apple",
+];
+
+fn is_oauth_url(url: &str) -> bool {
+    OAUTH_URL_PATTERNS.iter().any(|pattern| url.contains(pattern))
+}
+
+// ---------------------------------------------------------------------------
+// iOS: ASWebAuthenticationSession + SafariServices
+// ---------------------------------------------------------------------------
+
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+#[link(name = "AuthenticationServices", kind = "framework")]
+extern "C" {}
+
+#[cfg(target_os = "ios")]
+#[link(name = "SafariServices", kind = "framework")]
+extern "C" {}
+
+#[cfg(target_os = "ios")]
+#[allow(unexpected_cfgs)]
+fn open_url_via_application(ns_url: *mut Object) -> Result<(), String> {
+    unsafe {
+        if ns_url.is_null() {
+            return Err("NSURL was null".to_string());
+        }
+        let app: *mut Object = msg_send![class!(UIApplication), sharedApplication];
+        if app.is_null() {
+            return Err("Failed to access UIApplication".to_string());
+        }
+        let responds: BOOL =
+            msg_send![app, respondsToSelector: sel!(openURL:options:completionHandler:)];
+        if responds == YES {
+            let _: () = msg_send![
+                app,
+                openURL: ns_url
+                options: ptr::null::<Object>()
+                completionHandler: ptr::null::<Object>()
+            ];
+        } else {
+            let _: BOOL = msg_send![app, openURL: ns_url];
+        }
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "ios")]
+#[allow(unexpected_cfgs)]
+unsafe fn get_presentation_window() -> *mut Object {
+    let app: *mut Object = msg_send![class!(UIApplication), sharedApplication];
+    let windows: *mut Object = msg_send![app, windows];
+    let window_count: usize = msg_send![windows, count];
+    if window_count > 0 {
+        msg_send![windows, objectAtIndex: 0usize]
+    } else {
+        ptr::null_mut()
+    }
+}
+
+#[cfg(target_os = "ios")]
+#[allow(unexpected_cfgs)]
+unsafe fn get_context_provider_class() -> &'static Class {
+    static REGISTER_CLASS: Once = Once::new();
+    static mut CONTEXT_PROVIDER_CLASS: Option<&'static Class> = None;
+
+    REGISTER_CLASS.call_once(|| {
+        let superclass = class!(NSObject);
+        let mut decl = ClassDecl::new("IBLAuthContextProvider", superclass).unwrap();
+
+        extern "C" fn presentation_anchor_for_session(
+            _: &Object, _: objc::runtime::Sel, _session: *mut Object,
+        ) -> *mut Object {
+            unsafe { get_presentation_window() }
+        }
+
+        unsafe {
+            decl.add_method(
+                sel!(presentationAnchorForWebAuthenticationSession:),
+                presentation_anchor_for_session
+                    as extern "C" fn(&Object, objc::runtime::Sel, *mut Object) -> *mut Object,
+            );
+        }
+
+        let class = decl.register();
+        CONTEXT_PROVIDER_CLASS = Some(class);
+    });
+
+    unsafe { CONTEXT_PROVIDER_CLASS.unwrap() }
+}
+
+#[cfg(target_os = "ios")]
+#[allow(unexpected_cfgs)]
+fn open_with_auth_session(url: &str, app_handle: &tauri::AppHandle) -> Result<(), String> {
+    unsafe {
+        let c_url = CString::new(url).map_err(|_| "Failed to create CString from URL".to_string())?;
+        let ns_string: *mut Object =
+            msg_send![class!(NSString), stringWithUTF8String: c_url.as_ptr()];
+        if ns_string.is_null() {
+            return Err("Failed to create NSString".to_string());
+        }
+
+        let ns_url: *mut Object = msg_send![class!(NSURL), URLWithString: ns_string];
+        if ns_url.is_null() {
+            return Err("Failed to create NSURL".to_string());
+        }
+
+        // Callback URL scheme
+        let scheme_c = CString::new("{% endraw %}{{ tauri_custom_scheme | default(app_name) }}{% raw %}").unwrap();
+        let scheme_ns: *mut Object =
+            msg_send![class!(NSString), stringWithUTF8String: scheme_c.as_ptr()];
+
+        let auth_session_class = match Class::get("ASWebAuthenticationSession") {
+            Some(class) => class,
+            None => return open_url_via_application(ns_url),
+        };
+
+        let app_handle_clone = app_handle.clone();
+        let block = ConcreteBlock::new(move |callback_url: *mut Object, error: *mut Object| {
+            unsafe {
+                if !callback_url.is_null() {
+                    let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
+                    let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
+                    if !url_c_str.is_null() {
+                        let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
+                        handle_deep_link_url(&app_handle_clone, &url_str);
+                    }
+                } else if !error.is_null() {
+                    let description: *mut Object = msg_send![error, localizedDescription];
+                    let c_str: *const i8 = msg_send![description, UTF8String];
+                    if !c_str.is_null() {
+                        let error_str = CStr::from_ptr(c_str);
+                        println!("[ibl.ai] ASWebAuthenticationSession error: {:?}", error_str);
+                    }
+                }
+            }
+        });
+        let block = block.copy();
+
+        let session: *mut Object = msg_send![auth_session_class, alloc];
+        let session: *mut Object = msg_send![
+            session,
+            initWithURL: ns_url
+            callbackURLScheme: scheme_ns
+            completionHandler: &*block
+        ];
+
+        if session.is_null() {
+            return Err("Failed to create ASWebAuthenticationSession".to_string());
+        }
+
+        // Use ephemeral (private) browser session
+        let responds: BOOL =
+            msg_send![session, respondsToSelector: sel!(setPrefersEphemeralWebBrowserSession:)];
+        if responds == YES {
+            let _: () = msg_send![session, setPrefersEphemeralWebBrowserSession: YES];
+        }
+
+        // Set presentation context provider
+        let provider_class = get_context_provider_class();
+        let provider: *mut Object = msg_send![provider_class, new];
+        if !provider.is_null() {
+            let responds_to_provider: BOOL =
+                msg_send![session, respondsToSelector: sel!(setPresentationContextProvider:)];
+            if responds_to_provider == YES {
+                let _: () = msg_send![session, setPresentationContextProvider: provider];
+            }
+        }
+
+        let started: BOOL = msg_send![session, start];
+        if started == YES {
+            Ok(())
+        } else {
+            Err("Failed to start ASWebAuthenticationSession".to_string())
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// macOS: ASWebAuthenticationSession
+// ---------------------------------------------------------------------------
+
+#[cfg(target_os = "macos")]
+#[allow(unexpected_cfgs)]
+unsafe fn get_presentation_window_macos() -> *mut Object {
+    let app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+    let key_window: *mut Object = msg_send![app, keyWindow];
+    if !key_window.is_null() {
+        return key_window;
+    }
+    let main_window: *mut Object = msg_send![app, mainWindow];
+    if !main_window.is_null() {
+        return main_window;
+    }
+    let windows: *mut Object = msg_send![app, windows];
+    let window_count: usize = msg_send![windows, count];
+    if window_count > 0 {
+        msg_send![windows, objectAtIndex: 0usize]
+    } else {
+        ptr::null_mut()
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[allow(unexpected_cfgs)]
+unsafe fn get_context_provider_class_macos() -> &'static Class {
+    static REGISTER_CLASS: Once = Once::new();
+    static mut CONTEXT_PROVIDER_CLASS: Option<&'static Class> = None;
+
+    REGISTER_CLASS.call_once(|| {
+        let superclass = class!(NSObject);
+        let mut decl = ClassDecl::new("IBLAuthContextProviderMac", superclass).unwrap();
+
+        extern "C" fn presentation_anchor_for_session(
+            _: &Object, _: objc::runtime::Sel, _session: *mut Object,
+        ) -> *mut Object {
+            unsafe { get_presentation_window_macos() }
+        }
+
+        unsafe {
+            decl.add_method(
+                sel!(presentationAnchorForWebAuthenticationSession:),
+                presentation_anchor_for_session
+                    as extern "C" fn(&Object, objc::runtime::Sel, *mut Object) -> *mut Object,
+            );
+        }
+
+        let class = decl.register();
+        CONTEXT_PROVIDER_CLASS = Some(class);
+    });
+
+    unsafe { CONTEXT_PROVIDER_CLASS.unwrap() }
+}
+
+#[cfg(target_os = "macos")]
+#[allow(unexpected_cfgs)]
+fn open_with_auth_session_macos(url: &str, app_handle: &tauri::AppHandle) -> Result<(), String> {
+    unsafe {
+        let c_url =
+            CString::new(url).map_err(|_| "Failed to create CString from URL".to_string())?;
+        let ns_string: *mut Object =
+            msg_send![class!(NSString), stringWithUTF8String: c_url.as_ptr()];
+        if ns_string.is_null() {
+            return Err("Failed to create NSString".to_string());
+        }
+
+        let ns_url: *mut Object = msg_send![class!(NSURL), URLWithString: ns_string];
+        if ns_url.is_null() {
+            return Err("Failed to create NSURL".to_string());
+        }
+
+        let scheme_c = CString::new("{% endraw %}{{ tauri_custom_scheme | default(app_name) }}{% raw %}").unwrap();
+        let scheme_ns: *mut Object =
+            msg_send![class!(NSString), stringWithUTF8String: scheme_c.as_ptr()];
+
+        let auth_session_class = match Class::get("ASWebAuthenticationSession") {
+            Some(class) => class,
+            None => return Err("ASWebAuthenticationSession not available".to_string()),
+        };
+
+        let app_handle_clone = app_handle.clone();
+        let block = ConcreteBlock::new(move |callback_url: *mut Object, error: *mut Object| {
+            unsafe {
+                if !callback_url.is_null() {
+                    let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
+                    let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
+                    if !url_c_str.is_null() {
+                        let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
+                        handle_auth_session_callback_macos(&app_handle_clone, &url_str);
+                    }
+                } else if !error.is_null() {
+                    let description: *mut Object = msg_send![error, localizedDescription];
+                    let c_str: *const i8 = msg_send![description, UTF8String];
+                    if !c_str.is_null() {
+                        let error_str = CStr::from_ptr(c_str);
+                        println!("[ibl.ai] macOS ASWebAuthenticationSession error: {:?}", error_str);
+                    }
+                }
+            }
+        });
+        let block = block.copy();
+
+        let session: *mut Object = msg_send![auth_session_class, alloc];
+        let session: *mut Object = msg_send![
+            session,
+            initWithURL: ns_url
+            callbackURLScheme: scheme_ns
+            completionHandler: &*block
+        ];
+
+        if session.is_null() {
+            return Err("Failed to create ASWebAuthenticationSession on macOS".to_string());
+        }
+
+        let responds: BOOL =
+            msg_send![session, respondsToSelector: sel!(setPrefersEphemeralWebBrowserSession:)];
+        if responds == YES {
+            let _: () = msg_send![session, setPrefersEphemeralWebBrowserSession: YES];
+        }
+
+        let provider_class = get_context_provider_class_macos();
+        let provider: *mut Object = msg_send![provider_class, new];
+        if !provider.is_null() {
+            let responds_to_provider: BOOL =
+                msg_send![session, respondsToSelector: sel!(setPresentationContextProvider:)];
+            if responds_to_provider == YES {
+                let _: () = msg_send![session, setPresentationContextProvider: provider];
+            }
+        }
+
+        let started: BOOL = msg_send![session, start];
+        if started == YES {
+            Ok(())
+        } else {
+            Err("Failed to start ASWebAuthenticationSession on macOS".to_string())
+        }
+    }
+}
+
+/// Handle ASWebAuthenticationSession callback URL on macOS.
+/// Desktop always has the main window available.
+#[cfg(target_os = "macos")]
+fn handle_auth_session_callback_macos(app_handle: &tauri::AppHandle, raw_url: &str) {
+    let parsed = match Url::parse(raw_url) {
+        Ok(url) => url,
+        Err(_) => return,
+    };
+
+    let scheme = parsed.scheme();
+    let host = parsed.host_str().unwrap_or("");
+
+    let is_custom_scheme = scheme == "{% endraw %}{{ tauri_custom_scheme | default(app_name) }}{% raw %}";
+    if !is_custom_scheme {
+        return;
+    }
+
+    let mut final_path = parsed.path().to_string();
+    if (final_path.is_empty() || final_path == "/") && !host.is_empty() {
+        final_path = format!("/{}", host);
+    }
+
+    // Only handle SSO-related paths
+    if !final_path.starts_with("/sso-login") && !final_path.starts_with("/sso-login-complete") {
+        return;
+    }
+
+    // Navigate the main window to the SSO callback
+    let mut target_path = final_path;
+    if let Some(query) = parsed.query() {
+        if !query.is_empty() {
+            target_path.push('?');
+            target_path.push_str(query);
+        }
+    }
+
+    if let Some(window) = app_handle.get_webview_window("main") {
+        if let Ok(js_url) = serde_json::to_string(&target_path) {
+            let _ = window.eval(&format!("window.location.href = {};", js_url));
+        }
+    }
+}
+
+// macOS needs Url for auth session callback parsing
+#[cfg(target_os = "macos")]
+use url::Url;
+
+// ---------------------------------------------------------------------------
+// Platform router: open OAuth URL via the best mechanism
+// ---------------------------------------------------------------------------
+
+fn open_oauth_url(app: &tauri::AppHandle, url: &str) -> Result<(), String> {
+    #[cfg(target_os = "ios")]
+    {
+        let url_for_main = url.to_string();
+        let app_handle = app.clone();
+        app.run_on_main_thread(move || {
+            if let Err(err) = open_with_auth_session(&url_for_main, &app_handle) {
+                println!("[ibl.ai] Failed to open auth session: {}", err);
+            }
+        })
+        .map_err(|e| format!("Failed to schedule auth session: {}", e))
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let url_for_main = url.to_string();
+        let app_handle = app.clone();
+        app.run_on_main_thread(move || {
+            if let Err(err) = open_with_auth_session_macos(&url_for_main, &app_handle) {
+                println!("[ibl.ai] Failed to open auth session on macOS: {}", err);
+            }
+        })
+        .map_err(|e| format!("Failed to schedule auth session: {}", e))
+    }
+
+    #[cfg(not(any(target_os = "ios", target_os = "macos")))]
+    {
+        app.opener()
+            .open_url(url, None::<&str>)
+            .map_err(|e| format!("Failed to open URL: {}", e))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile deep-link handler
+// ---------------------------------------------------------------------------
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+fn handle_deep_link_url(app_handle: &tauri::AppHandle, raw_url: &str) {
+    let parsed = match Url::parse(raw_url) {
+        Ok(url) => url,
+        Err(e) => {
+            println!("[ibl.ai] Failed to parse deep link URL: {}", e);
+            return;
+        }
+    };
+
+    let scheme = parsed.scheme();
+    let host = parsed.host_str().unwrap_or("");
+
+    let is_custom_scheme = scheme == "{% endraw %}{{ tauri_custom_scheme | default(app_name) }}{% raw %}";
+    if !is_custom_scheme {
+        return;
+    }
+
+    let mut path = parsed.path().to_string();
+    if is_custom_scheme && (path.is_empty() || path == "/") && !host.is_empty() {
+        path = format!("/{}", host);
+    }
+
+    // Only handle SSO-related paths
+    if !path.starts_with("/sso-login") && !path.starts_with("/sso-login-complete") {
+        return;
+    }
+
+    let mut target_path = path;
+    if let Some(query) = parsed.query() {
+        if !query.is_empty() {
+            target_path.push('?');
+            target_path.push_str(query);
+        }
+    }
+
+    if let Some(window) = app_handle.get_webview_window("main") {
+        if let Ok(js_url) = serde_json::to_string(&target_path) {
+            let _ = window.eval(&format!("window.location.href = {};", js_url));
+        }
+    } else {
+        // Window not ready yet — store for later
+        if let Ok(mut pending) = get_pending_deep_link().lock() {
+            *pending = Some(target_path);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tauri command: open external URL (for JS → Rust OAuth on mobile)
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn open_external_url(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    open_oauth_url(&app, &url)
+}
+
+// ---------------------------------------------------------------------------
+// Mobile initialization script: safe area CSS + OAuth interception
+// ---------------------------------------------------------------------------
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+const MOBILE_INIT_SCRIPT: &str = r#"
+(function() {
+    if (window.__iblMobileSetup) return;
+    window.__iblMobileSetup = true;
+
+    // --- Safe area handling ---
+
+    function waitForHead(cb) {
+        if (document.head) cb();
+        else setTimeout(function() { waitForHead(cb); }, 10);
+    }
+
+    waitForHead(function() {
+        var viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            var content = viewport.getAttribute('content') || '';
+            if (!content.includes('viewport-fit=cover')) {
+                viewport.setAttribute('content', content + ', viewport-fit=cover');
+            }
+        } else {
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
+            document.head.appendChild(meta);
+        }
+
+        var style = document.createElement('style');
+        style.id = 'ibl-safe-area-styles';
+        style.textContent = '\
+            :root {\
+                --sat: env(safe-area-inset-top, 0px);\
+                --sar: env(safe-area-inset-right, 0px);\
+                --sab: env(safe-area-inset-bottom, 0px);\
+                --sal: env(safe-area-inset-left, 0px);\
+            }\
+            html {\
+                padding-top: env(safe-area-inset-top, 0px);\
+                padding-bottom: env(safe-area-inset-bottom, 0px);\
+                padding-left: env(safe-area-inset-left, 0px);\
+                padding-right: env(safe-area-inset-right, 0px);\
+            }\
+            body {\
+                position: fixed;\
+                top: 0; left: 0; right: 0; bottom: 0;\
+                overflow: hidden;\
+            }\
+            body > div:first-child, #__next, #root, main {\
+                height: 100%;\
+                overflow: auto;\
+                -webkit-overflow-scrolling: touch;\
+            }\
+        ';
+        document.head.appendChild(style);
+    });
+
+    function waitForBody(cb) {
+        if (document.body) cb();
+        else setTimeout(function() { waitForBody(cb); }, 10);
+    }
+
+    waitForBody(function() {
+        // Prevent overscroll bounce on iOS
+        document.body.addEventListener('touchmove', function(e) {
+            var target = e.target;
+            while (target && target !== document.body) {
+                var s = window.getComputedStyle(target);
+                if (s.overflow === 'auto' || s.overflow === 'scroll' ||
+                    s.overflowY === 'auto' || s.overflowY === 'scroll') {
+                    return;
+                }
+                target = target.parentElement;
+            }
+            e.preventDefault();
+        }, { passive: false });
+    });
+
+    // --- OAuth URL interception ---
+    // Google blocks OAuth in WebViews, so we open OAuth URLs in the system browser.
+
+    function isOAuthUrl(url) {
+        if (!url || typeof url !== 'string') return false;
+        return (
+            url.includes('accounts.google.com') ||
+            url.includes('google.com/o/oauth') ||
+            url.includes('googleapis.com/oauth') ||
+            url.includes('/auth/login/google') ||
+            url.includes('/login/google') ||
+            url.includes('google-oauth2') ||
+            url.includes('appleid.apple.com') ||
+            url.includes('/auth/login/apple') ||
+            url.includes('/login/apple')
+        );
+    }
+
+    function openInSystemBrowser(url) {
+        if (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) {
+            window.__TAURI__.core.invoke('open_external_url', { url: url })
+                .catch(function(e) {
+                    console.error('[ibl.ai] Failed to open OAuth URL:', e);
+                });
+            return true;
+        }
+        return false;
+    }
+
+    // Intercept location.href assignments
+    (function() {
+        try {
+            var hrefDescriptor = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
+            if (hrefDescriptor && hrefDescriptor.set) {
+                var originalHrefSetter = hrefDescriptor.set;
+                Object.defineProperty(Location.prototype, 'href', {
+                    get: hrefDescriptor.get,
+                    set: function(url) {
+                        if (isOAuthUrl(url)) {
+                            var absoluteUrl = url.startsWith('/') ? this.origin + url : url;
+                            if (openInSystemBrowser(absoluteUrl)) return;
+                        }
+                        originalHrefSetter.call(this, url);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+            }
+
+            var originalAssign = Location.prototype.assign;
+            Location.prototype.assign = function(url) {
+                if (isOAuthUrl(url)) {
+                    var absoluteUrl = url.startsWith('/') ? this.origin + url : url;
+                    if (openInSystemBrowser(absoluteUrl)) return;
+                }
+                originalAssign.call(this, url);
+            };
+
+            var originalReplace = Location.prototype.replace;
+            Location.prototype.replace = function(url) {
+                if (isOAuthUrl(url)) {
+                    var absoluteUrl = url.startsWith('/') ? this.origin + url : url;
+                    if (openInSystemBrowser(absoluteUrl)) return;
+                }
+                originalReplace.call(this, url);
+            };
+        } catch (e) {
+            console.error('[ibl.ai] Failed to intercept location:', e);
+        }
+    })();
+
+    // Intercept window.open for OAuth popups
+    var originalWindowOpen = window.open;
+    window.open = function(url, target, features) {
+        if (url && isOAuthUrl(url)) {
+            var absoluteUrl = url.startsWith('/') ? window.location.origin + url : url;
+            if (openInSystemBrowser(absoluteUrl)) return null;
+        }
+        return originalWindowOpen.call(window, url, target, features);
+    };
+
+    // Click interceptor as backup
+    document.addEventListener('click', function(e) {
+        var target = e.target;
+        var depth = 0;
+        while (target && depth < 10) {
+            if (target.tagName === 'A' && target.href && isOAuthUrl(target.href)) {
+                e.preventDefault();
+                e.stopPropagation();
+                openInSystemBrowser(target.href);
+                return false;
+            }
+            target = target.parentElement;
+            depth++;
+        }
+    }, true);
+})();
+"#;
+
+// ---------------------------------------------------------------------------
+// Desktop: OAuth popup window (Windows, Linux — macOS uses ASWebAuthenticationSession)
+// ---------------------------------------------------------------------------
+
+/// Open an OAuth URL in an in-app popup window.
+/// Used on Windows and Linux where ASWebAuthenticationSession is not available.
+#[cfg(not(any(target_os = "ios", target_os = "android", target_os = "macos")))]
+fn open_oauth_in_popup(url: &str, app_handle: &tauri::AppHandle) -> Result<(), String> {
+    let app_handle_clone = app_handle.clone();
+
+    let _auth_window = WebviewWindowBuilder::new(
+        app_handle,
+        "oauth-popup",
+        tauri::WebviewUrl::External(url.parse().map_err(|e| format!("Invalid URL: {}", e))?),
+    )
+    .title("Sign In")
+    .inner_size(500.0, 700.0)
+    .center()
+    .focused(true)
+    .on_navigation(move |nav_url| {
+        let url_str = nav_url.as_str();
+
+        // Detect OAuth callback (auth completed)
+        let is_callback = url_str.contains("login.iblai.app")
+            && (url_str.contains("/callback")
+                || url_str.contains("code=")
+                || url_str.contains("token=")
+                || url_str.contains("access_token="));
+
+        if is_callback {
+            if let Some(main_win) = app_handle_clone.get_webview_window("main") {
+                let _ = main_win.eval(&format!("window.location.href = '{}';", url_str));
+                let _ = main_win.set_focus();
+            }
+            if let Some(oauth_win) = app_handle_clone.get_webview_window("oauth-popup") {
+                let _ = oauth_win.close();
+            }
+            return false;
+        }
+
+        true
+    })
+    .build()
+    .map_err(|e| format!("Failed to create OAuth popup: {}", e))?;
+
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![open_external_url])
+        .setup(|app| {
+            // ---- Mobile: deep-link listeners ----
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            {
+                let app_handle = app.handle().clone();
+                if let Ok(Some(urls)) = app.deep_link().get_current() {
+                    for url in urls {
+                        handle_deep_link_url(&app_handle, url.as_str());
+                    }
+                }
+
+                let app_handle = app.handle().clone();
+                app.listen("deep-link://new-url", move |event: tauri::Event| {
+                    if let Ok(urls) = serde_json::from_str::<Vec<String>>(event.payload()) {
+                        for url in urls {
+                            handle_deep_link_url(&app_handle, &url);
+                        }
+                    }
+                });
+            }
+
+            // ---- Desktop: main window with on_navigation ----
+            #[cfg(not(any(target_os = "ios", target_os = "android")))]
+            {
+                let app_handle = app.handle().clone();
+
+                let _window = WebviewWindowBuilder::new(
+                    app,
+                    "main",
+                    tauri::WebviewUrl::App("index.html".into()),
+                )
+                .title("{% endraw %}{{ app_name }}{% raw %}")
+                .inner_size(1200.0, 800.0)
+                .center()
+                .on_navigation(move |url| {
+                    let url_str = url.as_str();
+
+                    // OAuth URLs → open via platform-appropriate mechanism
+                    if is_oauth_url(url_str) {
+                        let _ = open_oauth_url(&app_handle, url_str);
+                        return false;
+                    }
+
+                    // Allow app and auth domains
+                    url_str.starts_with("http://localhost")
+                        || url_str.starts_with("http://127.0.0.1")
+                        || url_str.starts_with("https://login.iblai.app")
+                        || url_str.starts_with("https://api.iblai.app")
+                        || url_str.starts_with("https://api.iblai.org")
+                        || url_str.starts_with("tauri://")
+                        || url_str.starts_with("asset://")
+                        || url_str.contains(".iblai.app")
+                        || url_str.contains(".iblai.org")
+                        || url_str.contains(".vercel.app")
+                })
+                .build()?;
+            }
+
+            // ---- Mobile: main window with safe-area + OAuth interception ----
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            {
+                let app_handle = app.handle().clone();
+
+                let window = WebviewWindowBuilder::new(
+                    app,
+                    "main",
+                    tauri::WebviewUrl::App("index.html".into()),
+                )
+                .initialization_script(MOBILE_INIT_SCRIPT)
+                .on_navigation(move |url| {
+                    let url_str = url.as_str();
+                    if is_oauth_url(url_str) {
+                        let _ = open_oauth_url(&app_handle, url_str);
+                        return false;
+                    }
+                    true
+                })
+                .build()
+                .expect("Failed to create main window");
+
+                // Process any pending deep link
+                if let Ok(mut pending) = get_pending_deep_link().lock() {
+                    if let Some(pending_url) = pending.take() {
+                        if let Ok(js_url) = serde_json::to_string(&pending_url) {
+                            let _ = window.eval(&format!("window.location.href = {};", js_url));
+                        }
+                    }
+                }
+            }
+
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+{% endraw %}

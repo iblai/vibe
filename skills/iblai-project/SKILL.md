@@ -270,11 +270,11 @@ that's a backend issue (LLM config on the mentor) — see
 
 ## CLI Integration (proposal — not yet implemented)
 
-A future `iblai add projects` command should:
+A future helper for this skill could:
 
 1. **Verify `/iblai-agent-chat` is wired** — refuse to run if the
    provider/store/peer-dep setup isn't in place. Point the user at
-   `iblai add agent-chat` first.
+   the `/iblai-agent-chat` skill first.
 2. **Bump the SDK** if it's pinned below the versions in *Prerequisites*.
 3. **Scaffold the route** — write
    `app/agents/[mentorId]/projects/[projectId]/page.tsx` parameterized

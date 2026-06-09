@@ -1,0 +1,31 @@
+"use client";
+{% raw %}
+import { useEffect, useState } from "react";
+import { AnalyticsOverview } from "@iblai/iblai-js/web-containers";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function AnalyticsPage() {
+  const [tenantKey, setTenantKey] = useState("");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setTenantKey(resolveAppTenant());
+    setReady(true);
+  }, []);
+
+  if (!ready || !tenantKey) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <p className="text-sm text-gray-400">Loading analytics…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen w-screen overflow-auto">
+      <AnalyticsOverview tenantKey={tenantKey} mentorId="" />
+    </div>
+  );
+}
+{% endraw %}

@@ -8,6 +8,11 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
+> **Templates:** the files `iblai add auth` generates (providers, store, SSO
+> callback, `lib/iblai/*`) are bundled here as Jinja2 assets —
+> [`assets/`](assets/). See [`/iblai-scaffold`](../iblai-scaffold/SKILL.md)
+> for the `{{ }}` variable contract and the `iblai add` mechanics.
+
 Do NOT ask the user for their platform key. The CLI
 reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
 with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).

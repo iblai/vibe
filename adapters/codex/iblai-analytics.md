@@ -10,6 +10,10 @@ Reports. Each tab is a Next.js route under `/analytics/`.
 
 ![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-analytics/analytics-page.png)
 
+> **Template:** the page `iblai add analytics` generates is bundled as
+> [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
+
 Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
 mode unless asked. Follow the component hierarchy: ibl.ai SDK
 (`@iblai/iblai-js`) first, then shadcn/ui (`npx shadcn@latest add`).

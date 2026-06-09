@@ -9,6 +9,13 @@ alwaysApply: false
 Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
 iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 
+> **Command reference & assets:** the full `iblai builds` subcommand surface
+> (passthrough model, prereqs, `init`/`iconography`/`ci-workflow`/`device`/
+> `screenshot`) is in [`references/builds-command.md`](references/builds-command.md).
+> The Tauri shell templates `iblai add builds` renders are bundled in
+> [`assets/tauri/`](assets/tauri/); the default app icons in
+> [`assets/icons/`](assets/icons/).
+
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
 process on port 3000 before proceeding.

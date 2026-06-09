@@ -10,6 +10,10 @@ Experience, Resume, and Security.
 
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
 
+> **Template:** the dropdown `iblai add profile` generates is bundled as
+> [`assets/profile-dropdown.tsx.j2`](assets/profile-dropdown.tsx.j2). See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
+
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.

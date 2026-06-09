@@ -11,6 +11,10 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 
 ![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-notification/notifications-page.png)
 
+> **Template:** the bell `iblai add notification` generates is bundled as
+> [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
+
 Do NOT add custom styles to ibl.ai SDK components — they ship with their
 own styling. Do NOT implement dark mode unless asked.
 

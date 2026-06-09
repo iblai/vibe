@@ -51,20 +51,10 @@ not in a subdirectory.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- MCP and skills must be set up: `iblai add mcp`
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - A valid edX course id (e.g. `course-v1:org+course+run`). The user must
   already have a course published on their tenant. If not, direct them to
   their LMS Studio to create one.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
 
 ## Step 1: Check Environment
 
@@ -454,7 +444,7 @@ The tab *value* passed to `CourseContentTabPage` stays the same
 ## Step 6: Redux Store
 
 `@iblai/iblai-js/data-layer` ships `coreApiSlice`, `mentorReducer`, and
-`mentorMiddleware` — you already have them if you ran `iblai add auth`.
+`mentorMiddleware` — you already have them if you ran `/iblai-auth`.
 No additional slices are required for course-content. The hooks used
 internally (`useGetExamInfoQuery`, `useGetCourseCompletionQuery`,
 `useGetCourseProgressQuery`, `useCreateCourseEnrollmentMutation`,

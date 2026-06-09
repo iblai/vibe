@@ -1,0 +1,12 @@
+{% raw %}
+/**
+ * Re-export from the base template's config.
+ *
+ * This shim exists so that components added via `iblai add chat`,
+ * `iblai add profile`, etc. can import from "@/lib/iblai/config"
+ * regardless of whether the project was created with `iblai startapp base`
+ * (config at lib/config.ts) or `iblai add auth` (config at lib/iblai/config.ts).
+ */
+export { config, getEnv } from "@/lib/config";
+export { config as default } from "@/lib/config";
+{% endraw %}

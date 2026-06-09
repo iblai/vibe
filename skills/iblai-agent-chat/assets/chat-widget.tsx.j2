@@ -1,0 +1,165 @@
+"use client";
+{% raw %}
+/**
+ * ibl.ai Chat Widget
+ *
+ * A wrapper around the <mentor-ai> Web Component from @iblai/iblai-web-mentor.
+ * The component renders an iframe to the hosted MentorAI platform and handles
+ * authentication, WebSocket streaming, and all chat UI internally.
+ *
+ * Usage:
+ *   import { ChatWidget } from "@/components/iblai/chat-widget";
+ *   <ChatWidget mentorId="your-mentor-id" />
+ *
+ * Prerequisites:
+ *   - pnpm add @iblai/iblai-web-mentor
+ *   - Auth must be set up (iblai add auth or iblai startapp base)
+ */
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+interface ChatWidgetProps {
+  /** The mentor unique_id to chat with. */
+  mentorId: string;
+  /** Override the platform key (defaults to NEXT_PUBLIC_MAIN_TENANT_KEY). */
+  tenantKey?: string;
+  /** Override the MentorAI platform URL (defaults to https://mentorai.{domain}). */
+  mentorUrl?: string;
+  /** Color theme. */
+  theme?: "light" | "dark";
+  /** Width of the chat widget. Number = pixels, string = CSS value. Default: 720. */
+  width?: number | string;
+  /** Height of the chat widget. Number = pixels, string = CSS value. Default: 600. */
+  height?: number | string;
+  /** Additional CSS class for the outer container. */
+  className?: string;
+}
+
+export function ChatWidget({
+  mentorId,
+  tenantKey,
+  mentorUrl,
+  theme = "light",
+  width = 720,
+  height = 600,
+  className,
+}: ChatWidgetProps) {
+  const [mounted, setMounted] = useState(false);
+  const [tokensReady, setTokensReady] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Import the web component on the client only (it needs the DOM).
+  useEffect(() => {
+    import("@iblai/iblai-web-mentor")
+      .then(() => setMounted(true))
+      .catch((e) => {
+        console.error("[IBL] Failed to load @iblai/iblai-web-mentor:", e);
+        setMounted(true);
+      });
+  }, []);
+
+  // Poll for dm_token — TenantProvider fetches it asynchronously.
+  // Only render <mentor-ai> once the token is present so the iframe
+  // receives auth data from a fully authenticated session.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (localStorage.getItem("dm_token")) {
+      setTokensReady(true);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      if (localStorage.getItem("dm_token")) {
+        setTokensReady(true);
+        clearInterval(interval);
+      }
+    }, 200);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      console.warn("[IBL ChatWidget] dm_token not found after 20s — rendering anyway");
+      setTokensReady(true);
+    }, 20_000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  // Tenant priority: explicit prop -> .env -> app_tenant -> localStorage tenant
+  const resolvedTenant = useMemo(() => {
+    if (tenantKey) return tenantKey;
+    return resolveAppTenant();
+  }, [tenantKey]);
+
+  const resolvedWidth = typeof width === "number" ? `${width}px` : width;
+  const resolvedHeight = typeof height === "number" ? `${height}px` : height;
+
+  const resolvedMentorUrl = useMemo(() => {
+    if (mentorUrl) return mentorUrl;
+    const domain = config.platformBaseDomain?.() ?? "iblai.app";
+    return `https://mentorai.${domain}`;
+  }, [mentorUrl]);
+
+  // Create the mentor-ai element imperatively once both module + tokens are ready.
+  // Tokens are delivered via el.redirectToAuthSPA() on the iframe's "ready" event,
+  // which — with authrelyonhost="true" — sends { ...localStorage } to the iframe
+  // via postMessage. By the time this fires, the Providers component has already
+  // fetched and stored "tenants" in localStorage, so the full token set is available.
+  useEffect(() => {
+    if (!mounted || !tokensReady || !containerRef.current) return;
+
+    const el = document.createElement("mentor-ai") as any;
+
+    el.setAttribute("mentorurl", resolvedMentorUrl);
+    el.setAttribute("authurl", config.authUrl());
+    el.setAttribute("lmsurl", config.lmsUrl());
+    el.setAttribute("tenant", resolvedTenant);
+    el.setAttribute("mentor", mentorId);
+    el.setAttribute("theme", theme);
+    el.setAttribute("authrelyonhost", "true");
+    el.setAttribute("extraparams", "hide-navbar=1");
+    el.style.cssText = `display:block;width:${resolvedWidth};height:${resolvedHeight}`;
+
+    containerRef.current.appendChild(el);
+
+    // One-shot: when the iframe sends { ready: true }, call redirectToAuthSPA()
+    // which sends { ...localStorage } (all tokens) to the iframe via postMessage.
+    const tokensSent = { current: false };
+    const handler = (event: MessageEvent) => {
+      if (tokensSent.current) return;
+      if (!event.data?.ready) return;
+      tokensSent.current = true;
+      setTimeout(() => {
+        if (typeof el.redirectToAuthSPA === "function") {
+          el.redirectToAuthSPA();
+        }
+      }, 100);
+    };
+    window.addEventListener("message", handler);
+
+    return () => {
+      window.removeEventListener("message", handler);
+      el.remove();
+    };
+  }, [mounted, tokensReady, resolvedMentorUrl, resolvedTenant, mentorId, theme, resolvedWidth, resolvedHeight]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={className ?? ""}
+      style={{ width: resolvedWidth, height: resolvedHeight }}
+    >
+      {(!mounted || !tokensReady) && (
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-sm text-gray-400">Loading chat…</p>
+        </div>
+      )}
+    </div>
+  );
+}
+{% endraw %}

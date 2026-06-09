@@ -1,0 +1,33 @@
+{% raw %}
+/**
+ * Re-export auth utilities for `iblai add` components.
+ *
+ * This shim exists so that components added via `iblai add chat`,
+ * `iblai add profile`, etc. can import from "@/lib/iblai/auth-utils"
+ * regardless of whether the project was created with `iblai startapp base`
+ * or `iblai add auth`.
+ */
+
+import { config } from "@/lib/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export { redirectToAuthSpa } from "@/lib/utils";
+
+/** Check whether a non-expired auth token exists in localStorage. */
+export function hasNonExpiredAuthToken(): boolean {
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("axd_token");
+  if (!token) return false;
+  const expiry = localStorage.getItem("axd_token_expires");
+  if (!expiry) return false;
+  return new Date(expiry) > new Date();
+}
+
+/** Clear state and redirect to the Auth SPA logout page. */
+export function handleLogout() {
+  const tenant = resolveAppTenant();
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  localStorage.clear();
+  window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;
+}
+{% endraw %}
