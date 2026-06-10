@@ -56,10 +56,10 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 
 ## Built with iblai/vibe
 
-| Project | App | What it does |
-|---------|-----|--------------|
-| [Agentic OS](https://ibl.ai/product/agentic-os) | [os.ibl.ai](https://os.ibl.ai) | Agentic operating system for building and running AI agents |
-| [Agentic LMS](https://ibl.ai/product/agentic-lms) | [lms.ibl.ai](https://lms.ibl.ai) | Agentic learning management system |
+| Project | App | Repo | What it does |
+|---------|-----|------|--------------|
+| [Agentic OS](https://ibl.ai/product/agentic-os) | [os.ibl.ai](https://os.ibl.ai) | [iblai/os](https://github.com/iblai/os) | Agentic operating system for building and running AI agents |
+| [Agentic LMS](https://ibl.ai/product/agentic-lms) | [lms.ibl.ai](https://lms.ibl.ai) | [iblai/lms](https://github.com/iblai/lms) | Agentic learning management system |
 
 ## How It Works
 
