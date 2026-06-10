@@ -13,14 +13,6 @@ Ship AI-powered apps fast. Backend included.
 [![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-ops-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
-**Built with iblai/vibe**
-
-| App | Description |
-| :-- | :-- |
-| [os.ibl.ai](https://os.ibl.ai) | Agentic OS |
-| [video.ibl.ai](https://video.ibl.ai) | AI video |
-| [course.ibl.ai](https://course.ibl.ai) | AI-powered course creation |
-
 </div>
 
 > **Note:** This toolkit runs against the hosted `iblai.app` environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
@@ -48,6 +40,7 @@ See [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) for the fu
 Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
+
 ## What is Vibe
 
 A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
@@ -60,6 +53,13 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** -- consistent design language without the overhead of a custom design system
 - **Ship everywhere** -- web (Vercel), desktop (macOS/Windows/Linux), and mobile (iOS/Android) via Tauri v2
+
+## Built with iblai/vibe
+
+| Project | App | Repo | What it does |
+|---------|-----|------|--------------|
+| [Agentic OS](https://ibl.ai/product/agentic-os) | [os.ibl.ai](https://os.ibl.ai) | [iblai/os](https://github.com/iblai/os) | Agentic operating system for building and running AI agents |
+| [Agentic LMS](https://ibl.ai/product/agentic-lms) | [lms.ibl.ai](https://lms.ibl.ai) | [iblai/lms](https://github.com/iblai/lms) | Agentic learning management system |
 
 ## How It Works
 
@@ -360,15 +360,6 @@ Add the Tauri shell (see [`/iblai-ops-build`](skills/iblai-ops-build/SKILL.md)),
 pnpm exec tauri build           # Desktop build for current platform
 pnpm exec tauri ios init        # iOS project setup
 ```
-
-## Built with iblai/vibe
-
-Apps shipped on top of this toolkit. Open a PR to add yours.
-
-| Project | What it does |
-|---------|--------------|
-| [iblai/videoai](https://github.com/iblai/videoai) | AI video generation and editing |
-| [iblai/recruitai](https://github.com/iblai/recruitai) | AI-powered recruiting and candidate screening |
 
 ## Resources
 
