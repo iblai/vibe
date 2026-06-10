@@ -19,29 +19,17 @@ get_playwright_helper_info("createConfig")    # E2E test utilities
 
 **Vibe** is a developer toolkit for shipping AI-powered apps fast on the ibl.ai platform. It provides:
 
-- The `iblai` CLI for scaffolding apps and adding pre-built components
+- Project scaffolding templates (vibe-starter) and pre-built components
 - Claude Code skills for guided, AI-assisted development
 - The `@iblai/iblai-js` SDK with auth, chat, UI components, and data layer
 - Connection to iblai.app -- a production backend with SSO auth, AI agents, analytics, and multi-tenancy
 
-## Installing the CLI
-
-```bash
-iblai --version    # Check if already available
-```
-
-If not available, see the Prerequisites section in `/iblai-auth` for
-installation options (npx or build from source).
-
 ## Getting Started
-
-The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
-only to override or when `iblai.env` is not set up.
 
 > **AI Assistant:** When the user says "start a new project", "new app",
 > "scaffold an app", or anything that creates a fresh codebase, **default
-> to vibe-starter** (the option below). Only fall back to the vanilla
-> Next.js or `iblai startapp agent` paths if the user explicitly declines
+> to vibe-starter** (the option below). Only fall back to a vanilla Next.js
+> app wired up with the `/iblai-*` skills if the user explicitly declines
 > the starter or asks for a minimal/custom setup.
 
 ### vibe-starter (recommended for new projects)
@@ -61,8 +49,8 @@ cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
 pnpm install
 ```
 
-Then fill in `iblai.env` with `PLATFORM` and `TOKEN` and re-run
-`iblai add auth` so the tenant key is written into `.env.local`.
+Then fill in `iblai.env` with `PLATFORM` and `TOKEN`, and set
+`NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) in `.env.local`.
 
 ### Vanilla Next.js + ibl.ai Features
 
@@ -70,31 +58,24 @@ Then fill in `iblai.env` with `PLATFORM` and `TOKEN` and re-run
 npx create-next-app@latest iblai-init --yes
 cp -a iblai-init/. . && rm -rf iblai-init
 rm -rf node_modules && pnpm install
-iblai add auth
-pnpm dev
 ```
+
+Then run the [`/iblai-auth`](skills/iblai-auth/SKILL.md) skill to wire up SSO
+auth (it creates the providers, store, and `lib/iblai/*` files), then `pnpm dev`.
 
 ### Full ibl.ai Agent App
 
-Scaffold a complete app with auth, chat, and everything pre-configured.
-Always create in a temp directory and copy back to the current directory:
-
-```bash
-iblai startapp agent -o iblai-init
-cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
-cp .env.example .env.local
-pnpm dev
-```
+Use **vibe-starter** (above) for a complete app with auth, chat, and pages
+pre-wired. To assemble one by hand, render the `base`+`agent` templates from
+[`/iblai-scaffold`](skills/iblai-scaffold/SKILL.md), then `pnpm install` and
+`pnpm dev`.
 
 ### Add Features to Any Next.js App
 
-```bash
-iblai add auth           # SSO authentication
-```
-
-Other features (chat, profile, account, analytics, notifications,
-invitations, projects, workflows) are built using skills -- see `/iblai-agent-chat`,
+Features are added with the `/iblai-*` skills (each creates the files and
+wires them in). Start with [`/iblai-auth`](skills/iblai-auth/SKILL.md) (SSO
+authentication). Other features (chat, profile, account, analytics,
+notifications, invitations, projects, workflows) -- see `/iblai-agent-chat`,
 `/iblai-project`, `/iblai-profile`, `/iblai-account`, `/iblai-analytics`,
 `/iblai-notification`, `/iblai-invite`, `/iblai-workflow`.
 
@@ -136,14 +117,14 @@ TOKEN=your-api-token
 VERCEL_TOKEN=your-vercel-token   # Optional — for mobile dev builds via Vercel
 ```
 
-The CLI reads `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` and derives
-the `NEXT_PUBLIC_*` env vars into `.env.local` automatically.
+Map `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` into the
+`NEXT_PUBLIC_*` env vars in `.env.local` (`NEXT_PUBLIC_MAIN_TENANT_KEY` ←
+`PLATFORM`; the API URLs default to `iblai.app`).
 
 > **Important:** `iblai.env` is NOT a replacement for `.env.local`. It only
 > holds the 3 shorthand variables. Next.js reads its runtime env vars from
-> `.env.local` / `.env` / `.env.development` as usual. The CLI bridges the
-> two: it reads `iblai.env` and writes the derived `NEXT_PUBLIC_*` values
-> into `.env.local`.
+> `.env.local` / `.env` / `.env.development` as usual — copy the shorthand
+> values into the `NEXT_PUBLIC_*` vars there.
 
 ### `.env.local` — Next.js env vars (auto-derived)
 
@@ -165,8 +146,8 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 >
 > Do NOT ask the user for their platform key directly. Guide them to populate
-> `iblai.env` instead. The CLI reads these and derives all `NEXT_PUBLIC_*`
-> env vars into `.env.local` automatically.
+> `iblai.env` instead, then map the values into `.env.local`
+> (`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`).
 >
 > `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
 > shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
@@ -177,8 +158,8 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > not in a subdirectory.
 >
 > **Project names MUST be all lowercase.** npm rejects package names with
-> capital letters. When running `npx create-next-app`, `iblai startapp`,
-> or passing `--app-name`, lowercase every name. If the user supplies a
+> capital letters. When running `npx create-next-app` or cloning
+> vibe-starter, lowercase every name. If the user supplies a
 > name like `MyApp` or `AgentBot`, convert it to `my-app` / `agent-bot`
 > before using it. Allowed characters: lowercase letters, digits, `-`, `_`.
 >
@@ -193,26 +174,26 @@ pnpm build              # Production build
 pnpm lint               # ESLint
 pnpm typecheck          # TypeScript type checking
 pnpm test:e2e           # Playwright E2E tests
-
-iblai config show       # View current configuration
-iblai config set KEY VAL  # Update .env.local
-iblai open              # Open localhost:3000 in browser
 ```
+
+Platform config lives in `iblai.env`; map it into `.env.local` (see
+**Environment** above).
 
 ## Adding Features
 
-```bash
-iblai add mcp            # MCP servers + skills (run first)
-iblai add auth           # SSO authentication + Redux store + providers
-iblai add profile        # User profile dropdown
-iblai add account        # Account/organization settings page
-iblai add analytics      # Analytics dashboard page
-iblai add notification  # Notification bell
-iblai add builds         # Tauri v2 desktop/mobile shell
-iblai init               # Alias for iblai add mcp
-```
+Each feature is a `/iblai-*` skill that creates the files and wires them in:
 
-All features require auth to be set up first (`iblai add auth`).
+| Feature | Skill |
+|---|---|
+| MCP servers + skills (set up first) | `@iblai/mcp` in `.mcp.json` |
+| SSO authentication + Redux store + providers | `/iblai-auth` |
+| User profile dropdown | `/iblai-profile` |
+| Account/organization settings page | `/iblai-account` |
+| Analytics dashboard page | `/iblai-analytics` |
+| Notification bell | `/iblai-notification` |
+| Tauri v2 desktop/mobile shell | `/iblai-ops-build` |
+
+All features require auth to be set up first (`/iblai-auth`).
 
 ## Component Hierarchy
 
@@ -297,6 +278,11 @@ Invoke with `/` in Claude Code:
 | `/iblai-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
+| `/iblai-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
+| `/iblai-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
+| `/iblai-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
+| `/iblai-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
+| `/iblai-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
 | `/iblai-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
@@ -348,9 +334,11 @@ testing.
 ## Deployment
 
 ### Vercel
-```bash
-iblai deploy vercel    # Builds, deploys, disables auth, updates devUrl
-```
+
+Deploy with the `vercel` CLI — see [`/iblai-ops-deploy`](skills/iblai-ops-deploy/SKILL.md)
+(`npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes`; for static
+`output: 'export'` builds, deploy `out/`). It also disables Vercel auth and
+updates `devUrl`.
 
 ### Docker
 ```bash
@@ -359,11 +347,13 @@ docker run -p 3000:3000 my-app
 ```
 
 ### Desktop/Mobile (Tauri v2)
+
+Add the Tauri shell (see [`/iblai-ops-build`](skills/iblai-ops-build/SKILL.md)),
+then run Tauri directly:
 ```bash
-iblai add builds           # Add Tauri support
-iblai builds dev           # Dev mode
-iblai builds build         # Production build
-iblai builds ios init      # iOS project setup
+pnpm exec tauri dev          # Dev mode
+pnpm exec tauri build        # Production build
+pnpm exec tauri ios init     # iOS project setup
 ```
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.

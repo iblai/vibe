@@ -1,0 +1,45 @@
+"use client";
+
+import React, { Suspense } from "react";
+import { SsoLogin as SsoLoginComponent } from "@iblai/iblai-js/web-containers/next";
+
+const LOCAL_STORAGE_KEYS = {
+  CURRENT_TENANT: "current_tenant",
+  USER_DATA: "userData",
+  TENANTS: "tenants",
+  AXD_TOKEN_KEY: "axd_token",
+  DM_TOKEN_KEY: "dm_token",
+  DM_TOKEN_EXPIRY: "dm_token_expires",
+  EDX_TOKEN_KEY: "edx_jwt_token",
+};
+
+export const dynamic = "force-dynamic";
+
+function SsoLoginCompleteContent() {
+  const defaultRedirectPath = "/";
+
+  return (
+    <SsoLoginComponent
+      localStorageKeys={{ '{{' }}
+        CURRENT_TENANT: LOCAL_STORAGE_KEYS.CURRENT_TENANT,
+        USER_DATA: LOCAL_STORAGE_KEYS.USER_DATA,
+        TENANTS: LOCAL_STORAGE_KEYS.TENANTS,
+        AXD_TOKEN: LOCAL_STORAGE_KEYS.AXD_TOKEN_KEY,
+        AXD_TOKEN_EXPIRES: "axd_token_expires",
+        DM_TOKEN: LOCAL_STORAGE_KEYS.DM_TOKEN_KEY,
+        DM_TOKEN_EXPIRES: LOCAL_STORAGE_KEYS.DM_TOKEN_EXPIRY,
+        EDX_TOKEN_KEY: LOCAL_STORAGE_KEYS.EDX_TOKEN_KEY,
+      {{ '}}' }}
+      redirectPathKey="redirectTo"
+      defaultRedirectPath={{ '{' }}defaultRedirectPath{{ '}' }}
+    />
+  );
+}
+
+export default function SsoLoginComplete() {
+  return (
+    <Suspense fallback={null}>
+      <SsoLoginCompleteContent />
+    </Suspense>
+  );
+}

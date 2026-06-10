@@ -10,13 +10,17 @@ Add ibl.ai SSO authentication to a vanilla Next.js app. After completion,
 unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
-Do NOT ask the user for their platform key. The CLI
-reads `PLATFORM` from `iblai.env` automatically. If `iblai.env` exists
-with a real `PLATFORM` value, just run `iblai add auth` (no flag needed).
-Otherwise use the placeholder:
-```
-iblai add auth --platform your-platform
-```
+> **Templates:** the auth files this skill creates (providers, store, SSO
+> callback, `lib/iblai/*`) are bundled here as Jinja2 assets —
+> [`assets/`](assets/). You render them into the project in Step 3. See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` variable
+> contract and the shared patch mechanics.
+
+Do NOT ask the user for their platform key. Read `PLATFORM` from `iblai.env`
+(the user fills it in) and use it as the platform key when you create the
+auth files in Step 3. If `iblai.env` has no real `PLATFORM`, use the
+placeholder `your-platform` and tell the user to replace it in `.env.local`
+(`NEXT_PUBLIC_MAIN_TENANT_KEY`).
 
 If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
 value (not a placeholder like `your-main-platform`, `your-tenant`, `your-platform`,
@@ -32,8 +36,8 @@ not in a subdirectory.
 
 Project names MUST be all lowercase — npm rejects package names with
 capital letters. If the user gives a name like `MyApp`, convert it to
-`my-app` before passing to `create-next-app`, `iblai startapp`, or
-`--app-name`. Allowed: lowercase letters, digits, `-`, `_`.
+`my-app` before passing to `create-next-app` or `vibe-starter`. Allowed:
+lowercase letters, digits, `-`, `_`.
 
 When building a navbar or header, do NOT display the platform name.
 Use the ibl.ai logo instead.
@@ -71,81 +75,16 @@ If they prefer to wire auth into an existing app, continue below.
 
 ## Prerequisites
 
- **Already have auth?** If you used `iblai startapp agent`, auth is already
- set up -- skip this skill.
+ **Want a complete app from scratch?** Use **vibe-starter** (Step 0 above) —
+ it ships with auth, a navbar, and profile/account/notifications already
+ wired, so you can skip this skill. For the underlying whole-app scaffold and
+ its templates, see [`/iblai-scaffold`](../iblai-scaffold/SKILL.md).
 
- **Want a complete app from scratch?** Create in a temp directory and copy back:
- ```
- iblai startapp agent -o iblai-init
- cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
- rm -rf node_modules && pnpm install
- cp .env.example .env.local
- pnpm dev
- ```
- If `iblai.env` has `PLATFORM`, the CLI reads it automatically.
- Otherwise pass `--platform your-platform`.
-
- **This skill** is for adding auth to a vanilla Next.js app
- or an existing project.
+ **This skill** adds auth to a vanilla Next.js app or an existing project by
+ creating the auth files directly (Step 3).
 
 - Next.js 14+ with App Router (`app/` directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`)
-### Installing the CLI
-
-If `iblai` is not available:
-
-**pip (recommended):**
-
-```bash
-pip install iblai-app-cli
-```
-
-**npx:**
-
-```bash
-npx @iblai/cli --version
-# Use npx @iblai/cli as prefix: npx @iblai/cli add auth --platform your-main-platform
-```
-
-**Build from source -- macOS / Linux** (Python 3.11+, pip, git, make):
-
-```bash
-git clone https://github.com/iblai/iblai-app-cli.git
-cd iblai-app-cli
-make -C .iblai install
-cd -   # back to your project
-```
-
-If `iblai` is not found after install, add `~/.local/bin` to your PATH:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-To make permanent, add the line to `~/.bashrc` or `~/.zshrc`.
-
-**Build from source -- Windows** (Python 3.11+, pip, git):
-
-```powershell
-git clone https://github.com/iblai/iblai-app-cli.git
-cd iblai-app-cli
-pip install -e .iblai/
-cd -
-```
-
-If `iblai` is not found, ensure Python Scripts is in your PATH.
-Typically at `%APPDATA%\Python\Python311\Scripts\`.
-
-## Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
 
 ## Step 1: Check Environment
 
@@ -156,9 +95,8 @@ If the file does not exist or is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-If `PLATFORM` is set to a real value (not `your-platform` or `your-main-platform`), the CLI
-will read it automatically — no `--platform` flag needed in Step 3.
-Otherwise use the placeholder.
+If `PLATFORM` is set to a real value (not `your-platform` or `your-main-platform`), use it
+as the platform key in Step 3. Otherwise use the placeholder and tell the user to replace it.
 
 ## Step 2: Customize Auth Interface
 
@@ -309,35 +247,49 @@ headline and description from the user's app description. Set
 After a successful PUT (200), tell the user: "Your login page has been
 customized! Changes will appear on your next login at https://login.{domain}".
 
-## Step 3: Run the Generator
+## Step 3: Create the auth files
 
-```bash
-cd your-nextjs-app
+Render the bundled [`assets/`](assets/) Jinja2 templates into the project —
+strip the `.j2` suffix and substitute `{{ platform_key }}` with the platform
+key. For a `src/` layout, place files under `src/lib`, `src/store`,
+`src/providers` accordingly.
 
-# If iblai.env has PLATFORM, the CLI reads it automatically
-iblai add auth
+| Template (`assets/…`) | Destination |
+|---|---|
+| `config.ts.j2` | `lib/iblai/config.ts` |
+| `auth-utils.ts.j2` | `lib/iblai/auth-utils.ts` |
+| `storage-service.ts.j2` | `lib/iblai/storage-service.ts` |
+| `tenant.ts.j2` | `lib/iblai/tenant.ts` |
+| `iblai-store.ts.j2` | `store/iblai-store.ts` |
+| `iblai-providers.tsx.j2` | `providers/iblai-providers.tsx` |
+| `iblai-styles.css.j2` | `app/iblai-styles.css` |
+| `sso-login-complete-page.tsx.j2` | `app/sso-login-complete/page.tsx` |
 
-# Or pass explicitly (overrides iblai.env)
-iblai add auth --platform your-platform
+Then apply the project patches (each is idempotent — check for a marker
+before editing; full mechanics in
+[`/iblai-scaffold` → add-command](../iblai-scaffold/references/add-command.md)):
 
-# Or via npx (when published)
-npx @iblai/cli add auth --platform your-platform
-```
+- **`next.config`** — add the `@reduxjs/toolkit` webpack `resolve.alias` that
+  deduplicates RTK. Without it the SDK binds a different `ReactReduxContext`
+  and RTK Query hooks silently return `undefined`.
+- **`globals.css`** — add `@import "./iblai-styles.css";`.
+- **`.env.local`** — set `NEXT_PUBLIC_MAIN_TENANT_KEY=<platform key>` (the
+  other `NEXT_PUBLIC_*` are derived from `iblai.env`; see
+  [`/iblai-scaffold` → config](../iblai-scaffold/references/config-command.md)).
 
-The platform key sets `NEXT_PUBLIC_MAIN_TENANT_KEY` in `.env.local`.
-The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
-only if you want to override it or don't have an `iblai.env`.
-
-The generator creates 7 files and patches `next.config`, `globals.css`, and `.env.local`.
-It auto-detects `src/` directory layout and places files accordingly.
+The SSO callback at `app/sso-login-complete/page.tsx` must stay **outside**
+the providers (Step 5 / Troubleshooting), or it deadlocks on login.
 
 ## Step 4: Install Dependencies and Add Test Script
 
+Add the SDK dependencies and install:
+
 ```bash
+pnpm add @iblai/iblai-js @reduxjs/toolkit react-redux sonner lucide-react
 pnpm install
 ```
 
-The generator adds these to `package.json`:
+These are:
 
 - `@iblai/iblai-js` -- SDK (auth, data layer, UI components)
 - `@reduxjs/toolkit` + `react-redux` -- state management (SDK uses RTK Query)
@@ -430,24 +382,20 @@ inside it.
 
 ## Step 6: Configure Environment
 
-If the CLI read `PLATFORM` from `iblai.env` or you passed `--platform`, the platform key is already set in `.env.local`.
-Verify with:
+Step 3 created `.env.local` with the platform key. Verify it has the
+right value (edit the line directly if not):
 
 ```bash
-iblai config show
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 ```
 
-Otherwise, edit `.env.local` (created by the generator) or use the CLI:
-
-```bash
-iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY your-main-platform
-```
-
-The default API URLs point to `iblai.app` and are set automatically.
+The default `NEXT_PUBLIC_*` API URLs point to `iblai.app` and come from
+`iblai.env` (see
+[`/iblai-scaffold` → config](../iblai-scaffold/references/config-command.md)).
 
 ## Step 7: Import SDK Styles
 
-Verify `app/globals.css` has the SDK imports (the generator patches this automatically):
+Verify `app/globals.css` has the SDK imports (Step 3 adds these):
 
 ```css
 @import '@iblai/iblai-js/web-containers/styles';
@@ -460,11 +408,9 @@ If these lines are missing, add them near the top of `globals.css`.
 
 After adding auth, check if `app/page.tsx` still has the default Next.js
 content (look for `next/image`, `vercel.svg`, `Vercel`, or
-`Get started by editing`). If it does, replace it with the ibl.ai home page:
-
-```bash
-iblai add homepage
-```
+`Get started by editing`). If it does, replace it with the ibl.ai home page —
+render [`assets/home-page.tsx.j2`](assets/home-page.tsx.j2) into
+`app/(app)/page.tsx` (or `app/page.tsx`), substituting `{{ }}` placeholders.
 
 If the user has already customized their home page, skip this step.
 
@@ -522,11 +468,11 @@ app/
 ```
 
 This prevents the SSO callback deadlock where `AuthProvider` blocks rendering
-before tokens are stored. The generator places the callback at
+before tokens are stored. Step 3 places the callback at
 `app/sso-login-complete/` (flat, no route group) which works for simple apps.
 
-For the route group pattern, see the reference implementation:
-  https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app
+For the route group pattern, see the **vibe-starter** reference app:
+  https://github.com/iblai/vibe-starter/tree/spa
 
 ## Troubleshooting
 
@@ -576,7 +522,7 @@ After auth is set up, add more features using skills -- ask your AI assistant to
 | `/iblai-analytics` | Analytics dashboard page |
 | `/iblai-notification` | Notification bell + center page |
 
-For the complete reference implementation with all features:
-  https://github.com/iblai/iblai-app-cli/tree/main/examples/iblai-agent-app
+For a complete reference app with auth, navbar, and pages already wired:
+  https://github.com/iblai/vibe-starter/tree/spa
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

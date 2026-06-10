@@ -1,0 +1,118 @@
+{% raw %}
+name: Build Desktop (Tauri)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version override (e.g. 1.0.0) - leave empty to use tauri.conf.json"
+        required: false
+        type: string
+
+concurrency:
+  group: tauri-desktop-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS (arm64)
+            os: macos-latest
+            rust_target: aarch64-apple-darwin
+          - label: Linux (x64)
+            os: ubuntu-latest
+            rust_target: x86_64-unknown-linux-gnu
+          - label: Windows (x64)
+            os: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: rust-${{ matrix.rust_target }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            rust-${{ matrix.rust_target }}-
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Tauri CLI
+        shell: bash
+        run: |
+          cargo install cargo-binstall --locked 2>/dev/null || true
+          cargo binstall tauri-cli --no-confirm 2>/dev/null || cargo install tauri-cli --locked
+
+      - name: Override version
+        if: inputs.version != ''
+        shell: bash
+        working-directory: src-tauri
+        run: |
+          sed -i.bak 's/"version": "[^"]*"/"version": "${{ inputs.version }}"/' tauri.conf.json
+          rm -f tauri.conf.json.bak
+          echo "Version set to ${{ inputs.version }}"
+
+      - name: Build Tauri app
+        run: cargo tauri build --target ${{ matrix.rust_target }}
+
+      - name: Upload artifacts (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-macos
+          path: |
+            src-tauri/target/*/release/bundle/dmg/*.dmg
+            src-tauri/target/*/release/bundle/macos/*.app
+          if-no-files-found: warn
+
+      - name: Upload artifacts (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-linux
+          path: |
+            src-tauri/target/*/release/bundle/deb/*.deb
+            src-tauri/target/*/release/bundle/appimage/*.AppImage
+          if-no-files-found: warn
+
+      - name: Upload artifacts (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-windows
+          path: |
+            src-tauri/target/*/release/bundle/nsis/*.exe
+            src-tauri/target/*/release/bundle/msi/*.msi
+          if-no-files-found: warn
+{% endraw %}

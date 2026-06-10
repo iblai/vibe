@@ -7,37 +7,45 @@
 Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
 iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 
+> **Building:** run Tauri directly — `pnpm exec tauri <cmd>` (e.g.
+> `pnpm exec tauri dev`, `pnpm exec tauri ios build`). The Tauri
+> shell templates live in [`assets/tauri/`](assets/tauri/) (copy into
+> `src-tauri/`), the CI workflows in
+> [`assets/tauri/workflows/`](assets/tauri/workflows/), and the default app
+> icons in [`assets/icons/`](assets/icons/). The full mapping (`init`,
+> `device`, `ci-workflow`, `iconography`, `screenshot`) is in
+> [`references/builds-command.md`](references/builds-command.md).
+
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
 process on port 3000 before proceeding.
 
 When the user asks to add iOS or Android build support, automatically start
 the emulator/simulator after initialization -- just like you would start
-`pnpm dev` after adding auth. Run `iblai builds device` to find the
+`pnpm dev` after adding auth. Run `xcrun simctl list devices` (iOS) / `adb devices` (Android) to find the
 available device name, then start the dev build with that device.
 
-Do NOT guess device names. Always run `iblai builds device` first and use
+Do NOT guess device names. Always run `xcrun simctl list devices` (iOS) / `adb devices` (Android) first and use
 a device name from the output.
 
 ## Prerequisites (All Platforms)
 
 - **Tauri support** added to your project:
   ```bash
-  iblai add builds
+  # add the Tauri shell: copy assets/tauri/ into src-tauri/ + add @tauri-apps deps
   pnpm install
   ```
 - **Rust toolchain** installed via [rustup](https://rustup.rs)
 
 ## How Dev Builds Work
 
-All platforms (desktop and mobile) use a static `next build` export. The CLI
-runs the frontend build automatically before starting the Tauri dev server --
-there is no separate `devUrl` or `beforeDevCommand`. The Tauri WebView loads
-the static files from `../out` on all platforms.
+All platforms (desktop and mobile) use a static `next build` export. Tauri
+runs the frontend build (via `beforeBuildCommand`) before starting the dev
+server -- the WebView loads the static files from `../out` on all platforms.
 
-For dev builds, you can optionally deploy to Vercel using
-`iblai deploy vercel` (see `/iblai-ops-deploy`). This deploys `out/` and
-automatically updates `devUrl` in `tauri.conf.json`.
+For dev builds, you can optionally deploy to Vercel with the
+[`/iblai-ops-deploy`](../iblai-ops-deploy/SKILL.md) skill. That deploys `out/`
+and updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
 
@@ -71,7 +79,7 @@ the system browser session and never returns to the app.
 Generate platform-ready icons from your logo (works for all platforms):
 
 ```bash
-iblai builds iconography path/to/logo.png
+pnpm exec tauri icon path/to/logo.png
 ```
 
 This creates all required sizes in `src-tauri/icons/`.
@@ -79,7 +87,7 @@ This creates all required sizes in `src-tauri/icons/`.
 ## List Available Devices
 
 ```bash
-iblai builds device
+pnpm exec tauri device
 ```
 
 ---
@@ -105,7 +113,7 @@ Build and run on iOS Simulator and real devices.
 Run this once after adding Tauri support:
 
 ```bash
-iblai builds ios init
+pnpm exec tauri ios init
 ```
 
 This generates `src-tauri/gen/apple/` with the Xcode project, Swift bridge
@@ -119,7 +127,7 @@ code, and iOS configuration.
 First, list available simulators:
 
 ```bash
-iblai builds device
+pnpm exec tauri device
 ```
 
 **Always pick a device from the list.** Choose the most mainstream iPhone
@@ -128,13 +136,13 @@ iblai builds device
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-iblai deploy vercel
+# deploy via /iblai-ops-deploy
 ```
 
 Then start the dev build:
 
 ```bash
-iblai builds ios dev "iPhone 16 Pro Max"
+pnpm exec tauri ios dev "iPhone 16 Pro Max"
 ```
 
 The first build takes several minutes; subsequent builds are fast.
@@ -150,7 +158,7 @@ The first build takes several minutes; subsequent builds are fast.
 Connect your iPhone via USB, then:
 
 ```bash
-iblai builds ios dev --device
+pnpm exec tauri ios dev --device
 ```
 
 #### Requirements for Physical Devices
@@ -173,7 +181,7 @@ To set up signing:
 #### Local Build
 
 ```bash
-iblai builds ios build
+pnpm exec tauri ios build
 ```
 
 Or:
@@ -190,7 +198,7 @@ The .ipa file is generated at `src-tauri/gen/apple/build/` (or use
 Generate the GitHub Actions workflow:
 
 ```bash
-iblai builds ci-workflow --ios
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 This creates `.github/workflows/tauri-build-ios.yml` which sets up the
@@ -230,7 +238,7 @@ Build and run on Android emulators and real devices.
 ### Initialize Android Project
 
 ```bash
-iblai builds android init
+pnpm exec tauri android init
 ```
 
 This generates `src-tauri/gen/android/` with the Gradle project.
@@ -240,7 +248,7 @@ This generates `src-tauri/gen/android/` with the Gradle project.
 First, list available emulators:
 
 ```bash
-iblai builds device
+pnpm exec tauri device
 ```
 
 **Always pick a device from the list.** Choose the most mainstream Pixel
@@ -250,13 +258,13 @@ Do NOT run without a device name.
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-iblai deploy vercel
+# deploy via /iblai-ops-deploy
 ```
 
 Then start the dev build:
 
 ```bash
-iblai builds android dev "Pixel_9"
+pnpm exec tauri android dev "Pixel_9"
 ```
 
 ### Run on Physical Android Device
@@ -264,13 +272,13 @@ iblai builds android dev "Pixel_9"
 Connect your device via USB with USB debugging enabled, then:
 
 ```bash
-iblai builds android dev --device
+pnpm exec tauri android dev --device
 ```
 
 ### Build Release APK
 
 ```bash
-iblai builds android build
+pnpm exec tauri android build
 ```
 
 Or:
@@ -282,7 +290,7 @@ pnpm tauri:build:android
 #### Android CI
 
 ```bash
-iblai builds ci-workflow --android
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 ---
@@ -300,19 +308,19 @@ iblai builds ci-workflow --android
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-iblai deploy vercel
+# deploy via /iblai-ops-deploy
 ```
 
 Then start the dev build:
 
 ```bash
-iblai builds dev
+pnpm exec tauri dev
 ```
 
 ### Build Release .dmg / .app
 
 ```bash
-iblai builds build
+pnpm exec tauri build
 ```
 
 Or:
@@ -324,7 +332,7 @@ pnpm tauri:build
 #### macOS CI
 
 ```bash
-iblai builds ci-workflow --mac
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 ---
@@ -343,19 +351,19 @@ Build for Microsoft Surface tablets running Windows.
 If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
 
 ```bash
-iblai deploy vercel
+# deploy via /iblai-ops-deploy
 ```
 
 Then start the dev build:
 
 ```bash
-iblai builds dev
+pnpm exec tauri dev
 ```
 
 ### Build Release .msi / .exe
 
 ```bash
-iblai builds build
+pnpm exec tauri build
 ```
 
 The installer targets are configured in `src-tauri/tauri.conf.json` under
@@ -364,7 +372,7 @@ The installer targets are configured in `src-tauri/tauri.conf.json` under
 #### Surface CI
 
 ```bash
-iblai builds ci-workflow --windows
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 ---
@@ -381,19 +389,19 @@ iblai builds ci-workflow --windows
 ### Run in Dev Mode
 
 ```bash
-iblai builds dev
+pnpm exec tauri dev
 ```
 
 ### Build Release .deb / .AppImage
 
 ```bash
-iblai builds build
+pnpm exec tauri build
 ```
 
 #### Linux CI
 
 ```bash
-iblai builds ci-workflow --linux
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 ---
@@ -403,40 +411,41 @@ iblai builds ci-workflow --linux
 Generate CI workflows for all platforms at once:
 
 ```bash
-iblai builds ci-workflow --all
+# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
 ```
 
 ## Summary of Commands
 
 | Task | Command |
 |------|---------|
-| Add Tauri support | `iblai add builds` |
-| Generate app icons | `iblai builds iconography logo.png` |
-| List available devices | `iblai builds device` |
+| Add Tauri support | the Tauri shell (copy `assets/tauri/` into `src-tauri/`) |
+| Generate app icons | `pnpm exec tauri icon logo.png` |
+| List available devices | `xcrun simctl list devices` (iOS) / `adb devices` (Android) |
 | **iOS** | |
-| Initialize iOS project | `iblai builds ios init` |
-| Run on iOS Simulator | `iblai builds ios dev "iPhone 16 Pro Max"` |
-| Run on physical iPhone | `iblai builds ios dev --device` |
-| Build release .ipa | `iblai builds ios build` |
-| iOS CI workflow | `iblai builds ci-workflow --ios` |
+| Initialize iOS project | `pnpm exec tauri ios init` |
+| Run on iOS Simulator | `pnpm exec tauri ios dev "iPhone 16 Pro Max"` |
+| Run on physical iPhone | `pnpm exec tauri ios dev --device` |
+| Build release .ipa | `pnpm exec tauri ios build` |
+| iOS CI workflow | the templates in `assets/tauri/workflows/` |
 | **Android** | |
-| Initialize Android project | `iblai builds android init` |
-| Run on Android emulator | `iblai builds android dev "Pixel_9"` |
-| Run on physical Android | `iblai builds android dev --device` |
-| Build release APK | `iblai builds android build` |
-| Android CI workflow | `iblai builds ci-workflow --android` |
+| Initialize Android project | `pnpm exec tauri android init` |
+| Run on Android emulator | `pnpm exec tauri android dev "Pixel_9"` |
+| Run on physical Android | `pnpm exec tauri android dev --device` |
+| Build release APK | `pnpm exec tauri android build` |
+| Android CI workflow | the templates in `assets/tauri/workflows/` |
 | **Desktop** | |
-| Run desktop dev mode | `iblai builds dev` |
-| Build desktop release | `iblai builds build` |
-| macOS CI workflow | `iblai builds ci-workflow --mac` |
-| Surface CI workflow | `iblai builds ci-workflow --windows` |
-| Linux CI workflow | `iblai builds ci-workflow --linux` |
-| All CI workflows | `iblai builds ci-workflow --all` |
+| Run desktop dev mode | `pnpm exec tauri dev` |
+| Build desktop release | `pnpm exec tauri build` |
+| macOS CI workflow | the templates in `assets/tauri/workflows/` |
+| Surface CI workflow | the templates in `assets/tauri/workflows/` |
+| Linux CI workflow | the templates in `assets/tauri/workflows/` |
+| All CI workflows | the templates in `assets/tauri/workflows/` |
 | **Deploy** | |
-| Deploy frontend to Vercel | `iblai deploy vercel` |
+| Deploy frontend to Vercel | the `/iblai-ops-deploy` skill |
 | Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
 
 ## Reference
 
-- [iblai-app-cli](https://github.com/iblai/iblai-app-cli) -- CLI source and templates
-- `iblai builds --help` -- full list of build commands
+- [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) -- the project templates + scaffold and command behavior
+- [`references/builds-command.md`](references/builds-command.md) -- full `iblai builds` subcommand behavior (for reference)
+- `references/builds-command.md` -- full list of build commands

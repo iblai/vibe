@@ -125,46 +125,6 @@ when running the app for the first time.
 - Node.js 18+
 - pnpm (fall back to npm only if unavailable)
 - An ibl.ai platform login (or a tenant you can SSO into via [iblai.app](https://iblai.app))
-- The `iblai` CLI — install from source (see below)
-
-### Install the `iblai` CLI
-
-The CLI is installed from source via `make`. `clone + make install` is
-the supported install path — the version you run tracks the templates
-the team is editing.
-
-**macOS / Linux** (Python 3.11+, pip, git, make):
-
-```bash
-git clone https://github.com/iblai/iblai-app-cli.git
-cd iblai-app-cli
-make -C .iblai install
-cd -   # back to your project
-```
-
-If `iblai` isn't found afterwards, add `~/.local/bin` to your `PATH`:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc or ~/.zshrc to persist
-```
-
-**Windows** (Python 3.11+, pip, git):
-
-```powershell
-git clone https://github.com/iblai/iblai-app-cli.git
-cd iblai-app-cli
-pip install -e .iblai/
-cd -
-```
-
-If `iblai` isn't found, ensure Python Scripts is on `PATH` (typically
-`%APPDATA%\Python\Python311\Scripts\`).
-
-Verify the install:
-
-```bash
-iblai --version
-```
 
 ### Install & Run
 
@@ -202,36 +162,27 @@ docker run -p {{ port }}:{{ port }} \
 
 {{ INCLUDE this **Deploy to Vercel** subsection whenever the project
 can ship a Vercel deployment (it covers both static `output: 'export'`
-Tauri shells and server-rendered Next.js apps — the CLI auto-detects).
+Tauri shells and server-rendered Next.js apps).
 Drop only if the project is explicitly self-hosted with no Vercel
 target. Full guide:
 [`/iblai-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-ops-deploy/SKILL.md). }}
 
 ### Deploy to Vercel
 
+Deploy with the `vercel` CLI (full procedure in
+[`/iblai-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-ops-deploy/SKILL.md)):
+
 ```bash
-iblai deploy vercel
+# server-rendered app (Vercel runs the build remotely):
+npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
+# static export (Tauri shells): build first, then deploy out/:
+pnpm build && npx vercel deploy out/ --token="$VERCEL_TOKEN" --yes --public
 ```
 
-The CLI auto-detects the deploy mode from `next.config`:
-
-- **Static mode** (`output: 'export'` — Tauri shells, fully-prerendered
-  apps) builds the frontend, writes `out/vercel.json` with `cleanUrls`
-  + SPA rewrite, deploys `out/`, disables Vercel auth / password
-  protection, and (if Tauri is set up) updates
-  `src-tauri/tauri.conf.json` `devUrl` with the deployment URL.
-- **Server mode** (no `output: 'export'` — Next.js with server
-  actions, dynamic routes, API routes) deploys the repo root to Vercel
-  for a remote build, disables Vercel auth / password protection,
-  uploads env vars from `.env.local` to production + preview
-  (`NEXT_PUBLIC_*` as `plain`, the rest as `encrypted`; reserved keys
-  and `your-…` placeholders are skipped), and reruns the deploy with
-  `--force` + `VERCEL_FORCE_NO_BUILD_CACHE=1` whenever env vars
-  changed so the new `NEXT_PUBLIC_*` values are re-inlined into the
-  client bundle.
-
-Override detection with `--mode static` or `--mode server` when
-needed.
+After deploying, disable the project's Vercel auth / password protection.
+For server mode, also push `.env.local` to the project (production + preview)
+and redeploy with `--force` + `VERCEL_FORCE_NO_BUILD_CACHE=1` so the
+`NEXT_PUBLIC_*` values re-inline into the client bundle.
 
 **Setup:** generate a Vercel token at
 [https://vercel.com/account/tokens](https://vercel.com/account/tokens)
@@ -250,13 +201,13 @@ again.
 {{ INCLUDE if `src-tauri/tauri.conf.json` exists. Mirror the structure
 in `/iblai-ops-build` — one subsection per platform (iOS / Android /
 macOS / Linux / Surface), each with a screenshot and the relevant
-`iblai builds …` commands. Do NOT duplicate the full skill — keep
+`pnpm exec tauri …` commands. Do NOT duplicate the full skill — keep
 each platform to ~6–8 lines and link to the canonical guide. }}
 
 ### Native builds (iOS, Android, macOS, Linux, Surface)
 
 Wrap the app in a native shell with [Tauri v2](https://tauri.app) using
-the `iblai builds` family of commands (full guide:
+Tauri directly (`pnpm exec tauri …`) (full guide:
 [`/iblai-ops-build`](https://github.com/iblai/vibe/blob/main/skills/iblai-ops-build/SKILL.md)).
 
 {{ Include only the platforms the project actually targets. Each
@@ -268,11 +219,11 @@ subsection follows this pattern:
 
 ```bash
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
-iblai builds ios init                          # one-time
-iblai builds device                            # list simulators
-iblai builds ios dev "iPhone 16 Pro Max"       # run on simulator
-iblai builds ios build                         # produce .ipa
-iblai builds ci-workflow --ios                 # generate App Store CI
+pnpm exec tauri ios init                          # one-time
+xcrun simctl list devices                            # list simulators
+pnpm exec tauri ios dev "iPhone 16 Pro Max"       # run on simulator
+pnpm exec tauri ios build                         # produce .ipa
+# CI: copy assets/tauri/workflows/tauri-build-ios.yml.j2 (see /iblai-ops-build)                 # generate App Store CI
 ```
 
 }}
@@ -328,23 +279,21 @@ on one screen. }}
 
 ### Adding Features
 
-Use the iblai CLI and Claude Code skills to add new features:
+Use the Claude Code skills to add new features:
 
-```bash
-iblai add auth           # SSO authentication
-iblai add profile        # User profile
-iblai add account        # Account/org settings
-iblai add analytics      # Analytics dashboard
-iblai add notification   # Notification bell
-iblai add invite         # Invite dialogs
-```
+- `/iblai-auth` — SSO authentication
+- `/iblai-profile` — user profile
+- `/iblai-account` — account/org settings
+- `/iblai-analytics` — analytics dashboard
+- `/iblai-notification` — notification bell
+- `/iblai-invite` — invite dialogs
 
 See `CLAUDE.md` for the full list of skills and component priority rules.
 
 ## Resources
 
 - [ibl.ai Documentation](https://docs.ibl.ai)
-- [iblai-app-cli](https://github.com/iblai/iblai-app-cli) — CLI for scaffolding ibl.ai apps
+- [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the ibl.ai SDK
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development
 - [Vibe](https://github.com/iblai/vibe) — developer toolkit for building with ibl.ai
 - [Vibe Starter](https://github.com/iblai/vibe-starter) — pre-wired Next.js + ibl.ai SSO template
@@ -406,17 +355,10 @@ After writing the file, tell the user:
 - **Don't link to non-existent skills:** Cross-references to other
   `/iblai-*` skills are fine; cross-references to skills that don't
   exist are not.
-- **CLI install — clone + make only.** The README's "Install the
-  `iblai` CLI" section is intentionally limited to the source-clone
-  path (macOS/Linux: `make -C .iblai install`; Windows:
-  `pip install -e .iblai/`). Do **not** add `pip install
-  iblai-app-cli`, `npm install -g @iblai/cli`, or `npx @iblai/cli`
-  instructions — those install paths exist but tend to install stale
-  versions out of sync with the templates the team is editing.
 - **Deploy to Vercel section.** Always include the **Deploy to Vercel**
   subsection unless the project is explicitly self-hosted with no
-  Vercel target. The `iblai deploy vercel` command auto-detects static
-  vs. server mode from `next.config`, so the same copy works for both
-  Tauri shells and server-rendered Next.js apps. See
+  Vercel target. The deploy works for both static `output: 'export'`
+  Tauri shells and server-rendered Next.js apps (the mode is detected
+  from `next.config`). See
   [`/iblai-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-ops-deploy/SKILL.md)
   for the full deploy procedure.

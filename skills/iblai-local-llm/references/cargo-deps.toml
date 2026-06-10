@@ -35,7 +35,7 @@ hex = "0.4"
 chrono = "0.4"
 http = "1.0"
 
-# Already present after `iblai add builds` (listed here for reference):
+# Already present once the Tauri shell is added (listed here for reference):
 # tauri = { version = "2", features = ["protocol-asset", "devtools"] }
 # tauri-plugin-shell = "2"
 # tauri-plugin-opener = "2.0.0"

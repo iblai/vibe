@@ -1,0 +1,177 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@tailwind utilities;
+
+@plugin 'tailwind-scrollbar';
+
+/* SDK: custom base styles (CSS variables, no Tailwind utilities) */
+@import '@iblai/iblai-js/web-containers/styles';
+
+/* SDK: scan compiled components so Tailwind generates their utility classes.
+ * lib/iblai/sdk is a symlink to node_modules/@iblai/iblai-js/dist. */
+@source "../lib/iblai/sdk/web-containers/source";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ibl.ai brand colors mapped to shadcn CSS variables.
+ * Source: @iblai/iblai-js web-containers/src/styles/base.css
+ * Primary: #0058cc (ibl.ai blue), Gradient: #00b0ef -> #0058cc */
+:root {
+  --radius: 0.5rem;
+  --background: oklch(1 0 0);                    /* #ffffff */
+  --foreground: oklch(0.521 0.022 255.6);        /* #616a76  text-primary */
+  --card: oklch(1 0 0);                          /* #ffffff */
+  --card-foreground: oklch(0.521 0.022 255.6);   /* #616a76 */
+  --popover: oklch(1 0 0);                       /* #ffffff */
+  --popover-foreground: oklch(0.521 0.022 255.6);/* #616a76 */
+  --primary: oklch(0.492 0.194 259.3);           /* #0058cc  ibl.ai brand blue */
+  --primary-foreground: oklch(1 0 0);            /* #ffffff */
+  --secondary: oklch(0.988 0.002 247.8);         /* #fafbfc  surface */
+  --secondary-foreground: oklch(0.521 0.022 255.6);/* #616a76 */
+  --muted: oklch(0.988 0.002 247.8);             /* #fafbfc */
+  --muted-foreground: oklch(0.573 0.021 258.4);  /* #717985  text-secondary */
+  --accent: oklch(0.967 0.003 264.5);            /* #f3f4f6  hover-bg */
+  --accent-foreground: oklch(0.521 0.022 255.6); /* #616a76 */
+  --destructive: oklch(0.637 0.208 25.3);        /* #ef4444  error */
+  --border: oklch(0.928 0.006 264.5);            /* #e5e7eb */
+  --input: oklch(0.928 0.006 264.5);             /* #e5e7eb */
+  --ring: oklch(0.492 0.194 259.3);              /* #0058cc  focus ring = primary */
+  --chart-1: oklch(0.623 0.188 259.8);           /* #3b82f6  info blue */
+  --chart-2: oklch(0.696 0.149 162.5);           /* #10b981  success green */
+  --chart-3: oklch(0.406 0.152 258.2);           /* #004499  primary dark */
+  --chart-4: oklch(0.769 0.165 70.1);            /* #f59e0b  warning amber */
+  --chart-5: oklch(0.713 0.148 233.2);           /* #00b0ef  primary light */
+  --sidebar: oklch(0.988 0.002 247.8);           /* #fafbfc */
+  --sidebar-foreground: oklch(0.521 0.022 255.6);/* #616a76 */
+  --sidebar-primary: oklch(0.492 0.194 259.3);   /* #0058cc */
+  --sidebar-primary-foreground: oklch(1 0 0);    /* #ffffff */
+  --sidebar-accent: oklch(0.967 0.003 264.5);    /* #f3f4f6 */
+  --sidebar-accent-foreground: oklch(0.521 0.022 255.6);/* #616a76 */
+  --sidebar-border: oklch(0.928 0.006 264.5);    /* #e5e7eb */
+  --sidebar-ring: oklch(0.492 0.194 259.3);      /* #0058cc */
+}
+
+/* ibl.ai dark mode — from SDK base.css .dark-mode tokens */
+.dark {
+  --background: oklch(0.278 0.030 256.8);        /* #1f2937 */
+  --foreground: oklch(0.928 0.006 264.5);        /* #e5e7eb */
+  --card: oklch(0.278 0.030 256.8);              /* #1f2937 */
+  --card-foreground: oklch(0.928 0.006 264.5);   /* #e5e7eb */
+  --popover: oklch(0.278 0.030 256.8);           /* #1f2937 */
+  --popover-foreground: oklch(0.928 0.006 264.5);/* #e5e7eb */
+  --primary: oklch(0.492 0.194 259.3);           /* #0058cc  stays blue in dark mode */
+  --primary-foreground: oklch(1 0 0);            /* #ffffff */
+  --secondary: oklch(0.210 0.032 264.7);         /* #111827 */
+  --secondary-foreground: oklch(0.928 0.006 264.5);/* #e5e7eb */
+  --muted: oklch(0.373 0.031 259.7);             /* #374151 */
+  --muted-foreground: oklch(0.714 0.019 261.3);  /* #9ca3af */
+  --accent: oklch(0.373 0.031 259.7);            /* #374151 */
+  --accent-foreground: oklch(0.928 0.006 264.5); /* #e5e7eb */
+  --destructive: oklch(0.637 0.208 25.3);        /* #ef4444 */
+  --border: oklch(0.373 0.031 259.7);            /* #374151 */
+  --input: oklch(0.373 0.031 259.7);             /* #374151 */
+  --ring: oklch(0.492 0.194 259.3);              /* #0058cc */
+  --chart-1: oklch(0.623 0.188 259.8);           /* #3b82f6 */
+  --chart-2: oklch(0.696 0.149 162.5);           /* #10b981 */
+  --chart-3: oklch(0.713 0.148 233.2);           /* #00b0ef */
+  --chart-4: oklch(0.769 0.165 70.1);            /* #f59e0b */
+  --chart-5: oklch(0.637 0.208 25.3);            /* #ef4444 */
+  --sidebar: oklch(0.210 0.032 264.7);           /* #111827 */
+  --sidebar-foreground: oklch(0.928 0.006 264.5);/* #e5e7eb */
+  --sidebar-primary: oklch(0.492 0.194 259.3);   /* #0058cc */
+  --sidebar-primary-foreground: oklch(1 0 0);    /* #ffffff */
+  --sidebar-accent: oklch(0.373 0.031 259.7);    /* #374151 */
+  --sidebar-accent-foreground: oklch(0.928 0.006 264.5);/* #e5e7eb */
+  --sidebar-border: oklch(0.373 0.031 259.7);    /* #374151 */
+  --sidebar-ring: oklch(0.492 0.194 259.3);      /* #0058cc */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.ibl-dialog-title {
+  @apply text-start text-base font-semibold text-[#646464];
+}
+
+.ibl-button-primary {
+  @apply bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white hover:opacity-90;
+}
+
+.ibl-outline-primary {
+  @apply border-[#2563EB] text-[#2563EB];
+}
+
+.ibl-tooltip-content {
+  @apply rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium whitespace-nowrap text-white shadow-sm transition-opacity duration-300;
+}
+
+/* Custom styles for SDK components */
+[data-sonner-toaster][data-sonner-theme='dark'] .toast-wrapped-contact-tag {
+  @apply text-blue-400 hover:text-blue-300;
+}
+
+body {
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji' !important;
+}
+
+/* Safe area insets for mobile status bar / notch / home indicator */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent zoom on input focus for mobile devices */
+@supports (-webkit-overflow-scrolling: touch) {
+  input,
+  textarea {
+    font-size: 16px !important;
+  }
+}

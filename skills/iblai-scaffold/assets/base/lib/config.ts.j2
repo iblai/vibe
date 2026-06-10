@@ -1,0 +1,71 @@
+/**
+ * Static env object — Next.js inlines NEXT_PUBLIC_* values at build time
+ * only when they appear as literal `process.env.NEXT_PUBLIC_*` references.
+ *
+ * Supports two modes:
+ *   1. Consolidated API (recommended): set NEXT_PUBLIC_API_BASE_URL to a
+ *      single origin (e.g. https://api.iblai.app). LMS, DM, and AXD
+ *      endpoints are derived as /lms, /dm, /axd path prefixes.
+ *   2. Distributed: set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN and each service
+ *      resolves to its own subdomain (learn.{domain}, base.manager.{domain}).
+ */
+const env = {
+  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  NEXT_PUBLIC_AUTH_URL: process.env.NEXT_PUBLIC_AUTH_URL,
+  NEXT_PUBLIC_LMS_URL: process.env.NEXT_PUBLIC_LMS_URL,
+  NEXT_PUBLIC_DM_URL: process.env.NEXT_PUBLIC_DM_URL,
+  NEXT_PUBLIC_AXD_URL: process.env.NEXT_PUBLIC_AXD_URL,
+  NEXT_PUBLIC_BASE_WS_URL: process.env.NEXT_PUBLIC_BASE_WS_URL,
+  NEXT_PUBLIC_MAIN_TENANT_KEY: process.env.NEXT_PUBLIC_MAIN_TENANT_KEY,
+  NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
+  NEXT_PUBLIC_PLATFORM_BASE_DOMAIN:
+    process.env.NEXT_PUBLIC_PLATFORM_BASE_DOMAIN,
+  NEXT_PUBLIC_TAURI_CUSTOM_SCHEME: process.env.NEXT_PUBLIC_TAURI_CUSTOM_SCHEME,
+};
+
+const runtimeEnv = () =>
+  typeof window !== "undefined" ? (window as any).__ENV__ || {} : {};
+
+export const getEnv = (key: keyof typeof env, fallback = ""): string => {
+  return runtimeEnv()[key] ?? env[key] ?? fallback;
+};
+
+const domain = () =>
+  getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app");
+
+/**
+ * Application configuration
+ * Priority: runtime env (window.__ENV__) → build-time env (process.env) → fallback
+ */
+export const config = {
+  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", "https://login.iblai.app"),
+  lmsUrl: () => {
+    const explicit = getEnv("NEXT_PUBLIC_LMS_URL");
+    if (explicit) return explicit;
+    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
+    if (apiBase) return `${apiBase}/lms`;
+    return `https://learn.${domain()}`;
+  },
+  dmUrl: () => {
+    const explicit = getEnv("NEXT_PUBLIC_DM_URL");
+    if (explicit) return explicit;
+    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
+    if (apiBase) return `${apiBase}/dm`;
+    return `https://base.manager.${domain()}`;
+  },
+  axdUrl: () => {
+    const explicit = getEnv("NEXT_PUBLIC_AXD_URL");
+    if (explicit) return explicit;
+    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
+    if (apiBase) return `${apiBase}/axd`;
+    return `https://base.manager.${domain()}`;
+  },
+  wsUrl: () =>
+    getEnv("NEXT_PUBLIC_BASE_WS_URL", `wss://asgi.data.${domain()}`),
+  baseWsUrl: () =>
+    getEnv("NEXT_PUBLIC_BASE_WS_URL", `wss://asgi.data.${domain()}`),
+  mainTenantKey: () => getEnv("NEXT_PUBLIC_MAIN_TENANT_KEY", "{{ platform_key }}"),
+  supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
+  tauriCustomScheme: () => getEnv("NEXT_PUBLIC_TAURI_CUSTOM_SCHEME", ""),
+  platformBaseDomain: () => domain(),
+} as const;

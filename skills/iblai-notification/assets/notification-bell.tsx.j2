@@ -1,0 +1,55 @@
+"use client";
+{% raw %}
+/**
+ * ibl.ai Notification Bell
+ *
+ * Displays an icon with unread count badge. Clicking opens a dropdown
+ * with the latest notifications.
+ *
+ * Usage:
+ *   import { IblaiNotificationBell } from "@/components/iblai/notification-bell";
+ *   <IblaiNotificationBell />
+ *
+ * Prerequisites:
+ *   - <IblaiProviders> must wrap this component's ancestor tree
+ */
+
+import { useMemo } from "react";
+import { NotificationDropdown } from "@iblai/iblai-js/web-containers";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+interface IblaiNotificationBellProps {
+  /** Additional CSS class for the dropdown trigger. */
+  className?: string;
+  /** Callback when "View all" is clicked. */
+  onViewAll?: () => void;
+}
+
+export function IblaiNotificationBell({
+  className,
+  onViewAll,
+}: IblaiNotificationBellProps) {
+  const tenantKey = useMemo(() => resolveAppTenant(), []);
+
+  const userId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem("userData");
+      return raw ? JSON.parse(raw).user_nicename ?? "" : "";
+    } catch {
+      return "";
+    }
+  }, []);
+
+  if (!tenantKey || !userId) return null;
+
+  return (
+    <NotificationDropdown
+      org={tenantKey}
+      userId={userId}
+      className={className}
+      onViewNotifications={onViewAll}
+    />
+  );
+}
+{% endraw %}

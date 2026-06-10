@@ -1,0 +1,30 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for {{ app_name }}",
+  "windows": ["main"],
+  "local": true,
+  "remote": {
+    "urls": [
+      "https://*.iblai.app/*",
+      "https://*.vercel.app/*",
+      "http://127.0.0.1:*/*",
+      "http://localhost:*/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit",
+    "core:window:default",
+    "core:window:allow-close",
+    "core:window:allow-set-size",
+    "core:window:allow-set-title",
+    "core:webview:default",
+    "core:window:allow-create",
+    "opener:default",
+    "deep-link:default"
+  ]
+}

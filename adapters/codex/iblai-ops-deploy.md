@@ -7,6 +7,11 @@
 Deploy your ibl.ai app frontend to a hosting platform. Currently supports
 Vercel; extensible to other platforms.
 
+> **Command reference:** the full deploy behavior — static
+> vs server mode detection, scope resolution, env-var sync, auth-disable, and
+> the `tauri.conf.json` `devUrl` update — is in
+> [`references/deploy-command.md`](references/deploy-command.md).
+
 ## Prerequisites
 
 - `VERCEL_TOKEN` set in `iblai.env`
@@ -18,43 +23,44 @@ Vercel; extensible to other platforms.
 
 ## Deploy to Vercel
 
-Run the CLI command:
+Run the deploy with the `vercel` CLI directly. First detect the mode from
+`next.config` (`output: 'export'` ⇒ static, else server).
+
+**Static mode** — `output: 'export'` is set (Tauri shells, fully-prerendered apps):
 
 ```bash
-iblai deploy vercel
+pnpm build
+# write out/vercel.json: {"cleanUrls":true,"rewrites":[{"source":"/(.*)","destination":"/index.html"}]}
+npx vercel deploy out/ --token="$VERCEL_TOKEN" --yes --public   # add --scope <team> if scoped
 ```
 
-The CLI auto-detects the deploy mode from `next.config` and adapts:
-
-**Static mode** — when `next.config` sets `output: 'export'` (Tauri shells, fully-prerendered apps):
-
-1. Builds the frontend (`pnpm build`)
-2. Writes `out/vercel.json` with `cleanUrls` + SPA rewrite
-3. Deploys `out/` to Vercel (public)
-4. Disables Vercel authentication and password protection
-5. Updates `src-tauri/tauri.conf.json` `devUrl` with the deployment URL (if Tauri is set up)
-6. Prints the deployment URL
-
-**Server mode** — when `output: 'export'` is **not** set (Next.js with server actions, dynamic routes, API routes, server-only env vars):
-
-1. Deploys the repo root to Vercel (`--prod`); Vercel runs the Next.js build remotely
-2. Disables Vercel authentication and password protection
-3. **Uploads env vars from `.env.local`** to the Vercel project for production + preview environments. `NEXT_PUBLIC_*` keys are stored as `plain`; everything else as `encrypted`. Reserved (`VERCEL_*`, `NODE_ENV`, `VERCEL_TOKEN`) and placeholder values (`your-...`, empty) are skipped automatically. Idempotent: existing keys are PATCHed, new keys are POSTed.
-4. **Rebuilds (no cache) if env vars changed** — `NEXT_PUBLIC_*` values are inlined into the client bundle at build time. The CLI reruns the deploy with `--force` and `VERCEL_FORCE_NO_BUILD_CACHE=1` in the environment after any create/update; without the no-cache hint, Vercel restores the previous build's compiled bundle and the new values never reach the client.
-5. Updates `src-tauri/tauri.conf.json` `devUrl` if Tauri is set up
-6. Prints the deployment URL
-
-Override detection if needed:
+**Server mode** — `output: 'export'` is **not** set (server actions, dynamic
+routes, API routes):
 
 ```bash
-iblai deploy vercel --mode static   # force static
-iblai deploy vercel --mode server   # force server
+npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public   # add --scope <team> if scoped
 ```
+
+Then, regardless of mode:
+
+1. **Disable Vercel auth** — PATCH the project's `ssoProtection` and
+   `passwordProtection` to `null` via the Vercel API so the deploy is public.
+2. **Server mode only — sync env + rebuild:** push `.env.local` to the
+   project (production + preview; `NEXT_PUBLIC_*` as `plain`, everything else
+   `encrypted`; skip `VERCEL_*` / `NODE_ENV` / `VERCEL_TOKEN` / `your-…`
+   placeholders; PATCH existing keys, POST new ones). If any key changed,
+   redeploy with `--force` and `VERCEL_FORCE_NO_BUILD_CACHE=1` so the
+   `NEXT_PUBLIC_*` values re-inline into the client bundle.
+3. **Update Tauri** — set `src-tauri/tauri.conf.json` `build.devUrl` to the
+   deployment URL (if Tauri is set up).
+
+The exact Vercel API calls, scope resolution, and full reserved-var list are
+in [`references/deploy-command.md`](references/deploy-command.md).
 
 ## When to Deploy
 
-- Before running dev builds (`iblai builds dev`, `iblai builds ios dev`, `iblai builds android dev`)
-  so the WebView loads from a network URL
+- Before running dev builds (`pnpm exec tauri dev`, `… tauri ios dev`,
+  `… tauri android dev`) so the WebView loads from a network URL
 - After frontend changes when iterating on dev builds
 - When sharing a preview URL
 
@@ -65,5 +71,5 @@ To stop using the Vercel URL for mobile dev builds, remove `devUrl` from
 
 ## Reference
 
-- `iblai deploy vercel --help`
+- Full behavior: [`references/deploy-command.md`](references/deploy-command.md)
 - [Vercel token management](https://vercel.com/account/tokens)

@@ -12,6 +12,10 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 
 ![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-notification/notifications-page.png)
 
+> **Template:** the bell this skill creates is bundled as
+> [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
+> [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
+
 Do NOT add custom styles to ibl.ai SDK components — they ship with their
 own styling. Do NOT implement dark mode unless asked.
 
@@ -43,21 +47,17 @@ If they prefer to add notifications to an existing app, continue below.
 ## Prerequisites
 
 - Auth set up (`/iblai-auth`)
-- MCP and skills set up (`iblai add mcp`)
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing,
   tell the user to download the template:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 
-## Generate
+## Create the Bell
 
-```bash
-iblai --version    # upgrade if outdated: pip install --upgrade iblai-app-cli OR npm i -g @iblai/cli@latest
-iblai add notification
-```
-
-Generated: `components/iblai/notification-bell.tsx` — bell with unread
-badge. Reads `userData` and `tenant` from localStorage; returns `null`
-when unauthenticated.
+Render [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2)
+into `components/iblai/notification-bell.tsx` (substitute `{{ }}`
+placeholders) — a bell with unread badge. Reads `userData` and `tenant` from
+localStorage; returns `null` when unauthenticated.
 
 ## Components
 

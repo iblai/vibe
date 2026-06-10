@@ -104,67 +104,39 @@ If you find nothing:
 
 ## Creating a New App
 
-### Vanilla Next.js + ibl.ai Features
-
-Start with a standard Next.js app and add features as needed:
-
-The CLI reads `PLATFORM` from `iblai.env` automatically. Pass `--platform`
-only if you want to override it or don't have an `iblai.env`.
+For a brand-new project, clone **vibe-starter** — a pre-wired Next.js 16 +
+Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
+and profile/account/notifications pages already in place:
 
 ```bash
-npx create-next-app@latest iblai-init --yes
-cp -a iblai-init/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
-iblai add auth
-pnpm dev
+git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+pnpm install
 ```
 
-### Full ibl.ai Agent App
+Fill `iblai.env` with `PLATFORM`/`TOKEN`, then map them into `.env.local`
+(`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`).
 
-Scaffold a complete app with auth, chat, and everything pre-configured.
-Always create in a temp directory and copy back to the current directory:
-
-```bash
-iblai startapp agent -o iblai-init
-cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
-cp .env.example .env.local
-pnpm dev
-```
-
-### Non-Interactive (CI/CD)
-
-```bash
-iblai startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
-cp -a iblai-init/my-app/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
-cp .env.example .env.local
-```
-
-### AI-Enhanced Scaffolding
-
-Set your API key as an environment variable (never pass secrets as CLI arguments):
-
-```bash
-export ANTHROPIC_API_KEY=<your-key>
-iblai startapp agent \
-  --prompt "kids learning assistant with bright colors"
-```
+To build up from a bare Next.js app instead, start with
+`npx create-next-app@latest`, run the [`/iblai-auth`](../iblai-auth/SKILL.md)
+skill (it creates the auth files), then add features with the skills below.
+The whole-app scaffold (base/agent project templates) lives in
+[`/iblai-scaffold`](../iblai-scaffold/SKILL.md).
 
 ## Available Components
 
-| Command | What It Adds | Skill |
+| Feature | What It Adds | Skill |
 |---------|-------------|-------|
-| `iblai add mcp` | MCP servers + skills (run first) | |
-| `iblai add auth` | SSO authentication | `/iblai-auth` |
-| (skill only) | Full in-process agent chat surface | `/iblai-agent-chat` |
-| `iblai add profile` | User profile dropdown | `/iblai-profile` |
-| `iblai add account` | Account/organization settings | `/iblai-account` |
-| `iblai add analytics` | Analytics dashboard | `/iblai-analytics` |
-| `iblai add notification` | Notification bell | `/iblai-notification` |
-| | User invitation dialogs | `/iblai-invite` |
-| | Workflow builder components | `/iblai-workflow` |
-| `iblai add builds` | Tauri v2 desktop/mobile shell | |
+| MCP + skills | `@iblai/mcp` server + skills (set up first) | |
+| Authentication | SSO authentication | `/iblai-auth` |
+| Agent chat | Full in-process agent chat surface | `/iblai-agent-chat` |
+| Profile | User profile dropdown | `/iblai-profile` |
+| Account | Account/organization settings | `/iblai-account` |
+| Analytics | Analytics dashboard | `/iblai-analytics` |
+| Notifications | Notification bell | `/iblai-notification` |
+| Invitations | User invitation dialogs | `/iblai-invite` |
+| Workflows | Workflow builder components | `/iblai-workflow` |
+| Desktop/mobile | Tauri v2 desktop/mobile shell | `/iblai-ops-build` |
 
 ## Layout & Page Patterns
 
@@ -245,7 +217,9 @@ Key navbar details:
 All components below are from `@iblai/iblai-js/web-containers`. Use MCP tools
 (`get_component_info`, `get_hook_info`) for full props and usage examples.
 
-> Auto-generated from `@iblai/web-containers` type declarations. Re-generate with: `iblai update-gallery <path>`
+> Auto-generated from `@iblai/web-containers` type declarations. Re-generate
+> with `iblai update-gallery <path>` — behavior + `--screenshots` flags in
+> [`references/update-gallery-command.md`](references/update-gallery-command.md).
 
 ### Authentication & SSO
 
@@ -436,6 +410,8 @@ when you need lower-level building blocks inside SDK component customizations:
    ```bash
    npx shadcn@latest add @shadcn-space/hero-01
    ```
+   Full block catalog, install flow, and brand-consistency rules:
+   [`references/shadcnspace-blocks.md`](references/shadcnspace-blocks.md).
 
 ibl.ai and shadcn components share the same Tailwind theme and are visually seamless.
 
@@ -455,22 +431,11 @@ ibl.ai and shadcn components share the same Tailwind theme and are visually seam
 - shadcn Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild` prop
   is NOT available on `SheetTrigger`.
 
-## CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
-
 ## Requirements
 
 - Next.js App Router project (app/ directory)
 - Node.js 18+
-- `iblai` CLI available (`iblai --version`). See `/iblai-auth` prerequisites for installation.
-- Run `iblai add mcp` first to set up MCP servers and skills
-- If you started with `npx create-next-app@latest`, run `iblai add auth` first -- other components depend on the auth providers
-- If you used `iblai startapp agent`, auth is already set up
+- The `@iblai/mcp` server + skills configured in `.mcp.json`
+- Auth set up first via `/iblai-auth` (other components depend on the auth
+  providers) — or start from vibe-starter, which already has it
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

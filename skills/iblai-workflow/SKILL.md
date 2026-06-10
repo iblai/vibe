@@ -48,17 +48,7 @@ not in a subdirectory.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- MCP and skills must be set up: `iblai add mcp`
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 
 ## Step 1: Check Environment
 

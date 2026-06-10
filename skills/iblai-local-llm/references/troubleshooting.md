@@ -74,7 +74,7 @@ get `false`:
 
 1. Confirm `app.withGlobalTauri: true` in
    `src-tauri/tauri.conf.json`.
-2. Check that you're running through `iblai builds dev` (or
+2. Check that you're running through `pnpm exec tauri dev` (or
    `cargo tauri dev`), not `pnpm dev` in a normal browser tab.
 3. Open devtools on the Tauri window and run
    `Object.keys(window).filter(k => k.startsWith('__TAURI'))` — at

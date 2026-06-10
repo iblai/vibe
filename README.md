@@ -43,11 +43,11 @@ Ask Claude to start an ibl.ai agent app.
 
 ## What is Vibe
 
-A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
+A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
 
 **Why it matters:**
 
-- **Start building in minutes, not days** -- the CLI scaffolds a complete app with auth, AI chat, and a dashboard out of the box
+- **Start building in minutes, not days** -- vibe-starter scaffolds a complete app with auth, AI chat, and a dashboard out of the box
 - **Backend included** -- `iblai.app` provides SSO auth, AI agent infrastructure, analytics, and tenant management (free tier available)
 - **Client-side auth via SSO** -- no API tokens to store, rotate, or leak
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
@@ -69,13 +69,13 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 4. **Deploy** -- push to Vercel or package with Tauri
 
 
-Get a complete app with auth, AI chat, profiles, and more in one command (Check [iblai/iblai-app-cli](https://github.com/iblai/iblai-app-cli) for installation guide for the `iblai` CLI):
+Get a complete app with auth, AI chat, profiles, and more by cloning **vibe-starter**:
 
 ```bash
-iblai startapp agent -o iblai-init
-cp -a iblai-init/<app-name>/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
-cp .env.example .env.local
+git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
+cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+pnpm install
+cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY
 pnpm dev
 ```
 
@@ -146,7 +146,12 @@ What each skill does:
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
 - `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
 - `/iblai-ops-test` -- validates the app before it is presented to the user.
-- `/iblai-ops-upgrade` -- upgrades the ibl.ai CLI, SDK, and vibe skills to the latest versions.
+- `/iblai-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
+- `/iblai-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
+- `/iblai-iconography` -- generates every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from a single source image.
+- `/iblai-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
+- `/iblai-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
+- `/iblai-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
 - `/iblai-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
 - `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
 - `/iblai-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
@@ -213,26 +218,25 @@ Already have a project? Install the skills and let your AI agent add features:
 npx skills add iblai/vibe
 ```
 
-Then use the [CLI](https://github.com/iblai/iblai-app-cli) to add features:
+Then add features with the `/iblai-*` skills -- each creates the files and wires them in:
 
-```bash
-iblai add mcp            # MCP servers + skills (run first)
-iblai add auth           # SSO authentication
-iblai add profile        # User profile dropdown
-iblai add account        # Account/organization settings
-iblai add analytics      # Analytics dashboard
-iblai add notification  # Notification bell
-```
+- `/iblai-auth` — SSO authentication
+- `/iblai-profile` — user profile dropdown
+- `/iblai-account` — account/organization settings
+- `/iblai-analytics` — analytics dashboard
+- `/iblai-notification` — notification bell
+
+(Ensure the `@iblai/mcp` server + skills are configured in `.mcp.json` first.)
 
 ### CI/CD
 
-Use `--yes` to skip interactive prompts:
+Cloning vibe-starter is already non-interactive -- inject the `NEXT_PUBLIC_*`
+vars from CI secrets:
 
 ```bash
-iblai startapp agent --yes --platform acme --agent my-id --app-name my-app -o iblai-init
-cp -a iblai-init/my-app/. . && rm -rf iblai-init
+git clone -b spa https://github.com/iblai/vibe-starter.git app && cd app
 rm -rf node_modules && pnpm install
-cp .env.example .env.local
+cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY from CI secrets
 ```
 
 ## The iblai Backend
@@ -299,6 +303,11 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-ops-test` | Test your app before showing work to the user |
 | `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
+| `/iblai-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
+| `/iblai-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
+| `/iblai-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
+| `/iblai-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
+| `/iblai-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
 | `/iblai-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
 | `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
@@ -334,9 +343,10 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 ### Vercel (recommended)
 
 One-click deploy. Connect your repo, set your environment variables, and push.
+Or deploy with the `vercel` CLI -- see [`/iblai-ops-deploy`](skills/iblai-ops-deploy/SKILL.md):
 
 ```bash
-iblai deploy vercel
+npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
 ```
 
 
@@ -344,21 +354,21 @@ iblai deploy vercel
 
 Build native apps for macOS, Windows, Linux, iOS, and Android:
 
+Add the Tauri shell (see [`/iblai-ops-build`](skills/iblai-ops-build/SKILL.md)), then:
+
 ```bash
-iblai add builds              # Add Tauri support
-iblai builds build            # Desktop build for current platform
-iblai builds ios init         # iOS project setup
-iblai builds ci-workflow --all  # GitHub Actions for all platforms
+pnpm exec tauri build           # Desktop build for current platform
+pnpm exec tauri ios init        # iOS project setup
 ```
 
 ## Resources
 
-- [iblai-app-cli](https://github.com/iblai/iblai-app-cli) -- the CLI that scaffolds Vibe apps
+- [Vibe Starter](https://github.com/iblai/vibe-starter) -- pre-wired Next.js + ibl.ai SSO template
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) -- unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
-- [Skills Reference](https://github.com/iblai/iblai-app-cli#skills) -- documentation for all bundled Claude Code skills
+- [Skills Reference](https://github.com/iblai/vibe/tree/main/skills) -- documentation for all bundled Claude Code skills
 
 ## License
 
