@@ -1,6 +1,6 @@
 # iblai-cli-maintenance
 
-> Internals of the `iblai` CLI (iblai-app-cli) — how its commands, Jinja2 template system, standalone-binary build, and release/publish flows are structured. Use when maintaining, debugging, rebuilding, or reproducing the iblai CLI itself, or when you need to know how `iblai add` / `iblai startapp` / `iblai builds` work under the hood. The CLI is slated for retirement; this skill preserves its construction so the behavior can be reproduced or ported.
+> Internals of the `iblai` CLI (iblai-app-cli) — how its commands, Jinja2 template system, standalone-binary build, and release/publish flows are structured. Use when maintaining, debugging, rebuilding, or reproducing the iblai CLI itself, or when you need to know how `iblai add` / `iblai startapp` / `iblai builds` work under the hood — it preserves the CLI's construction so the behavior can be reproduced or ported.
 
 # /iblai-cli-maintenance
 
@@ -14,10 +14,9 @@ that owns the feature:
 - `iblai builds …` (Tauri desktop/mobile) → [`/iblai-ops-build`](../iblai-ops-build/SKILL.md)
 - `iblai deploy …` → [`/iblai-ops-deploy`](../iblai-ops-deploy/SKILL.md)
 
-> **The CLI is being retired.** This skill exists so the tool can be
-> rebuilt, forked, or its logic ported into a successor. When the
-> `iblai-app-cli` repo is deleted, these references are the record of how
-> it worked.
+> This skill is the authoritative record of how the `iblai` CLI is built —
+> so it can be rebuilt, forked, or its logic ported. The references below
+> are the source of truth.
 
 ## What's here
 

@@ -78,7 +78,7 @@ If they prefer to add a navbar to an existing app, continue below.
 
 ## Prerequisites
 
-- Auth must be set up first (`iblai add auth`)
+- Auth must be set up first (`/iblai-auth`)
 - `@iblai/iblai-js` SDK installed
 - shadcn/ui initialized (`npx shadcn@latest init`)
 - Lucide icons: `pnpm add lucide-react`

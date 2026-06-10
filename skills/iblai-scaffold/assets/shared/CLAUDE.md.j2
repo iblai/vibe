@@ -23,7 +23,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 - **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
 {% else %}
 - **Template**: base (auth + store + blank canvas)
-- **Extend with**: `iblai add auth|chat|profile|notifications|mcp|tauri`
+- **Extend with** the ibl.ai skills: `/iblai-auth`, `/iblai-agent-chat`, `/iblai-profile`, `/iblai-notification`, `/iblai-ops-build`
 {% endif %}
 {% if builds %}
 - **Desktop/mobile**: Tauri v2 shell (`src-tauri/`)
@@ -45,9 +45,9 @@ pnpm test:e2e:headed    # Headed browser mode
 {% if builds %}
 
 # Tauri desktop/mobile
-iblai builds dev                     # Dev mode (Next.js + native shell)
-iblai builds build                   # Production build for current platform
-iblai builds icon path/to/icon.png   # Generate all icon sizes
+pnpm exec tauri dev                  # Dev mode (Next.js + native shell)
+pnpm exec tauri build                # Production build for current platform
+pnpm exec tauri icon path/to/icon.png   # Generate icon sizes
 pnpm tauri:build:msix               # Windows MSIX package (x64)
 pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
 {% endif %}
@@ -134,14 +134,15 @@ These versions are pinned and tested together. Do not upgrade individually — t
 
 ## Add Features
 
-```bash
-iblai add auth           # SSO authentication + Redux store + providers
-iblai add chat           # AI chat widget (<mentor-ai> web component)
-iblai add profile        # User profile dropdown
-iblai add notification  # Notification bell with unread badge
-iblai add mcp            # MCP server config + Claude/OpenCode skills
-iblai add builds          # Tauri v2 desktop/mobile shell
-```
+Add features with the ibl.ai skills -- each creates the files and wires them in:
+
+- `/iblai-auth` — SSO authentication + Redux store + providers
+- `/iblai-agent-chat` — in-process agent chat surface
+- `/iblai-profile` — user profile dropdown
+- `/iblai-notification` — notification bell with unread badge
+- `/iblai-ops-build` — Tauri v2 desktop/mobile shell
+
+(Ensure the `@iblai/mcp` server + skills are configured in `.mcp.json`.)
 
 ## Skills
 
@@ -149,18 +150,17 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 
 | Skill | Description |
 |-------|-------------|
-| `/iblai-setup` | What's set up, env config, localStorage keys, MCP tools |
-| `/iblai-add-auth` | Add SSO authentication to an existing project |
-| `/iblai-add-chat` | AI chat widget + customization |
-| `/iblai-add-profile` | Profile dropdown + full settings page |
-| `/iblai-add-account` | Organization/account settings |
-| `/iblai-add-analytics` | Analytics dashboard |
-| `/iblai-add-notification` | Notification bell + center page |
-| `/iblai-add-component` | Generic guide for any SDK component |
-| `/iblai-add-shadcn-component` | Add shadcnspace blocks with ibl.ai brand consistency |
-| `/iblai-add-test` | Playwright E2E test patterns |
-| `/iblai-build-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
-| `/iblai-iconography` | Generate all Tauri icon sizes from a source image |
+| `/iblai-auth` | Add SSO authentication |
+| `/iblai-agent-chat` | In-process agent chat surface |
+| `/iblai-profile` | Profile dropdown + settings page |
+| `/iblai-account` | Organization/account settings |
+| `/iblai-analytics` | Analytics dashboard |
+| `/iblai-notification` | Notification bell + center page |
+| `/iblai-component` | Overview of all SDK components |
+| `/iblai-ops-build` | Desktop/mobile builds (Tauri v2) |
+| `/iblai-ops-deploy` | Deploy to Vercel |
+| `/iblai-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
+| `/iblai-iconography` | Generate Tauri icon sizes from a source image |
 | `/iblai-deslop` | Audit and harden codebases for production readiness |
 
 ## UI Blocks (shadcnspace)
@@ -174,18 +174,11 @@ npx shadcn@latest add @shadcn-space/dashboard-shell-01
 
 Browse: https://shadcnspace.com/blocks
 
-## ibl.ai CLI Repo
+## ibl.ai Resources
 
-For detailed implementation examples and source templates:
-
-  https://github.com/iblai/iblai-app-cli
-
-Key paths in the repo:
-- `examples/iblai-agent-app/` — complete reference app with all features
-- `skills/` — AI assistant skills with step-by-step implementation guides
-- `BRAND.md` — ibl.ai brand identity and design tokens
-- `.iblai/iblai/templates/` — Jinja2 source templates for all generated files
-
-Find CLI version and commit: `iblai --version`
+- [`iblai/vibe`](https://github.com/iblai/vibe) — the skills, SDK, and templates this app is built on
+- [`iblai/vibe-starter`](https://github.com/iblai/vibe-starter) — the pre-wired starter template
+- [`@iblai/iblai-js`](https://www.npmjs.com/package/@iblai/iblai-js) — the SDK (auth, chat, UI, data layer)
+- [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — ibl.ai brand identity and design tokens
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.

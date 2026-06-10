@@ -17,9 +17,9 @@ auth session.
 ![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-chat/iblai-agent-chat-1-welcome.png)
 ![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-chat/iblai-agent-chat-2-message-sent.png)
 
-> **Template (legacy `<mentor-ai>` widget):** the CLI's `iblai add chat`
-> generates a full-screen `<mentor-ai>` web-component ChatWidget (distinct
-> from the in-process `Chat` component this skill documents) — bundled as
+> **Template (legacy `<mentor-ai>` widget):** a full-screen `<mentor-ai>`
+> web-component ChatWidget (distinct from the in-process `Chat` component
+> this skill documents) — bundled as
 > [`assets/chat-widget.tsx.j2`](assets/chat-widget.tsx.j2) +
 > [`assets/iblai-web-mentor.d.ts`](assets/iblai-web-mentor.d.ts). See
 > [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.

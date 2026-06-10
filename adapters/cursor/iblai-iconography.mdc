@@ -19,16 +19,20 @@ and macOS builds from a single source image.
 ## Quick Start
 
 ```bash
-# Option A: iblai CLI (generates ALL icons including MSIX)
-# Requires ImageMagick (convert)
-iblai builds iconography path/to/logo.png
+# Option A — Tauri's built-in (standard desktop/mobile icons, no MSIX)
+# Requires @tauri-apps/cli + Rust toolchain:
+pnpm exec tauri icon path/to/logo.png
 
-# Option B: Tauri's built-in (standard Tauri icons only, no MSIX)
-# Requires @tauri-apps/cli + Rust toolchain
-iblai builds icon path/to/logo.png
+# Option B — ImageMagick (the full set INCLUDING the MSIX logos below)
+# Requires `convert`; one resize per target size, e.g.:
+for s in 32x32 128x128 256x256; do \
+  convert path/to/logo.png -resize $s -gravity center -background none \
+    -extent $s -alpha on PNG32:src-tauri/icons/$s.png; done
 ```
 
-Both commands write icons to `src-tauri/icons/`, overwriting existing files.
+Both write to `src-tauri/icons/`, overwriting existing files. For the complete
+MSIX size list plus the multi-resolution `.ico` / `.icns` recipe, see
+[`/iblai-ops-build` → builds-command](../iblai-ops-build/references/builds-command.md).
 
 ---
 
@@ -43,7 +47,7 @@ Both commands write icons to `src-tauri/icons/`, overwriting existing files.
 
 ## ImageMagick Installation
 
-Required for `iblai builds iconography`. Not needed for `iblai builds icon`.
+Required for the ImageMagick path (the full MSIX set). Not needed for `pnpm exec tauri icon`.
 
 | Platform | Command |
 |----------|---------|
@@ -53,8 +57,8 @@ Required for `iblai builds iconography`. Not needed for `iblai builds icon`.
 | Fedora/RHEL | `sudo dnf install ImageMagick` |
 | Windows | `winget install ImageMagick.ImageMagick` |
 
-If ImageMagick is not installed, `iblai builds iconography` automatically
-falls back to `pnpm exec tauri icon`.
+If ImageMagick is not installed, use `pnpm exec tauri icon` (standard set,
+no MSIX logos).
 
 ---
 
@@ -86,9 +90,9 @@ All icons are written to `src-tauri/icons/`:
 
 ---
 
-## Comparison: iconography vs tauri icon
+## Comparison: ImageMagick vs `tauri icon`
 
-| Feature | `iblai builds iconography` | `iblai builds icon` |
+| Feature | ImageMagick (`convert`) | `pnpm exec tauri icon` |
 |---------|------------------------------|-------------------|
 | Tauri bundle icons (PNG, ICO, ICNS) | Yes | Yes |
 | MSIX icons (StoreLogo, Square*, Wide*) | Yes | No |
@@ -98,9 +102,9 @@ All icons are written to `src-tauri/icons/`:
 | Transparent background | Always | Depends on source |
 | Non-square handling | Centers on transparent canvas | Resizes/crops |
 
-**Recommendation**: Use `iblai builds iconography` if you plan to build
-MSIX packages (Windows Store / enterprise). Use `iblai builds icon` if you
-only need standard desktop builds (NSIS, MSI, DMG, AppImage).
+**Recommendation**: Use **ImageMagick** if you plan to build MSIX packages
+(Windows Store / enterprise). Use **`pnpm exec tauri icon`** if you only need
+standard desktop builds (NSIS, MSI, DMG, AppImage).
 
 ---
 
@@ -110,17 +114,19 @@ Generated apps ship with ibl.ai logo icons as defaults. Replace them
 with your own logo at any time:
 
 ```bash
-iblai builds iconography my-company-logo.png
+pnpm exec tauri icon my-company-logo.png        # standard set
+# (+ the ImageMagick step from Quick Start for the MSIX logos)
 ```
 
 ---
 
 ## Regenerating After Logo Change
 
-Simply re-run the command with the new source image:
+Simply re-run with the new source image:
 
 ```bash
-iblai builds iconography path/to/new-logo.png
+pnpm exec tauri icon path/to/new-logo.png       # standard set
+# (+ the ImageMagick step from Quick Start for the MSIX logos)
 ```
 
 All icons in `src-tauri/icons/` are overwritten. Commit the updated icons.
@@ -132,8 +138,8 @@ All icons in `src-tauri/icons/` are overwritten. Commit the updated icons.
 ### "Icon is not RGBA"
 
 Tauri requires RGBA PNGs (with alpha channel for transparency).
-The `iconography` command always produces RGBA output. If using
-a different tool, verify your PNGs:
+The ImageMagick recipe always produces RGBA output (`PNG32:` + `-alpha on`).
+If using a different tool, verify your PNGs:
 
 ```bash
 # Check format
@@ -156,7 +162,7 @@ Install ImageMagick for your platform (see table above), or use
 Tauri's built-in icon generator instead:
 
 ```bash
-iblai builds icon path/to/logo.png
+pnpm exec tauri icon path/to/logo.png
 ```
 
 ### Icons not updating in the built app
@@ -164,7 +170,7 @@ iblai builds icon path/to/logo.png
 After regenerating icons, rebuild the Tauri app:
 
 ```bash
-iblai builds build
+pnpm exec tauri build
 # or for MSIX:
 pnpm tauri:build:msix
 ```
@@ -173,5 +179,5 @@ The old icons may be cached in `src-tauri/target/`. To force a clean build:
 
 ```bash
 rm -rf src-tauri/target
-iblai builds build
+pnpm exec tauri build
 ```

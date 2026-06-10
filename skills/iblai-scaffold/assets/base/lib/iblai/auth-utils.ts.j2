@@ -1,11 +1,10 @@
 {% raw %}
 /**
- * Re-export auth utilities for `iblai add` components.
+ * Re-export auth utilities for ibl.ai feature components.
  *
- * This shim exists so that components added via `iblai add chat`,
- * `iblai add profile`, etc. can import from "@/lib/iblai/auth-utils"
- * regardless of whether the project was created with `iblai startapp base`
- * or `iblai add auth`.
+ * This shim lets feature components (chat, profile, etc.) import from
+ * "@/lib/iblai/auth-utils" regardless of how the project's auth files
+ * were laid out.
  */
 
 import { config } from "@/lib/config";

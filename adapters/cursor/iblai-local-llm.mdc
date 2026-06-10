@@ -36,9 +36,9 @@ is closed-source in the apps that have it today.
 ## Prerequisites
 
 1. Tauri shell wired up via [`/iblai-ops-build`](../iblai-ops-build/SKILL.md)
-   (`iblai add builds` + `pnpm install`). The skill assumes
+   (adds `src-tauri/` + `pnpm install`). The skill assumes
    `src-tauri/` already exists. **Heads-up:** on an app that already has
-   a non-trivial `next.config.mjs`, `iblai add builds` can mis-merge its
+   a non-trivial `next.config.mjs`, adding the Tauri shell can mis-merge its
    `output: 'export'` / `images` / `allowedDevOrigins` injection (it has
    landed those *inside the wrong object*, e.g. an SSR polyfill, leaving
    them as dead code). `git diff next.config.mjs` right after running it.

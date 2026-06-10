@@ -280,7 +280,7 @@ When opening a PR to land these patches upstream, note:
 
 ## CLI Integration (proposal — not yet implemented)
 
-A future `iblai add agent-chat-sidebar` command should:
+A future helper for this skill could:
 
 1. Verify `/iblai-agent-chat` has been run (look for the route file +
    `hostChatReducer` in the store).

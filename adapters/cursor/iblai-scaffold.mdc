@@ -1,16 +1,17 @@
 ---
-description: "Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project — the project templates the iblai CLI renders and what its `startapp` / `add` / `config` commands do. Use when creating a new app, running `iblai startapp` or `iblai add`, wiring up the base providers/store/auth, or reproducing that scaffolding by hand. Holds the base + agent project templates as assets. For per-feature wiring see /iblai-auth; for the desktop/mobile shell see /iblai-ops-build."
+description: "Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project — the project templates and the `startapp` / `add` / `config` steps that assemble them. Use when creating a new app, scaffolding from templates, wiring up the base providers/store/auth, or adding a feature by hand. Holds the base + agent project templates as assets. For per-feature wiring see /iblai-auth; for the desktop/mobile shell see /iblai-ops-build."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-scaffold
 
-How an ibl.ai app gets its skeleton: the **project templates** the `iblai`
-CLI renders, and the behavior of the commands that render them
-(`iblai startapp`, `iblai add`, `iblai config`). When the CLI is retired,
-the templates here are the record of what a generated app contains, and the
-references are the record of how each command assembled it.
+How an ibl.ai app gets its skeleton: the **project templates** that scaffold
+a new app or add a feature, and the steps that assemble them. The templates
+here record what a generated app contains; the references document the
+assembly steps (`iblai startapp`, `iblai add`, `iblai config`) so the skills
+can perform them directly — render the `assets/` templates, then apply the
+patches described in each reference.
 
 > Do NOT add custom styles / colors to ibl.ai SDK components — they ship
 > with their own styling. See
@@ -21,19 +22,19 @@ references are the record of how each command assembled it.
 
 ## Two ways in
 
-| Path | Command | Result |
+| Path | How | Result |
 |---|---|---|
-| **New app** | `iblai startapp agent -o iblai-init` (then copy back) | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
-| **Existing app** | `iblai add auth` (then `add profile`, `add account`, …) | ibl.ai features layered onto a vanilla Next.js project |
+| **New app** | clone **vibe-starter**, or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
+| **Existing app** | [`/iblai-auth`](../iblai-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
 
-Both read `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` and derive the
-`NEXT_PUBLIC_*` vars into `.env.local` (see
+Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
+`NEXT_PUBLIC_*` vars in `.env.local` (see
 [`references/config-command.md`](references/config-command.md)).
 
 > **Prefer the starter for greenfield work.** For brand-new projects,
-> `vibe-starter` (see the repo CLAUDE.md "Getting Started") is the
-> recommended path; `iblai startapp` is the CLI-driven equivalent and the
-> source of the templates documented here.
+> `vibe-starter` (a pre-wired clone — see the repo CLAUDE.md "Getting
+> Started") is the recommended path; the `base`+`agent` templates here are
+> the manual equivalent.
 
 ## The templates
 

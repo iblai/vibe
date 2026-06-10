@@ -10,7 +10,7 @@ alwaysApply: false
 Deploy your ibl.ai app frontend to a hosting platform. Currently supports
 Vercel; extensible to other platforms.
 
-> **Command reference:** the full behavior of `iblai deploy vercel` — static
+> **Command reference:** the full deploy behavior — static
 > vs server mode detection, scope resolution, env-var sync, auth-disable, and
 > the `tauri.conf.json` `devUrl` update — is in
 > [`references/deploy-command.md`](references/deploy-command.md).

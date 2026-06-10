@@ -10,7 +10,7 @@ Experience, Resume, and Security.
 
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-profile/profile-page.png)
 
-> **Template:** the dropdown `iblai add profile` generates is bundled as
+> **Template:** the dropdown this skill creates is bundled as
 > [`assets/profile-dropdown.tsx.j2`](assets/profile-dropdown.tsx.j2). See
 > [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
 
@@ -74,17 +74,7 @@ If they prefer to add the profile features to an existing app, continue below.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- MCP and skills must be set up: `iblai add mcp`
-
-## Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 
 ## Step 1: Check Environment
 
@@ -95,13 +85,12 @@ If the file does not exist or is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Run the Generator
+## Step 2: Create the Dropdown
 
-```bash
-iblai add profile
-```
+Render [`assets/profile-dropdown.tsx.j2`](assets/profile-dropdown.tsx.j2)
+into `components/iblai/profile-dropdown.tsx` (substitute `{{ }}` placeholders).
 
-## What Was Generated
+## Files created
 
 | File | Purpose |
 |------|---------|
@@ -116,7 +105,7 @@ The dropdown shows: **Profile** (links to `/profile`),
 
 ## Step 3: Add a Full Profile Page
 
-The generator creates the dropdown only. You must create the profile **page**
+Step 2 creates the dropdown only. You must create the profile **page**
 manually using the `Profile` component (not `UserProfileModal`, which renders
 as a dialog).
 
@@ -204,7 +193,7 @@ export default function ProfilePage() {
 
 ## Step 4: Enable Tenant Switcher in the Dropdown
 
-The generator does NOT enable the tenant switcher by default. You must pass
+The dropdown does NOT enable the tenant switcher by default. You must pass
 the `userTenants` prop and set `showTenantSwitcher` to `true`:
 
 ```tsx

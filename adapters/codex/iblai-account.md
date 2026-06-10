@@ -9,7 +9,7 @@ User Management, Integrations, Advanced settings, and Billing.
 
 ![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-account/account-page.png)
 
-> **Template:** the page `iblai add account` generates is bundled as
+> **Template:** the page this skill creates is bundled as
 > [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2). See
 > [`/iblai-scaffold`](../iblai-scaffold/SKILL.md) for the `{{ }}` contract.
 
@@ -70,17 +70,7 @@ If they prefer to add the account page to an existing app, continue below.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-auth`)
-- MCP and skills must be set up: `iblai add mcp`
-
-## Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is
-up to date. Run `iblai --version` to check the current version, then
-upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 
 ## Step 1: Check Environment
 
@@ -91,13 +81,13 @@ If the file does not exist or is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Run the Generator
+## Step 2: Create the Page
 
-```bash
-iblai add account
-```
+Render [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2) into
+`app/(app)/account/page.tsx` (substitute `{{ }}` placeholders), or just use
+the reference implementation in Step 3.
 
-## What Was Generated
+## Files created
 
 | File | Purpose |
 |------|---------|

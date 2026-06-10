@@ -44,7 +44,7 @@ The widget MUST follow the canonical integration:
 
 ## Prerequisites
 
-- Auth must be set up first (`iblai add auth`)
+- Auth must be set up first (`/iblai-auth`)
 - Navbar must be in place (`/iblai-navbar`)
 - `@iblai/iblai-js` SDK installed
 - Tailwind v4 with the SDK `@source` directives configured (see
