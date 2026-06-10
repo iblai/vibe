@@ -48,6 +48,7 @@ See [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) for the fu
 Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
 Ask Claude to start an ibl.ai agent app.
+
 ## What is Vibe
 
 A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by [iblai-app-cli](https://github.com/iblai/iblai-app-cli), the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
@@ -60,6 +61,13 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** -- consistent design language without the overhead of a custom design system
 - **Ship everywhere** -- web (Vercel), desktop (macOS/Windows/Linux), and mobile (iOS/Android) via Tauri v2
+
+## Built with iblai/vibe
+
+| Project | What it does |
+|---------|--------------|
+| [Agentic OS](https://ibl.ai/product/agentic-os) ([os.ibl.ai](https://os.ibl.ai)) | Agentic operating system for building and running AI agents |
+| [Agentic LMS](https://ibl.ai/product/agentic-lms) ([lms.ibl.ai](https://lms.ibl.ai)) | Agentic learning management system |
 
 ## How It Works
 
@@ -350,15 +358,6 @@ iblai builds build            # Desktop build for current platform
 iblai builds ios init         # iOS project setup
 iblai builds ci-workflow --all  # GitHub Actions for all platforms
 ```
-
-## Built with iblai/vibe
-
-Apps shipped on top of this toolkit. Open a PR to add yours.
-
-| Project | What it does |
-|---------|--------------|
-| [iblai/videoai](https://github.com/iblai/videoai) | AI video generation and editing |
-| [iblai/recruitai](https://github.com/iblai/recruitai) | AI-powered recruiting and candidate screening |
 
 ## Resources
 
