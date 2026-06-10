@@ -13,14 +13,6 @@ Ship AI-powered apps fast. Backend included.
 [![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-ops-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
-**Built with iblai/vibe**
-
-| App | Description |
-| :-- | :-- |
-| [os.ibl.ai](https://os.ibl.ai) | Agentic OS |
-| [video.ibl.ai](https://video.ibl.ai) | AI video |
-| [course.ibl.ai](https://course.ibl.ai) | AI-powered course creation |
-
 </div>
 
 > **Note:** This toolkit runs against the hosted `iblai.app` environment. If you'd like a license to the full platform codebase to run locally or self-host, reach out to our team at [ibl.ai/contact](https://ibl.ai/contact).
