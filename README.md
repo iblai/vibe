@@ -142,7 +142,7 @@ What each skill does:
 - `/iblai-invite` -- adds user invitation dialogs for tenant admin.
 - `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
-- `/iblai-computer-assistant` -- adds the "Computer Assistant" (let the on-device AI control the Mac via GhostOS): the SDK contract (`systemControlProps`, `useGhostOs`, `GHOST_OS_TAURI_*`, `MACOS_PERMISSIONS_COMMANDS`) and the macOS host implementation (Homebrew `ghost`, the ollama-mcp-bridge that gives the local model MCP tools, the Accessibility flow, the non-sandboxed Developer ID build). Builds on `/iblai-local-llm`; macOS-only.
+- `/iblai-computer-assistant` -- adds the "Computer Assistant" (let the on-device AI control the Mac): the SDK contract (`systemControlProps`, the system-control hook, the install/stop/status commands, `MACOS_PERMISSIONS_COMMANDS`) and the macOS host implementation (a Homebrew-installed control helper, the ollama-mcp-bridge that gives the local model MCP tools, the Accessibility flow, the non-sandboxed Developer ID build). Builds on `/iblai-local-llm`; macOS-only.
 - `/iblai-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
 - `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
@@ -297,7 +297,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
 | `/iblai-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
-| `/iblai-computer-assistant` | Let the on-device AI control the Mac via GhostOS — SDK contract (`systemControlProps`, `useGhostOs`) + macOS host (Homebrew `ghost`, ollama-mcp-bridge tools, Accessibility, non-sandboxed build). macOS-only |
+| `/iblai-computer-assistant` | Let the on-device AI control the Mac — SDK contract (`systemControlProps`, system-control hook) + macOS host (Homebrew control helper, ollama-mcp-bridge tools, Accessibility, non-sandboxed build). macOS-only |
 | `/iblai-course-access` | Add course-content pages (edX learner UI) |
 | `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-component` | Overview of all components + app creation paths |
