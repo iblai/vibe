@@ -297,6 +297,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-privacy` | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions) |
 | `/iblai-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-agent-tasks` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
 

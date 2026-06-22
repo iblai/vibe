@@ -126,6 +126,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-agent-memory
 /iblai-agent-prompt
 /iblai-agent-safety
+/iblai-agent-tasks
 /iblai-agent-tool
 ```
 
@@ -165,6 +166,7 @@ What each skill does:
 - `/iblai-agent-memory` -- adds the agent Memory tab (enable/disable memory and manage memories).
 - `/iblai-agent-prompt` -- adds the agent Prompts tab (system prompts and suggested prompts).
 - `/iblai-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
+- `/iblai-agent-tasks` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
 - `/iblai-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
 
 
@@ -321,6 +323,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
 | `/iblai-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-agent-tasks` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
