@@ -3,8 +3,9 @@
 /**
  * ibl.ai Profile Dropdown
  *
- * A fully self-contained user avatar + dropdown menu with profile editing,
- * tenant switching, and logout. Uses the SDK's UserProfileDropdown component.
+ * A self-contained user avatar + dropdown menu with profile editing,
+ * tenant switching (admins), and logout. Wraps the SDK's
+ * `UserProfileDropdown`. Mirrors the reference app's prop set.
  *
  * Usage:
  *   import { ProfileDropdown } from "@/components/iblai/profile-dropdown";
@@ -26,50 +27,80 @@ interface ProfileDropdownProps {
   className?: string;
 }
 
-export function ProfileDropdown({ className }: ProfileDropdownProps) {
-  const username = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      const raw = localStorage.getItem("userData");
-      return raw ? JSON.parse(raw).user_nicename ?? "" : "";
-    } catch {
-      return "";
-    }
-  }, []);
+function readJSON<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
+export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const tenantKey = useMemo(() => resolveAppTenant(), []);
 
-  const isAdmin = useMemo(() => {
-    if (typeof window === "undefined" || !tenantKey) return false;
-    try {
-      const raw = localStorage.getItem("tenants");
-      if (!raw) return false;
-      const tenants = JSON.parse(raw);
-      const match = tenants.find((t: any) => t.key === tenantKey);
-      return !!match?.is_admin;
-    } catch {
-      return false;
-    }
-  }, [tenantKey]);
+  // `user_nicename` is the canonical username slug. The SDK fetches the
+  // avatar from `/users/manage/metadata/?username=<this>`, which only
+  // resolves the profile image for the nicename (NOT a display name), so
+  // keying on anything else renders a blank avatar.
+  const { username, email } = useMemo(() => {
+    const ud = readJSON<any>("userData", {});
+    return {
+      username: ud.user_nicename ?? ud.username ?? "",
+      email: ud.user_email ?? ud.email ?? "",
+    };
+  }, []);
+
+  // Full active-tenant object (`current_tenant`) + the user's tenant list.
+  // The SDK switcher needs `currentTenant` to label the active tenant and
+  // `userTenants` to populate the switch list — without `currentTenant`
+  // the switcher falls back to a generic label.
+  const currentTenant = useMemo(() => readJSON<any>("current_tenant", null), []);
+  const userTenants = useMemo<any[]>(() => readJSON<any[]>("tenants", []), []);
+
+  const isAdmin = useMemo(
+    () => !!userTenants.find((t: any) => t?.key === tenantKey)?.is_admin,
+    [userTenants, tenantKey],
+  );
+
+  // The SDK fires the avatar/metadata fetch on mount keyed by `username`;
+  // an empty value 400s, so don't render until we have it.
+  if (!username) return null;
 
   return (
     <UserProfileDropdown
+      email={email}
       username={username}
+      mainPlatformKey={config.mainTenantKey()}
       tenantKey={tenantKey}
+      currentTenant={currentTenant ?? undefined}
+      userTenants={userTenants}
       userIsAdmin={isAdmin}
+      userIsStudent={!isAdmin}
       showProfileTab
+      // No dedicated "Account" item — the tenant switcher is the only org
+      // control. (Account settings live on a separate /account page.)
       showAccountTab={false}
-      showTenantSwitcher={false}
+      // Admins only. For a non-admin the SDK renders just the current
+      // tenant name (e.g. "Community" for the `main` tenant) with no working
+      // switch list, so hiding it is cleaner.
+      showTenantSwitcher={isAdmin}
       showHelpLink={false}
       showLogoutButton
+      // Gravatar fallback (from the user's email) when there's no uploaded
+      // profile image. Defaults true; set explicitly so the avatar never
+      // renders blank.
+      enableGravatarOnProfilePic
       authURL={config.authUrl()}
+      currentPlatformBaseDomain={config.platformBaseDomain()}
       onLogout={handleLogout}
       onTenantChange={(tenant: string) => {
         localStorage.setItem("app_tenant", tenant);
         localStorage.setItem("tenant", tenant);
         redirectToAuthSpa(undefined, tenant, false, true);
       }}
-      onTenantUpdate={(tenant: any) => {
+      onTenantUpdate={(tenant: { key?: string }) => {
         if (tenant?.key) {
           localStorage.setItem("app_tenant", tenant.key);
           localStorage.setItem("tenant", tenant.key);

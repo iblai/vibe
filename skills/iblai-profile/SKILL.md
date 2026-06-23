@@ -97,14 +97,18 @@ into `components/iblai/profile-dropdown.tsx` (substitute `{{ }}` placeholders).
 
 | File | Purpose |
 |------|---------|
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for navbar with profile, organization, tenant switcher, and logout |
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for the navbar: profile, tenant switcher (admins only), and logout |
 
-The dropdown reads `userData`, `tenant`/`current_tenant`, and `tenants` from
+The dropdown reads `userData`, `current_tenant`, and `tenants` from
 localStorage. Admin status is derived from the `tenants` array by matching
-the current tenant key against `is_admin`.
+the current tenant key against `is_admin`. The avatar is fetched internally
+by the SDK from the user metadata, keyed on `username` (use `user_nicename`)
+— with a Gravatar fallback (`enableGravatarOnProfilePic`) and then initials.
 
-The dropdown shows: **Profile** (links to `/profile`),
-**Organization** (links to `/account`), **Tenant Switcher**, and **Logout**.
+The dropdown shows: **Profile** (opens the SDK profile modal), a
+**Tenant Switcher** (admins only — see Step 4), and **Logout**. The
+dedicated "Account" item is off (`showAccountTab={false}`); account settings
+live on the separate `/account` page.
 
 ## Step 3: Add a Full Profile Page
 
@@ -194,34 +198,27 @@ export default function ProfilePage() {
   dedicated `/profile` route.
 - **Import path**: `@iblai/iblai-js/web-containers` (NOT `/next`).
 
-## Step 4: Enable Tenant Switcher in the Dropdown
+## Step 4: Tenant Switcher
 
-The dropdown does NOT enable the tenant switcher by default. You must pass
-the `userTenants` prop and set `showTenantSwitcher` to `true`:
+The template already wires the tenant switcher to match the reference app —
+it's shown to **admins only** (`showTenantSwitcher={isAdmin}`) and fed by two
+localStorage reads:
 
-```tsx
-// In profile-dropdown.tsx, add:
-const userTenants = useMemo(() => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem("tenants");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}, []);
+- **`userTenants`** (from `tenants`) — populates the switch list. Without it
+  the switcher never appears, even when `showTenantSwitcher` is `true`.
+- **`currentTenant`** (from `current_tenant`) — the FULL active-tenant object.
+  The SDK uses it to label the current tenant; without it the switcher falls
+  back to a generic label.
 
-// Then pass to the component:
-<UserProfileDropdown
-  userTenants={userTenants}
-  showTenantSwitcher
-  showAccountTab
-  // ...other props
-/>
-```
+**Why admins only:** for a non-admin the SDK renders just the current tenant
+name with no working switch list — a dead row. The reference app hides it
+for non-admins; the template does the same. To show it to everyone, set
+`showTenantSwitcher` to a constant `true` (or `userTenants.length > 1`).
 
-Without `userTenants`, the tenant switcher will not appear even when
-`showTenantSwitcher` is `true`.
+> **The `main` tenant displays as "Community".** That's the SDK's built-in
+> name for the `main` org — it is NOT read from `current_tenant.platform_name`,
+> and passing `currentTenant` does not change it. It's not a bug; other
+> tenants show their own name.
 
 ## Step 5: Use MCP Tools for Customization
 
@@ -701,15 +698,23 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `username` | `string` | Username |
-| `tenantKey` | `string` | Tenant/org key |
-| `userIsAdmin` | `boolean` | Shows admin badge + settings |
+| `email` | `string` | **Required.** User email (from `userData.user_email`); used for the Gravatar avatar fallback |
+| `username` | `string` | Username — use `user_nicename` (the avatar metadata fetch keys on it) |
+| `mainPlatformKey` | `string` | **Required.** Main/community tenant key (`config.mainTenantKey()`) |
+| `tenantKey` | `string` | Active tenant/org key |
+| `currentTenant` | `Tenant?` | Full active-tenant object (from `current_tenant`) — labels the tenant switcher |
 | `userTenants` | `Tenant[]` | **Required for tenant switcher** -- full tenant list from localStorage |
+| `userIsAdmin` | `boolean` | Shows admin badge + gates the tenant switcher |
+| `userIsStudent` | `boolean?` | Non-admin flag (`!isAdmin`) |
+| `enableGravatarOnProfilePic` | `boolean?` | Gravatar fallback when the user has no uploaded image (default `true`) |
 | `showProfileTab` | `boolean` | Show profile link |
-| `showAccountTab` | `boolean` | Show account settings link |
-| `showTenantSwitcher` | `boolean` | Show tenant switcher (needs `userTenants`) |
+| `showAccountTab` | `boolean` | Show the dedicated "Account" item (keep `false` — account lives on `/account`) |
+| `showTenantSwitcher` | `boolean` | Show tenant switcher (needs `userTenants` + `currentTenant`); gate on `userIsAdmin` |
 | `showLogoutButton` | `boolean` | Show logout button |
 | `showHelpLink` | `boolean` | Show help link |
+| `showLearnerModeSwitch` | `boolean?` | Show learner/instructor mode toggle (admins) |
+| `currentSPA` | `string?` | Current app id (e.g. `"mentor"`) — used for conditional SDK rendering |
+| `currentPlatformBaseDomain` | `string?` | Base domain for custom-domain settings (`config.platformBaseDomain()`) |
 | `authURL` | `string` | Auth service URL |
 | `onLogout` | `() => void` | Logout callback |
 | `onTenantChange` | `(tenant: string) => void` | Called when user switches tenant -- must set `app_tenant` in localStorage |
