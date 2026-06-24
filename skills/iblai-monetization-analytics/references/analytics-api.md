@@ -4,20 +4,32 @@ Four Platform-admin endpoints power custom monetization dashboards — the confi
 
 ## Endpoints
 
-All four return JSON and are scoped by the URL `{platform_key}`. The Platform must have `enable_monetization === true` — the view's `_enforce_can_sell_items` guard blocks the call otherwise.
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`).
+> Auth header: `Authorization: Token <DM token>` — the **DM token**, not
+> the AXD token; the AXD token returns `401`.
 
-- `GET /api/billing/platforms/{platform_key}/paywalls/` — list configured paywalls
-- `GET /api/billing/platforms/{platform_key}/subscribers/` — Platform-wide subscribers
-- `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` — per-item subscribers
-- `GET /api/billing/platforms/{platform_key}/revenue/` — total revenue snapshot
+All endpoints return JSON and are scoped by the URL `{platform_key}` (or
+resolved from `item_unique_id` for the canonical subscribers route).
+The Platform must have `enable_monetization === true` — the view's
+`_enforce_can_sell_items` guard blocks the call otherwise.
+
+Platform-scoped endpoints have **no canonical alternative**; only the
+per-item subscribers endpoint has a canonical (`unique_id`-keyed) form.
+
+- `GET {dm_url}/api/billing/platforms/{platform_key}/paywalls/` — list configured paywalls (platform-scoped)
+- `GET {dm_url}/api/billing/platforms/{platform_key}/subscribers/` — Platform-wide subscribers
+- `GET {dm_url}/api/billing/items/{item_unique_id}/subscribers/` — **canonical (recommended)** per-item subscribers
+- `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` — composite (legacy) per-item subscribers
+- `GET {dm_url}/api/billing/platforms/{platform_key}/revenue/` — total revenue snapshot
 
 ## Views
 
-Verified against `billing/views.py`:
+Verified against `billing/views.py` and `billing/new_views.py`:
 
 - `PlatformPaywallsView` at `billing/views.py:2115` — `IsPlatformAdmin`, `StandardPageNumberPagination`, serializes via `ItemPaywallConfigSerializer`.
 - `PlatformSubscribersView` at `billing/views.py:2073` — `IsPlatformAdmin`, `StandardPageNumberPagination`, serializes via `ItemSubscriptionListSerializer`.
-- `ItemSubscribersView` at `billing/views.py:2030` — `IsPlatformAdmin`, `StandardPageNumberPagination`, serializes via `ItemSubscriptionSerializer`.
+- `ItemSubscribersView` at `billing/views.py:2030` — `IsPlatformAdmin`, `StandardPageNumberPagination`, serializes via `ItemSubscriptionSerializer` (composite form).
+- `ItemSubscribersByUniqueIdView` in `new_views.py` — wraps `ItemSubscribersView` via `ConfigUniqueIdMixin` (canonical form). Same permission, same serializer.
 - `PlatformRevenueView` at `billing/views.py:2156` — `IsPlatformAdmin`, no pagination, serializes via `PlatformRevenueSummarySerializer`.
 
 ## Pagination envelope
@@ -108,7 +120,7 @@ If the Stripe Connect account is not fully onboarded, `connected_account_amount`
 
 ## Commission interpretation
 
-`commission_percent` is exposed on the Stripe Connect status payload (`GET /api/service/platforms/{platform_key}/stripe/connect/status/`). It is the percentage **ibl.ai** takes from each sale, NOT the seller's take.
+`commission_percent` is exposed on the Stripe Connect status payload (`GET {dm_url}/api/service/platforms/{platform_key}/stripe/connect/status/`). It is the percentage **ibl.ai** takes from each sale, NOT the seller's take.
 
 Shape (per `StripeConnectStatusResponse`):
 

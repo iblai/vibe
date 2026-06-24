@@ -116,18 +116,29 @@ You should see five paths. The full per-endpoint catalog (method, query
 params, response shape, source view, permission class) lives in
 [`references/analytics-api.md`](./references/analytics-api.md).
 
-| Endpoint | Hook |
-|---|---|
-| `/api/billing/platforms/{platform_key}/revenue/` | `useGetRevenueQuery` |
-| `/api/billing/platforms/{platform_key}/subscribers/` | `useListSubscribersQuery` |
-| `/api/billing/platforms/{platform_key}/paywalls/` | `useListPaywallsQuery` |
-| `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` | `useListItemSubscribersQuery` |
+All analytics endpoints live under the **DM base** (`{dm_url}`, e.g.
+`https://api.iblai.app/dm`) and require `Authorization: Token <DM token>`
+— the **DM token**, not the AXD token. The platform-scoped endpoints
+have **no canonical alternative** (they aggregate across items). Only
+the item-scoped subscribers endpoint has a canonical (`unique_id`-keyed)
+counterpart.
 
-Cancel reuses
-`/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/`
-via `useCancelSubscriptionMutation` — the same endpoint the user-side
-`PurchasesTab` calls. See `/iblai-monetization-subscriptions` for the
-`portal_url` vs immediate `status: "canceled"` branch.
+| Endpoint | Form | Hook |
+|---|---|---|
+| `{dm_url}/api/billing/platforms/{platform_key}/revenue/` | (platform-scoped, no canonical) | `useGetRevenueQuery` |
+| `{dm_url}/api/billing/platforms/{platform_key}/subscribers/` | (platform-scoped, no canonical) | `useListSubscribersQuery` |
+| `{dm_url}/api/billing/platforms/{platform_key}/paywalls/` | (platform-scoped, no canonical) | `useListPaywallsQuery` |
+| `{dm_url}/api/billing/items/{item_unique_id}/subscribers/` | **Canonical (recommended)** | direct fetch (SDK hook is composite) |
+| `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` | Composite (legacy) | `useListItemSubscribersQuery` |
+
+Cancel reuses the subscription cancel endpoint —
+canonical `{dm_url}/api/billing/items/{item_unique_id}/subscription/cancel/`
+or composite `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/`
+— via `useCancelSubscriptionMutation` (which still builds the composite
+URL). It is the same endpoint the user-side `PurchasesTab` calls and is
+hard-locked to `request.user` — operators cannot cancel on behalf of
+another user through this API. See `/iblai-monetization-subscriptions`
+for the `portal_url` vs immediate `status: "canceled"` branch.
 
 ## Step 2: Revenue
 
