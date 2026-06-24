@@ -35,12 +35,19 @@ When building custom UI around SDK components, use the ibl.ai brand:
 
 ## Authentication
 
-Every monetization endpoint lives under `/api/billing/` or
-`/api/service/platforms/{platform_key}/stripe/connect/` and requires a
-Platform-scoped token:
+> **`{dm_url}` and DM token.** Throughout this family, `{dm_url}` resolves to
+> your data-manager host (e.g. `https://api.iblai.app/dm`); in TypeScript
+> compose it as `` `${apiBase}/dm` ``. The auth token is the **DM token** —
+> not the AXD token. The two are different tokens issued by different
+> services; using the AXD token against `{dm_url}` returns `401`. The SDK
+> attaches the DM token automatically via `SERVICES.DM`.
+
+Every monetization endpoint lives under `{dm_url}/api/billing/` or
+`{dm_url}/api/service/platforms/{platform_key}/stripe/connect/` and requires a
+Platform-scoped DM token:
 
 ```
-Authorization: Token <your-access-token>
+Authorization: Token <DM token>
 ```
 
 This is the DRF Token scheme — NOT `Bearer`. The token binds to exactly
@@ -52,12 +59,32 @@ the existence of cross-Platform records.
 
 Several endpoints intentionally skip the auth header — `AllowAny`
 covers public per-item pricing (by `(item_type, item_id)` and by
-paywall `config_unique_id`), the two `/checkout-guest/` variants (guest
+paywall `item_unique_id`), the two `/checkout-guest/` variants (guest
 buy by item or by price uuid), and the two checkout-callback
 endpoints. The full RBAC table lives in
 [`references/rbac-matrix.md`](./references/rbac-matrix.md).
 
 For token wiring inside a Next.js app see `/iblai-auth`.
+
+## Canonical vs composite endpoints
+
+Every item-keyed monetization endpoint now exposes **two equivalent URLs**:
+
+- **Canonical (recommended)** — `{dm_url}/api/billing/items/{item_unique_id}/<suffix>/`
+  (or `{dm_url}/api/billing/items/prices/{price_unique_id}/<suffix>/` for
+  price-keyed routes). The backend resolves `(platform_key, item_type,
+  item_id)` from the UUID at dispatch time.
+- **Composite (legacy, still supported)** —
+  `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/<suffix>/`.
+  Use this when you already have the triple (e.g. a webhook payload, a
+  freshly created paywall, a migration script).
+
+Prefer canonical for new client code: URL-stable across item-type renames, no
+need to carry `platform_key` / `item_type` in every call. Composite stays
+valid forever. Full table in
+[`references/api-overview.md`](./references/api-overview.md) and the RBAC
+mapping in [`references/rbac-matrix.md`](./references/rbac-matrix.md) — both
+forms share `permission_classes`.
 
 ## Validate against the live OpenAPI schema
 
@@ -169,9 +196,14 @@ registered automatically by `initializeDataLayer()`. Reducer path:
 prefixes:
 
 ```
-/api/service/platforms/{platform_key}/stripe/connect/...   ← Stripe Connect (Flow 1)
-/api/billing/platforms/{platform_key}/...                  ← everything else
+{dm_url}/api/service/platforms/{platform_key}/stripe/connect/...   ← Stripe Connect (Flow 1)
+{dm_url}/api/billing/platforms/{platform_key}/...                  ← everything else
 ```
+
+The shipped `monetizationApiSlice` constructs **composite** URLs. Direct API
+callers (curl, server-to-server, third-party SDKs) should prefer the canonical
+`items/{item_unique_id}/...` form — see the canonical vs composite section
+above.
 
 The slice owns **nine flows / 33 hooks** — full hook catalog with
 arguments, response types, and cache tags lives in

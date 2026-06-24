@@ -15,9 +15,21 @@ you call a hook in application code.
 - **Type definitions**: `packages/data-layer/src/features/monetization/types.ts`
 - **Setup**: registered automatically by `initializeDataLayer()` — no
   manual `combineReducers` / `setupListeners` wiring needed.
-- **Service base URLs**: `/api/service/platforms` (Stripe Connect) and
-  `/api/billing/platforms` (everything else). Both resolve under
-  `SERVICES.DM` (the `dm` service host).
+- **Service base URLs**: `{dm_url}/api/service/platforms` (Stripe Connect)
+  and `{dm_url}/api/billing/platforms` (everything else), where
+  `{dm_url}` is the DM service host (e.g. `https://api.iblai.app/dm`).
+  Both resolve under `SERVICES.DM`. **Auth header is `Authorization: Token
+  <DM token>` — not the AXD token; the SDK attaches the DM token
+  automatically for any endpoint without `skipAuth: true`.**
+
+> **SDK uses composite URLs.** Every hook below builds a composite
+> `platforms/{platform_key}/items/{item_type}/{item_id}/...` URL — that is
+> what ships in the slice. The backend also exposes equivalent **canonical
+> `items/{item_unique_id}/...` URLs** (see
+> [`./api-overview.md`](./api-overview.md) → "Canonical (`unique_id`) vs
+> composite endpoints"). Direct API callers — curl, server-to-server,
+> third-party SDKs — should prefer canonical. The SDK hook URLs below stay
+> composite until the slice migrates.
 
 ## Cache tags (all flows)
 
@@ -36,9 +48,9 @@ in the per-flow tables below.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useGetStripeConnectStatusQuery` | `GET /api/service/platforms/{platform_key}/stripe/connect/status/` | `{ platform_key }` | `StripeConnectStatusResponse` (`has_account`, `account_id`, `onboarding_complete`, `charges_enabled`, `payouts_enabled`, `is_ready_for_payments`, `is_owner`, `commission_percent`) | provides `stripeConnectStatus` |
-| `useStartStripeConnectOnboardingMutation` | `POST /api/service/platforms/{platform_key}/stripe/connect/onboard/` | `StripeConnectOnboardArgs` = `{ platform_key, return_url, refresh_url, business_type }` | `{ account_id, onboarding_url }` | invalidates `stripeConnectStatus` |
-| `useGetStripeConnectDashboardQuery` (+ `useLazy…`) | `GET /api/service/platforms/{platform_key}/stripe/connect/dashboard/` | `{ platform_key }` | `{ dashboard_url }` | none (no `providesTags`) |
+| `useGetStripeConnectStatusQuery` | `GET {dm_url}/api/service/platforms/{platform_key}/stripe/connect/status/` | `{ platform_key }` | `StripeConnectStatusResponse` (`has_account`, `account_id`, `onboarding_complete`, `charges_enabled`, `payouts_enabled`, `is_ready_for_payments`, `is_owner`, `commission_percent`) | provides `stripeConnectStatus` |
+| `useStartStripeConnectOnboardingMutation` | `POST {dm_url}/api/service/platforms/{platform_key}/stripe/connect/onboard/` | `StripeConnectOnboardArgs` = `{ platform_key, return_url, refresh_url, business_type }` | `{ account_id, onboarding_url }` | invalidates `stripeConnectStatus` |
+| `useGetStripeConnectDashboardQuery` (+ `useLazy…`) | `GET {dm_url}/api/service/platforms/{platform_key}/stripe/connect/dashboard/` | `{ platform_key }` | `{ dashboard_url }` | none (no `providesTags`) |
 
 The dashboard query is typically called via its lazy variant so a
 button click can trigger a one-shot fetch + redirect rather than
@@ -66,7 +78,7 @@ All four hooks point at the same URL; method selects the operation.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useGetPaywallConfigQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/` | `PaywallItemParams` = `{ platform_key, item_type, item_id }` | `PaywallConfigResponse` (`unique_id`, `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `stripe_product_id`, `paywall_enabled_at`, `prices[]`) | provides `paywallConfig` |
+| `useGetPaywallConfigQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/` | `PaywallItemParams` = `{ platform_key, item_type, item_id }` | `PaywallConfigResponse` (`unique_id`, `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `stripe_product_id`, `paywall_enabled_at`, `prices[]`) | provides `paywallConfig` |
 | `useEnablePaywallMutation` | `POST` (same URL) | `EnablePaywallArgs` extends `PaywallItemParams` with `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy: 'free_forever' \| 'require_subscription'`, optional `item_name`, `description`, `on_successful_payment` | `PaywallConfigResponse` | invalidates `paywallConfig`, `paywalls` |
 | `useUpdatePaywallMutation` | `PUT` (same URL) | `EnablePaywallArgs` (same shape as enable) | `PaywallConfigResponse` | invalidates `paywallConfig`, `paywalls` |
 | `useDisablePaywallMutation` | `DELETE` (same URL) | `PaywallItemParams` | `void` | invalidates `paywallConfig`, `paywalls` |
@@ -75,9 +87,9 @@ All four hooks point at the same URL; method selects the operation.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useListPricesQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` | `PaywallItemParams` | `PaywallPrice[]` | provides `paywallPrices` |
+| `useListPricesQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` | `PaywallItemParams` | `PaywallPrice[]` | provides `paywallPrices` |
 | `useCreatePriceMutation` | `POST` (same URL) | `CreatePriceArgs` = `PaywallItemParams` + `name`, `amount`, optional `currency`, `interval: 'month' \| 'year' \| 'one_time'`, `features`, `description`, `is_active`, `sort_order` | `PaywallPrice` | invalidates `paywallPrices`, `paywallConfig` |
-| `useUpdatePriceMutation` | `PUT /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `UpdatePriceArgs` = `PaywallItemParams` + `price_unique_id` + same partial fields as create | `PaywallPrice` | invalidates `paywallPrices`, `paywallConfig` |
+| `useUpdatePriceMutation` | `PUT {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `UpdatePriceArgs` = `PaywallItemParams` + `price_unique_id` + same partial fields as create | `PaywallPrice` | invalidates `paywallPrices`, `paywallConfig` |
 | `useDeletePriceMutation` | `DELETE` (same detail URL) | `DeletePriceArgs` = `PaywallItemParams` + `price_unique_id` | `void` | invalidates `paywallPrices`, `paywallConfig` |
 
 Note: in mutation `query` callers the SDK passes `price_unique_id` as
@@ -87,18 +99,19 @@ the URL segment named `price_id` in the schema.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useGetPublicPricingQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/` (`skipAuth: true`) | `PaywallItemParams` | `PublicPricingResponse` (`item_type`, `item_id`, `item_name`, `is_paywalled`, `allow_free_tier`, `trial_period_days`, `prices[]`) | provides `publicPricing` |
+| `useGetPublicPricingQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/` (`skipAuth: true`) | `PaywallItemParams` | `PublicPricingResponse` (`item_type`, `item_id`, `item_name`, `is_paywalled`, `allow_free_tier`, `trial_period_days`, `prices[]`) | provides `publicPricing` |
 
 `skipAuth: true` tells `iblFetchBaseQuery` not to attach the
-`Authorization: Token <token>` header (the DM service uses Token auth,
-not Bearer) — safe to call from logged-out marketing pages.
+`Authorization: Token <DM token>` header (DM uses DRF Token auth, not
+Bearer; the AXD token is a different token and will not work against
+`{dm_url}`) — safe to call from logged-out marketing pages.
 
 ## Flow 5 — Access Check
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useCheckAccessQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/` | `PaywallItemParams` | `AccessCheckResponse` (`has_access`, `reason`, `requires_payment`, `pricing_available`, `pricing`, `subscription`) | provides `accessCheck` |
-| `useCheckAccessUnscopedQuery` | `GET /api/billing/access-check/{item_type}/{item_id}/?platform_key=…` | `UnscopedAccessCheckParams` = `{ item_type, item_id, platform_key }` (Platform passed as query param, not URL segment) | `AccessCheckResponse` | provides `accessCheck` |
+| `useCheckAccessQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/` | `PaywallItemParams` | `AccessCheckResponse` (`has_access`, `reason`, `requires_payment`, `pricing_available`, `pricing`, `subscription`) | provides `accessCheck` |
+| `useCheckAccessUnscopedQuery` | `GET {dm_url}/api/billing/access-check/{item_type}/{item_id}/?platform_key=…` | `UnscopedAccessCheckParams` = `{ item_type, item_id, platform_key }` (Platform passed as query param, not URL segment) | `AccessCheckResponse` | provides `accessCheck` |
 
 **402-as-success contract** (custom-api-slice.ts:197):
 `validateStatus: (response) => response.ok || [402].includes(response.status)`.
@@ -112,8 +125,8 @@ and branch on `data.requires_payment` / `data.pricing` rather than on
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useCreateCheckoutMutation` | `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/` | `CheckoutArgs` = `PaywallItemParams` + `price_id`, `success_url`, `cancel_url` | `CheckoutResponse` = `{ checkout_url, session_id }` | none |
-| `useCreateGuestCheckoutMutation` | `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` (`skipAuth: true`) | `GuestCheckoutArgs` = `PaywallItemParams` + `email`, `price_id`, `success_url`, `cancel_url` | `CheckoutResponse` | none |
+| `useCreateCheckoutMutation` | `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/` | `CheckoutArgs` = `PaywallItemParams` + `price_id`, `success_url`, `cancel_url` | `CheckoutResponse` = `{ checkout_url, session_id }` | none |
+| `useCreateGuestCheckoutMutation` | `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` (`skipAuth: true`) | `GuestCheckoutArgs` = `PaywallItemParams` + `email`, `price_id`, `success_url`, `cancel_url` | `CheckoutResponse` | none |
 
 Neither mutation invalidates any tags — access-check / subscription
 refetch happens when the Stripe webhook fires and the user lands back
@@ -126,7 +139,7 @@ if (result.checkout_url) window.location.href = result.checkout_url;
 ```
 
 **Guest-by-price hook**: not wired in the SDK. The backend endpoint
-`POST /api/billing/prices/{price_unique_id}/checkout-guest/` exists in
+`POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/` exists in
 the OpenAPI schema, but the monetization slice exports no
 `useCreateGuestCheckoutByPriceMutation`. If you need price-keyed guest
 checkout, call the backend directly with `fetch` / `iblFetchBaseQuery`
@@ -136,7 +149,7 @@ rather than reaching for a non-existent hook.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useCancelSubscriptionMutation` | `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` | `CancelSubscriptionArgs` = `PaywallItemParams` + optional `return_url` | `CancelSubscriptionResponse` = `{ unique_id?, status?, canceled_at?, portal_url? }` | invalidates `mySubscriptions`, `itemSubscription`, `accessCheck`, `subscribers` |
+| `useCancelSubscriptionMutation` | `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` | `CancelSubscriptionArgs` = `PaywallItemParams` + optional `return_url` | `CancelSubscriptionResponse` = `{ unique_id?, status?, canceled_at?, portal_url? }` | invalidates `mySubscriptions`, `itemSubscription`, `accessCheck`, `subscribers` |
 
 **Branching contract** (cancel-subscription.tsx lines 63-67):
 - If `result.portal_url` is set → recurring paid subscription. Redirect
@@ -154,8 +167,8 @@ immediate-cancel branch.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useGetMySubscriptionsQuery` | `GET /api/billing/platforms/{platform_key}/my-subscriptions/` | `MySubscriptionsParams` = `{ platform_key, status?, item_type?, item_name?, page?, page_size? }` (extras flow through as query params) | `MySubscriptionsResponse` = `{ count, next_page, previous_page, results: SubscriptionObject[] }` | provides `mySubscriptions` |
-| `useGetItemSubscriptionQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` | `PaywallItemParams` | `SubscriptionObject` (`unique_id`, `status`, `price`, `current_period_end`, `cancel_at_period_end`, `is_grandfathered`, …) | provides `itemSubscription` |
+| `useGetMySubscriptionsQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/my-subscriptions/` | `MySubscriptionsParams` = `{ platform_key, status?, item_type?, item_name?, page?, page_size? }` (extras flow through as query params) | `MySubscriptionsResponse` = `{ count, next_page, previous_page, results: SubscriptionObject[] }` | provides `mySubscriptions` |
+| `useGetItemSubscriptionQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` | `PaywallItemParams` | `SubscriptionObject` (`unique_id`, `status`, `price`, `current_period_end`, `cancel_at_period_end`, `is_grandfathered`, …) | provides `itemSubscription` |
 
 `SubscriptionObject.is_grandfathered` drives the grandfathered badge in
 PurchasesTab. Pagination uses `next_page` / `previous_page` (integer or
@@ -174,10 +187,10 @@ for name-based filtering currently supported.
 
 | Hook | Method + URL | Args | Response | Tags |
 | --- | --- | --- | --- | --- |
-| `useListPaywallsQuery` | `GET /api/billing/platforms/{platform_key}/paywalls/` | `ListPaywallsParams` = `{ platform_key, item_type?, is_enabled?, page?, page_size? }` | `ListPaywallsResponse` = `{ count, next_page, previous_page, results: PaywallConfigResponse[] }` | provides `paywalls` |
-| `useListSubscribersQuery` | `GET /api/billing/platforms/{platform_key}/subscribers/` | `ListSubscribersParams` = `{ platform_key, status?, item_type?, page?, page_size? }` | `ListSubscribersResponse` = `{ count, next_page, previous_page, results: (SubscriptionObject & { user })[] }` | provides `subscribers` |
-| `useListItemSubscribersQuery` | `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` | `ListItemSubscribersParams` = `PaywallItemParams` + `status?` | `ListSubscribersResponse` | provides `subscribers` |
-| `useGetRevenueQuery` | `GET /api/billing/platforms/{platform_key}/revenue/` | `{ platform_key }` | `RevenueResponse` = `{ sales_volume, sales_count, currency }` | provides `revenue` |
+| `useListPaywallsQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/paywalls/` | `ListPaywallsParams` = `{ platform_key, item_type?, is_enabled?, page?, page_size? }` | `ListPaywallsResponse` = `{ count, next_page, previous_page, results: PaywallConfigResponse[] }` | provides `paywalls` |
+| `useListSubscribersQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/subscribers/` | `ListSubscribersParams` = `{ platform_key, status?, item_type?, page?, page_size? }` | `ListSubscribersResponse` = `{ count, next_page, previous_page, results: (SubscriptionObject & { user })[] }` | provides `subscribers` |
+| `useListItemSubscribersQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscribers/` | `ListItemSubscribersParams` = `PaywallItemParams` + `status?` | `ListSubscribersResponse` | provides `subscribers` |
+| `useGetRevenueQuery` | `GET {dm_url}/api/billing/platforms/{platform_key}/revenue/` | `{ platform_key }` | `RevenueResponse` = `{ sales_volume, sales_count, currency }` | provides `revenue` |
 
 Both subscriber listings share the same response type and the same
 `subscribers` cache tag, so cancelling a subscription via

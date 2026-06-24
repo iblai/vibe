@@ -18,9 +18,15 @@ Validate against the schema before:
 
 ## Schema URLs
 
-- **Raw schema:** `https://api.iblai.app/dm/api/docs/schema/` — OpenAPI 3.0.3 YAML,
-  about 3.5 MB. Served without authentication (the schema itself is public; the
-  endpoints it describes still require `Authorization: Token <token>` per
+> Throughout this file, `{dm_url}` = the DM service host (e.g.
+> `https://api.iblai.app/dm`). The full schema URL is
+> `{dm_url}/api/docs/schema/`. The auth token consumed by the endpoints
+> below is the **DM token** — not the AXD token.
+
+- **Raw schema:** `{dm_url}/api/docs/schema/` (e.g.
+  `https://api.iblai.app/dm/api/docs/schema/`) — OpenAPI 3.0.3 YAML, about
+  3.5 MB. Served without authentication (the schema itself is public; the
+  endpoints it describes still require `Authorization: Token <DM token>` per
   Platform — see Authentication note below).
 - The `info.version` field at the top of the schema exposes the deployed
   `ibl-data-manager` build. Use it to confirm you are reading the same build
@@ -43,7 +49,18 @@ grep -E "^  title:|^  version:" /tmp/iblai_schema.yaml
 
 # list every monetization-related path (billing + Stripe Connect)
 grep -E "^(  )?/api/billing|^(  )?/api/service/platforms/\{platform_key\}/stripe/connect" /tmp/iblai_schema.yaml
+
+# the canonical (unique_id) routes — preferred for new client code
+grep -E "^(  )?/api/billing/items/\{item_unique_id\}|^(  )?/api/billing/items/prices/\{price_unique_id\}|^(  )?/api/billing/prices/\{price_unique_id\}" /tmp/iblai_schema.yaml
 ```
+
+**Canonical vs composite — both are in the schema.** Every item-keyed
+endpoint exposes a canonical `items/{item_unique_id}/...` (or
+`items/prices/{price_unique_id}/...`) URL alongside the legacy composite
+`platforms/{platform_key}/items/{item_type}/{item_id}/...` form. They share
+the same operation shape, so verifying one form in the schema confirms the
+other. New client code should prefer canonical; see
+[`./api-overview.md`](./api-overview.md) for the full table.
 
 Re-fetch when you suspect drift (your code 4xxes against a documented success
 shape, or CI fails after the backend deploys).
@@ -119,8 +136,9 @@ same way.
 
 ## Drift detection — does every URL in code still exist?
 
-Before merging a monetization PR, sweep the codebase for `/api/billing/...` and
-`/api/service/...` paths and check each one against the cached schema:
+Before merging a monetization PR, sweep the codebase for `{dm_url}/api/billing/...`
+and `{dm_url}/api/service/...` paths and check each one against the cached
+schema:
 
 ```bash
 grep -rEho '/api/(billing|service)[^"\s)\\]+' src/ \
@@ -158,11 +176,13 @@ shape surprises you, work through them in this order:
 
 The schema endpoint itself is unauthenticated — `curl` without headers returns
 200. Consuming the endpoints the schema describes still requires
-`Authorization: Token <token>` (and is scoped by the Platform that issued the
-token). A few endpoints are intentionally public (`AllowAny`) for guest
-checkout and public pricing — see [/iblai-monetization-checkout] for the list.
-Fetching the schema unauthenticated has no bearing on whether the endpoints
-inside it are protected.
+`Authorization: Token <DM token>` (the DM token, not the AXD token; the two
+are different and the AXD token will not authenticate against `{dm_url}`).
+The token is scoped by the Platform that issued it. A few endpoints are
+intentionally public (`AllowAny`) for guest checkout and public pricing — see
+[/iblai-monetization-checkout] for the list. Fetching the schema
+unauthenticated has no bearing on whether the endpoints inside it are
+protected.
 
 ## The monetization flows in schema terms
 
@@ -174,11 +194,11 @@ schema tags on these operations.
 
 | Flow (skill family member) | Schema tag | Path prefix |
 |---|---|---|
-| Stripe Connect onboard (`/iblai-monetization-onboard`) | `commerce` | `/api/service/platforms/{platform_key}/stripe/connect/...` |
-| Paywall + price configuration (`/iblai-monetization-configure`) | `billing` | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall[...]` |
-| Access check + checkout (`/iblai-monetization-checkout`) | `billing` | `/api/billing/...access-check/`, `.../checkout/`, `.../checkout-guest/`, `.../checkout-callback/`, `/api/billing/prices/{price_unique_id}/checkout-guest/`, `/api/billing/items/{config_unique_id}/public-pricing/` |
-| Subscriptions (`/iblai-monetization-subscriptions`) | `billing` | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription[...]`, `/api/billing/platforms/{platform_key}/my-subscriptions/` |
-| Analytics + admin (`/iblai-monetization-analytics`) | `billing` | `/api/billing/platforms/{platform_key}/{revenue,paywalls,subscribers}/`, `.../items/{item_type}/{item_id}/subscribers/` |
+| Stripe Connect onboard (`/iblai-monetization-onboard`) | `commerce` | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/...` |
+| Paywall + price configuration (`/iblai-monetization-configure`) | `billing` | Canonical: `{dm_url}/api/billing/items/{item_unique_id}/paywall[...]`, `{dm_url}/api/billing/items/prices/{price_unique_id}/`. Composite: `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall[...]` |
+| Access check + checkout (`/iblai-monetization-checkout`) | `billing` | Canonical: `{dm_url}/api/billing/items/{item_unique_id}/{access-check,scoped-access-check,checkout,checkout-guest,checkout-callback,pricing,public-pricing}/`, `{dm_url}/api/billing/items/prices/{price_unique_id}/checkout/`, `{dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/`. Composite: `{dm_url}/api/billing/access-check/{item_type}/{item_id}/`, `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/{access-check,checkout,checkout-guest,checkout-callback,pricing}/` |
+| Subscriptions (`/iblai-monetization-subscriptions`) | `billing` | Canonical: `{dm_url}/api/billing/items/{item_unique_id}/subscription[...]`. Composite: `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription[...]`, `{dm_url}/api/billing/platforms/{platform_key}/my-subscriptions/` |
+| Analytics + admin (`/iblai-monetization-analytics`) | `billing` | Canonical (item subscribers): `{dm_url}/api/billing/items/{item_unique_id}/subscribers/`. Platform-scoped (no canonical): `{dm_url}/api/billing/platforms/{platform_key}/{revenue,paywalls,subscribers}/` |
 
 To list every tag the schema uses (across the whole API, not just monetization)
 and confirm tag values yourself:
