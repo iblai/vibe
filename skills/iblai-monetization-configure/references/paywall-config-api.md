@@ -9,15 +9,33 @@ SDK at `packages/data-layer/src/features/monetization/types.ts`.
 
 ## Endpoint
 
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`).
+> Auth header: `Authorization: Token <DM token>` — the **DM token**, not
+> the AXD token; the AXD token returns `401`.
+
 ```
-GET    /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
-POST   /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
-PUT    /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
-DELETE /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
+# Canonical (recommended) — keyed by ItemPaywallConfig.unique_id
+GET    {dm_url}/api/billing/items/{item_unique_id}/paywall/
+PUT    {dm_url}/api/billing/items/{item_unique_id}/paywall/
+DELETE {dm_url}/api/billing/items/{item_unique_id}/paywall/
+
+# Composite (legacy) — also accepts POST for the initial create
+GET    {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
+POST   {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
+PUT    {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
+DELETE {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/
 ```
 
-- **View:** `ItemPaywallConfigView` (`billing/views.py:998`)
+**Initial create requires composite.** The canonical URL needs
+`item_unique_id`, which only exists after the row has been created. Use
+the composite `POST` for the first write; capture `unique_id` from the
+response; switch to canonical for subsequent operations.
+
+- **Views:** `ItemPaywallConfigView` (`billing/views.py:998`, composite) +
+  `ItemPaywallConfigByUniqueIdView` (`new_views.py`, canonical via
+  `ConfigUniqueIdMixin`).
 - **Permission:** `IsPlatformAdmin` — Platform-scoped admin token only.
+  Same class on both canonical and composite views.
 - **Mixin:** `BaseItemPaywallMixin` — also enforces `enforce_can_sell_items`
   (Stripe Connect readiness) inside `_validate_admin_request`.
 - **SDK hooks** (`monetizationApiSlice`):
@@ -135,7 +153,8 @@ Sets `is_enabled = false` inside a transaction; the row, prices, and
 existing `ItemSubscription` records are preserved. Stripe subscriptions
 are **not** auto-canceled — the paywall flag flips off, but historical
 subscription rows remain readable through
-`/api/billing/platforms/{platform_key}/items/.../subscribers/`.
+`{dm_url}/api/billing/platforms/{platform_key}/items/.../subscribers/`
+(or the canonical `{dm_url}/api/billing/items/{item_unique_id}/subscribers/`).
 
 If no config row exists, the response is still 204 (idempotent).
 

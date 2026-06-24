@@ -12,22 +12,44 @@ for how `PaywallModal` consumes these tiers.
 
 ## Endpoints
 
-| Method | Path | Permission |
-|---|---|---|
-| GET | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` | `IsPlatformAdmin` |
-| POST | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` | `IsPlatformAdmin` |
-| GET | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `IsPlatformAdmin` |
-| PUT | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `IsPlatformAdmin` |
-| DELETE | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `IsPlatformAdmin` |
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`).
+> Auth header: `Authorization: Token <DM token>` — the **DM token**, not
+> the AXD token; the AXD token returns `401`.
 
-`{price_id}` in the URL is the price's UUID (the serializer renames the
-backend field `unique_id` to `id` for the client). The URL kwarg name is
-`price_id`, not `price_unique_id`.
+| Method | Form | Path | Permission |
+|---|---|---|---|
+| GET / POST | **Canonical (recommended)** | `{dm_url}/api/billing/items/{item_unique_id}/paywall/prices/` | `IsPlatformAdmin` |
+| GET / PUT / DELETE | **Canonical (recommended)** | `{dm_url}/api/billing/items/prices/{price_unique_id}/` | `IsPlatformAdmin` |
+| GET / POST | Composite (legacy) | `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` | `IsPlatformAdmin` |
+| GET / PUT / DELETE | Composite (legacy) | `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` | `IsPlatformAdmin` |
+
+Path-parameter naming is inconsistent between the two forms by design —
+canonical uses `price_unique_id`, composite uses `price_id`. Both refer
+to the `ItemPrice.unique_id` column. The serializer renames the
+backend field `unique_id` to `id` in the JSON response body.
+
+**Canonical price-detail 404 conditions.** The canonical route
+(`items/prices/{price_unique_id}/`) only resolves prices where
+`is_active=true`, `is_deleted=false`, AND
+`paywall_config.is_enabled=true`. Inactive, soft-deleted, or
+disabled-paywall prices return `404 {"detail": "Price not found or not available."}`.
+Use the composite URL when you need to read or update an intentionally
+inactive row.
+
+**Create-first lifecycle.** The canonical URL needs `item_unique_id` or
+`price_unique_id`, which only exist after the row has been created.
+Create via composite or via the canonical list endpoint (which uses
+`item_unique_id`, available once the paywall has been created); switch
+to canonical detail once you have the new `price_unique_id`.
 
 ## Views
 
-- `ItemPriceListView` — `billing/views.py:1183`
-- `ItemPriceDetailView` — `billing/views.py:1300`
+- `ItemPriceListView` (composite) — `billing/views.py:1183`;
+  `ItemPriceListByUniqueIdView` (canonical via `ConfigUniqueIdMixin`) —
+  `new_views.py`.
+- `ItemPriceDetailView` (composite) — `billing/views.py:1300`;
+  `ItemPriceDetailByUniqueIdView` (canonical via `PriceUniqueIdMixin`) —
+  `new_views.py`.
 
 Both inherit `BaseItemPaywallMixin`, which provides `_validate_admin_request`
 (resolves Platform + item-type strategy + item record) and `get_active_price`
@@ -37,7 +59,7 @@ Both inherit `BaseItemPaywallMixin`, which provides `_validate_admin_request`
 ## GET list — list prices
 
 ```
-GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/
+GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/
 ```
 
 Returns an **unpaginated JSON array** of `ItemPrice` objects, not the standard
@@ -54,7 +76,7 @@ Use this in the admin UI's price-management list **and** the same shape feeds
 ## POST create
 
 ```
-POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/
+POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/
 ```
 
 Body fields (`ItemPriceCreateSerializer`):
@@ -97,7 +119,7 @@ Success response: `201 ItemPrice`.
 ## PUT update
 
 ```
-PUT /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/
+PUT {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/
 ```
 
 Accepts the same body shape as POST. The view applies `partial=True`, so any
@@ -120,7 +142,7 @@ Success response: `200 ItemPrice`.
 ## DELETE — soft delete
 
 ```
-DELETE /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/
+DELETE {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/
 ```
 
 The view sets `is_deleted=True`, `is_active=False`, and `deleted_at=now()`,

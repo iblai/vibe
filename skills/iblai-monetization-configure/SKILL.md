@@ -102,11 +102,33 @@ Before writing a single fetcher, run the schema-fetch routine from the
 overview skill and confirm the three endpoints this skill exercises.
 The SDK's mutations wrap them, but you should know the shape:
 
-- `GET / POST / PUT / DELETE /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/`
-- `GET / POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/`
-- `GET / PUT / DELETE /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/`
+All endpoints below live under the **DM base** (`{dm_url}`, e.g.
+`https://api.iblai.app/dm`) and require `Authorization: Token <DM token>`
+— the **DM token**, not the AXD token (the AXD token returns `401`).
 
-All three require `IsPlatformAdmin`. The schemas for the request body,
+| Capability | Canonical (recommended) | Composite (legacy) |
+|---|---|---|
+| Paywall config CRUD | `GET / PUT / DELETE {dm_url}/api/billing/items/{item_unique_id}/paywall/` | `GET / POST / PUT / DELETE {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/` |
+| Prices list / create | `GET / POST {dm_url}/api/billing/items/{item_unique_id}/paywall/prices/` | `GET / POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/` |
+| Price detail | `GET / PUT / DELETE {dm_url}/api/billing/items/prices/{price_unique_id}/` | `GET / PUT / DELETE {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/prices/{price_id}/` |
+
+**Create-first lifecycle.** The canonical URL needs `item_unique_id`,
+which only exists *after* the paywall config has been created. For the
+**initial `POST` / `PUT`** that creates the paywall, use the composite
+URL — once the response comes back with `unique_id`, switch to canonical
+for all subsequent reads / updates / deletes. New price rows have the
+same lifecycle: create via composite or canonical list endpoint, then
+operate on the returned `unique_id` via `items/prices/{price_unique_id}/`.
+
+**Canonical price-detail 404 conditions.** The canonical price-detail
+route resolves only **active, non-deleted prices on enabled paywalls** —
+inactive (`is_active=false`), soft-deleted (`is_deleted=true`), or
+disabled-paywall prices return `404 NotFound`. The composite form has
+no such gate and reaches the parent view. Use canonical for buyer
+flows; use composite when you need to read or update a row that is
+intentionally inactive.
+
+All endpoints require `IsPlatformAdmin`. The schemas for the request body,
 response, and the enum values for `grandfathering_strategy` and
 `interval` are pinned in:
 

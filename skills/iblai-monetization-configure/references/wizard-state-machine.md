@@ -77,7 +77,7 @@ const mutate = itemCreated ? updatePaywall : enablePaywall;
   admin navigates away from the detail view.
 
 Both mutations hit
-`/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/`
+`{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/`
 (verified in the schema); only the verb changes.
 
 ## Step indicator click behavior
