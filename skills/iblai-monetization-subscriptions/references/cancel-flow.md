@@ -6,17 +6,29 @@ be returned.
 
 ## Endpoints
 
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`). Auth
+> header: `Authorization: Token <DM token>` — the **DM token**, not the
+> AXD token; the AXD token returns `401`.
+
 All paths confirmed live in the OpenAPI schema at
-https://api.iblai.app/dm/api/docs/schema/.
+`{dm_url}/api/docs/schema/` (e.g.
+`https://api.iblai.app/dm/api/docs/schema/`). Item-keyed endpoints expose
+both canonical (`unique_id`-keyed) and composite forms — prefer canonical
+for new client code; the shipped SDK still builds composite URLs.
 
-| Method | URL | Purpose |
-|---|---|---|
-| GET | `/api/billing/platforms/{platform_key}/my-subscriptions/` | Paginated list of the current user's subscriptions on a Platform. |
-| GET | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` | Retrieve the current user's subscription to a specific item. |
-| POST | `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` | Cancel the current user's subscription to an item. |
+| Method | Form | URL | Purpose |
+|---|---|---|---|
+| GET | **Canonical (recommended)** | `{dm_url}/api/billing/items/{item_unique_id}/subscription/` | Retrieve the current user's subscription to a specific item. |
+| POST | **Canonical (recommended)** | `{dm_url}/api/billing/items/{item_unique_id}/subscription/cancel/` | Cancel the current user's subscription to an item. |
+| GET | (platform-scoped, no canonical) | `{dm_url}/api/billing/platforms/{platform_key}/my-subscriptions/` | Paginated list of the current user's subscriptions on a Platform. |
+| GET | Composite (legacy) | `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` | Composite form of subscription read. |
+| POST | Composite (legacy) | `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` | Composite form of subscription cancel. |
 
-All three require `IsEdxAuthenticated` — the caller must be a logged-in user
-with a valid bearer token. There is no admin override and no public variant.
+All require `IsEdxAuthenticated` — the caller must be a logged-in user
+with a valid DM token. There is no admin override and no public variant —
+`ItemSubscriptionCancelView` is hard-locked to `request.user`. Force a
+cancel-on-behalf-of-user via the Stripe Dashboard or a direct backend
+admin tool.
 
 ## List response shape (`MySubscriptionsResponse`)
 

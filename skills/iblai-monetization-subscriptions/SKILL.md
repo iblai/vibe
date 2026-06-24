@@ -100,15 +100,23 @@ curl -sS https://api.iblai.app/dm/api/docs/schema/ -o /tmp/iblai_schema.yaml
 grep -E "my-subscriptions/|subscription/cancel/|subscription/$" /tmp/iblai_schema.yaml
 ```
 
-You should see all three:
+You should see all three. Endpoints live under the **DM base**
+(`{dm_url}`, e.g. `https://api.iblai.app/dm`) and require `Authorization:
+Token <DM token>` — the **DM token**, not the AXD token (using the AXD
+token returns `401`). Item-keyed endpoints expose both a canonical
+(`unique_id`-keyed) form and the legacy composite form; the SDK still
+builds composite URLs.
 
-- `GET  /api/billing/platforms/{platform_key}/my-subscriptions/` — list.
-- `GET  /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` — detail.
-- `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` — cancel.
+| Capability | Canonical (recommended) | Composite (legacy) |
+|---|---|---|
+| Subscription read | `GET {dm_url}/api/billing/items/{item_unique_id}/subscription/` | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/` |
+| Subscription cancel | `POST {dm_url}/api/billing/items/{item_unique_id}/subscription/cancel/` | `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/subscription/cancel/` |
+| User's full subscription list | — (platform-scoped, no canonical) | `GET {dm_url}/api/billing/platforms/{platform_key}/my-subscriptions/` |
 
 All three require an authenticated user; the backend scopes by `request.user`
 + `platform_key`, so there is no way to read or cancel another user's
-subscription.
+subscription. `ItemSubscriptionCancelView` is hard-locked to `request.user`
+— operators cannot cancel on behalf of another user through this API.
 
 ## Step 2: Wire the Profile integration
 
