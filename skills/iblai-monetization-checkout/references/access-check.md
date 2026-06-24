@@ -4,19 +4,43 @@ The access-check endpoint is the gate every paywalled surface should call before
 
 ## Endpoints
 
-Two variants share the same response shape and decision logic. Pick the one whose URL matches the context your component sits in.
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`). Auth
+> header: `Authorization: Token <DM token>` — the **DM token**, not the
+> AXD token; the two are different tokens and the AXD token returns
+> `401` here.
 
-- **Scoped** (typical SPA, Platform already known):
-  `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/`
-- **Unscoped** (embeds, landing pages, anywhere the Platform is supplied at call time):
-  `GET /api/billing/access-check/{item_type}/{item_id}/?platform_key={platform_key}`
+Four URL forms reach the same backend decision logic, sharing identical
+response shape. Prefer the **canonical (`unique_id`-keyed)** forms for new
+client code; the composite forms remain valid for callers that already hold
+the `(platform_key, item_type, item_id)` triple.
 
-When `platform_key` is omitted on the unscoped variant the backend resolves it from the request context (the token's Platform). Always pass it explicitly for embed / cross-Platform surfaces — implicit resolution is for the same-Platform case only.
+| Form | Scope | URL |
+|---|---|---|
+| **Canonical (recommended)** | Unscoped | `GET {dm_url}/api/billing/items/{item_unique_id}/access-check/` |
+| **Canonical (recommended)** | Scoped | `GET {dm_url}/api/billing/items/{item_unique_id}/scoped-access-check/` |
+| Composite (legacy) | Unscoped | `GET {dm_url}/api/billing/access-check/{item_type}/{item_id}/?platform_key={platform_key}` |
+| Composite (legacy) | Scoped | `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/` |
+
+The canonical forms resolve `(platform_key, item_type, item_id)` from the
+paywall config's UUID at dispatch time — no query parameter or path segment
+required. On the composite unscoped form, when `platform_key` is omitted the
+backend resolves it from the request context (the token's Platform); always
+pass it explicitly for embed / cross-Platform surfaces — implicit resolution
+is for the same-Platform case only.
 
 ## Views
 
-- Scoped — `ScopedItemAccessCheckView` at `billing/views.py:767` — subclasses the unscoped view and pulls `platform_key` from the URL path instead of the query string.
-- Unscoped — `ItemAccessCheckView` at `billing/views.py:668-764` — the base implementation. Normalizes `item_type`, validates the `platform_key` query param via `ItemAccessCheckQPSerializer`, then delegates to `check_payment_access`.
+- Canonical unscoped — `ItemAccessCheckByUniqueIdView` (`new_views.py`) —
+  wraps `ItemAccessCheckView` via `ConfigUniqueIdMixin`.
+- Canonical scoped — `ScopedItemAccessCheckByUniqueIdView` (`new_views.py`) —
+  wraps `ScopedItemAccessCheckView`.
+- Composite scoped — `ScopedItemAccessCheckView` at `billing/views.py:767` —
+  subclasses the unscoped view and pulls `platform_key` from the URL path
+  instead of the query string.
+- Composite unscoped — `ItemAccessCheckView` at `billing/views.py:668-764` —
+  the base implementation. Normalizes `item_type`, validates the
+  `platform_key` query param via `ItemAccessCheckQPSerializer`, then
+  delegates to `check_payment_access`.
 
 ## Permission
 

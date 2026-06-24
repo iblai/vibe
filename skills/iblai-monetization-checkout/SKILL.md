@@ -39,11 +39,37 @@ not in a subdirectory.
 
 > **Verify the API before you call it.** Fetch the live OpenAPI schema at https://api.iblai.app/dm/api/docs/schema/ (also browsable at https://api.iblai.app/dm/api/docs/) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-monetization → references/schema-validation.md](../iblai-monetization/references/schema-validation.md) for the exact fetch routine.
 
+> **`{dm_url}` + DM token.** Every checkout endpoint lives under the **DM
+> base** — `{dm_url}` resolves to your data-manager host (e.g.
+> `https://api.iblai.app/dm`); in TypeScript compose it as
+> `` `${apiBase}/dm` ``. The auth header for the authenticated paywall
+> flow is `Authorization: Token <DM token>` — the **DM token**, not the
+> AXD token. The two are different tokens issued by different services;
+> using the AXD token against `{dm_url}` returns `401`. The SDK attaches
+> the DM token automatically via `SERVICES.DM`.
+
+> **Canonical vs composite URLs.** Every item-keyed endpoint exposes both
+> a canonical (`unique_id`-keyed) form and the legacy composite
+> (`platform/type/id`-keyed) form. **Prefer canonical for new client code
+> — buyer routes also short-circuit cleanly on disabled paywalls in the
+> canonical form** (see "Canonical buyer 404" below). The shipped SDK
+> hooks still build composite URLs; that is documented in each step. Full
+> mapping in [`/iblai-monetization → references/api-overview.md`](../iblai-monetization/references/api-overview.md).
+
+> **Canonical buyer 404.** Canonical buyer routes (`checkout`,
+> `checkout-guest`, `items/prices/{price_unique_id}/checkout/`,
+> `prices/{price_unique_id}/checkout-guest/`) carry
+> `require_enabled_paywall = True` and return
+> `404 {"detail": "Paywall configuration not found."}` *before* reaching
+> Stripe when the paywall is disabled. The composite forms do not — they
+> delegate to the parent view and fail later with a different error.
+
 ## Prerequisites
 
 - **Auth** — required for the authenticated paywall + checkout flow. Wire
-  the token via `/iblai-auth`. The public/guest buy surface in Step 5
-  does NOT need auth — those calls pass `skipAuth: true`.
+  the **DM token** (not AXD) via `/iblai-auth`. The public/guest buy
+  surface in Step 5 does NOT need auth — those calls pass
+  `skipAuth: true`.
 - **MCP + skills** — `iblai add mcp`.
 - **`iblai.env`** populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
@@ -52,7 +78,7 @@ not in a subdirectory.
   the buyer flow can't run — do `/iblai-monetization-configure` first.
 - **The Platform finished Stripe Connect Express onboarding.** Checkout
   hard-requires `stripe_connect_account.is_ready_for_payments`. Without
-  it, `POST /checkout/` returns
+  it, `POST {dm_url}/api/billing/.../checkout/` returns
   `400 {"detail": "Platform payment system not configured"}`. Do
   `/iblai-monetization-onboard` first.
 
@@ -122,7 +148,7 @@ export function GatedItemPage({ itemId, itemType }: { itemId: string; itemType: 
 }
 ```
 
-Payload from `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/` (same shape for 200 and 402):
+Payload from `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/access-check/` (same shape for 200 and 402):
 
 ```json
 {
@@ -211,12 +237,12 @@ export function PaywallScreen({ pricing, platformKey, itemId, itemType, hard }: 
 `useCreateCheckoutMutation({ platform_key, item_type, item_id, price_id, success_url, cancel_url })`
 when the buyer clicks Pay, then runs
 `window.location.href = result.checkout_url` to send them to Stripe.
-The mutation hits `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/`
+The mutation hits `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/`
 and returns `{ checkout_url, session_id, platform_key }` (the backend
 `CheckoutSessionResponseSerializer` returns all three; the SDK's TS
 `CheckoutResponse` type is missing `platform_key` — SDK drift, the
 runtime field is present). Stripe drops the buyer back
-at `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/`
+at `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/`
 on success, where the server reconciles the session before redirecting
 to the buyer-facing URL.
 
@@ -270,12 +296,15 @@ are `AllowAny` on the server — no Authorization header is sent.
 
 ### 5.1 Fetch public pricing
 
-There are TWO public-pricing endpoints — both `AllowAny`:
+There are three public-pricing endpoints — all `AllowAny`. Prefer the
+canonical (`item_unique_id`-keyed) forms for new client code; the
+composite form remains valid:
 
-| URL | Hook | Used when |
-|---|---|---|
-| `GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/` | `useGetPublicPricingQuery({ platform_key, item_type, item_id })` | You know the Platform key + item identifier. Default for in-app buy pages. |
-| `GET /api/billing/items/{config_unique_id}/public-pricing/` | direct fetch (no slice hook) | You only have a shareable paywall config uuid (e.g. a link in a marketing email). |
+| URL | Form | Hook | Used when |
+|---|---|---|---|
+| `GET {dm_url}/api/billing/items/{item_unique_id}/pricing/` | **Canonical (recommended)** | direct fetch (no slice hook) | You have the paywall config's `unique_id`. New buy pages should prefer this URL. |
+| `GET {dm_url}/api/billing/items/{item_unique_id}/public-pricing/` | **Canonical (legacy alias)** | direct fetch (no slice hook) | Same response; kept for buy links of the form `${authURL}/buy/{paywallUniqueId}`. |
+| `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/` | Composite (legacy) | `useGetPublicPricingQuery({ platform_key, item_type, item_id })` | You already resolved `(platform_key, item_type, item_id)`. The SDK hook still builds this URL. |
 
 ```tsx
 'use client';
@@ -316,14 +345,15 @@ Response shape from `useGetPublicPricingQuery`:
 
 The guest can pay via two backend entry points. The slice exposes only
 `useCreateGuestCheckoutMutation` (URL-pinned to the by-item endpoint).
-For the by-price URL (`POST /api/billing/prices/{price_unique_id}/checkout-guest/`),
+For the by-price URL (`POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/`),
 call `fetch` directly — there is no hook (`useCreateGuestCheckoutByPriceMutation`
 has never existed, this is not version drift).
 
-| Server URL | Hook (in slice) | Use when |
-|---|---|---|
-| `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` | `useCreateGuestCheckoutMutation` | You already resolved `(platform_key, item_type, item_id)` — most common. |
-| `POST /api/billing/prices/{price_unique_id}/checkout-guest/` | not in the slice — direct fetch | You only have the price uuid (e.g. a one-click Buy link). |
+| Server URL | Form | Hook (in slice) | Use when |
+|---|---|---|---|
+| `POST {dm_url}/api/billing/items/{item_unique_id}/checkout-guest/` | **Canonical (recommended)** | direct fetch | You have the paywall config's `unique_id` — preferred for new buy pages. |
+| `POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/` | **Canonical (recommended)** | direct fetch | You only have the price uuid (e.g. a one-click Buy link). The backend derives Platform/item from the price. |
+| `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` | Composite (legacy) | `useCreateGuestCheckoutMutation` | You already resolved `(platform_key, item_type, item_id)`. The SDK hook still builds this URL. |
 
 ```tsx
 import { useCreateGuestCheckoutMutation } from '@iblai/iblai-js/data-layer';
@@ -350,12 +380,16 @@ server creates the Stripe customer behind the scenes; the buyer never
 logs in. After a successful charge the webhook materializes the
 `ItemSubscription` and email is the identity used to look up the row.
 
-For the by-price entry point, when no hook exists, fetch directly:
+For the by-price entry point, when no hook exists, fetch directly.
+Compose the **DM base** explicitly — the checkout endpoints live on DM,
+not the AXD edge:
 
 ```ts
 async function buyByPriceUuid(priceUuid: string, email: string) {
+  // DM base — never hit ${NEXT_PUBLIC_API_BASE_URL}/api/... directly.
+  const dmBase = `${process.env.NEXT_PUBLIC_API_BASE_URL}/dm`;
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/billing/prices/${priceUuid}/checkout-guest/`,
+    `${dmBase}/api/billing/prices/${priceUuid}/checkout-guest/`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -389,7 +423,7 @@ const { data } = useCheckAccessUnscopedQuery({
 });
 ```
 
-The hook hits `GET /api/billing/access-check/{item_type}/{item_id}/?platform_key=<key>`.
+The hook hits `GET {dm_url}/api/billing/access-check/{item_type}/{item_id}/?platform_key=<key>`.
 The response shape and 200-vs-402 contract are identical on the wire,
 but **unlike `useCheckAccessQuery`, `useCheckAccessUnscopedQuery` does
 NOT carry a `validateStatus` override** — a 402 lands in `error`, not

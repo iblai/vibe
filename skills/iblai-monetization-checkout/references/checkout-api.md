@@ -1,20 +1,42 @@
 # Checkout API
 
-Three endpoints create a Stripe Checkout Session for an item, plus one callback endpoint that processes Stripe's redirect. All four live under `/api/billing/` and use the Connect destination-charge contract.
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`). Auth
+> header for authenticated checkout: `Authorization: Token <DM token>` —
+> the **DM token**, not the AXD token. Guest endpoints use `AllowAny`
+> (no token attached).
 
-## The three checkout endpoints
+Six endpoints create a Stripe Checkout Session for an item, plus one
+callback endpoint that processes Stripe's redirect. All live under
+`{dm_url}/api/billing/` and use the Connect destination-charge contract.
 
-| Endpoint | Auth | When to use |
-|---|---|---|
-| `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/` | `IsEdxAuthenticated` | Buyer is signed in; you know the item from context (e.g. PaywallModal). |
-| `POST /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` | `AllowAny` | Buyer is anonymous; you still know the item (e.g. a public listing page that asks for an email). |
-| `POST /api/billing/prices/{price_unique_id}/checkout-guest/` | `AllowAny` | Buyer is anonymous and the URL only carries a `price_id` (e.g. a `/buy/{uniqueId}` shareable link). The backend derives Platform, `item_type`, `item_id` from the price. |
+## The checkout endpoints — canonical first
+
+| Endpoint | Form | Auth | When to use |
+|---|---|---|---|
+| `POST {dm_url}/api/billing/items/{item_unique_id}/checkout/` | **Canonical (recommended)** | `IsEdxAuthenticated` | Buyer is signed in and you have the paywall config's `unique_id`. |
+| `POST {dm_url}/api/billing/items/prices/{price_unique_id}/checkout/` | **Canonical (recommended)** | `IsEdxAuthenticated` | Buyer is signed in and the URL pins a specific price (one-click upgrade, "Buy Pro" button). No body `price_id` needed — the URL fixes it. |
+| `POST {dm_url}/api/billing/items/{item_unique_id}/checkout-guest/` | **Canonical (recommended)** | `AllowAny` | Anonymous buyer; you have the paywall config's `unique_id`. |
+| `POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/` | **Canonical (recommended)** | `AllowAny` | Anonymous buyer with only a price uuid (e.g. a `/buy/{uniqueId}` shareable link). The backend derives Platform/item_type/item_id from the price. |
+| `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout/` | Composite (legacy) | `IsEdxAuthenticated` | Buyer is signed in; you already have the `(platform_key, item_type, item_id)` triple from context (e.g. the shipped `PaywallModal`). |
+| `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` | Composite (legacy) | `AllowAny` | Anonymous buyer; same triple available. |
+
+**Canonical buyer routes 404 on disabled paywalls.** All four canonical
+checkout views carry `require_enabled_paywall = True` — a request against a
+paywall whose `is_enabled = False` returns
+`404 {"detail": "Paywall configuration not found."}` *before* reaching
+Stripe. Composite routes do not — they delegate to the parent view and
+fail later. Prefer canonical so the failure mode is consistent.
 
 Backend views (verified):
 
-- `ItemCheckoutView` — `billing/views.py:1556`, `permission_classes = [IsEdxAuthenticated]`.
-- `ItemGuestCheckoutView` — `billing/views.py:1751`, `permission_classes = [AllowAny]`, subclasses `ItemCheckoutView`.
-- `ItemGuestCheckoutByPriceView` — `billing/views.py:1804`, subclasses `ItemGuestCheckoutView`; looks up the `ItemPrice` by `unique_id` (must be `is_active`, `is_deleted=False`, `paywall_config__is_enabled=True`), then derives Platform/item_type/item_id from `price.paywall_config`.
+- Canonical: `ItemCheckoutByUniqueIdView`, `ItemCheckoutByPriceUniqueIdView`,
+  `ItemGuestCheckoutByUniqueIdView` in `new_views.py` —
+  `ConfigUniqueIdMixin` / `PriceUniqueIdMixin` resolve the UUID at dispatch
+  and short-circuit. `ItemGuestCheckoutByPriceView` (`billing/views.py:1804`)
+  is the by-price guest variant.
+- Composite: `ItemCheckoutView` — `billing/views.py:1556`, `IsEdxAuthenticated`.
+  `ItemGuestCheckoutView` — `billing/views.py:1751`, `AllowAny`, subclasses
+  `ItemCheckoutView`.
 
 ## Request body (`CheckoutSessionCreateSerializer`, `billing/serializers.py:626`)
 
@@ -78,11 +100,20 @@ The guest variant prevents a logged-out buyer from double-buying with the same e
 ## Checkout callback
 
 ```
-GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/
-GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/{checkout_session_id}/
+# Canonical (recommended)
+GET {dm_url}/api/billing/items/{item_unique_id}/checkout-callback/
+GET {dm_url}/api/billing/items/{item_unique_id}/checkout-callback/{checkout_session_id}/
+
+# Composite (legacy)
+GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/
+GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-callback/{checkout_session_id}/
 ```
 
-Both shapes route to `ItemCheckoutCallbackView` (`billing/views.py:2257`, `permission_classes = [AllowAny]`). The session id can come from the URL path OR from `?checkout_session_id=` / `?stripe_checkout_id=` query params (`views.py:2282-2284`); either is canonical. Stripe itself only redirects the buyer's browser here — this view always responds with `302 redirect` to the eventual `return_url` (default: the Platform root).
+All four shapes route to the same callback logic — `ItemCheckoutCallbackView`
+(`billing/views.py:2257`, `permission_classes = [AllowAny]`) for composite,
+`ItemCheckoutCallbackByUniqueIdView` (`new_views.py`) for canonical. The
+session id can come from the URL path OR from `?checkout_session_id=` /
+`?stripe_checkout_id=` query params (`views.py:2282-2284`). Stripe itself only redirects the buyer's browser here — this view always responds with `302 redirect` to the eventual `return_url` (default: the Platform root).
 
 What it does:
 

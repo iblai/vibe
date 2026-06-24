@@ -1,33 +1,47 @@
 # Public pricing API
 
-Two read-only endpoints serve the paywall config + active prices for an
-item to anonymous callers (no token required). Use them on marketing
-landing pages, shareable buy links, and pricing teasers that must render
-before the user is signed in.
+> `{dm_url}` = your DM service host (e.g. `https://api.iblai.app/dm`).
+> These endpoints are `AllowAny` — no token attached, but the data they
+> return is still scoped to the Platform that owns the paywall config.
 
-## Two endpoints
+Three read-only endpoints serve the paywall config + active prices for
+an item to anonymous callers. Use them on marketing landing pages,
+shareable buy links, and pricing teasers that must render before the
+user is signed in.
 
-**Scoped by item (type + id + Platform):**
+## Three endpoints — canonical first
+
+**Canonical (recommended) — by paywall config UUID, `/pricing/` route:**
 
 ```
-GET /api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/
+GET {dm_url}/api/billing/items/{item_unique_id}/pricing/
+```
+
+Resolves `ItemPaywallConfig.unique_id` (a UUID) via
+`PublicItemPricingByUniqueIdView` (`new_views.py`). Preferred for new
+client code — URL-stable across item-type renames; no need to carry
+`platform_key`/`item_type` in the link.
+
+**Canonical (recommended) — by paywall config UUID, `/public-pricing/` alias:**
+
+```
+GET {dm_url}/api/billing/items/{item_unique_id}/public-pricing/
+```
+
+The original `unique_id` route — kept for anonymous landing pages that
+already hold a shareable link of the form
+`${authURL}/buy/{paywallUniqueId}` (the Configure wizard's "Copy" button
+generates these). Same response shape as `/pricing/`.
+
+**Composite (legacy) — by item triple:**
+
+```
+GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/
 ```
 
 Use when you already know the item's `(type, id, platform)` triple —
 typical for app-internal pricing teasers, course catalog cards, and the
 guest checkout surface in the SDK.
-
-**By config UUID:**
-
-```
-GET /api/billing/items/{config_unique_id}/public-pricing/
-```
-
-Same response shape, but the item is resolved from
-`ItemPaywallConfig.unique_id` instead of the item triple. Use this for
-shareable buy links where only the paywall's UUID is known (the
-Configure wizard's "Copy" button generates URLs of the form
-`${authURL}/buy/{paywallUniqueId}`).
 
 The auth app ships a working `/buy/[id]/page.tsx` route that already
 calls this endpoint, so `${authURL}/buy/{paywallUniqueId}` resolves
@@ -38,12 +52,11 @@ surface).
 
 ## View
 
-`PublicItemPricingView` lives at
-`billing/views.py:1958`. The by-config variant is
-`PublicItemPricingByConfigView` at `billing/views.py:2001` and
-subclasses the scoped view — it looks up the config by UUID, then
-delegates to the same handler with the resolved
-`(platform_key, item_type, item_id)`.
+`PublicItemPricingView` (composite) lives at `billing/views.py:1958`.
+The canonical variant is `PublicItemPricingByUniqueIdView` in
+`new_views.py` — it wraps the same handler via
+`ConfigUniqueIdMixin`, resolving `(platform_key, item_type, item_id)`
+from `item_unique_id` at dispatch.
 
 Both views set `authentication_classes = []` and
 `permission_classes = [AllowAny]`. The `get_permissions()` override
