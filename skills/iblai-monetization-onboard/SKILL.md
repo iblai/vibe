@@ -103,16 +103,20 @@ documents the five endpoints, request bodies, response fields,
 permission classes, and the SDK hook map.
 
 Then cross-check each path against the live schema as the schema-first
-directive prescribes. The five Connect paths today (`commerce` tag):
+directive prescribes. The five Connect paths today (`commerce` tag) —
+all hosted under the **DM base** (`{dm_url}`, e.g.
+`https://api.iblai.app/dm`):
 
-- `GET    /api/service/platforms/{platform_key}/stripe/connect/status/`
-- `POST   /api/service/platforms/{platform_key}/stripe/connect/onboard/`
-- `POST   /api/service/platforms/{platform_key}/stripe/connect/onboard/refresh/`
-- `GET    /api/service/platforms/{platform_key}/stripe/connect/dashboard/`
-- `DELETE /api/service/platforms/{platform_key}/stripe/connect/`
+- `GET    {dm_url}/api/service/platforms/{platform_key}/stripe/connect/status/`
+- `POST   {dm_url}/api/service/platforms/{platform_key}/stripe/connect/onboard/`
+- `POST   {dm_url}/api/service/platforms/{platform_key}/stripe/connect/onboard/refresh/`
+- `GET    {dm_url}/api/service/platforms/{platform_key}/stripe/connect/dashboard/`
+- `DELETE {dm_url}/api/service/platforms/{platform_key}/stripe/connect/`
 
 All five require `IsPlatformAdmin` and run platform-owner validation
-in the service layer on top of that.
+in the service layer on top of that. All require `Authorization: Token
+<DM token>` — the **DM token**, not the AXD token; the two are different
+tokens issued by different services. Using the AXD token returns `401`.
 
 ## Step 2: Mount the status query and gate on `is_ready_for_payments`
 
@@ -217,12 +221,18 @@ the browser back to the URL you supplied:
   calling the refresh endpoint:
 
 ```ts
+// All Connect endpoints are mounted on the DM service, not the AXD edge.
+// Compose the base from your env or from SERVICES.DM if the SDK is loaded.
+const dmBase = `${apiBase}/dm`; // e.g. https://api.iblai.app/dm
+
 const res = await fetch(
-  `${apiBase}/api/service/platforms/${platformKey}/stripe/connect/onboard/refresh/`,
+  `${dmBase}/api/service/platforms/${platformKey}/stripe/connect/onboard/refresh/`,
   {
     method: 'POST',
     headers: {
-      Authorization: `Token ${token}`,
+      // DM token — not the AXD token. The SDK injects this automatically
+      // when you go through RTK Query; the direct fetch needs it spelled.
+      Authorization: `Token ${dmToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -270,16 +280,19 @@ mounts whether the user clicks or not.
 
 ## Step 6: Disconnect (optional, admin-only)
 
-`DELETE /api/service/platforms/{platform_key}/stripe/connect/` is
+`DELETE {dm_url}/api/service/platforms/{platform_key}/stripe/connect/` is
 defined in the schema and implemented at `StripeConnectDisconnectView`
 (line 155 of `views/stripe_connect.py`), but the SDK does not currently
 expose a hook for it. If you need to surface a disconnect option in a
 custom admin tool, call it directly:
 
 ```ts
+// Compose the DM base — Stripe Connect lives on DM, not the AXD edge.
+const dmBase = `${apiBase}/dm`;
+
 await fetch(
-  `${apiBase}/api/service/platforms/${platformKey}/stripe/connect/`,
-  { method: 'DELETE', headers: { Authorization: `Token ${token}` } },
+  `${dmBase}/api/service/platforms/${platformKey}/stripe/connect/`,
+  { method: 'DELETE', headers: { Authorization: `Token ${dmToken}` } },
 );
 ```
 

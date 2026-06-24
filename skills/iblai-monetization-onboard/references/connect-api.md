@@ -14,8 +14,14 @@ to the Platform on the token.
 > (`StripeConnectService`). View classes are NOT in a `services/stripe/`
 > module — that path holds only the service layer.
 
-> **Base URL:** `${NEXT_PUBLIC_API_BASE_URL}`
-> **Auth:** `Authorization: Token <token>` (PlatformApiKeyAuthentication)
+> **Base URL:** `{dm_url}` — the DM service host, e.g.
+> `https://api.iblai.app/dm`. In TypeScript compose it as
+> `` `${apiBase}/dm` `` (or read `SERVICES.DM` from a loaded SDK).
+> Never hit the bare AXD edge (`${NEXT_PUBLIC_API_BASE_URL}/api/...`) —
+> Stripe Connect routes live on DM only.
+> **Auth:** `Authorization: Token <DM token>` (PlatformApiKeyAuthentication).
+> This is the **DM token**, not the AXD token — using the AXD token here
+> returns `401`.
 > **Permission:** `IsPlatformAdmin` on every endpoint — these are
 > Platform-owner-only surfaces, not learner-facing.
 
@@ -23,11 +29,11 @@ to the Platform on the token.
 
 | Method | Path | View class | Purpose |
 |---|---|---|---|
-| GET | `/api/service/platforms/{platform_key}/stripe/connect/status/` | `StripeConnectStatusView` | Current account status, commission, `is_owner`, `is_ready_for_payments` |
-| POST | `/api/service/platforms/{platform_key}/stripe/connect/onboard/` | `StripeConnectOnboardView` | Create Connect Express account, return hosted onboarding URL |
-| POST | `/api/service/platforms/{platform_key}/stripe/connect/onboard/refresh/` | `StripeConnectOnboardView` (refresh route) | Re-issue onboarding URL when the original expires or is abandoned |
-| GET | `/api/service/platforms/{platform_key}/stripe/connect/dashboard/` | `StripeConnectDashboardLinkView` | Stripe-hosted Express Dashboard login link |
-| DELETE | `/api/service/platforms/{platform_key}/stripe/connect/` | `StripeConnectDisconnectView` | Soft-disconnect the Platform's Connect account |
+| GET | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/status/` | `StripeConnectStatusView` | Current account status, commission, `is_owner`, `is_ready_for_payments` |
+| POST | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/onboard/` | `StripeConnectOnboardView` | Create Connect Express account, return hosted onboarding URL |
+| POST | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/onboard/refresh/` | `StripeConnectOnboardView` (refresh route) | Re-issue onboarding URL when the original expires or is abandoned |
+| GET | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/dashboard/` | `StripeConnectDashboardLinkView` | Stripe-hosted Express Dashboard login link |
+| DELETE | `{dm_url}/api/service/platforms/{platform_key}/stripe/connect/` | `StripeConnectDisconnectView` | Soft-disconnect the Platform's Connect account |
 
 All paths include the `{platform_key}` segment. Pass the Platform key
 from your token / `currentTenant` context — never hardcode.
@@ -147,7 +153,7 @@ clicks the dashboard button.
 
 - `404` — Platform has no Connect account yet
 
-## `DELETE /api/service/platforms/{platform_key}/stripe/connect/` — disconnect
+## `DELETE {dm_url}/api/service/platforms/{platform_key}/stripe/connect/` — disconnect
 
 Soft-deletes the `StripeConnectAccount` row (sets `is_disconnected =
 true`, stamps `disconnected_at`). All existing paywalls keep their
