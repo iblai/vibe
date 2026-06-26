@@ -9,7 +9,7 @@ description, avatar, visibility (administrators / students / anyone),
 category, plus a Copy-to-tenant action and a Delete action. This is one
 tab in the wider agent-settings family (`access`, `api`, `datasets`,
 `disclaimers`, `embed`, `history`, `llm`, `memory`, `prompts`, `safety`,
-`settings`, `tools`). Each tab is a separate skill. All tabs share the
+`settings`, `tasks`, `tools`). Each tab is a separate skill. All tabs share the
 same `AgentSettingsProvider` wrapper -- set it up once and mount as many
 tabs as you need.
 

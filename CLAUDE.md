@@ -300,6 +300,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-tasks` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
+| `/iblai-nemoclaw-sandbox` | Operating contract for an agent running inside a NemoClaw / OpenShell sandbox (single NODE_OPTIONS `--require` preload that loads guards fail-closed; `bash -ic` + `/sandbox/command-logs` logging) |
 
 ### Marketing Skills
 

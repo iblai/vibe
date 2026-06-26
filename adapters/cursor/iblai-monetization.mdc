@@ -1,38 +1,21 @@
 ---
-description: "Sell agents, courses, programs, and custom items with Stripe-powered paywalls, item-level pricing tiers, and per-user subscriptions."
+description: "Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-monetization-onboard for Connect onboarding, /iblai-monetization-configure for the admin MonetizationTab + wizard, /iblai-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-monetization-subscriptions for the user PurchasesTab + cancel flow, /iblai-monetization-analytics for revenue and subscribers, /iblai-credit for Platform-wide credits, /iblai-auth for token wiring."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-monetization
 
-Add ibl.ai's item-level monetization to your app. This is the per-item
-paywall system (sell a specific mentor / course / program / pathway,
-or any custom item), distinct from the platform-wide credit billing
-covered by [/iblai-credit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-credit/SKILL.md).
-It ships three SDK surfaces:
+Reference skill for ibl.ai's item-level monetization system — selling
+specific mentors / courses / programs / pathways or custom items behind
+a Stripe Connect Express paywall. This is the family index: it covers
+authentication, the live OpenAPI schema, the two Platform flags, the
+RTK Query data layer, RBAC, and points at every workflow sub-skill.
+Start here for orientation, then jump to the sub-skill that matches the
+surface you are building.
 
-1. **`MonetizationTab`** — admin pane (inside the Account page) where a
-   tenant owner connects their Stripe Connect account, picks items to
-   sell, and configures paywall settings + pricing tiers.
-2. **`PaywallModal`** — buyer-facing dialog that lists the configured
-   pricing tiers for a single item and opens a Stripe Checkout session.
-3. **`PurchasesTab`** — user pane (inside the Profile page) listing the
-   current user's subscriptions, with detail view + cancel flow.
-
-Behind the scenes everything flows through the **monetization API
-slice** in `@iblai/iblai-js/data-layer` (RTK Query). The slice owns
-nine flows — Stripe Connect, paywall config, pricing CRUD, public
-pricing, access checks, checkout, cancel, user subscriptions, and
-platform analytics — and is the canonical surface for any custom
-buy/lock UI you build.
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK
-components. The paywall components ship with their own styling —
-including the wizard step indicator, the Stripe Connect card, the
-pricing-tier grid, and the cancel-subscription confirmation. Wrapping
-them, restyling them, or rebuilding them piece-by-piece will break the
-checkout flow and visual consistency with other ibl.ai apps.
+Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
 
 When building custom UI around SDK components, use the ibl.ai brand:
@@ -47,799 +30,125 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
   colors, typography, spacing, and component styles.
 
-You MUST run `/iblai-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
-
-> **Profile / Account pages:** This skill assumes the Profile and Account
-> pages are already wired up (`/iblai-profile`, `/iblai-account`). The
-> `MonetizationTab` lives inside `Account`, and the `PurchasesTab` lives
-> inside `Profile` — both render automatically once the tenant flags
-> below are set.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
----
+## Authentication
 
-## Monetization vs. credits — pick the right surface
+> **`{dm_url}` and DM token.** Throughout this family, `{dm_url}` resolves to
+> your data-manager host (e.g. `https://api.iblai.app/dm`); in TypeScript
+> compose it as `` `${apiBase}/dm` ``. The auth token is the **DM token** —
+> not the AXD token. The two are different tokens issued by different
+> services; using the AXD token against `{dm_url}` returns `401`. The SDK
+> attaches the DM token automatically via `SERVICES.DM`.
 
-These look similar but are different products. Mixing them is the most
-common mistake when first wiring up payments.
+Every monetization endpoint lives under `{dm_url}/api/billing/` or
+`{dm_url}/api/service/platforms/{platform_key}/stripe/connect/` and requires a
+Platform-scoped DM token:
 
-| | `/iblai-monetization` (this skill) | `/iblai-credit` |
+```
+Authorization: Token <DM token>
+```
+
+This is the DRF Token scheme — NOT `Bearer`. The token binds to exactly
+one Platform at the moment of issue; the Platform is inferred from the
+token on every request (and also appears in the URL path for scoped
+endpoints). Records belonging to a different Platform return
+**`404 Not Found`, never `403 Forbidden`** — returning `403` would leak
+the existence of cross-Platform records.
+
+Several endpoints intentionally skip the auth header — `AllowAny`
+covers public per-item pricing (by `(item_type, item_id)` and by
+paywall `item_unique_id`), the two `/checkout-guest/` variants (guest
+buy by item or by price uuid), and the two checkout-callback
+endpoints. The full RBAC table lives in
+[`references/rbac-matrix.md`](./references/rbac-matrix.md).
+
+For token wiring inside a Next.js app see `/iblai-auth`.
+
+## Canonical vs composite endpoints
+
+Every item-keyed monetization endpoint now exposes **two equivalent URLs**:
+
+- **Canonical (recommended)** — `{dm_url}/api/billing/items/{item_unique_id}/<suffix>/`
+  (or `{dm_url}/api/billing/items/prices/{price_unique_id}/<suffix>/` for
+  price-keyed routes). The backend resolves `(platform_key, item_type,
+  item_id)` from the UUID at dispatch time.
+- **Composite (legacy, still supported)** —
+  `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/<suffix>/`.
+  Use this when you already have the triple (e.g. a webhook payload, a
+  freshly created paywall, a migration script).
+
+Prefer canonical for new client code: URL-stable across item-type renames, no
+need to carry `platform_key` / `item_type` in every call. Composite stays
+valid forever. Full table in
+[`references/api-overview.md`](./references/api-overview.md) and the RBAC
+mapping in [`references/rbac-matrix.md`](./references/rbac-matrix.md) — both
+forms share `permission_classes`.
+
+## Validate against the live OpenAPI schema
+
+URL paths and response shapes in this family are documented for
+orientation, but the live schema mirrors what is actually deployed.
+Before writing any code that constructs a URL, fetch the schema:
+
+```bash
+curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+grep -E "^(  )?/api/billing|^(  )?/api/service/platforms/\{platform_key\}/stripe/connect" /tmp/iblai_schema.yaml
+```
+
+Schema is OpenAPI 3.0.3 YAML at
+`https://api.iblai.app/dm/api/docs/schema/` (also browsable at
+`https://api.iblai.app/dm/api/docs/`). The `info.version` field
+exposes the deployed `ibl-data-manager` build — it rolls forward each
+release, so do not pin to a specific value. The exact fetch routine
+and drift-detection workflow live in
+[`references/schema-validation.md`](./references/schema-validation.md).
+
+## Monetization vs credits
+
+These look similar but are two different products. Mixing them up is
+the most common mistake.
+
+| | `/iblai-monetization` (this family) | `/iblai-credit` |
 |---|---|---|
-| **Sells** | A specific item — one agent, one course, one program, one custom thing | Platform-wide credits / plan tier |
-| **Tenant flag** | `enable_monetization` (admin pane) + `show_paywall` (buy flow) | `show_paywall` only |
-| **Stripe account** | Tenant's own Stripe (Stripe Connect Express) | ibl.ai main platform Stripe |
-| **Money flow** | Buyer → tenant's Stripe account (commission to ibl.ai) | Buyer → ibl.ai |
+| **Sells** | A specific item — one mentor / course / program / pathway / custom | Platform-wide credits + plan tier |
+| **Platform flag** | `enable_monetization` (admin + user surfaces) + `show_paywall` (credit widget gating only) | `show_paywall` only |
+| **Stripe account** | Platform's own Stripe (Stripe Connect Express) | ibl.ai main Platform Stripe |
+| **Money flow** | Buyer → Platform's Stripe (commission to ibl.ai) | Buyer → ibl.ai |
 | **Buyer sees** | `PaywallModal` with per-item pricing tiers | `CreditBalance` navbar widget + Stripe Pricing Page |
 | **Admin sees** | `MonetizationTab` inside `Account` | (none — managed by ibl.ai) |
-| **Audience** | End learners paying the tenant directly | Org admins topping up their org's credit pool |
+| **Audience** | End learners paying the Platform directly | Org admins topping up their org's credit pool |
 
-If the user wants their tenant to **sell their own content**, you need
-this skill. If the user just wants their org to **buy credits from
-ibl.ai**, use `/iblai-credit`.
+If the goal is selling specific content, you are in the right family.
+If the goal is topping up an ibl.ai credit pool, switch to
+`/iblai-credit`.
 
----
+## Platform flags
 
-## Visual spec — admin (MonetizationTab)
+Two Platform flags gate every monetization surface. Both are stored on
+the SDK's `Tenant` interface (`packages/web-utils/src/types/index.ts`)
+and surface via the `tenants` array in localStorage. They are
+configured by an ibl.ai operator — there is no in-app toggle.
 
-| Section | What renders |
-|---|---|
-| Stripe Connect card | Status badge (`Connected` / `Incomplete` / `Not Connected`), business info, action button (`Connect Stripe` / `Complete Setup` / `Stripe Dashboard`) |
-| Paywall config (disabled state) | Dashed-border card with shield icon: "Connect Stripe first to configure paywalls" |
-| Item search dropdown | Combined search across mentors / courses / programs + a `+` button for custom items |
-| Configured-items list | Cards with item name, type badge, active-price count, status badge (`Active` / `Disabled`) + status filter + pagination (8 per page) |
-| Item detail (wizard) | 2-step wizard for existing items, 3-step for custom items: **Item Details → Paywall → Pricing** with a clickable step indicator. Copy-paywall-URL icon next to the title once the paywall exists |
-| Paywall settings | `Paywall Enabled` switch, `Allow Free Tier`, `Trial Period (days)`, `Existing Users` (grandfathering: `Free Forever` / `Require Subscription`) |
-| Pricing tiers | Add/edit form with `Name`, `Amount`, `Interval` (Monthly / Yearly / One-Time), `Description`, `Features` (chip input), per-row edit + delete |
-
-## Visual spec — buyer (PaywallModal)
-
-| Section | What renders |
-|---|---|
-| Header | Centered "Choose your plan" title + "Subscribe to get access to {item_name}" subtitle |
-| Pricing grid | Auto-sized grid — 1 col (1 price), 2 col @sm (2 prices), 3 col @lg (3 prices), 4 col @lg (4+ prices) |
-| Per-tier card | Name, optional description, large price (formatted via `Intl.NumberFormat`), interval suffix (`/month` / `/year` / blank for one-time), `Pay` button (gradient blue), bulleted feature list with `CheckCircle` icons |
-| Pay button states | `Pay` → `Redirecting...` while creating the Checkout session, then `window.location.href` to Stripe Checkout |
-| Closability | `closable` prop — when `false`, hides the X button and blocks Escape / outside-click (use for hard paywalls) |
-
-## Visual spec — user (PurchasesTab)
-
-| Section | What renders |
-|---|---|
-| Search bar | Debounced (300 ms) `item_name` search with a spinner on the right while refetching |
-| Filters | `Status` (`All` / `Active` / `Trialing` / `Canceled` / `Past Due`) + `Item Type` (`All` / `Mentor` / `Course` / `Program` / `Pathway`) + total count |
-| Subscription card | Item name, type badge, plan name + amount/interval, "Renews"/"Expires" date, "Since" date, cancel-at-period-end warning, status badge, legacy ("Grandfathered") badge |
-| Detail view | Status, plan, type, renewal date, subscribed-since date, grandfathered badge, "Type 'cancel' to confirm" input + destructive button |
-| Cancel result | Either "Subscription Canceled" card (one-time / immediate) or "Open Stripe Portal" card (recurring → returns `portal_url`) |
-| Pagination | 8 per page, page indicator + Previous / Next buttons |
-
----
-
-## Prerequisites
-
-- Auth must be set up first (`/iblai-auth`)
-- Navbar must be in place (`/iblai-navbar`)
-- Profile page must exist (`/iblai-profile`)
-- Account page must exist (`/iblai-account`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `@iblai/iblai-js` SDK installed (`>=` the version that ships the
-  monetization slice)
-- The tenant must have:
-  - `enable_monetization === true` — shows the admin **Monetization**
-    tab inside `Account`
-  - `show_paywall === true` — shows the **Purchases** tab inside
-    `Profile` and the buyer-facing `PaywallModal`
-- The tenant owner must complete **Stripe Connect Express onboarding**
-  before any paywall can go live — buyers cannot pay until
-  `is_ready_for_payments === true`
-
-Both tenant flags are stored on the `Tenant` record (`packages/web-utils/src/types/index.ts`)
-and surface in the `tenants` array in localStorage. They are configured
-by an ibl.ai operator — there is no in-app toggle.
-
-## Step 1: Check Environment
-
-Before proceeding, check for `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN`. If the file does not exist or is
-missing these variables, tell the user:
-
-"You need an `iblai.env` with your platform configuration. Download
-the template and fill in your values:
-`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
-
-Also confirm `.env.local` has `NEXT_PUBLIC_DM_URL` and the auth URL
-(used as `authURL` for the buy / success redirect URL builder).
-
-## Step 2: Confirm Tailwind scans both SDK source folders
-
-The monetization components rely on Tailwind utility classes authored
-inside the SDK's compiled JS. Tailwind v4 will not generate those
-classes unless the SDK's `source/` directories are listed as `@source`.
-
-Open `app/iblai-styles.css` (or `app/globals.css` if styles live there)
-and ensure BOTH directives are present:
-
-```css
-@source "../lib/iblai/sdk/web-containers/source";
-@source "../lib/iblai/sdk/web-containers/source/next";
-```
-
-If you are scanning `node_modules` directly instead of the
-`lib/iblai/sdk` symlink, the equivalent is:
-
-```css
-@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
-@source "../node_modules/@iblai/iblai-js/dist/web-containers/source/next";
-```
-
-Both lines are required.
-
-## Step 3: Enable the tenant flags
-
-Confirm the tenant has both `enable_monetization` and `show_paywall`
-set. The `tenants` array in localStorage is the source of truth — if
-neither flag is `true`, none of the monetization UI renders even if
-the code is wired correctly.
-
-If the user does not have access to flip these, direct them to their
-ibl.ai operator / customer success contact. There is no public API to
-toggle them from the SPA.
-
-In the UI gates:
-- `currentTenant?.enable_monetization` → admin Monetization tab inside
-  `Account` (see [Account.tsx:78–80](https://github.com/iblai/...))
-- `currentTenant?.show_paywall` → Purchases tab inside `Profile`
-  (see [Profile.tsx:131](https://github.com/iblai/...)) AND the visible
-  "Purchases" link inside the Account header
-- `currentTenant?.show_paywall` (again) → `CreditBalance` widget in
-  the navbar (covered by `/iblai-credit`)
-
-You do NOT need to gate the `MonetizationTab` or `PurchasesTab`
-yourself — `Account` and `Profile` already gate them internally based
-on the tenant flags. Just make sure the flag is on and the tabs will
-appear.
-
-## Step 4: Wire the admin pane (MonetizationTab inside Account)
-
-The `Account` component **owns** the Monetization tab — there is no
-public `MonetizationTab` export at the top of `@iblai/iblai-js/web-containers`.
-When `currentTenant.enable_monetization === true`, `Account` adds a
-"Monetization" tab to its sidebar and renders the SDK's internal
-`MonetizationTab` automatically with the right props.
-
-Use the standard `/iblai-account` integration and pass `authURL`:
-
-```tsx
-// app/(app)/account/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Account } from "@iblai/iblai-js/web-containers/next";
-import config from "@/lib/iblai/config";
-import { resolveAppTenant } from "@/lib/iblai/tenant";
-
-export default function AccountPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [tenantKey, setTenantKey] = useState("");
-  const [tenants, setTenants] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) setUsername(JSON.parse(raw).user_nicename ?? "");
-    } catch {}
-
-    const resolved = resolveAppTenant();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const parsed = JSON.parse(tenantsRaw);
-        setTenants(parsed);
-        const match = parsed.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !tenantKey) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-400">Loading account settings...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
-      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
-        <Account
-          tenant={tenantKey}
-          tenants={tenants}
-          username={username}
-          isAdmin={isAdmin}
-          authURL={config.authUrl()}      // ← REQUIRED for monetization
-          currentPlatformBaseDomain={config.platformBaseDomain()}
-          currentSPA="agent"
-          onInviteClick={() => {}}
-          onClose={() => router.push("/")}
-          targetTab="organization"
-          showPlatformName={true}
-          useGravatarPicFallback={true}
-        />
-      </div>
-    </div>
-  );
-}
-```
-
-### Why `authURL` matters for monetization
-
-`MonetizationTab` passes `authURL` into the paywall detail wizard,
-which uses it to:
-
-- Build the shareable buy URL — `${authURL}/buy/{paywallUniqueId}` —
-  rendered as the copy icon next to the item title in the wizard.
-- Build the default `on_successful_payment` URL based on the item type
-  by extracting the platform extension from `authURL`:
-  - `mentor` / `agent` → `https://mentorai.{ext}/platform/{platformKey}/{itemId}`
-  - `course` → `https://skillsai.{ext}/courses/{itemId}`
-  - `program` → `https://skillsai.{ext}/programs/{itemId}`
-  - Custom items use the operator's "Product URL" field instead.
-  - See [paywall-utils.ts:43](https://github.com/iblai/ibl-web-frontend-sdk/blob/main/packages/web-containers/src/components/profile/monetization/paywall-utils.ts).
-
-If `authURL` is missing the redirect URL silently falls back to
-`undefined`, which means Stripe Checkout has nowhere to send buyers
-on success. Always pass `config.authUrl()`.
-
-### Reaching the Monetization tab from a URL
-
-The wizard sets a `profileTab=monetization` query parameter as the
-Stripe Connect onboarding return URL. After the admin completes Stripe
-onboarding, they return to the Account page with that query parameter,
-which selects the Monetization tab automatically. Don't strip query
-parameters in your router or you'll break the post-onboarding redirect.
-
-## Step 5: Wire the user-side Purchases tab (already inside Profile)
-
-The same gating model applies on the user side. The `Profile`
-component reads `currentTenant.enable_monetization` (yes — `Profile`
-uses `enable_monetization`, not `show_paywall`, for the **Purchases**
-tab on the user side; see [profile/index.tsx:131](https://github.com/iblai/...))
-and conditionally renders a **Purchases** tab in its sidebar.
-
-So a standard `/iblai-profile` integration "just works" once the flag
-is on:
-
-```tsx
-// app/(app)/profile/page.tsx
-"use client";
-
-import { Profile } from "@iblai/iblai-js/web-containers";
-// ...same wiring as /iblai-profile...
-<Profile
-  tenant={tenantKey}
-  username={username}
-  isAdmin={isAdmin}
-  onClose={() => {}}
-  customization={{ showPlatformName: true, useGravatarPicFallback: true }}
-  targetTab="basic"
-/>
-```
-
-The Purchases tab renders the SDK's internal `PurchasesTab` component
-with `org={tenant} username={username}`. No extra props are needed.
-
-## Step 6: Lock paywalled content with `PaywallModal`
-
-`PaywallModal` is the **only** monetization component exported at the
-top of `@iblai/iblai-js/web-containers`. Use it inside your own pages
-to gate access to a single item. The typical flow is:
-
-1. On page load, call `useCheckAccessQuery` (authenticated) or
-   `useCheckAccessUnscopedQuery` (anonymous / embed) for the
-   `(item_type, item_id)` pair.
-2. If `data.has_access === true`, render the content.
-3. If `data.has_access === false` and `data.pricing` is present,
-   open the `PaywallModal` with `pricing` from the response.
-
-### Reference implementation
-
-```tsx
-"use client";
-
-import { useState } from "react";
-import { PaywallModal } from "@iblai/iblai-js/web-containers";
-import { useCheckAccessQuery } from "@iblai/iblai-js/data-layer";
-
-export function GatedMentor({
-  platformKey,
-  mentorId,
-}: { platformKey: string; mentorId: string }) {
-  const { data, isLoading } = useCheckAccessQuery({
-    platform_key: platformKey,
-    item_type: "mentor",
-    item_id: mentorId,
-  });
-
-  const [open, setOpen] = useState(true);
-
-  if (isLoading) return <p>Loading…</p>;
-  if (!data) return null;
-
-  if (data.has_access) {
-    return <MentorChatUI mentorId={mentorId} />;
-  }
-
-  if (!data.pricing) {
-    // No paywall configured — let them through, or render a friendly
-    // "not available" message depending on product intent.
-    return <p>This mentor is not currently available.</p>;
-  }
-
-  return (
-    <>
-      <BlurredPreview />
-      <PaywallModal
-        pricing={data.pricing}
-        platformKey={platformKey}
-        itemId={mentorId}
-        itemType="mentor"
-        open={open}
-        onClose={() => setOpen(false)}
-        closable={false}            // hard paywall — no escape
-      />
-    </>
-  );
-}
-```
-
-### `useCheckAccessQuery` returns 402 as success
-
-`checkAccess` is wired with `validateStatus: (res) => res.ok || [402].includes(res.status)`
-so a 402 Payment Required from the backend lands in `data`, not
-`error`. Always read `data.has_access` rather than checking the
-fetch status code yourself — RTK Query will treat the locked state
-as a successful response. See
-[custom-api-slice.ts:190](https://github.com/iblai/ibl-web-frontend-sdk/blob/main/packages/data-layer/src/features/monetization/custom-api-slice.ts#L190).
-
-### Use the unscoped variant only when the tenant is unknown
-
-For anonymous landing pages or cross-tenant embed surfaces where the
-caller doesn't yet have a tenant context, use
-`useCheckAccessUnscopedQuery`. Prefer the scoped variant whenever you
-have a `platform_key`.
-
----
-
-## SDK component reference
-
-### `MonetizationTab` — admin pane
-
-Internal to `Account` / `UserProfileModal`. Auto-rendered when
-`currentTenant.enable_monetization === true`. There is no top-level
-`MonetizationTab` export — render it indirectly via `<Account
-authURL={...} />`.
-
-| Prop (internal) | Type | Notes |
+| Flag | Gates | Where it's checked |
 |---|---|---|
-| `platformKey` | `string` | The tenant key (passed by `Account`) |
-| `authURL` | `string` | Auth service URL — used to build buy URLs and `on_successful_payment` |
-
-Internal sub-components (do not import these directly — they're
-implementation details, but knowing them helps when reading the SDK
-source):
-
-| Component | Role |
-|---|---|
-| `StripeConnect` | Status card + onboarding / dashboard button. Uses `useGetStripeConnectStatusQuery`, `useStartStripeConnectOnboardingMutation`, `useLazyGetStripeConnectDashboardQuery` |
-| `PaywallConfig` | Switches between the list and the per-item wizard. Returns the dashed-border "Connect Stripe first" card when `disabled` |
-| `PaywalledItemsList` | Lists configured paywalls (`useListPaywallsQuery`), with status filter + 8-per-page pagination |
-| `ItemSearchDropdown` | Combined search across mentors (`useGetAiSearchMentorsQuery`) and courses + programs (`useGetPersonnalizedSearchQuery`); 300 ms debounce |
-| `PaywallDetail` | The wizard. Owns the 2- or 3-step state machine (`Item Details → Paywall → Pricing`) and the copy-URL behavior |
-| `PriceManagement` | CRUD for `PaywallPrice` entries (`useListPricesQuery`, `useCreatePriceMutation`, `useUpdatePriceMutation`, `useDeletePriceMutation`) |
-| `CancelSubscription` | Standalone admin tool to look up a subscription by `(item_type, item_id)` and cancel it on behalf of any user |
-| `WizardStepIndicator` | Visual step strip with click-back behavior |
-
-### `PaywallModal` — buyer dialog
-
-```typescript
-import { PaywallModal } from "@iblai/iblai-js/web-containers";
-import type { PaywallPrice } from "@iblai/iblai-js/data-layer";
-
-interface PaywallModalProps {
-  pricing: {
-    item_name: string;
-    prices: PaywallPrice[];
-  };
-  platformKey: string;
-  itemId: string;
-  itemType: string;       // 'mentor' | 'course' | 'program' | 'pathway' | custom
-  open: boolean;
-  onClose: () => void;
-  closable?: boolean;     // default true; when false hides close button and blocks escape / outside-click
-  buttonClassName?: string;
-}
-```
-
-| Behavior | Detail |
-|---|---|
-| Checkout | Wires `useCreateCheckoutMutation` and redirects via `window.location.href = result.checkout_url` |
-| Success/Cancel URL | Hardcoded to `window.location.href` — buyers land back on the same page in both cases |
-| Hard paywall | `closable={false}` hides the `[&>button.absolute]:hidden` close button and intercepts `onPointerDownOutside` / `onEscapeKeyDown` |
-| Loading state | Per-card — `Pay` becomes `Redirecting...` only on the selected price ID |
-| Price formatting | `Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() })`; `interval === 'one_time'` hides the suffix |
-
-**File**: `packages/web-containers/src/components/modals/paywall-modal.tsx`
-
-### `PurchasesTab` — user purchases (internal to `Profile`)
-
-Internal to the `Profile` component. Renders when
-`currentTenant.enable_monetization === true` and the user is on a tenant
-with monetization configured. Receives:
-
-| Prop (internal) | Type |
-|---|---|
-| `org` | `string` (tenant key) |
-| `username` | `string` |
-
-Owns its own:
-- Search (`item_name`, debounced 300 ms)
-- Filters (`status`, `item_type`)
-- 8-per-page pagination
-- Detail view (`useGetItemSubscriptionQuery`) + cancel flow
-  (`useCancelSubscriptionMutation`)
-
-Built on `useGetMySubscriptionsQuery`. Recurring cancels are handed off
-to the Stripe Customer Portal via a `portal_url`; one-time cancels and
-immediate cancels return `status === 'canceled'`.
-
----
-
-## Monetization data layer (RTK Query)
-
-The monetization slice ships in `@iblai/iblai-js/data-layer` and is
-registered automatically by `initializeDataLayer()`. Reducer path:
-`monetizationApiSlice`. All endpoints hit the **DM** service
-(`config.dmUrl()`) under two URL prefixes:
-
-```
-/api/service/platforms/{platform_key}/stripe/connect/...   ← Stripe Connect (Flow 1)
-/api/billing/platforms/{platform_key}/...                  ← everything else
-```
-
-Cache tags: `stripeConnectStatus`, `paywallConfig`, `paywallPrices`,
-`publicPricing`, `accessCheck`, `mySubscriptions`, `itemSubscription`,
-`paywalls`, `subscribers`, `revenue`. Mutations invalidate the
-relevant tags, so re-renders propagate without manual `refetch()`
-calls except where the wizard explicitly forces one (e.g. after Stripe
-onboarding returns from a redirect).
-
-### Flow 1 — Stripe Connect (admin)
-
-| Hook | Method + endpoint |
-|---|---|
-| `useGetStripeConnectStatusQuery({ platform_key })` | `GET /api/service/platforms/{key}/stripe/connect/status/` |
-| `useStartStripeConnectOnboardingMutation()` | `POST /api/service/platforms/{key}/stripe/connect/onboard/` body: `{ return_url, refresh_url, business_type }` |
-| `useGetStripeConnectDashboardQuery({ platform_key })` (also has a `useLazy…` variant) | `GET /api/service/platforms/{key}/stripe/connect/dashboard/` |
-
-```typescript
-interface StripeConnectStatusResponse {
-  has_account: boolean;
-  account_id: string;
-  onboarding_complete: boolean;
-  charges_enabled: boolean;
-  payouts_enabled: boolean;
-  is_ready_for_payments: boolean;
-  commission_percent: { mentor: number; course: number };
-}
-```
-
-`is_ready_for_payments` is the single source of truth for "can this
-tenant accept payments?". Use it (not `has_account`) to gate buying
-UIs. The SDK's `MonetizationTab` already disables the entire Paywall
-section when `is_ready_for_payments === false` and shows the dashed
-"Connect Stripe first" empty state.
-
-`business_type` should be `'company'` for organizations and
-`'individual'` for solo creators. The SDK currently hardcodes
-`'company'` — if you need `'individual'`, you'll need to build your
-own onboarding-start screen against the mutation.
-
-### Flow 2 — Paywall config (admin)
-
-| Hook | Method + endpoint |
-|---|---|
-| `useGetPaywallConfigQuery({ platform_key, item_type, item_id })` | `GET /api/billing/platforms/{key}/items/{type}/{id}/paywall/` |
-| `useEnablePaywallMutation()` | `POST /api/billing/.../paywall/` |
-| `useUpdatePaywallMutation()` | `PUT /api/billing/.../paywall/` |
-| `useDisablePaywallMutation()` | `DELETE /api/billing/.../paywall/` |
-
-`enablePaywall` is used **both** to create and to first-fill a custom
-item. The wizard distinguishes "this item has been created" from
-"this item is brand new" via local state (`itemCreated`) — it calls
-`enablePaywall` on the very first save and `updatePaywall` on every
-subsequent save.
-
-```typescript
-interface EnablePaywallArgs {
-  platform_key: string;
-  item_type: string;            // 'mentor' | 'course' | 'program' | custom slug
-  item_id: string;
-  is_enabled: boolean;
-  allow_free_tier: boolean;
-  trial_period_days: number;
-  grandfathering_strategy: 'free_forever' | 'require_subscription';
-  item_name?: string;           // recommended on every call until backend stops 400-ing on update
-  description?: string;
-  on_successful_payment?: string;
-}
-
-interface PaywallConfigResponse {
-  unique_id: string;            // used to build the public buy URL
-  item_type: string;
-  item_id: string;
-  item_name: string;
-  is_enabled: boolean;
-  allow_free_tier: boolean;
-  trial_period_days: number;
-  grandfathering_strategy: string;
-  stripe_product_id: string | null;
-  paywall_enabled_at: string | null;
-  prices: PaywallPrice[];
-}
-```
-
-#### Custom items
-
-A "custom item" is any sellable thing that isn't a first-class mentor /
-course / program / pathway. The wizard:
-
-1. Slugifies `item_type` and `item_id` from the operator's free-text
-   input (`slugify` strips non-word chars, lowercases, collapses
-   whitespace and dashes — see [paywall-utils.ts:5](https://github.com/iblai/ibl-web-frontend-sdk/blob/main/packages/web-containers/src/components/profile/monetization/paywall-utils.ts#L5)).
-2. Posts to `/paywall/` with `is_enabled: false`, `allow_free_tier:
-   false`, `trial_period_days: 0`, `grandfathering_strategy:
-   'free_forever'` so the item exists but is dormant.
-3. Sets `on_successful_payment` to the operator's "Product URL"
-   (where buyers land after Stripe success).
-4. Receives back the `unique_id` and switches the wizard to the
-   Paywall configuration step.
-
-When you build a custom buyer surface, the slugged values are what
-you'll pass to `useCheckAccessQuery` and `useCreateCheckoutMutation`.
-
-#### Grandfathering
-
-`grandfathering_strategy` controls what happens to users who already
-had access when the paywall is turned on:
-
-| Value | Meaning |
-|---|---|
-| `free_forever` | Existing users keep free access forever. New users must pay. |
-| `require_subscription` | Everyone — existing and new — must subscribe. Existing users see the paywall on next access. |
-
-In the user-facing UI, grandfathered subscriptions carry
-`is_grandfathered: true` and render with a "Legacy" badge in
-`PurchasesTab`.
-
-### Flow 3 — Prices (admin)
-
-| Hook | Method + endpoint |
-|---|---|
-| `useListPricesQuery(item)` | `GET .../paywall/prices/` |
-| `useCreatePriceMutation()` | `POST .../paywall/prices/` |
-| `useUpdatePriceMutation()` | `PUT .../paywall/prices/{price_unique_id}/` |
-| `useDeletePriceMutation()` | `DELETE .../paywall/prices/{price_unique_id}/` |
-
-```typescript
-interface PaywallPrice {
-  id: string;
-  name: string;
-  description: string;
-  amount: number;
-  currency: string;             // SDK currently hardcodes 'usd'
-  interval: string;             // 'month' | 'year' | 'one_time'
-  is_active: boolean;
-  features: string[];
-  sort_order: number;
-  stripe_price_id: string;
-}
-```
-
-| Field | Notes |
-|---|---|
-| `name` | Shown as the tier title in `PaywallModal` |
-| `amount` | Stored as a number (dollars, with cents allowed); formatted client-side via `Intl.NumberFormat` |
-| `currency` | The SDK form locks this to `'usd'` (`disabled cursor-not-allowed`). If multi-currency is needed, build your own price form against the mutations |
-| `interval` | `'one_time'` removes the `/mo` `/yr` suffix in modals and detail views |
-| `features` | Bullet list shown under the price card. Add via chip input (Enter to add) |
-| `is_active` | Inactive prices are hidden from `PaywallModal` but shown in the admin list with an "Inactive" badge |
-| `sort_order` | Ascending. Use to order tiers (lowest → highest typically) |
-
-Mutations invalidate `paywallPrices` and `paywallConfig` so the
-configured-items list (which shows the active-price count) refreshes
-automatically.
-
-### Flow 4 — Public pricing (no auth)
-
-| Hook | Method + endpoint |
-|---|---|
-| `useGetPublicPricingQuery({ platform_key, item_type, item_id })` | `GET /api/billing/.../pricing/` (skipAuth) |
-
-Use this on anonymous landing pages or pricing teaser sections — it
-returns just the active price tiers and metadata, no subscription
-state.
-
-```typescript
-interface PublicPricingResponse {
-  item_type: string;
-  item_id: string;
-  item_name: string;
-  is_paywalled: boolean;
-  allow_free_tier: boolean;
-  trial_period_days: number;
-  prices: {
-    unique_id: string;
-    name: string;
-    amount: number;
-    currency: string;
-    interval: string;
-    is_active: boolean;
-    features: string[];
-  }[];
-}
-```
-
-### Flow 5 — Access check
-
-| Hook | Method + endpoint |
-|---|---|
-| `useCheckAccessQuery({ platform_key, item_type, item_id })` | `GET /api/billing/.../access-check/` |
-| `useCheckAccessUnscopedQuery({ item_type, item_id, platform_key })` | `GET /api/billing/access-check/{type}/{id}/?platform_key=…` |
-
-Returns `{ has_access, reason, requires_payment, pricing_available,
-pricing, subscription }`. A locked response with pricing is the only
-input `PaywallModal` needs — the `pricing` object is shape-compatible
-with the modal's `pricing` prop.
-
-The endpoint is wired to treat HTTP 402 as success (see Step 6). Don't
-build your own access check unless you have a very good reason.
-
-### Flow 6 — Checkout
-
-| Hook | Method + endpoint | Used by |
-|---|---|---|
-| `useCreateCheckoutMutation()` | `POST .../checkout/` | `PaywallModal` for logged-in users |
-| `useCreateGuestCheckoutMutation()` | `POST .../checkout-guest/` (skipAuth) | Public buy pages — caller collects `email` |
-
-```typescript
-interface CheckoutArgs {
-  platform_key: string;
-  item_type: string;
-  item_id: string;
-  price_id: string;
-  success_url: string;          // Stripe sends here after success
-  cancel_url: string;           // Stripe sends here on cancel
-}
-
-interface GuestCheckoutArgs extends CheckoutArgs {
-  email: string;                // pre-fills Stripe Checkout
-}
-
-interface CheckoutResponse {
-  checkout_url: string;
-  session_id: string;
-}
-```
-
-`PaywallModal` hardcodes `success_url = cancel_url = window.location.href`.
-For custom buy surfaces, choose URLs deliberately — if you set
-`success_url` back to your buy page, buyers refreshing after success
-will hit the paywall again until `useCheckAccessQuery` invalidates.
-Prefer landing them on a "Thanks for subscribing" page or the item
-itself.
-
-### Flow 7 — Cancel subscription
-
-| Hook | Method + endpoint |
-|---|---|
-| `useCancelSubscriptionMutation()` | `POST .../subscription/cancel/` body `{ return_url? }` |
-
-Returns either:
-
-- `{ status: 'canceled', canceled_at, unique_id }` — for one-time
-  / immediate cancellations
-- `{ portal_url: 'https://billing.stripe.com/…' }` — for recurring
-  cancellations that go through the Stripe Customer Portal
-
-The `PurchasesTab` and the admin `CancelSubscription` panel both
-branch on which key is present.
-
-Invalidates `mySubscriptions`, `itemSubscription`, `accessCheck`, and
-`subscribers` — so the cancel UI, the user's purchases list, the
-gated content's access state, and the admin subscriber list all
-update.
-
-### Flow 8 — User subscriptions
-
-| Hook | Method + endpoint |
-|---|---|
-| `useGetMySubscriptionsQuery({ platform_key, status?, item_type?, item_name?, page?, page_size? })` | `GET .../my-subscriptions/` |
-| `useGetItemSubscriptionQuery({ platform_key, item_type, item_id })` | `GET .../subscription/` (per-item) |
-
-```typescript
-interface SubscriptionObject {
-  unique_id: string;
-  user_id?: number;
-  username?: string;
-  email?: string;
-  item_type: string;
-  item_id: string;
-  item_name: string;
-  status: string;                  // 'active' | 'trialing' | 'canceled' | 'past_due' | ...
-  price: SubscriptionPrice;        // (string-amount variant — note the type diff)
-  current_period_end: string;      // ISO date
-  cancel_at_period_end: boolean;
-  is_grandfathered: boolean;
-  created_at: string;
-  updated_at?: string;
-}
-```
-
-Note: `SubscriptionPrice` uses `amount: string` (not `number`). The
-SDK's `formatCurrency` helper handles both via `parseFloat`. If you
-build custom UI, parse the amount before doing math.
-
-### Flow 9 — Platform analytics (admin)
-
-| Hook | Method + endpoint |
-|---|---|
-| `useListPaywallsQuery({ platform_key, item_type?, is_enabled?, page?, page_size? })` | `GET .../paywalls/` |
-| `useListSubscribersQuery({ platform_key, status?, item_type?, page?, page_size? })` | `GET .../subscribers/` |
-| `useListItemSubscribersQuery({ platform_key, item_type, item_id, status? })` | `GET .../items/{type}/{id}/subscribers/` |
-| `useGetRevenueQuery({ platform_key })` | `GET .../revenue/` |
-
-```typescript
-interface RevenueResponse {
-  sales_volume: number;            // currency units (e.g. 1499.50 USD)
-  sales_count: number;             // number of completed purchases
-  currency: string;                // 'usd'
-}
-```
-
-These hooks are not used by the in-tab UI today — they're the
-building blocks for a "Revenue dashboard" or "Subscribers" pane.
-Wire them up if you need an analytics surface beyond what
-`MonetizationTab` shows.
-
----
+| `enable_monetization` | Admin `MonetizationTab` inside `Account` AND user `PurchasesTab` inside `Profile` | `account.tsx`, `profile/index.tsx` |
+| `show_paywall` | `CreditBalance` widget in navbar AND Account's Billing tab | `navbar`, `account.tsx` |
+
+Note: `Profile`'s Purchases tab gates on `enable_monetization` — NOT
+`show_paywall`. Read the full gating matrix in
+[`references/platform-flags.md`](./references/platform-flags.md).
+
+If both flags are off, none of the monetization UI renders even if the
+code is wired correctly. Direct app authors to their ibl.ai operator
+when the flags need to change.
 
 ## Item-type normalization
 
-The codebase uses **`mentor`** as the canonical item_type for agents
-in API calls and storage, but presents it as **"Agent"** in the UI
-through the `displayItemType` helper (see [paywall-utils.ts:26](https://github.com/iblai/ibl-web-frontend-sdk/blob/main/packages/web-containers/src/components/profile/monetization/paywall-utils.ts#L26)).
-The helper also strips an optional `custom:` prefix from custom item
-types. Use the same helper if you render `item_type` in your own UI
+The backend uses `mentor` as the canonical `item_type` for AI agents,
+but the SDK presents it as **"Agent"** via the `displayItemType`
+helper from `paywall-utils.ts`. The same helper strips the `custom:`
+prefix from custom item types. Use it whenever you render an item type
 so the rebrand stays consistent.
 
 | API value | UI value |
@@ -850,142 +159,247 @@ so the rebrand stays consistent.
 | `pathway` | `pathway` |
 | `custom:foo` | `foo` |
 
----
+The universal item key is `(item_type, item_id, platform)` —
+foreign-key-less by design so any sellable thing can be paywalled.
+Backend uniqueness: `(item_type, item_id, platform)` on
+`ItemPaywallConfig`; `(item_type, item_id, platform, user)` on
+`ItemSubscription`.
 
-## Step 7: Verify
+**Custom items** are slugged by `slugify()` (lowercases, strips
+non-word chars, collapses whitespace/dashes) and stored with the
+`custom:` prefix so the strategy router falls through to
+`GenericCheckoutStrategy`. The wizard creates them dormant
+(`is_enabled: false`, `allow_free_tier: false`, `trial_period_days: 0`,
+`grandfathering_strategy: 'free_forever'`), then promotes via the
+Paywall step.
 
-Run `/iblai-ops-test` before telling the user the work is ready:
+**`buildOnSuccessfulPaymentUrl` defaults** — derived from `authURL`
+plus item type:
 
-1. `pnpm build` — must pass with zero errors.
-2. `pnpm test` — vitest must pass.
-3. Start the dev server, log in as a tenant **admin** on a tenant with
-   `enable_monetization` enabled, navigate to `/account?profileTab=monetization`,
-   and confirm:
-   - The Monetization tab is visible in the sidebar.
-   - The Stripe Connect card renders with the correct status badge.
-   - If not connected, "Connect Stripe" redirects to a Stripe-hosted
-     onboarding URL.
-   - The "Configure item for sale" search dropdown returns mentors /
-     courses / programs as you type.
-   - The `+` button opens the **custom item** wizard.
-   - The wizard's "Item Details → Paywall → Pricing" step indicator
-     advances correctly and the copy-URL icon appears after the
-     paywall is created.
-   - Adding a price tier shows up in `PaywallModal` and on the public
-     pricing endpoint.
-4. Log in as a **regular user** on the same tenant, navigate to
-   `/profile`, and confirm:
-   - The Purchases tab is visible.
-   - Active subscriptions show with the correct status badge.
-   - Tapping a subscription opens the detail view.
-   - Typing `cancel` in the confirm field enables the destructive
-     button.
-   - For recurring subscriptions, the cancel flow surfaces an "Open
-     Stripe Portal" CTA.
-5. Visit a page that uses `PaywallModal` while logged out (or with no
-   subscription) and confirm the modal blocks access when `closable`
-   is false.
+| Item type | Default `on_successful_payment` |
+|---|---|
+| `mentor` / `agent` | `https://mentorai.{ext}/platform/{platformKey}/{itemId}` |
+| `course` | `https://skillsai.{ext}/courses/{itemId}` |
+| `program` | `https://skillsai.{ext}/programs/{itemId}` |
+| `pathway` | `undefined` — no default; admin must set manually |
+| `custom:*` | Operator's "Product URL" from the wizard |
 
-```bash
-pnpm dev &
-npx playwright screenshot http://localhost:3000/account?profileTab=monetization /tmp/monetization.png
-npx playwright screenshot http://localhost:3000/profile /tmp/purchases.png
+Full mapping + `BUILT_IN_ITEM_TYPES` enum + the `slugify` regex are in
+[`references/item-types.md`](./references/item-types.md).
+
+## The monetization API slice (RTK Query)
+
+The monetization slice ships in `@iblai/iblai-js/data-layer` and is
+registered automatically by `initializeDataLayer()`. Reducer path:
+`monetizationApiSlice`. All endpoints hit the DM service under two URL
+prefixes:
+
+```
+{dm_url}/api/service/platforms/{platform_key}/stripe/connect/...   ← Stripe Connect (Flow 1)
+{dm_url}/api/billing/platforms/{platform_key}/...                  ← everything else
 ```
 
----
+The shipped `monetizationApiSlice` constructs **composite** URLs. Direct API
+callers (curl, server-to-server, third-party SDKs) should prefer the canonical
+`items/{item_unique_id}/...` form — see the canonical vs composite section
+above.
+
+The slice owns **nine flows / 33 hooks** — full hook catalog with
+arguments, response types, and cache tags lives in
+[`references/rtk-query-flows.md`](./references/rtk-query-flows.md).
+
+| Flow | Persona | Owning sub-skill |
+|---|---|---|
+| 1 — Stripe Connect (3 hooks) | Platform seller | `/iblai-monetization-onboard` |
+| 2 — Paywall Config (4 hooks) | Platform admin | `/iblai-monetization-configure` |
+| 3 — Prices (4 hooks) | Platform admin | `/iblai-monetization-configure` |
+| 4 — Public Pricing (1 hook, skipAuth) | Anonymous buyer | `/iblai-monetization-checkout` |
+| 5 — Access Check (2 hooks, 402-as-success) | Buyer | `/iblai-monetization-checkout` |
+| 6 — Checkout (2 hooks) | Buyer + guest | `/iblai-monetization-checkout` |
+| 7 — Cancel Subscription (1 hook) | Subscriber | `/iblai-monetization-subscriptions` |
+| 8 — User Subscriptions (2 hooks) | Subscriber | `/iblai-monetization-subscriptions` |
+| 9 — Platform Analytics (4 hooks) | Platform admin | `/iblai-monetization-analytics` |
+
+Cache tags: `stripeConnectStatus`, `paywallConfig`, `paywallPrices`,
+`publicPricing`, `accessCheck`, `mySubscriptions`, `itemSubscription`,
+`paywalls`, `subscribers`, `revenue`. Mutations invalidate the
+relevant tags, so re-renders propagate without manual `refetch()`
+calls.
+
+## RBAC
+
+Monetization uses three DRF permission classes — no custom
+RBAC decorators. The full endpoint-by-endpoint matrix is in
+[`references/rbac-matrix.md`](./references/rbac-matrix.md).
+
+| Class | Bind | Applies to |
+|---|---|---|
+| `IsPlatformAdmin` | Caller is admin on the path-scoped Platform | All paywall config + pricing + Stripe Connect + analytics endpoints |
+| `IsEdxAuthenticated` | Caller is any authenticated edX user | Access checks, authenticated checkout, my-subscriptions, subscription cancel |
+| `AllowAny` | Public, no auth | Public pricing (two variants), guest checkout (two variants), checkout callback (two variants) |
+
+Two non-obvious rules:
+- **`request.user` is the only cancel target.** `ItemSubscriptionCancelView`
+  uses `ItemSubscription.objects.get(user=request.user, ...)`. There is
+  NO admin override — an operator cannot cancel another user's
+  subscription via this API. To force-cancel, go to Stripe directly.
+- **Platform admin status is path-bound** via `{platform_key}`. Being
+  an admin on Platform A does not let you operate on Platform B.
+
+## The monetization skill family
+
+| Skill | Role | Covers |
+|---|---|---|
+| `/iblai-monetization` | Reference / index (this skill) | Auth, schema, Platform flags, item types, RTK Query, RBAC, family map |
+| `/iblai-monetization-onboard` | Build UI | Stripe Connect Express onboarding, status card, dashboard return, onboard-refresh, disconnect |
+| `/iblai-monetization-configure` | Build UI | Admin `MonetizationTab` inside `Account`, item search, configured-items list, wizard (Item Details → Paywall → Pricing), pricing tier CRUD |
+| `/iblai-monetization-checkout` | Build UI | `PaywallModal` + access-check (402-as-success) + Stripe checkout for authenticated buyers; public pricing + guest checkout for anonymous buy pages |
+| `/iblai-monetization-subscriptions` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
+| `/iblai-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
+
+When in doubt, the natural sequence is:
+1. **Onboard** — Platform owner connects Stripe Connect (`/iblai-monetization-onboard`)
+2. **Configure** — Platform admin creates a paywall + pricing tiers for an item (`/iblai-monetization-configure`)
+3. **Checkout** — Buyer hits the paywall and pays (`/iblai-monetization-checkout`)
+4. **Subscriptions** — Subscriber views and cancels their purchases (`/iblai-monetization-subscriptions`)
+5. **Analytics** — Platform admin watches revenue and subscribers (`/iblai-monetization-analytics`)
+
+## Important notes
+
+Cross-cutting reminders that apply across the whole family — surface
+these whenever you wire up monetization in a new app.
+
+- **Stripe Connect Express, not Standard.** Platforms onboard via
+  Express, which means commission auto-routes to the ibl.ai Platform
+  Stripe account via destination charges + `application_fee_amount`.
+  You do NOT compute or split fees in the SPA — Stripe handles it.
+  Commission percentages surface on the Connect status response
+  (`commission_percent`).
+- **`commission_percent` 3-way divergence.** Backend wire returns 4
+  keys (`mentor`, `course`, `program`, `pathway`). The OpenAPI schema
+  component declares 3 (`mentor`, `course`, `program` — no `pathway`).
+  The SDK TypeScript type declares only 2 (`mentor`, `course`). Read
+  defensively as `Record<string, number>` and iterate
+  `Object.entries`.
+- **`is_owner` is schema drift.** Backend wire AND SDK type include
+  `is_owner` on `StripeConnectStatusResponse`, but the OpenAPI schema
+  component does NOT declare it. Trust the wire.
+- **Next.js required for `Account` + the Monetization tab.** Import
+  from `@iblai/iblai-js/web-containers/next` (uses `next/image`).
+  `PaywallModal` is framework-agnostic — import from the plain
+  `@iblai/iblai-js/web-containers` path.
+- **Top-level exports.** `MonetizationTab` and `PaywallModal` are
+  exported at the top of `@iblai/iblai-js/web-containers`.
+  `PurchasesTab` is NOT — it is private to the `Profile` shell.
+  `CancelSubscription` is also NOT exported — copy from
+  `packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx`
+  if you need it standalone.
+- **Redux store and RTK dedup.** The monetization slice is registered
+  automatically by `initializeDataLayer()`. Include the standard
+  `mentorReducer` and `mentorMiddleware` in your store. Ensure your
+  `next.config.ts` carries the `@reduxjs/toolkit` webpack alias —
+  duplicate RTK Query instances break tag invalidation across the
+  monetization slice.
+- **Platform flags are operator-managed.** There is no in-app toggle
+  for `enable_monetization` or `show_paywall`. Direct app authors to
+  their ibl.ai operator when the flags need to change.
+- **`useCheckAccessQuery` treats 402 as success.** The scoped variant
+  carries a `validateStatus` override so a 402 lands in `data`, not
+  `error`. The UNSCOPED variant (`useCheckAccessUnscopedQuery`) does
+  NOT carry the override — wrap it or prefer the scoped query.
+- **`success_url` for custom buy pages.** `PaywallModal` hardcodes
+  `success_url = cancel_url = window.location.href`, which is fine
+  because the buyer returns to the same page and the access-check
+  cache invalidates on the webhook. For custom buy pages, choose a
+  thank-you destination explicitly — refreshing on the buy page after
+  success will re-hit the paywall until the webhook lands.
+- **Pagination shape: schema vs runtime.** The OpenAPI schema documents
+  DRF default `next`/`previous` URI strings. The runtime paginator
+  (`StandardPageNumberPagination`) overrides to `next_page` /
+  `previous_page` integers. Trust the runtime shape.
+- **`MySubscriptionsParams.item_name` is silently dropped.** The SDK
+  type lists `item_name?: string`, but the backend
+  `SubscriptionListQPSerializer` only honors `status`, `item_type`,
+  and `search` (filters by `item_id__icontains`). For text search,
+  send `search` — `item_name` becomes a no-op.
+- **Amounts ship as decimal strings.** Backend `DecimalField`
+  serializes `amount` as `"15.00"`. The SDK type may say `number` for
+  some hooks — `parseFloat` / `Number` before arithmetic.
+- **The shipped `CancelSubscription` is self-service only.** The
+  endpoint is hard-locked to `request.user`. An admin cannot cancel
+  another user's subscription via this API; route through the Stripe
+  Dashboard for true overrides.
 
 ## Common mistakes
 
-- **Building a custom MonetizationTab.** It's not exported because the
-  admin surface depends on `Account`'s tab strip, the wizard state
-  machine, and the `?profileTab=monetization` redirect contract. Use
-  `Account` with `authURL` and the tab appears automatically.
+The pitfalls that keep showing up across the family. Skim before
+wiring monetization into a new app — each workflow skill repeats the
+ones relevant to its surface.
+
+- **Building a custom `MonetizationTab`.** Don't. Render it indirectly
+  via `<Account authURL={...} />` — the tab strip, wizard state
+  machine, and `?profileTab=monetization` return URL contract come
+  with the host component.
 - **Forgetting `authURL` on the Account page.** The wizard silently
-  produces `on_successful_payment: undefined` and you'll be left
-  wondering why Stripe Checkout has no `success_url`. Always pass
-  `config.authUrl()`.
-- **Confusing `enable_monetization` with `show_paywall`.** The admin
-  tab is gated on `enable_monetization`. The buy flow (and the
-  CreditBalance widget) is gated on `show_paywall`. Both need to be on
-  for a fully working stack — the user is selling **and** buying.
-- **Treating `useCheckAccessQuery` errors as fatal.** A 402 lives in
-  `data`, not `error`. Read `data.has_access` first.
-- **Setting `success_url = window.location.href` on a buy page.**
-  Buyers refreshing the page after Stripe success will see the
-  paywall again until access invalidates. Land them on the unlocked
-  destination or a thank-you page.
-- **Filling `currency` with anything other than `'usd'`.** The SDK
-  form locks it. The backend currently expects USD. Multi-currency
-  is not supported yet via the UI.
+  produces `on_successful_payment: undefined`, leaving Stripe Checkout
+  with nowhere to send buyers. Always pass `config.authUrl()`.
+- **Confusing `enable_monetization` with `show_paywall`.** Different
+  products, different gates. Both `MonetizationTab` and `PurchasesTab`
+  ride on `enable_monetization`. `CreditBalance` rides on
+  `show_paywall`. See `references/platform-flags.md`.
+- **Treating `useCheckAccessQuery` errors as fatal.** The scoped
+  query's `validateStatus` puts 402 in `data`, not `error`. Read
+  `data.has_access` first. The unscoped variant does NOT carry the
+  override.
+- **Setting `success_url = window.location.href` on a custom buy
+  page.** Refreshing after success will re-hit the paywall until the
+  access-check cache invalidates on webhook. Land buyers on a
+  thank-you page or the unlocked destination instead.
+- **Importing `PurchasesTab` or `CancelSubscription` directly.**
+  Neither is in the package's top-level exports. `PurchasesTab` is
+  private to `Profile`; `CancelSubscription` has no exports-map entry.
+  Use the host components or copy the source.
+- **Sending `item_name` to `my-subscriptions`.** The SDK type lists
+  it; the backend silently drops it. Send `search` instead (filters by
+  `item_id__icontains`).
+- **Treating the shipped `CancelSubscription` as an admin override.**
+  It cancels the caller's own subscription only. No `user_id`
+  argument exists. For true admin overrides, route through the Stripe
+  Dashboard.
+- **Setting `currency` to anything other than `'usd'`.** The SDK form
+  locks it; multi-currency is not supported via the UI yet.
+- **Treating `amount` as a number.** The backend serializes
+  `DecimalField` as `"15.00"` (string). `parseFloat` / `Number` before
+  arithmetic; the SDK type may say `number` for some hooks anyway.
 - **Restyling `PaywallModal`'s grid.** The `grid-cols-N` classes are
-  driven by `activePrices.length` and tuned to look reasonable up to
-  4 prices. Adding more than 4 prices works but wraps; restyling will
-  break responsive behavior.
-- **Skipping `is_ready_for_payments`.** The admin pane uses it to
-  disable the Paywall section. If you build a custom buy surface and
-  forget to check it, buyers can land on a Checkout session against a
-  Stripe account that hasn't finished KYC and Stripe will reject the
-  payment.
-- **Ignoring `grandfathered` subscriptions in cancel flows.** A
-  grandfathered subscription has no Stripe customer to send to the
-  portal — cancel returns `status: 'canceled'` directly. Make sure
-  your UI branches on both `portal_url` and `status` instead of
-  assuming a portal redirect.
+  driven by `activePrices.length` and tuned for up to 4 prices.
+  Restyling breaks responsive behavior.
+- **Skipping `is_ready_for_payments`.** The admin pane already uses
+  it to disable the Paywall section. If you build a custom buy
+  surface, gate on it — otherwise buyers can hit a Checkout against
+  an unfinished Stripe account and Stripe will reject the payment.
+- **Ignoring the `portal_url` branch on cancel.** Recurring cancels
+  return `{ portal_url }`; immediate / grandfathered cancels return
+  the full `ItemSubscriptionSerializer` payload with
+  `status='canceled'`. Branch on which key is present — don't assume
+  the portal redirect.
+- **Hardcoding the schema `info.version`.** The build version rolls
+  forward each release. Cite the URL, not the version string.
+- **Claiming `/buy/{paywallUniqueId}` doesn't exist.** The auth app
+  ships `apps/auth/app/(auth)/buy/[id]/page.tsx`. The URL resolves
+  out-of-the-box wherever `authURL` is set.
 
----
+## Related skills
 
-## MCP tools for further detail
-
-```
-get_component_info("PaywallModal")
-get_component_info("Account")
-get_component_info("Profile")
-get_hook_info("useCheckAccessQuery")
-get_hook_info("useCheckAccessUnscopedQuery")
-get_hook_info("useCancelSubscriptionMutation")
-get_hook_info("useEnablePaywallMutation")
-get_hook_info("useDisablePaywallMutation")
-```
-
----
-
-## Files in this skill's scope (for reference)
-
-| File | Role |
-|---|---|
-| [packages/web-containers/src/components/profile/monetization/index.tsx](packages/web-containers/src/components/profile/monetization/index.tsx) | `MonetizationTab` shell — Stripe Connect + paywall config |
-| [packages/web-containers/src/components/profile/monetization/stripe-connect.tsx](packages/web-containers/src/components/profile/monetization/stripe-connect.tsx) | Stripe Connect Express status + onboarding card |
-| [packages/web-containers/src/components/profile/monetization/paywall-config.tsx](packages/web-containers/src/components/profile/monetization/paywall-config.tsx) | List vs. detail switcher; renders the "Connect Stripe first" empty state |
-| [packages/web-containers/src/components/profile/monetization/paywalled-items-list.tsx](packages/web-containers/src/components/profile/monetization/paywalled-items-list.tsx) | Configured-items list + status filter + pagination |
-| [packages/web-containers/src/components/profile/monetization/item-search-dropdown.tsx](packages/web-containers/src/components/profile/monetization/item-search-dropdown.tsx) | Combined search across mentors / courses / programs |
-| [packages/web-containers/src/components/profile/monetization/paywall-detail.tsx](packages/web-containers/src/components/profile/monetization/paywall-detail.tsx) | Per-item wizard (`Item Details → Paywall → Pricing`) |
-| [packages/web-containers/src/components/profile/monetization/price-management.tsx](packages/web-containers/src/components/profile/monetization/price-management.tsx) | Pricing-tier CRUD form |
-| [packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx](packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx) | Standalone admin cancel-by-item-id tool |
-| [packages/web-containers/src/components/profile/monetization/wizard-step-indicator.tsx](packages/web-containers/src/components/profile/monetization/wizard-step-indicator.tsx) | Step strip used by `paywall-detail` |
-| [packages/web-containers/src/components/profile/monetization/paywall-utils.ts](packages/web-containers/src/components/profile/monetization/paywall-utils.ts) | `slugify`, `useDebounce`, `displayItemType`, `buildOnSuccessfulPaymentUrl` |
-| [packages/web-containers/src/components/modals/paywall-modal.tsx](packages/web-containers/src/components/modals/paywall-modal.tsx) | `PaywallModal` — buyer dialog with Stripe Checkout |
-| [packages/web-containers/src/components/profile/purchases/purchases-tab.tsx](packages/web-containers/src/components/profile/purchases/purchases-tab.tsx) | `PurchasesTab` — user subscriptions list + detail + cancel |
-| [packages/data-layer/src/features/monetization/custom-api-slice.ts](packages/data-layer/src/features/monetization/custom-api-slice.ts) | RTK Query slice — 9 flows, all hooks, all tags |
-| [packages/data-layer/src/features/monetization/types.ts](packages/data-layer/src/features/monetization/types.ts) | All request / response TypeScript types |
-| [packages/data-layer/src/features/monetization/constants.ts](packages/data-layer/src/features/monetization/constants.ts) | URL path templates + reducer path |
-
-## Important Notes
-
-- **Stripe Connect Express, not Standard**: tenants use Connect Express
-  onboarding, which means commission flows back to the ibl.ai
-  platform automatically (see `commission_percent` in the status
-  response). You don't need to handle commission math in the SPA.
-- **Next.js required for `Account`**: import from
-  `@iblai/iblai-js/web-containers/next` (uses `next/image`).
-  `PaywallModal` is framework-agnostic — import from the plain
-  `web-containers` path.
-- **Redux store**: Must include the standard `mentorReducer` and
-  `mentorMiddleware`. The monetization slice is registered by
-  `initializeDataLayer()` automatically.
-- **`@reduxjs/toolkit` dedup**: ensure your `next.config.ts` webpack
-  alias for `@reduxjs/toolkit` is in place — duplicate RTK Query
-  instances will break tag invalidation across the monetization slice.
-- **Tenant flags are platform-managed**: there is no in-app toggle for
-  `enable_monetization` / `show_paywall`. Direct users to their ibl.ai
-  operator if the flags are off.
+- `/iblai-monetization-onboard` — Stripe Connect Express onboarding and status
+- `/iblai-monetization-configure` — admin `MonetizationTab` and item/pricing wizard
+- `/iblai-monetization-checkout` — `PaywallModal`, access check, Stripe checkout, guest buy
+- `/iblai-monetization-subscriptions` — user `PurchasesTab` and cancel flow
+- `/iblai-monetization-analytics` — revenue, subscribers, paywalls list
+- `/iblai-credit` — Platform-wide credits (different product — read the "vs credits" table above)
+- `/iblai-auth` — Token wiring; every monetization call uses `Authorization: Token <token>`
+- `/iblai-account` — Account page that hosts the admin `MonetizationTab`
+- `/iblai-profile` — Profile page that hosts the user `PurchasesTab`
+- `/iblai-navbar` — Where to mount the `CreditBalance` widget (credits, not monetization)
+- `/iblai-rbac` — Role-management UI for assigning Platform admin
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
