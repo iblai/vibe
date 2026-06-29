@@ -74,10 +74,12 @@ Get a complete app with auth, AI chat, profiles, and more by cloning **vibe-star
 ```bash
 git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
 cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-pnpm install
+pnpm install --ignore-scripts
 cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY
 pnpm dev
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Open [http://localhost:3000](http://localhost:3000). You will be redirected to `login.iblai.app` for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
 

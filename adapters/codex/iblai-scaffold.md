@@ -34,6 +34,23 @@ Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 > Started") is the recommended path; the `base`+`agent` templates here are
 > the manual equivalent.
 
+## Env: `.env.local` before build
+
+A vibe app (cloned from **vibe-starter** or rendered from these templates)
+needs a `.env.local` to build or run. **Always ensure one exists before
+`pnpm build`** — a missing file is the usual cause of a blank or
+mis-tenanted build:
+
+```bash
+[ -f .env.local ] || cp .env.example .env.local   # if the app ships .env.example
+```
+
+No `.env.example` in the project? Seed one from this skill's canonical copy
+(the vibe-starter `.env.example`): [`assets/env.example`](assets/env.example).
+Then map `PLATFORM` → `NEXT_PUBLIC_MAIN_TENANT_KEY` and `TOKEN` →
+`IBLAI_API_KEY` from `iblai.env` (see
+[`references/config-command.md`](references/config-command.md)).
+
 ## The templates
 
 The Jinja2 (`.j2`) templates the CLI renders live as assets beside this

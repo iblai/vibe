@@ -1,36 +1,33 @@
----
-name: iblai-nemoclaw-sandbox
-description: Operating contract for an agent running inside a NemoClaw / NVIDIA OpenShell sandbox. Use when the user mentions 'nemoclaw', 'OpenShell sandbox', running commands via 'bash -ic', routing output to '/sandbox/command-logs', the 'NODE_OPTIONS preload', or the '.nemoclaw-preload.js' guard loader. It wires a single --require entry point so every Node process (node, npx, pnpm) loads the sandbox guards fail-closed, plus a nemoclaw_run helper that persists all command output to /sandbox/command-logs because sandbox stdout is not durable.
-globs:
-alwaysApply: false
----
+# NemoClaw sandbox — operating contract
 
-# /iblai-nemoclaw-sandbox — Operating contract inside a NemoClaw sandbox
-
-This skill defines how an agent runs commands inside an
+How an agent runs commands inside an
 [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw) /
 [OpenShell](https://github.com/NVIDIA/OpenShell) sandbox, where the
 environment (NODE_OPTIONS, PATH, proxy vars) lives in `/sandbox/.bashrc`
-and stdout is **not durable**. It installs two assets and three rules.
+and stdout is **not durable**. Two assets ship with this skill under
+[`../assets/nemoclaw/`](../assets/nemoclaw/); three rules govern use.
 
-## Authorization Check
+> Asset paths in the shell blocks below are relative to the
+> `iblai-agent-sandbox` skill root.
 
-This is defensive sandbox hardening for an agent you operate. Before
-installing, confirm you are configuring a sandbox you own/administer. The
-guard files in `/tmp` are supplied by the NemoClaw lifecycle — this skill
-only wires them in; it does not author or weaken them.
+## Authorization
+
+Defensive sandbox hardening for an agent you operate. Confirm you are
+configuring a sandbox you own/administer. The guard files in `/tmp` are
+supplied by the NemoClaw lifecycle — this skill only wires them in; it does
+not author or weaken them.
 
 ## The three rules
 
 1. **Run every command through an interactive shell.** Use
    `bash -ic '<command>'` so `/sandbox/.bashrc` is sourced and the command
    sees `NODE_OPTIONS`, `PATH`, proxy vars, and the `nemoclaw_run` helper.
-   A plain non-interactive shell does **not** source `.bashrc` and will run
+   A plain non-interactive shell does **not** source `.bashrc` and runs
    unguarded / unconfigured.
 2. **Persist all output to `/sandbox/command-logs`.** Sandbox stdout does
-   not survive, so never rely on it. Wrap commands with `nemoclaw_run`,
-   which tees stdout+stderr to a timestamped log and prints only the log
-   path and exit code. Read the log file for the actual output.
+   not survive. Wrap commands with `nemoclaw_run`, which tees stdout+stderr
+   to a timestamped log and prints only the log path and exit code. Read the
+   log file for the actual output.
 3. **Node tooling loads guards through one preload, fail-closed.**
    `NODE_OPTIONS` carries **exactly one** `--require`
    (`/sandbox/.nemoclaw-preload.js`). That module loads every guard. The
@@ -51,14 +48,15 @@ It prints one line to stdout:
 logged-to=/sandbox/command-logs/20260627T120000-12345-6789.log exit=0
 ```
 
-Then read the referenced log file for the command's real output (use the
-`Read` tool on that path, or `bash -ic 'nemoclaw_run "cat <log>"'`). Examples:
+Then read the referenced log file for the command's real output. Examples:
 
 ```bash
-bash -ic 'nemoclaw_run "npx pnpm install"'
+bash -ic 'nemoclaw_run "npx pnpm install --ignore-scripts"'
 bash -ic 'nemoclaw_run "node build.js"'
 bash -ic 'nemoclaw_run "pytest -q"'
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Why `bash -ic` **and** a Node preload, not one or the other: `bash -ic`
 makes interactive-shell config (incl. `NODE_OPTIONS`) reach the command,
@@ -66,12 +64,12 @@ but tools like `npx pnpm` can't consume guard logic expressed as shell —
 they need it as JS that `--require` runs before the main module. The
 preload is that JS, and it is the single source of truth for the guards.
 
-## Files this skill installs
+## Files this installs
 
 | Path | Source asset | Purpose |
 |---|---|---|
-| `/sandbox/.nemoclaw-preload.js` | [`assets/.nemoclaw-preload.js`](assets/.nemoclaw-preload.js) | The single `--require` module; loads all guards |
-| `/sandbox/.bashrc` (appended) | [`assets/bashrc-snippet.sh`](assets/bashrc-snippet.sh) | Sets the one-require `NODE_OPTIONS` + defines `nemoclaw_run` |
+| `/sandbox/.nemoclaw-preload.js` | [`../assets/nemoclaw/.nemoclaw-preload.js`](../assets/nemoclaw/.nemoclaw-preload.js) | The single `--require` module; loads all guards |
+| `/sandbox/.bashrc` (appended) | [`../assets/nemoclaw/bashrc-snippet.sh`](../assets/nemoclaw/bashrc-snippet.sh) | Sets the one-require `NODE_OPTIONS` + defines `nemoclaw_run` |
 | `/sandbox/command-logs/` | created on demand | Durable per-command logs (+ `nemoclaw-preload.log`) |
 | `/tmp/nemoclaw-*.js` | **provided by NemoClaw** | The 6 guard/shim files the preload requires |
 
@@ -103,10 +101,10 @@ Run inside the sandbox (paths assume `HOME=/sandbox`):
 
 ```bash
 # 1. Place the single preload module
-cp assets/.nemoclaw-preload.js /sandbox/.nemoclaw-preload.js
+cp assets/nemoclaw/.nemoclaw-preload.js /sandbox/.nemoclaw-preload.js
 
 # 2. Wire NODE_OPTIONS + nemoclaw_run into ~/.bashrc (idempotent: skip if present)
-grep -q 'nemoclaw sandbox' /sandbox/.bashrc || cat assets/bashrc-snippet.sh >> /sandbox/.bashrc
+grep -q 'nemoclaw sandbox' /sandbox/.bashrc || cat assets/nemoclaw/bashrc-snippet.sh >> /sandbox/.bashrc
 
 # 3. Ensure the durable log dir exists
 mkdir -p /sandbox/command-logs

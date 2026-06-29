@@ -130,9 +130,11 @@ when running the app for the first time.
 ### Install & Run
 
 ```bash
-pnpm install
+pnpm install --ignore-scripts
 pnpm dev
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Open [http://localhost:3000](http://localhost:3000). {{ One sentence on
 what happens after the first request — e.g. SSO redirect / home redirect
@@ -259,7 +261,7 @@ on one screen. }}
 ### Setup
 
 1. Fork the repo and clone it
-2. Install dependencies: `pnpm install`
+2. Install dependencies: `pnpm install --ignore-scripts` (skips package lifecycle scripts)
 3. Start the dev server: `pnpm dev`
 
 ### Development Workflow

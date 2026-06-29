@@ -62,8 +62,10 @@ Ask a clear yes/no question:
 ```bash
 git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
 cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-pnpm install
+pnpm install --ignore-scripts
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 (Clone into a temp directory and copy into the current directory before
 installing -- running `pnpm install` inside the cloned subdirectory causes
@@ -160,8 +162,10 @@ hardlink issues):
 ```bash
 git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
 cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-pnpm install
+pnpm install --ignore-scripts
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 For existing projects, ignore this and use the individual skills below.
 

@@ -75,7 +75,9 @@ issues), then skip this skill:
 
     git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
     cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-    pnpm install
+    pnpm install --ignore-scripts
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 If they prefer to add a navbar to an existing app, continue below.
 

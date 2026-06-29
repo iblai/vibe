@@ -60,7 +60,7 @@ partway, the partial directory is removed.
 > **Generating into the current directory.** `startapp` always creates a
 > subdirectory. The canonical pattern is to generate into a temp parent and
 > copy back: `iblai startapp agent -o iblai-init` → then
-> `cp -a iblai-init/<app-name>/. . && rm -rf iblai-init` → `pnpm install`.
+> `cp -a iblai-init/<app-name>/. . && rm -rf iblai-init` → `pnpm install --ignore-scripts` (skips package lifecycle scripts).
 
 ## AI assistance (optional)
 
@@ -75,10 +75,12 @@ The success panel prints the next steps:
 
 ```bash
 cd <output>/<app-name>
-pnpm install
+pnpm install --ignore-scripts
 cp .env.example .env.local      # then fill in your values
 pnpm dev                        # or: iblai builds dev  (when --builds)
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 ## Related
 

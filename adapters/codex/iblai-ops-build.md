@@ -33,8 +33,10 @@ a device name from the output.
 - **Tauri support** added to your project:
   ```bash
   # add the Tauri shell: copy assets/tauri/ into src-tauri/ + add @tauri-apps deps
-  pnpm install
+  pnpm install --ignore-scripts
   ```
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
+
 - **Rust toolchain** installed via [rustup](https://rustup.rs)
 
 ## How Dev Builds Work

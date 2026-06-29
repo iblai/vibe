@@ -113,8 +113,10 @@ and profile/account/notifications pages already in place:
 ```bash
 git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
 cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-pnpm install
+pnpm install --ignore-scripts
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Fill `iblai.env` with `PLATFORM`/`TOKEN`, then map them into `.env.local`
 (`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`).

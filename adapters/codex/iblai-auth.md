@@ -67,7 +67,9 @@ issues):
 
     git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
     cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-    pnpm install
+    pnpm install --ignore-scripts
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 If they prefer to wire auth into an existing app, continue below.
 
@@ -284,8 +286,10 @@ Add the SDK dependencies and install:
 
 ```bash
 pnpm add @iblai/iblai-js @reduxjs/toolkit react-redux sonner lucide-react
-pnpm install
+pnpm install --ignore-scripts
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 These are:
 

@@ -46,8 +46,10 @@ hardlink issues):
 ```bash
 git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
 cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
-pnpm install
+pnpm install --ignore-scripts
 ```
+
+> **Install policy:** always run `pnpm install` / `pnpm i` with `--ignore-scripts` to skip package lifecycle (postinstall) scripts — a sandbox-hardening default.
 
 Then fill in `iblai.env` with `PLATFORM` and `TOKEN`, and set
 `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) in `.env.local`.
@@ -57,8 +59,10 @@ Then fill in `iblai.env` with `PLATFORM` and `TOKEN`, and set
 ```bash
 npx create-next-app@latest iblai-init --yes
 cp -a iblai-init/. . && rm -rf iblai-init
-rm -rf node_modules && pnpm install
+rm -rf node_modules && pnpm install --ignore-scripts
 ```
+
+> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Then run the [`/iblai-auth`](skills/iblai-auth/SKILL.md) skill to wire up SSO
 auth (it creates the providers, store, and `lib/iblai/*` files), then `pnpm dev`.
@@ -300,7 +304,6 @@ Invoke with `/` in Claude Code:
 | `/iblai-agent-tasks` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
-| `/iblai-nemoclaw-sandbox` | Operating contract for an agent running inside a NemoClaw / OpenShell sandbox (single NODE_OPTIONS `--require` preload that loads guards fail-closed; `bash -ic` + `/sandbox/command-logs` logging) |
 
 ### Marketing Skills
 
