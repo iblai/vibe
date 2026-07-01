@@ -268,6 +268,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-account` | Add account/org settings page |
 | `/iblai-analytics` | Add analytics dashboard |
 | `/iblai-notification` | Add notification bell + center page |
+| `/iblai-credential` | Grant an API token RBAC access to list and unmask platform integration credentials |
 | `/iblai-credit` | Add the credit balance widget (plan badge, credits, auto-recharge, upgrade) |
 | `/iblai-invite` | Add user invitation dialogs |
 | `/iblai-workflow` | Add workflow builder components |
