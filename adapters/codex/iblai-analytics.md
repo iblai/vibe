@@ -1,6 +1,6 @@
 # iblai-analytics
 
-> Add analytics dashboard page to your Next.js app
+> Add the ibl.ai analytics dashboard to your Next.js app — tabbed layout with Overview, Courses, Programs, Users, Topics, Financial, Transcripts, and Reports pages using the @iblai/iblai-js SDK components. For the REST API behind the components (endpoints, params, RBAC, Data Reports lifecycle), install `iblai/api` and use its companion `/iblai-analytics` skill.
 
 # /iblai-analytics
 
@@ -24,6 +24,10 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
+- **API companion (recommended):** `npx skills add iblai/api`. Installs
+  the `/iblai-analytics` REST reference and a filtered snapshot of the
+  live OpenAPI schema. This skill (frontend wiring) and that one (API
+  contract) stay in lockstep.
 
 ## Create the Page
 
@@ -118,152 +122,41 @@ npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
 
 ---
 
-# Analytics REST API
+# Analytics REST API — see `/iblai-analytics` in `iblai/api`
 
-> **Base URL:** `${dmUrl}/api/ai-analytics/` and `${dmUrl}/api/analytics/`
-> — `dmUrl` is the first arg passed to `initializeDataLayer()` (sourced
-> from `NEXT_PUBLIC_API_BASE_URL`).
-> **Auth:** `Authorization: Token <token>`
-> **Live OpenAPI:** <https://api.iblai.app/dm/api/docs/schema/swagger-ui/>
-
-Two namespaces: `/api/ai-analytics/` (AI/agent analytics — chat, costs,
-sentiment, topics, traces, audience/engagement/performance dashboards)
-and `/api/analytics/` (LMS analytics — content, financial, ratings,
-sessions, time, users). Most endpoints scope to `{org}` (the
-platform/tenant key).
-
-Prefer SDK RTK Query hooks over hand-rolled `fetch`. Use
-`get_api_query_info("<hookName>")` in MCP to find the relevant hook
-before writing custom UI.
-
-`{user_id}` in `/api/ai-analytics/orgs/{org}/users/{user_id}/...` is the
-**requesting admin's** user id (RBAC + audit), not the user being
-queried — pass that via `filter_user_id`.
-
-## Common query parameters
-
-| Parameter | Description |
-|-----------|-------------|
-| `start_date`, `end_date` | ISO 8601. Default range: last 7 days |
-| `date_filter` | `today` \| `7d` \| `30d` \| `90d` \| `all_time` \| `custom` |
-| `granularity` | `hour` \| `day` \| `week` \| `month` |
-| `department_id` (with `department_mode=1`) | Scope to a department |
-| `include_main_platform` | Include main platform data. Default: `true` |
-| `mentor_unique_id` | Filter to one mentor/agent |
-| `usergroup_ids[]` | Filter to user groups |
-| `platform_key` | Filter to a platform |
-| `page`, `page_size` (or `limit` ≤ 100) | Pagination |
-
-## Audience — `/api/ai-analytics/audience/orgs/{org}/`
-
-| Path | Returns |
-|------|---------|
-| `active-users/over-time` | Daily active users with vs-prior-period delta |
-| `active-users/per-course` | Active users per course |
-| `active-users/users` | List of active users |
-| `enrollments/over-time` | Daily enrollments |
-| `enrollments/per-course` | Enrollments per course |
-| `enrollments/courses/{course_id}/over-time` | Trend for one course |
-| `enrollments/courses/{course_id}/users` | Enrolled learners |
-| `registered-users/`, `registered-users/over-time`, `registered-users/per-course` | Registered user count, trend, per-course |
-
-## Engagement — `/api/ai-analytics/engagement/orgs/{org}/`
-
-| Path | Returns |
-|------|---------|
-| `activity` | Activity heatmap |
-| `course_completion/over-time`, `course_completion/per-course` | Completion trend, per-course rate |
-| `time/over-time`, `time/per-course`, `time/average-perlearner-percourse`, `time/average-with-over-time` | Org-wide time aggregates |
-| `videos/`, `videos/over-time` | Org-wide video stats |
-| `courses/{course_id}/time/{average,detail,over-time,users}` | Course time metrics |
-| `courses/{course_id}/time/users/{user_id}/{detail,over-time}` | Per-learner time inside a course |
-| `courses/{course_id}/videos/`, `courses/{course_id}/videos/{over-time,summary,users}` | Course video metrics |
-
-## Overview — `/api/ai-analytics/overview/orgs/{org}/`
-
-`active-users`, `average-grade`, `courses/completions`, `learners`,
-`most-active-courses`, `registered-users` — top-level dashboard cards.
-
-## Performance — `/api/ai-analytics/performance/orgs/{org}/`
-
-| Path | Returns |
-|------|---------|
-| `grading/average`, `grading/per-course` | Org-wide grade aggregates |
-| `courses/{course_id}/grading/{average,average-with-cutoff,detail,per-learner,summary}` | Per-course grade metrics |
-
-## Per-Learner — `/api/ai-analytics/perlearner/orgs/{org}/`
-
-| Path | Returns |
-|------|---------|
-| `learners`, `users` | Learner roster (alternate routes) |
-| `users/{user_id}/{activity,info,last-access}` | Profile + activity |
-| `users/{user_id}/grades/per-course` | Grades per course |
-| `users/{user_id}/overview/{engagement-index,grades/average,performance-index,time/over-time}` | Score cards |
-| `users/{user_id}/videos/{over-time,per-course}` | Video stats |
-| `users/{user_id}/courses/{course_id}/overview/{engagement-index,grade,performance-index,time/over-time}` | Per-course score cards |
-| `users/{user_id}/courses/{course_id}/grading/{cutoffs,detail,summary}` | Per-course grading |
-| `users/{user_id}/courses/{course_id}/videos`, `.../videos/over-time` | Per-course videos |
-
-## AI Mentor / User — `/api/ai-analytics/orgs/{org}/users/{user_id}/`
-
-### Chat history
-
-| Method | Path |
-|--------|------|
-| `GET` `POST` | `chat-history/` (filter by `start_date`, `end_date`, `mentor`, `sentiment`, `topics`, `filter_user_id`, `page`) |
-| `GET` `PUT` `PATCH` `DELETE` | `chat-history/{id}/` |
-| `GET` | `chat-history-filter/` |
-| `GET` | `conversation/`, `conversation-summary/` |
-| `GET` | `my-chat-history/`, `my-chat-history/{id}/`, `my-chat-history-filter/` |
-| `GET` `POST` | `my-chat-history-report/` (export task) |
-| `GET` | `my-chat-history-report/{task_id}/`, `my-chat-history-report/{task_id}/download/` |
-
-### Mentors, costs, topics, sentiment, usage
-
-| Group | Paths |
-|-------|-------|
-| Mentors | `mentor-detail/`, `mentor-summary/`, `total-users-by-mentor/`, `mentors/{mentor_unique_id}/cost/` |
-| Costs | `costs/{model,permentor,peruser}/`, `tenant-cost/`, `user-cost/` |
-| Topics | `most-discussed-topics/`, `topic-overview/`, `topic-statistics/`, `topics/summary/` |
-| Sentiment / feedback | `sentiment-count/`, `user-sentiment/`, `rating-summary/`, `user-feedback/` |
-| Usage | `average-messages-per-session/`, `usage-summary/`, `overview-summary/`, `top-students-by-chat-messages/`, `user-cohorts-over-time/`, `user-metrics/`, `user-metrics-pie-chart/`, `registered-users-trend/` |
-| Observations / traces / transcripts | `observations/`, `observations/{id}/`, `traces/`, `traces/{id}/`, `transcripts/` |
-
-## Misc
-
-| Path | Returns |
-|------|---------|
-| `/api/ai-analytics/costs/pertenant/` | Cost grouped by tenant |
-| `/api/ai-analytics/departments/orgs/{org}/` | Departments |
-| `/api/ai-analytics/user-groups/orgs/{org}/` | User groups |
-
-## LMS Analytics — `/api/analytics/`
-
-Accepts `date_filter`, `granularity`, `metric`, `mentor_unique_id`,
-`platform_key`, `usergroup_ids`, `page`, `limit ≤ 100`.
-
-| Method | Path | Returns |
-|--------|------|---------|
-| `GET` | `content/` | Catalog content (`metric=course\|program\|pathway\|skill`) |
-| `GET` | `content/details/{content_id}/` | Per-item detail |
-| `GET` | `conversations/` | Conversations |
-| `GET` | `financial/`, `financial/details/`, `financial/invoice/` | Financial |
-| `GET` | `learners/`, `learners/list/`, `learner/details` | Learners |
-| `GET` | `messages/`, `messages/details/` | Messages |
-| `GET` | `ratings/`, `sessions/`, `time/`, `time-spent/user/`, `topics/`, `topics/details/`, `users/`, `users/details/` | Other |
-| `POST` | `orgs/{org}/time/update/` | Push time-on-platform |
-
-## RBAC
-
-`Ibl.Analytics/Core/read` (viewer) or `Ibl.*` (tenant admin).
-Per-learner and chat-history endpoints also require platform admin.
-
-## Example
+Every analytics endpoint and Data Report — URLs, required params, RBAC
+role names, response shapes — lives in the companion skill
+[`/iblai-analytics`](https://github.com/iblai/api/tree/main/skills/iblai-analytics)
+in the [`iblai/api`](https://github.com/iblai/api) repo. Install once
+and it stays in sync with the backend:
 
 ```bash
-curl "${dmUrl}/api/ai-analytics/audience/orgs/main/active-users/over-time?date_filter=30d" \
-  -H "Authorization: Token ${TOKEN}"
-
-curl "${dmUrl}/api/analytics/content/?metric=courses&date_filter=7d&include_overtime=true" \
-  -H "Authorization: Token ${TOKEN}"
+npx skills add iblai/api
 ```
+
+Then `/iblai-analytics` covers auth, the schema-first workflow, the
+analyst-shaped endpoint groupings (Overview / Costs / Users & engagement
+/ Topics & conversations / Transcripts / Sessions & ratings / Course /
+Program / Pathway & skill / Per-learner / Time-on-platform), the async
+Data Reports lifecycle, and a local snapshot of the live OpenAPI schema
+at `references/analytics-schema.json`.
+
+> **The OpenAPI schema is the contract.** Live at
+> <https://api.iblai.app/dm/api/docs/schema/?format=json> (browsable at
+> <https://api.iblai.app/dm/api/docs/>). Consult it before writing any
+> analytics request. The `iblai/api` skill's `references/schema.md`
+> gives the fetch + drift-check routine.
+
+## In this app (frontend wiring)
+
+- **Auth header:** `Authorization: Token <token>`. The SDK attaches
+  this automatically via `SERVICES.DM`.
+- **Anchor:** `{dm_url}` = `https://api.iblai.app/dm` throughout the
+  companion `/iblai-analytics` skill. Endpoints there are written
+  `{dm_url}/api/analytics/…` and `{dm_url}/api/reports/…`. In
+  TypeScript, `dmUrl` is the first arg passed to
+  `initializeDataLayer()` (sourced from `NEXT_PUBLIC_API_BASE_URL`),
+  so `` `${dmUrl}/api/analytics/…` `` composes the request URL.
+- **Prefer SDK RTK Query hooks** over hand-rolled `fetch`. Use
+  `get_api_query_info("<hookName>")` in MCP to find the relevant hook
+  before writing custom UI.
