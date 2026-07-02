@@ -71,7 +71,7 @@ populate `iblai.env` instead.
 
 ## Verification
 
-You MUST run `/iblai-ops-test` before telling the user the work is ready:
+You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
 2. `pnpm test` — vitest must pass.
