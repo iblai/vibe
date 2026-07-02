@@ -422,7 +422,7 @@ useEffect(() => {
    ```
 
    Attach `ref={nodeRef(node.id)}` to **every** node div (Start, End, While,
-   Conditional, User-Approval, Note, Mentor, and Default). Missing even one
+   Conditional, User-Approval, Note, Agent, and Default). Missing even one
    will cause edge misalignment for that node type.
 
 2. **Handle position math**: The handle dots are positioned with CSS
@@ -474,7 +474,7 @@ useEffect(() => {
 5. **Node type renderers**: Each node type needs its own visual:
    - **Start**: play icon, right handle only
    - **End**: stop icon (red), left handle only
-   - **Mentor**: bot icon, pencil config button, all 4 handles
+   - **Agent**: bot icon, pencil config button, all 4 handles
    - **Conditional**: branch icon, dynamic condition rows with per-condition right handles + left handle
    - **While**: dashed border container, loop icon, left + right handles
    - **User-Approval**: thumbs-up icon, approve/reject rows with right handles + left handle
@@ -637,7 +637,7 @@ useEffect(() => {
 
 Each node type gets its own panel:
 - **start**: State variable list + "Add variable" modal with type picker (String/Number/Boolean/Object/List)
-- **mentor**: Name, instructions textarea, model (read-only), "Continue on error" toggle
+- **agent**: Name, instructions textarea, model (read-only), "Continue on error" toggle
 - **conditional** (`if-else` or `conditional`): Dynamic condition list with add/remove
 - **while**: Expression textarea
 - **transform**: Mode toggle (expressions/object) + key/value pairs
@@ -649,9 +649,9 @@ Each node type gets its own panel:
 - **mcp**: Placeholder for MCP server connections
 - **fallback**: Name field only
 
-### Continue on error toggle (mentor panel)
+### Continue on error toggle (agent panel)
 
-The mentor panel includes a "Continue on error" toggle switch:
+The agent panel includes a "Continue on error" toggle switch:
 
 ```tsx
 <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50/80 p-2.5">

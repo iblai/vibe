@@ -441,9 +441,9 @@ localStorage), and tag invalidation on `["education", "experience",
 
 ## User Metadata API
 
-The ibl.ai platform provides per-user metadata storage via the **Mentor
+The ibl.ai platform provides per-user metadata storage via the **Agent
 Metadata** endpoint. This is useful for storing arbitrary JSON data scoped
-to a specific user and mentor (e.g. application progress, preferences,
+to a specific user and agent (e.g. application progress, preferences,
 onboarding state).
 
 ### Endpoints
@@ -454,7 +454,7 @@ POST {dmUrl}/api/ai/mentor/orgs/{org}/metadata/        body: { mentor_id, metada
 ```
 
 - **Auth**: `Authorization: Token {axd_token}` (from localStorage)
-- **Scope**: Per-user, per-mentor; isolated.
+- **Scope**: Per-user, per-agent; isolated.
 - **Schema**: Arbitrary JSON.
 - **Merge behavior**: POST merges new keys with existing metadata
   (does not replace the entire object).
@@ -776,7 +776,7 @@ the Profile side.
 |------|------|-------------|
 | `isOpen` | `boolean` | Whether the modal is visible |
 | `onClose` | `() => void` | Close callback |
-| `params` | `{ tenantKey: string; mentorId?: string; isAdmin?: boolean }` | Tenant key, optional mentor ID and admin flag |
+| `params` | `{ tenantKey: string; mentorId?: string; isAdmin?: boolean }` | Tenant key, optional agent ID and admin flag |
 | `authURL` | `string` | Auth service URL (from `config.authUrl()`) |
 
 ### Optional

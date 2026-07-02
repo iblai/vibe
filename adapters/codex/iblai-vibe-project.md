@@ -203,7 +203,7 @@ function AgentProjectPage() {
 | Item | Why |
 |------|-----|
 | Same wrapper / Suspense / `dynamic` / `chatConfig` / hooks as `/iblai-vibe-agent-chat` | The SDK component is the same; only the `projectId` prop differs. |
-| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are mentor-scoped — the WebSocket session still needs a mentor. |
+| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are agent-scoped — the WebSocket session still needs a agent. |
 | `projectId` from `useParams<...>()` | Triggers the SDK to render `ProjectLandingPage` instead of the default welcome surface. |
 | `if (!tenantKey \|\| !mentorId \|\| !projectId) return null` | All three are required; render only when all are resolved. |
 | `tenantKey` from `localStorage` (`appTenant` / `current_tenant` / `tenant` / `config.mainTenantKey()`) | Matches `/iblai-vibe-agent-chat`'s pattern. |
@@ -226,7 +226,7 @@ truthy, the bundled `WelcomeChatNew` slot switches its render branch:
 
 The chat input you see in the project surface is the same chat input
 as the regular `<Chat>` flow — sending a message creates a session
-**scoped to this project + mentor combo** (the WebSocket URL still
+**scoped to this project + agent combo** (the WebSocket URL still
 uses `mentorId`).
 
 ## Props
@@ -237,7 +237,7 @@ project-relevant delta:
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `projectId` | `string` | no | Stringified integer matching a project the user has access to. When set, the welcome surface switches to `ProjectLandingPage`. |
-| `mentorId` | `string` | yes | Still required even with `projectId` set — the chat session is mentor-scoped. |
+| `mentorId` | `string` | yes | Still required even with `projectId` set — the chat session is agent-scoped. |
 
 `ChatConfig` is identical to `/iblai-vibe-agent-chat` — no project-specific
 fields.
@@ -254,7 +254,7 @@ fields.
      Prompts, voice, screen-share, send) + Web Search toggle
    - "Project files" card showing "N files added"
    - "Add project instructions" card
-   - "Project Agents" section with the assigned mentor cards and an
+   - "Project Agents" section with the assigned agent cards and an
      "Add Agent" button
 4. Click "Project files" → SDK's `ProjectFilesModal` opens with the
    datasets table.
@@ -262,7 +262,7 @@ fields.
    handling (empty body + data-layer console error, no app crash).
 
 If the project surface renders but the chat WebSocket can't connect,
-that's a backend issue (LLM config on the mentor) — see
+that's a backend issue (LLM config on the agent) — see
 `/iblai-vibe-agent-chat`'s **Known issues**.
 
 ## CLI Integration (proposal — not yet implemented)

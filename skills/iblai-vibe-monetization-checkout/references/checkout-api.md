@@ -72,7 +72,7 @@ On success the SDK's PaywallModal does `window.location.href = result.checkout_u
 
 Checkout sessions are created with destination charges: the buyer pays the Platform's connected Stripe account, and `application_fee_amount` routes the ibl.ai commission back to the marketplace. The split happens server-side inside `StripeConnectService().create_checkout_with_destination(...)` (`billing/views.py:1662-1665`). The SPA never computes or displays the fee — Stripe handles it.
 
-Commission percentages are configurable per Platform and exposed on the Connect status response as `commission_percent` (a dict keyed by item type — mentor / course / program / pathway). See `/iblai-vibe-monetization-onboard` for the status endpoint.
+Commission percentages are configurable per Platform and exposed on the Connect status response as `commission_percent` (a dict keyed by item type — agent / course / program / pathway). See `/iblai-vibe-monetization-onboard` for the status endpoint.
 
 Note: the SDK TypeScript type `StripeConnectStatusResponse.commission_percent` may not include all 4 keys (currently lists mentor/course only). Read defensively as `Record<string, number>`.
 

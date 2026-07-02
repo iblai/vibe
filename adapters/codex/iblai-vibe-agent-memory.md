@@ -139,7 +139,7 @@ For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with
 and `{org}` is the platform/tenant key.
 
 The system has three control levels: **Platform** (admin enables for tenant),
-**Mentor** (admin/owner enables per mentor), **User** (user opts in/out of
+**Agent** (admin/owner enables per agent), **User** (user opts in/out of
 capture and use).
 
 ### User memory settings (per user opt-in)
@@ -159,13 +159,13 @@ Defaults are `false` if no settings row exists.
 | POST | `users/{user_id}/memsearch-config/` | Set `enable_memsearch` |
 | GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the tenant |
 
-### Mentor toggle
+### Agent toggle
 
 | Method | Path | Purpose |
 |---|---|---|
 | PUT | `users/{user_id}/mentors/{mentor}/settings/` | Body includes `enable_memory_component: bool` |
 
-### Global memories (apply across all mentors)
+### Global memories (apply across all agents)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -173,7 +173,7 @@ Defaults are `false` if no settings row exists.
 | POST | `users/{user_id}/global-memories/` | Create. Body `{ content }` (≥10 chars). 409 if duplicate |
 | DELETE | `users/{user_id}/global-memories/{memory_id}/` | Delete |
 
-### Mentor-specific memories (grouped by category)
+### Agent-specific memories (grouped by category)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -191,7 +191,7 @@ Defaults are `false` if no settings row exists.
 | PATCH | `mentors/{mentor_id}/memory-categories/{category_id}/` | Update name/description/extraction prompt |
 | DELETE | `mentors/{mentor_id}/memory-categories/{category_id}/` | Soft-delete (sets `is_active=false`) |
 
-Default categories auto-created per mentor: `knowledge_gaps`, `learning_goals`,
+Default categories auto-created per agent: `knowledge_gaps`, `learning_goals`,
 `preferences`, `progress_milestones`, `personal_context`.
 
 ### Common errors
@@ -201,6 +201,6 @@ Default categories auto-created per mentor: `knowledge_gaps`, `learning_goals`,
 
 ### Visibility rule
 
-Hide memory UI unless platform `memsearch-status` is enabled AND the mentor's
+Hide memory UI unless platform `memsearch-status` is enabled AND the agent's
 `enable_memory_component` is true. Always show the user-level toggles so users
 can opt in/out.

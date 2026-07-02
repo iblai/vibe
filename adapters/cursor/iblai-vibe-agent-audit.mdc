@@ -6,10 +6,10 @@ alwaysApply: false
 
 # /iblai-vibe-agent-audit
 
-Add the agent **Audit tab** -- a paginated audit log of mentor-scoped
+Add the agent **Audit tab** -- a paginated audit log of agent-scoped
 changes (create / update / delete) with humanized action summaries
-(e.g. "Enabled tools on E2E Mentor 123 (uuid)", "Updated forkable, LLM
-model, ... on Settings for E2E Mentor"), filterable by actor email,
+(e.g. "Enabled tools on E2E Agent 123 (uuid)", "Updated forkable, LLM
+model, ... on Settings for E2E Agent"), filterable by actor email,
 date range, and action type. Renders an empty state, an error state,
 and a 403 state for users without audit-read permission.
 
@@ -128,7 +128,7 @@ export default function AgentAuditPage() {
 > "Audit" header / description shown in the screenshot is host-page
 > chrome — copy the `<h2>` + `<p>` block above to match.
 
-### Switching the audited mentor at runtime
+### Switching the audited agent at runtime
 
 When the audit view is part of an agent picker (e.g. an admin browsing
 multiple agents), pass `selectedMentorId` to override the default
@@ -275,7 +275,7 @@ Token <token>`.
 |---|---|---|
 | `limit` | int | Page size (default 20) |
 | `offset` | int | Result offset (page-1) × limit |
-| `mentor` | uuid | Filter to one mentor |
+| `mentor` | uuid | Filter to one agent |
 | `action` | int | `0`=create, `1`=update, `2`=delete |
 | `actor_email` | string | Filter by actor's email (exact match) |
 | `from_date` | `YYYY-MM-DD` | Inclusive lower bound (timestamp date) |
@@ -310,7 +310,7 @@ Token <token>`.
   / `delete`); the `?action=` filter takes the **integer code**.
 - `changes` is `{ [field]: [oldValue, newValue] }`. Booleans serialize
   as the Python strings `"True"` / `"False"`.
-- `resource_repr` ends with `(uuid)` for mentor-scoped resources —
+- `resource_repr` ends with `(uuid)` for agent-scoped resources —
   preserve it so name collisions remain disambiguated.
 
 ### Known quirks
@@ -318,8 +318,8 @@ Token <token>`.
 - **`?action=0` (Create) is currently dropped server-side**. The
   `useAuditLog` hook re-filters the response client-side to compensate;
   any custom UI should do the same until the backend fix lands.
-- The trailing UUID in `resource_repr` is the mentor's `unique_id`,
-  not its primary key — useful for cross-referencing with mentor
+- The trailing UUID in `resource_repr` is the agent's `unique_id`,
+  not its primary key — useful for cross-referencing with agent
   settings APIs that key on `unique_id`.
 
 ### Common errors

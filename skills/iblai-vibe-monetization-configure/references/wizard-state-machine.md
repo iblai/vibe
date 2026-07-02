@@ -38,7 +38,7 @@ const wizardSteps = [
 ];
 ```
 
-- **Existing items** (mentor / course / program / pathway selected from
+- **Existing items** (agent / course / program / pathway selected from
   search): 2-step `Paywall → Pricing`. The `custom-item` step is skipped
   because the item already exists in the Platform domain.
 - **Custom items** (admin clicked `+ Add Custom Item`): 3-step

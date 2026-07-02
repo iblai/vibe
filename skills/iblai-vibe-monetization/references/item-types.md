@@ -19,7 +19,7 @@ exists.
 
 ## Why a triple, not a single ID
 
-A Platform-A mentor and a Platform-B mentor with the same UUID are
+A Platform-A agent and a Platform-B agent with the same UUID are
 independent products with independent paywalls, independent prices, and
 independent subscribers. The Platform leg of the triple gives each
 Platform its own private namespace.
@@ -110,7 +110,7 @@ Both core models enforce one row per triple per Platform:
 
 ## `displayItemType` — the SDK rebrand
 
-The product surface presents "mentor" as **"Agent"**. The mapping lives
+The product surface presents "agent" as **"Agent"**. The mapping lives
 in `paywall-utils.ts` (around lines 26-30):
 
 ```ts
@@ -159,7 +159,7 @@ Every billing view that touches a single item calls
 `get_strategy_or_generic(item_type)` to dispatch domain-specific logic:
 
 - **`resolve_item(item_id, platform_key)`** — load the domain object
-  (Mentor, Course, Program, Pathway) and return a `ResolvedItem`.
+  (Agent, Course, Program, Pathway) and return a `ResolvedItem`.
   Generic strategy looks up the `ItemPaywallConfig` row itself and
   synthesises the name from `item_name` or `f"{item_type}:{item_id}"`.
 - **`post_checkout(subscription, checkout_data)`** — built-in
@@ -167,7 +167,7 @@ Every billing view that touches a single item calls
   fires `item_purchased` and does nothing else
   (`generic.py:69-81`).
 - **`post_enable_paywall(config, platform)`** — built-in strategies
-  grandfather existing learners according to
+  grandfather existing users according to
   `config.grandfathering_strategy`; generic strategy returns `0`
   (`generic.py:114-123`) because there are no existing domain users to
   grandfather.

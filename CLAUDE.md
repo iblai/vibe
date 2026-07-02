@@ -273,7 +273,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-invite` | Add user invitation dialogs |
 | `/iblai-vibe-workflow` | Add workflow builder components |
 | `/iblai-vibe-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
-| `/iblai-vibe-course-access` | Add course-content pages (edX learner UI) |
+| `/iblai-vibe-course-access` | Add course-content pages (edX user UI) |
 | `/iblai-vibe-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-vibe-component` | Overview of all available components |
 | `/iblai-vibe-design` | Design, audit, polish, and iterate frontend UI (23 sub-commands); falls back to BRAND.md when the project has no design system |

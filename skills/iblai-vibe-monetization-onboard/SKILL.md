@@ -194,7 +194,7 @@ A few things to know:
 
 - The SDK's bundled `StripeConnect` component **hardcodes
   `business_type: 'company'`** today. If you need the `individual`
-  variant (sole traders, freelancers selling their own mentor), do
+  variant (sole traders, freelancers selling their own agent), do
   **not** try to override the SDK card — build a custom onboarding-start
   screen against the same mutation and pass `business_type:
   'individual'`. The schema enum accepts both values and defaults to

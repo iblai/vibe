@@ -7,7 +7,7 @@ alwaysApply: false
 # /iblai-vibe-monetization
 
 Reference skill for ibl.ai's item-level monetization system — selling
-specific mentors / courses / programs / pathways or custom items behind
+specific agents / courses / programs / pathways or custom items behind
 a Stripe Connect Express paywall. This is the family index: it covers
 authentication, the live OpenAPI schema, the two Platform flags, the
 RTK Query data layer, RBAC, and points at every workflow sub-skill.
@@ -111,13 +111,13 @@ the most common mistake.
 
 | | `/iblai-vibe-monetization` (this family) | `/iblai-vibe-credit` |
 |---|---|---|
-| **Sells** | A specific item — one mentor / course / program / pathway / custom | Platform-wide credits + plan tier |
+| **Sells** | A specific item — one agent / course / program / pathway / custom | Platform-wide credits + plan tier |
 | **Platform flag** | `enable_monetization` (admin + user surfaces) + `show_paywall` (credit widget gating only) | `show_paywall` only |
 | **Stripe account** | Platform's own Stripe (Stripe Connect Express) | ibl.ai main Platform Stripe |
 | **Money flow** | Buyer → Platform's Stripe (commission to ibl.ai) | Buyer → ibl.ai |
 | **Buyer sees** | `PaywallModal` with per-item pricing tiers | `CreditBalance` navbar widget + Stripe Pricing Page |
 | **Admin sees** | `MonetizationTab` inside `Account` | (none — managed by ibl.ai) |
-| **Audience** | End learners paying the Platform directly | Org admins topping up their org's credit pool |
+| **Audience** | End users paying the Platform directly | Org admins topping up their org's credit pool |
 
 If the goal is selling specific content, you are in the right family.
 If the goal is topping up an ibl.ai credit pool, switch to

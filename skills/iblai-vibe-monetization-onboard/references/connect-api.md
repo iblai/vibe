@@ -23,7 +23,7 @@ to the Platform on the token.
 > This is the **DM token**, not the AXD token — using the AXD token here
 > returns `401`.
 > **Permission:** `IsPlatformAdmin` on every endpoint — these are
-> Platform-owner-only surfaces, not learner-facing.
+> Platform-owner-only surfaces, not user-facing.
 
 ## Endpoint catalog
 

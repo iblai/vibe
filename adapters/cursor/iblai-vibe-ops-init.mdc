@@ -227,7 +227,7 @@ through the wiring:
 /iblai-vibe-profile       # Profile dropdown + settings page
 /iblai-vibe-account       # Account/org settings page
 /iblai-vibe-analytics     # Analytics dashboard
-/iblai-vibe-course-access # Course content pages (edX learner UI)
+/iblai-vibe-course-access # Course content pages (edX user UI)
 /iblai-vibe-course-create # Generate and publish courses via Course Creation API
 /iblai-vibe-notification  # Notification bell
 /iblai-vibe-invite        # User invitation dialogs

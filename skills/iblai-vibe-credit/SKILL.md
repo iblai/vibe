@@ -188,7 +188,7 @@ The widget MUST only render when ALL of the following are true:
    Tenants without paywall enabled return no billing info; rendering the
    widget there shows a permanent error state.
 2. **The user can act on credits** — typically `isAdmin || userOnFreeTrial`.
-   Regular learners on a paid plan generally cannot top up the
+   Regular users on a paid plan generally cannot top up the
    organization's balance, so showing them the widget is misleading.
    Substitute the equivalent check for your app's role model.
 3. **The user is logged in** — the widget hits authenticated billing

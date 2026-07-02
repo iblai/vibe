@@ -117,7 +117,7 @@ identity explicitly:
 />;
 ```
 
-`enableRBAC` honors field-level permissions from mentor settings (each
+`enableRBAC` honors field-level permissions from agent settings (each
 field — `enable_privacy_router`, `privacy_action`, `privacy_response`,
 `privacy_entities`, `enable_privacy_output_filter` — can be
 independently disabled). `executeGatedAction` wraps every save so the
@@ -152,7 +152,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | `tenantKey` | `string` | No | Identity override. Defaults to the nearest `<AgentSettingsProvider>` |
 | `mentorId` | `string` | No | Agent UUID override. Defaults to the provider |
 | `username` | `string` | No | Username override. Defaults to the provider |
-| `enableRBAC` | `boolean` | No | Honor per-field permissions from mentor settings. Defaults to the provider value or `false` |
+| `enableRBAC` | `boolean` | No | Honor per-field permissions from agent settings. Defaults to the provider value or `false` |
 | `executeGatedAction` | `(fn: () => unknown) => unknown` | No | Wrap each save mutation (e.g. confirmation/upgrade gate). Defaults to the provider value |
 
 ## Related Exports
@@ -189,7 +189,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
 - **JSON settings endpoint**: Privacy fields are persisted via the JSON
   `/settings/` mutation (not the multipart variant) so array fields like
-  `privacy_entities` round-trip cleanly. The tab refetches mentor
+  `privacy_entities` round-trip cleanly. The tab refetches agent
   settings after each save because that mutation does not invalidate the
   settings cache tag.
 - **Action descriptions**: Redact replaces PII with its type

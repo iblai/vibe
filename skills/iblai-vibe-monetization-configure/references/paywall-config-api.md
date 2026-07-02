@@ -50,7 +50,7 @@ response; switch to canonical for subsequent operations.
 |---|---|---|
 | `platform_key` | string | Platform key (must match the token's Platform). |
 | `item_type` | string | `mentor`, `course`, `program`, `pathway`, or `custom:<slug>`. Normalized by `normalize_item_type()` — unknown types are auto-prefixed `custom:`. |
-| `item_id` | string | UUID for mentors; slug/course-key for others; free-form for custom types. |
+| `item_id` | string | UUID for agents; slug/course-key for others; free-form for custom types. |
 
 ## GET — fetch paywall config
 

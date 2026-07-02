@@ -1,6 +1,6 @@
 # iblai-vibe-course-access
 
-> Add course-content pages (edX learner UI) to your Next.js app
+> Add course-content pages (edX user UI) to your Next.js app
 
 # /iblai-vibe-course-access
 
@@ -309,7 +309,7 @@ Next-specific. Renders `<EdxIframe />` inside the layout's
 |------|------|-------------|
 | `tab` | `"course" \| "dates" \| "progress" \| "bookmarks" \| "forum" \| "instructor"` | Which edX tab this page represents |
 | `lmsUrl` | `string` | LMS base URL |
-| `mfeUrl` | `string` | Learner MFE base URL |
+| `mfeUrl` | `string` | User MFE base URL |
 | `legacyLmsUrl` | `string` | Legacy LMS base URL |
 | `edxTokenKey` | `string?` | localStorage key for the edX JWT token. Defaults to `"edx_jwt_token"` |
 | `sandbox` | `string?` | iframe `sandbox` attribute. Defaults to the permissive set for the learning MFE |
@@ -515,7 +515,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 7. **`mentor_hidden` suppresses `onCourseMentorChange`**: If a course has
    `mentor_hidden: true`, the callback is never fired — do not wire
-   fallback mentors from the caller side.
+   fallback agents from the caller side.
 
 8. **`useCourseDetail` is internal**: Don't call it from pages — the
    layout already calls it and exposes state via `CourseOutlineContext`.

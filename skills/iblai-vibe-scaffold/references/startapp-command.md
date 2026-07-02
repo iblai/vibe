@@ -22,7 +22,7 @@ value is **`agent`** (a full-screen chat app). The agent template renders
 | Flag | Env | Purpose |
 |---|---|---|
 | `-p, --platform` | `IBLAI_PLATFORM_KEY`, `PLATFORM` | Platform (tenant) key |
-| `-a, --agent` | `IBLAI_AGENT_ID` | Agent / mentor id (required for `agent`) |
+| `-a, --agent` | `IBLAI_AGENT_ID` | Agent / agent id (required for `agent`) |
 | `--app-name` | `IBLAI_APP_NAME` | App name → directory + `package.json` |
 | `-o, --output` | `IBLAI_OUTPUT_DIR` | Parent dir for the generated app (default `.`) |
 | `--builds` | — | Include the Tauri v2 desktop/mobile shell (`src-tauri/`) |

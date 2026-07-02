@@ -296,7 +296,7 @@ Non-empty = only listed roles trigger notifications.
 
 `frequency`: `DAILY`, `WEEKLY`, `MONTHLY`, `CUSTOM`. `learner_scope`:
 `ACTIVE_LEARNERS` or `ALL_LEARNERS`. Empty `mentors` = use all platform
-mentors.
+agents.
 
 ## RBAC permissions
 

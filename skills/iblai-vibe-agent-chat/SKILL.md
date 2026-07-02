@@ -474,7 +474,7 @@ Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
 | `userTenants` | `Tenant[]` | yes | From `useUserTenants` |
 | `axdToken` | `string` | yes | AXD auth token |
 | `userIsStudent` | `boolean` | yes | RBAC role hint |
-| `visitingTenant` | `Tenant \| undefined` | no | Viewing another tenant's mentor |
+| `visitingTenant` | `Tenant \| undefined` | no | Viewing another tenant's agent |
 | `isPreviewMode` | `boolean` | yes | `true` for admin preview |
 | `mode` | `"default" \| "advanced"` | no | `"advanced"` enables builder UI |
 | `isPublicRoute` | `boolean` | no | Unauthenticated share links |
@@ -491,7 +491,7 @@ Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
 | `mainTenantKey` | `string` | Default tenant key |
 | `navigateToAdminBilling` | `() => void` | Open the billing tab |
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
-| `navigateToMentor` | `(id: string) => void` | Open an individual mentor |
+| `navigateToMentor` | `(id: string) => void` | Open an individual agent |
 | `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync banner |
 
 ## Known issues & host workarounds
@@ -566,7 +566,7 @@ export function RadixPointerEventsGuard() {
 2. `pnpm test` — host unit suite still green (esp. any slices you
    renamed in the Brownfield step).
 3. `pnpm dev` — open the route, sign in, and walk:
-   - mentor name + greeting, "Ask anything" textarea, action buttons
+   - agent name + greeting, "Ask anything" textarea, action buttons
      (attach / canvas / screen share / voice input / voice call / send),
      conversation starters;
    - send a message → "I Accept" the User Agreement → bubble + "is

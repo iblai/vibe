@@ -74,7 +74,7 @@ mirrors the same shape.
 | Surface | Content |
 |---|---|
 | Search bar | Debounced 300ms input; passes `search` to the list query (backend filters by `item_id__icontains`). |
-| Filters | Status select (All / Active / Trialing / Canceled / Past Due) + item-type select (All / Mentor / Course / Program / Pathway) + total count chip. |
+| Filters | Status select (All / Active / Trialing / Canceled / Past Due) + item-type select (All / Agent / Course / Program / Pathway) + total count chip. |
 | Subscription card | Item name, type badge, plan name + amount/interval, "Renews"/"Expires" date, "Since" date, cancel-at-period-end warning row, status badge, "Legacy" badge when grandfathered. |
 | Detail view | Status, plan, type, renewal/expiry date, since date, grandfathered badge, "Type `cancel` to confirm" input + destructive cancel button. |
 | Cancel result | Either a "Subscription Canceled" success card OR an "Open Stripe Portal" card — depends on the response branch. |
@@ -300,7 +300,7 @@ the cancel button copy. The cancel mutation handles the routing for you.
 - `itemSubscription` — the detail view picks up the new `status` and
   `canceled_at` timestamp.
 - `accessCheck` — any gated content (`useCheckAccessQuery` on a paywalled
-  page, the `PaywallModal` trigger on a locked mentor) flips back to
+  page, the `PaywallModal` trigger on a locked agent) flips back to
   locked. Forget this and the rest of the app shows a stale "you have
   access" UI.
 - `subscribers` — the admin subscriber list (rendered by

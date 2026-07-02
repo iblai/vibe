@@ -244,7 +244,7 @@ function AgentChatProjectsPage() {
 | `activeProjectId` | `string` | no | Currently active project — highlight + expand |
 | `activeMentorId` | `string` | no | Highlight a specific chat inside the active project |
 | `navigateToProject` | `(projectId, mentorUniqueId) => void` | yes | Called when the user clicks a project or one of its chat items |
-| `navigateToMentorInProject` | `(mentorUniqueId, projectId) => void` | yes | Called right after a brand-new project is created — navigate to the project's first mentor |
+| `navigateToMentorInProject` | `(mentorUniqueId, projectId) => void` | yes | Called right after a brand-new project is created — navigate to the project's first agent |
 | `executeWithTrialCheck` | `(action: () => void) => void` | no | Wraps user-initiated actions (open create / rename / delete modal, navigate) behind a free-trial check. Omit to run actions directly. |
 | `renderUnauthenticatedTrigger` | `(trigger: ReactNode) => ReactNode` | no | Render-prop for the "New Project" trigger when the user is signed out — typical use: wrap in an AuthPopover that redirects to `/login`. |
 
@@ -264,7 +264,7 @@ function AgentChatProjectsPage() {
 4. Click an existing project. The URL should update to
    `/agents/<projectMentorId>/chat-projects?project=<projectId>`, the
    sidebar item highlights, and the chat re-renders with the project's
-   default mentor.
+   default agent.
 5. Click **New Project**. The create-project modal opens; submit to
    create one, and the SDK calls `navigateToMentorInProject` so your
    route changes to the newly-created project.

@@ -280,7 +280,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   Do NOT wrap each tab page individually.
 - **Tenants list**: The `tenants` prop drives the **Copy to tenant** flow.
   If the user should not be able to copy cross-tenant, pass an empty array.
-- **Labels ownership**: Consumer-specific bundles (mentor, tutor, coach)
+- **Labels ownership**: Consumer-specific bundles (agent, tutor, coach)
   live in the consuming app, not in `@iblai/iblai-js`. The package only
   ships `AGENT_SETTINGS_TAB_LABELS` as a neutral default.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

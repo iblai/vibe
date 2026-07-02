@@ -13,8 +13,8 @@ Two boolean flags on the Platform record gate monetization UI in the SDK. They l
 
 The two flags gate fundamentally different products:
 
-- **`enable_monetization`** — this Platform sells its own items (courses, mentors, pathways, programs) to its users. Revenue flows through Stripe Connect Express to the Platform's connected account; ibl.ai takes a commission. See [/iblai-vibe-monetization-onboard](../../iblai-vibe-monetization-onboard) and [/iblai-vibe-monetization-configure](../../iblai-vibe-monetization-configure).
-- **`show_paywall`** — this Platform buys ibl.ai credits to fund AI consumption (mentor messages, embeddings, etc.). Charges flow directly to ibl.ai's Stripe account. See [/iblai-vibe-credit](../../iblai-vibe-credit).
+- **`enable_monetization`** — this Platform sells its own items (courses, agents, pathways, programs) to its users. Revenue flows through Stripe Connect Express to the Platform's connected account; ibl.ai takes a commission. See [/iblai-vibe-monetization-onboard](../../iblai-vibe-monetization-onboard) and [/iblai-vibe-monetization-configure](../../iblai-vibe-monetization-configure).
+- **`show_paywall`** — this Platform buys ibl.ai credits to fund AI consumption (agent messages, embeddings, etc.). Charges flow directly to ibl.ai's Stripe account. See [/iblai-vibe-credit](../../iblai-vibe-credit).
 
 One Platform is the seller; the other Platform is the buyer of ibl.ai's product. They are independent commercial relationships.
 

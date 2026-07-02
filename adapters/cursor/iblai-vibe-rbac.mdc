@@ -1,5 +1,5 @@
 ---
-description: "Use when building, auditing, or extending ibl.ai role-based access control — default roles seeded by the platform, the action-definitions endpoint, and the SDK components (Admin, RolesTab, PoliciesTab) that render the Roles + Policies management UI. For agent-scoped sharing (editor / chat roles on a single mentor) see /iblai-vibe-agent-access; for mounting the host Account modal see /iblai-vibe-account."
+description: "Use when building, auditing, or extending ibl.ai role-based access control — default roles seeded by the platform, the action-definitions endpoint, and the SDK components (Admin, RolesTab, PoliciesTab) that render the Roles + Policies management UI. For agent-scoped sharing (editor / chat roles on a single agent) see /iblai-vibe-agent-access; for mounting the host Account modal see /iblai-vibe-account."
 globs:
 alwaysApply: false
 ---
@@ -49,7 +49,7 @@ above is the Policies tab inside `<Admin>`):
 | `<PoliciesTab tenant={key} />` | Standalone Policies tab — bind a role to a set of resources for users/groups. Resources are hierarchical (`/platforms/<pk>/mentors/<pk>/`) and the picker handles that. |
 
 All three live in `@iblai/iblai-js/web-containers`. For agent-scoped
-sharing (editor / chat roles on a single mentor) use `<AgentAccessTab>`
+sharing (editor / chat roles on a single agent) use `<AgentAccessTab>`
 from `/iblai-vibe-agent-access` instead — it wraps the underlying
 `Ibl.Mentor/ShareMentor/...` API. For per-action permission gating in
 your own UI use `checkRbacPermission(rbacPermissions, path, enableRbac)`
@@ -83,12 +83,12 @@ Open or copy that file when you need the exact action strings.
 | Role | Summary |
 |------|---------|
 | `TENANT_ADMIN` | `Ibl.*` everywhere — full tenant control. |
-| `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for mentors granted to them; reads field-level mentor + settings data. |
-| `STUDENT_MENTOR_VIEWERS` | List mentors (filtered to what they have access to). |
-| `MENTOR_VIEWER` | Read-only mentor + settings + prompts + documents + reports + chat. Apply to `/platforms/{pk}/mentors/{pk}/`. |
-| `MENTOR_EDITOR` | Mentor read + write across settings, prompts, documents, artifacts, disclaimers, grader. Apply to `/platforms/{pk}/mentors/{pk}/`. |
-| `MENTOR_CREATORS` | Create new mentors (`Ibl.Mentor/Mentors/action`). |
-| `MENTOR_ANALYTICS_VIEWER` | View per-mentor analytics; subsumes `STUDENT`. |
+| `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for agents granted to them; reads field-level agent + settings data. |
+| `STUDENT_MENTOR_VIEWERS` | List agents (filtered to what they have access to). |
+| `MENTOR_VIEWER` | Read-only agent + settings + prompts + documents + reports + chat. Apply to `/platforms/{pk}/mentors/{pk}/`. |
+| `MENTOR_EDITOR` | Agent read + write across settings, prompts, documents, artifacts, disclaimers, grader. Apply to `/platforms/{pk}/mentors/{pk}/`. |
+| `MENTOR_CREATORS` | Create new agents (`Ibl.Mentor/Mentors/action`). |
+| `MENTOR_ANALYTICS_VIEWER` | View per-agent analytics; subsumes `STUDENT`. |
 | `ANALYTICS_VIEWER` | View the analytics dashboard. Pair with `Ibl.Analytics/Core/read` or `Ibl.Analytics/Reports/read` on a user/team scope. |
 | `READ_ANALYTICS` | Per-target analytics + report reads. Apply to `/platforms/{pk}/users/{pk}/` or `/platforms/{pk}/usergroups/{pk}/`. |
 | `NOTIFICATION_MANAGER` | Send notifications + manage templates (scope-gated). |
@@ -113,7 +113,7 @@ Open or copy that file when you need the exact action strings.
    reads.
 2. **Pick the resources the role applies to.** Resources are
    hierarchical and rooted at `/platforms/{pk}/...`. Granting on
-   `/platforms/{pk}/mentors/` covers every mentor; granting on
+   `/platforms/{pk}/mentors/` covers every agent; granting on
    `/platforms/{pk}/mentors/{pk}/` scopes to one.
 3. **Create the role via `<RolesTab>` (UI) or `POST rbac/roles/` (API).**
    Body: `{ name, platform_key, actions[], data_actions[] }`. See
@@ -131,7 +131,7 @@ Open or copy that file when you need the exact action strings.
 ## Related skills
 
 - `/iblai-vibe-agent-access` -- agent-scoped sharing (editor / chat roles on
-  a single mentor) via `<AgentAccessTab>`. Documents the underlying
+  a single agent) via `<AgentAccessTab>`. Documents the underlying
   REST contract (`rbac/roles/`, `rbac/policies/`, `rbac/groups/`,
   `rbac/mentor-access/`, `rbac/teams/access/`, etc.).
 - `/iblai-vibe-account` -- mounts the SDK `<Account>` modal that hosts the

@@ -1,11 +1,11 @@
 ---
 name: iblai-vibe-course-create
-description: Use this skill when a user asks to create, draft, scaffold, generate, or publish a course on ibl.ai / OpenEdX — including programmatic outlines, unit/component generation, or edits to an AI-generated course. Invoke to drive the ibl.ai Course Creation API end-to-end: create the task, build the course on EdX, generate the outline, draft unit content, review/edit structure, and publish. Do NOT invoke for enrollment, grading, mentor configuration, or analytics queries — those are handled by other skills.
+description: Use this skill when a user asks to create, draft, scaffold, generate, or publish a course on ibl.ai / OpenEdX — including programmatic outlines, unit/component generation, or edits to an AI-generated course. Invoke to drive the ibl.ai Course Creation API end-to-end: create the task, build the course on EdX, generate the outline, draft unit content, review/edit structure, and publish. Do NOT invoke for enrollment, grading, agent configuration, or analytics queries — those are handled by other skills.
 ---
 
 # /iblai-vibe-course-create
 
-![Course Content in Learner SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-create/skills-spa-course-content.png)
+![Course Content in User SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-create/skills-spa-course-content.png)
 
 ## Overview
 
@@ -32,7 +32,7 @@ All endpoints are rooted at:
 | `org`       | Platform / tenant key                              | `IBLAI_ORG`       |
 | `user_id`   | Authenticated user's username                      | `IBLAI_USER_ID`   |
 | `api_key`   | API token used as `Authorization: Token <api_key>` | `IBLAI_API_KEY`   |
-| `mentor_id` | (Optional) Mentor UUID for memory-aware generation | `IBLAI_MENTOR_ID` |
+| `mentor_id` | (Optional) Agent UUID for memory-aware generation | `IBLAI_MENTOR_ID` |
 
 
 
@@ -157,7 +157,7 @@ All paths below are appended to the base root `{base_url}/api/ai-mentor/orgs/{or
 | ---------------------------- | -------- | --------------- | ------------------------------------------------------------------------------ |
 | `name`                       | Yes      | —               | Course display name                                                            |
 | `description`                | Yes      | —               | Detailed scope — see **Writing the description** below                         |
-| `target_audience`            | Yes      | —               | Learner profile                                                                |
+| `target_audience`            | Yes      | —               | User profile                                                                |
 | `publish_course`             | No       | `true`          | Auto-publish on sync                                                           |
 | `provider`                   | No       | `"openai"`      | LLM provider                                                                   |
 | `model`                      | No       | `"gpt-4o-mini"` | Larger models give better structure; `gpt-4o` or `gpt-4.1` for complex courses |
@@ -260,7 +260,7 @@ The quality of `description` and `target_audience` dominates output quality. Bef
 ### The 5-field brief template
 
 1. **Subject & scope** — what is in, and (explicitly) what is out.
-2. **Learning outcomes** — 3–7 verbs-as-outcomes ("by the end, learners can _build_, _diagnose_, _compare_…").
+2. **Learning outcomes** — 3–7 verbs-as-outcomes ("by the end, users can _build_, _diagnose_, _compare_…").
 3. **Target audience** — prior knowledge, language level, motivation, typical study time/week.
 4. **Pedagogy** — tutorial vs. project-based vs. assessment-heavy; how much theory vs. practice.
 5. **Format constraints** — number of sections, approximate length, any required topics.
@@ -290,7 +290,7 @@ The quality of `description` and `target_audience` dominates output quality. Bef
 
 If any of these is unknown after the user's initial brief, ask before creating the task:
 
-1. Who is the learner? (background + motivation)
+1. Who is the user? (background + motivation)
 2. What should they be able to _do_ by the end?
 3. How long is the course? (weeks, sections, hours)
 4. Tutorial, assessment-heavy, or project-based?

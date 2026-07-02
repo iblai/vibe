@@ -48,7 +48,7 @@ Templates receive a small context dict. Fill these placeholders:
 | `app_name` | string | Project / package name (lowercase) | `package.json`, layout, config, `Cargo.toml` |
 | `platform_key` | string | ibl.ai platform (tenant) key | `.env.example`, `config.ts` |
 | `mentor_id` | string | Default agent/mentor UUID (agent apps) | `.env.example`, `config.ts`, `page.tsx` |
-| `has_mentor_id` | bool | Whether a mentor id was supplied | CLAUDE.md / conditional blocks |
+| `has_mentor_id` | bool | Whether a agent id was supplied | CLAUDE.md / conditional blocks |
 | `tauri` / `builds` | bool | Whether the Tauri shell is included | `next.config.ts`, `package.json`, CLAUDE.md |
 
 ### Jinja2 conventions in the templates

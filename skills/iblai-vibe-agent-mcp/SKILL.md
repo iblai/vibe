@@ -149,7 +149,7 @@ Opened from the **Add Connector** button. Collects:
 | Connector Name | Required. |
 | Connector Server | Required. Must be a valid URL. |
 | Description | Optional. |
-| Connector Scope | `All Agents` (tenant) or `This Agent` (mentor-bound). |
+| Connector Scope | `All Agents` (tenant) or `This Agent` (agent-bound). |
 | Transport | `SSE` / `WebSocket` / `Streamable Http` (default). |
 | Authentication Method | `No Authentication` / `API Key` / `OAuth`. |
 | Authentication Scope | OAuth-only: `Tenant` / `Mentor` / `User`. |
@@ -179,7 +179,7 @@ Server` URL restarts the OAuth handshake.
    `MCPServerConnection` record bound to the configured scope (`user`,
    `mentor`, or `tenant`).
 5. Refetches Featured / Custom / ConnectedServices /
-   MCPServerConnections / mentor settings — the card flips to
+   MCPServerConnections / agent settings — the card flips to
    **Disconnect**.
 
 A 5-minute safety timeout cleans up listeners if the user abandons the
@@ -229,7 +229,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `oauth_connection_complete` to `localStorage` so the parent window
   can resolve the flow.
 - **Tools toggle**: Activating a connector for the first time
-  auto-adds `mcp` to the mentor's `tool_slugs` and sets
+  auto-adds `mcp` to the agent's `tool_slugs` and sets
   `can_use_tools=true`. Deactivating the last connector removes `mcp`
   from `tool_slugs` again — see `/iblai-vibe-agent-tool` for the broader
   tools tab.
@@ -238,19 +238,19 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 ## MCP Servers REST API
 
 For custom UI beyond `<McpTab>` — register external MCP servers and bind
-them to mentors. All endpoints are prefixed with
+them to agents. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
 `NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
 
 ### Workflow
 
-1. **Enable the MCP tool on the mentor** (so the runtime will use MCP servers).
+1. **Enable the MCP tool on the agent** (so the runtime will use MCP servers).
 2. **Register an MCP server** record (URL, transport, auth_type).
 3. **Create a connection** binding credentials to a scope (`tenant`,
    `user`, or `mentor`).
-4. **Assign servers to the mentor** via the mentor settings endpoint.
+4. **Assign servers to the agent** via the agent settings endpoint.
 
-### 1. Enable MCP tool on the mentor
+### 1. Enable MCP tool on the agent
 
 | Method | Path | Body |
 |---|---|---|
@@ -283,7 +283,7 @@ them to mentors. All endpoints are prefixed with
 - `transport`: `sse` | `websocket` | `streamable_http`
 - `auth_type`: `none` | `token` | `oauth2`
 - `auth_scope` (oauth only): `tenant` | `mentor` | `user`
-- `mentor`: `null` for tenant-wide, mentor UUID for mentor-bound
+- `mentor`: `null` for tenant-wide, agent UUID for agent-bound
 - For `auth_type=token`, set `credentials` to the full header value
   (e.g. `"Bearer abc123"`).
 
@@ -308,7 +308,7 @@ them to mentors. All endpoints are prefixed with
 }
 ```
 
-**Mentor scope** — bind credentials to a single mentor while keeping
+**Agent scope** — bind credentials to a single agent while keeping
 the server reusable:
 
 ```json
@@ -324,18 +324,18 @@ the server reusable:
 Returned credentials are **masked**; only send a new value when the
 user intentionally rotates the secret.
 
-### 4. Assign servers to a mentor
+### 4. Assign servers to a agent
 
 | Method | Path | Body |
 |---|---|---|
 | PUT | `mentors/{mentor}/settings/` | `{ "mcp_servers": [1, 2] }` |
 
-The `mcp_servers` array replaces the mentor's current list.
+The `mcp_servers` array replaces the agent's current list.
 
 ### Connection resolution at runtime
 
 1. User-scoped connection (matching invoking user)
-2. Mentor-scoped connection (matching active mentor)
+2. Agent-scoped connection (matching active agent)
 3. Tenant-scoped connection
 4. Featured server fallback (`is_featured=true` global)
 

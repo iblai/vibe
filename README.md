@@ -299,7 +299,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-invite` | Add user invitation dialogs |
 | `/iblai-vibe-workflow` | Add workflow builder components |
 | `/iblai-vibe-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
-| `/iblai-vibe-course-access` | Add course-content pages (edX learner UI) |
+| `/iblai-vibe-course-access` | Add course-content pages (edX user UI) |
 | `/iblai-vibe-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-vibe-component` | Overview of all components + app creation paths |
 | `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |

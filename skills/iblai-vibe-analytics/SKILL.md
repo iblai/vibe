@@ -167,7 +167,7 @@ queried — pass that via `filter_user_id`.
 | `enrollments/over-time` | Daily enrollments |
 | `enrollments/per-course` | Enrollments per course |
 | `enrollments/courses/{course_id}/over-time` | Trend for one course |
-| `enrollments/courses/{course_id}/users` | Enrolled learners |
+| `enrollments/courses/{course_id}/users` | Enrolled users |
 | `registered-users/`, `registered-users/over-time`, `registered-users/per-course` | Registered user count, trend, per-course |
 
 ## Engagement — `/api/ai-analytics/engagement/orgs/{org}/`
@@ -198,7 +198,7 @@ queried — pass that via `filter_user_id`.
 
 | Path | Returns |
 |------|---------|
-| `learners`, `users` | Learner roster (alternate routes) |
+| `learners`, `users` | User roster (alternate routes) |
 | `users/{user_id}/{activity,info,last-access}` | Profile + activity |
 | `users/{user_id}/grades/per-course` | Grades per course |
 | `users/{user_id}/overview/{engagement-index,grades/average,performance-index,time/over-time}` | Score cards |
@@ -207,7 +207,7 @@ queried — pass that via `filter_user_id`.
 | `users/{user_id}/courses/{course_id}/grading/{cutoffs,detail,summary}` | Per-course grading |
 | `users/{user_id}/courses/{course_id}/videos`, `.../videos/over-time` | Per-course videos |
 
-## AI Mentor / User — `/api/ai-analytics/orgs/{org}/users/{user_id}/`
+## AI Agent / User — `/api/ai-analytics/orgs/{org}/users/{user_id}/`
 
 ### Chat history
 
@@ -221,11 +221,11 @@ queried — pass that via `filter_user_id`.
 | `GET` `POST` | `my-chat-history-report/` (export task) |
 | `GET` | `my-chat-history-report/{task_id}/`, `my-chat-history-report/{task_id}/download/` |
 
-### Mentors, costs, topics, sentiment, usage
+### Agents, costs, topics, sentiment, usage
 
 | Group | Paths |
 |-------|-------|
-| Mentors | `mentor-detail/`, `mentor-summary/`, `total-users-by-mentor/`, `mentors/{mentor_unique_id}/cost/` |
+| Agents | `mentor-detail/`, `mentor-summary/`, `total-users-by-mentor/`, `mentors/{mentor_unique_id}/cost/` |
 | Costs | `costs/{model,permentor,peruser}/`, `tenant-cost/`, `user-cost/` |
 | Topics | `most-discussed-topics/`, `topic-overview/`, `topic-statistics/`, `topics/summary/` |
 | Sentiment / feedback | `sentiment-count/`, `user-sentiment/`, `rating-summary/`, `user-feedback/` |
@@ -251,7 +251,7 @@ Accepts `date_filter`, `granularity`, `metric`, `mentor_unique_id`,
 | `GET` | `content/details/{content_id}/` | Per-item detail |
 | `GET` | `conversations/` | Conversations |
 | `GET` | `financial/`, `financial/details/`, `financial/invoice/` | Financial |
-| `GET` | `learners/`, `learners/list/`, `learner/details` | Learners |
+| `GET` | `learners/`, `learners/list/`, `learner/details` | Users |
 | `GET` | `messages/`, `messages/details/` | Messages |
 | `GET` | `ratings/`, `sessions/`, `time/`, `time-spent/user/`, `topics/`, `topics/details/`, `users/`, `users/details/` | Other |
 | `POST` | `orgs/{org}/time/update/` | Push time-on-platform |

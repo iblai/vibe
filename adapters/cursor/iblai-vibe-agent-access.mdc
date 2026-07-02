@@ -226,7 +226,7 @@ POST rbac/permissions/check/
 Returns a map of resource → `{ list/create/read/write/delete/chat/... }`.
 Accounts for owner roles automatically. Use this to gate UI actions.
 
-### Mentor access — `Ibl.Mentor/ShareMentor/...`
+### Agent access — `Ibl.Mentor/ShareMentor/...`
 
 | Method | Path | Action |
 |---|---|---|

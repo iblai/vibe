@@ -135,19 +135,19 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 ## MCP Servers REST API
 
 For custom UI beyond `<AgentToolsTab>` — register external MCP servers and
-bind them to mentors. All endpoints are prefixed with
+bind them to agents. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
 `NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
 
 ### Workflow
 
-1. **Enable the MCP tool on the mentor** (so the runtime will use MCP servers).
+1. **Enable the MCP tool on the agent** (so the runtime will use MCP servers).
 2. **Register an MCP server** record (URL, transport, auth_type).
 3. **Create a connection** binding credentials to a scope (`platform`, `user`,
    or `mentor`).
-4. **Assign servers to the mentor** via the mentor settings endpoint.
+4. **Assign servers to the agent** via the agent settings endpoint.
 
-### 1. Enable MCP tool on the mentor
+### 1. Enable MCP tool on the agent
 
 | Method | Path | Body |
 |---|---|---|
@@ -223,7 +223,7 @@ OAuth connectors flow):
 }
 ```
 
-**Mentor scope** — bind credentials to a single mentor while keeping the
+**Agent scope** — bind credentials to a single agent while keeping the
 server reusable:
 
 ```json
@@ -240,19 +240,19 @@ server reusable:
 Returned credentials are **masked** (e.g. `"******90"`); only send a new
 value when the user intentionally rotates the secret.
 
-### 4. Assign servers to a mentor
+### 4. Assign servers to a agent
 
 | Method | Path | Body |
 |---|---|---|
 | PUT | `mentors/{mentor}/settings/` | `{ "mcp_servers": [1, 2] }` |
 
-The `mcp_servers` array replaces the mentor's current list. Pass `null` to
+The `mcp_servers` array replaces the agent's current list. Pass `null` to
 leave unchanged; `[]` clears all servers.
 
 ### Resolution order at runtime
 
 1. User-scoped connection (matching invoking user)
-2. Mentor-scoped connection (matching active mentor)
+2. Agent-scoped connection (matching active agent)
 3. Platform-scoped connection
 4. Featured server fallback (`is_featured=true` global platform)
 

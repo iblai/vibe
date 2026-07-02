@@ -327,13 +327,13 @@ import { AnalyticsLayout, AnalyticsSettingsProvider, AnalyticsOverview, Analytic
 import { AlertsTab, EditAlertDialog, NotificationDisplay, NotificationDropdown, SendNotificationDialog } from "@iblai/iblai-js/web-containers";
 ```
 
-### Mentor UI (App Shell)
+### Agent UI (App Shell)
 
 | Export | Import | Description |
 |--------|--------|-------------|
 | `AppSidebar` | next | Collapsible sidebar with menu items, projects, pinned/recent messages |
 | `ConversationStarters` | next | Guided prompt cards for starting conversations |
-| `NavBar` | next | Top navigation bar with user menu, mentor dropdown, new chat action |
+| `NavBar` | next | Top navigation bar with user menu, agent dropdown, new chat action |
 
 ```typescript
 import { AppSidebar, ConversationStarters, NavBar } from "@iblai/iblai-js/web-containers/next";
