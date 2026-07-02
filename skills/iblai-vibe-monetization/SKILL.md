@@ -1,0 +1,406 @@
+---
+name: iblai-vibe-monetization
+description: Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
+globs:
+alwaysApply: false
+---
+
+# /iblai-vibe-monetization
+
+Reference skill for ibl.ai's item-level monetization system — selling
+specific agents / courses / programs / pathways or custom items behind
+a Stripe Connect Express paywall. This is the family index: it covers
+authentication, the live OpenAPI schema, the two Platform flags, the
+RTK Query data layer, RBAC, and points at every workflow sub-skill.
+Start here for orientation, then jump to the sub-skill that matches the
+surface you are building.
+
+Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+They ship with their own styling. Keep the components as-is.
+Do NOT implement dark mode unless the user explicitly asks for it.
+
+When building custom UI around SDK components, use the ibl.ai brand:
+- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+- Follow the component hierarchy: use ibl.ai SDK components
+  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
+  (`npx shadcn@latest add <component>`). Do NOT write custom components
+  when an ibl.ai or shadcn equivalent exists. Both share the same
+  Tailwind theme and render in ibl.ai brand colors automatically.
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
+  colors, typography, spacing, and component styles.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## Authentication
+
+> **`{dm_url}` and DM token.** Throughout this family, `{dm_url}` resolves to
+> your data-manager host (e.g. `https://api.iblai.app/dm`); in TypeScript
+> compose it as `` `${apiBase}/dm` ``. The auth token is the **DM token** —
+> not the AXD token. The two are different tokens issued by different
+> services; using the AXD token against `{dm_url}` returns `401`. The SDK
+> attaches the DM token automatically via `SERVICES.DM`.
+
+Every monetization endpoint lives under `{dm_url}/api/billing/` or
+`{dm_url}/api/service/platforms/{platform_key}/stripe/connect/` and requires a
+Platform-scoped DM token:
+
+```
+Authorization: Token <DM token>
+```
+
+This is the DRF Token scheme — NOT `Bearer`. The token binds to exactly
+one Platform at the moment of issue; the Platform is inferred from the
+token on every request (and also appears in the URL path for scoped
+endpoints). Records belonging to a different Platform return
+**`404 Not Found`, never `403 Forbidden`** — returning `403` would leak
+the existence of cross-Platform records.
+
+Several endpoints intentionally skip the auth header — `AllowAny`
+covers public per-item pricing (by `(item_type, item_id)` and by
+paywall `item_unique_id`), the two `/checkout-guest/` variants (guest
+buy by item or by price uuid), and the two checkout-callback
+endpoints. The full RBAC table lives in
+[`references/rbac-matrix.md`](./references/rbac-matrix.md).
+
+For token wiring inside a Next.js app see `/iblai-vibe-auth`.
+
+## Canonical vs composite endpoints
+
+Every item-keyed monetization endpoint now exposes **two equivalent URLs**:
+
+- **Canonical (recommended)** — `{dm_url}/api/billing/items/{item_unique_id}/<suffix>/`
+  (or `{dm_url}/api/billing/items/prices/{price_unique_id}/<suffix>/` for
+  price-keyed routes). The backend resolves `(platform_key, item_type,
+  item_id)` from the UUID at dispatch time.
+- **Composite (legacy, still supported)** —
+  `{dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/<suffix>/`.
+  Use this when you already have the triple (e.g. a webhook payload, a
+  freshly created paywall, a migration script).
+
+Prefer canonical for new client code: URL-stable across item-type renames, no
+need to carry `platform_key` / `item_type` in every call. Composite stays
+valid forever. Full table in
+[`references/api-overview.md`](./references/api-overview.md) and the RBAC
+mapping in [`references/rbac-matrix.md`](./references/rbac-matrix.md) — both
+forms share `permission_classes`.
+
+## Validate against the live OpenAPI schema
+
+URL paths and response shapes in this family are documented for
+orientation, but the live schema mirrors what is actually deployed.
+Before writing any code that constructs a URL, fetch the schema:
+
+```bash
+curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+grep -E "^(  )?/api/billing|^(  )?/api/service/platforms/\{platform_key\}/stripe/connect" /tmp/iblai_schema.yaml
+```
+
+Schema is OpenAPI 3.0.3 YAML at
+`https://api.iblai.app/dm/api/docs/schema/` (also browsable at
+`https://api.iblai.app/dm/api/docs/`). The `info.version` field
+exposes the deployed `ibl-data-manager` build — it rolls forward each
+release, so do not pin to a specific value. The exact fetch routine
+and drift-detection workflow live in
+[`references/schema-validation.md`](./references/schema-validation.md).
+
+## Monetization vs credits
+
+These look similar but are two different products. Mixing them up is
+the most common mistake.
+
+| | `/iblai-vibe-monetization` (this family) | `/iblai-vibe-credit` |
+|---|---|---|
+| **Sells** | A specific item — one agent / course / program / pathway / custom | Platform-wide credits + plan tier |
+| **Platform flag** | `enable_monetization` (admin + user surfaces) + `show_paywall` (credit widget gating only) | `show_paywall` only |
+| **Stripe account** | Platform's own Stripe (Stripe Connect Express) | ibl.ai main Platform Stripe |
+| **Money flow** | Buyer → Platform's Stripe (commission to ibl.ai) | Buyer → ibl.ai |
+| **Buyer sees** | `PaywallModal` with per-item pricing tiers | `CreditBalance` navbar widget + Stripe Pricing Page |
+| **Admin sees** | `MonetizationTab` inside `Account` | (none — managed by ibl.ai) |
+| **Audience** | End users paying the Platform directly | Org admins topping up their org's credit pool |
+
+If the goal is selling specific content, you are in the right family.
+If the goal is topping up an ibl.ai credit pool, switch to
+`/iblai-vibe-credit`.
+
+## Platform flags
+
+Two Platform flags gate every monetization surface. Both are stored on
+the SDK's `Tenant` interface (`packages/web-utils/src/types/index.ts`)
+and surface via the `tenants` array in localStorage. They are
+configured by an ibl.ai operator — there is no in-app toggle.
+
+| Flag | Gates | Where it's checked |
+|---|---|---|
+| `enable_monetization` | Admin `MonetizationTab` inside `Account` AND user `PurchasesTab` inside `Profile` | `account.tsx`, `profile/index.tsx` |
+| `show_paywall` | `CreditBalance` widget in navbar AND Account's Billing tab | `navbar`, `account.tsx` |
+
+Note: `Profile`'s Purchases tab gates on `enable_monetization` — NOT
+`show_paywall`. Read the full gating matrix in
+[`references/platform-flags.md`](./references/platform-flags.md).
+
+If both flags are off, none of the monetization UI renders even if the
+code is wired correctly. Direct app authors to their ibl.ai operator
+when the flags need to change.
+
+## Item-type normalization
+
+The backend uses `mentor` as the canonical `item_type` for AI agents,
+but the SDK presents it as **"Agent"** via the `displayItemType`
+helper from `paywall-utils.ts`. The same helper strips the `custom:`
+prefix from custom item types. Use it whenever you render an item type
+so the rebrand stays consistent.
+
+| API value | UI value |
+|---|---|
+| `mentor` | `Agent` |
+| `course` | `course` |
+| `program` | `program` |
+| `pathway` | `pathway` |
+| `custom:foo` | `foo` |
+
+The universal item key is `(item_type, item_id, platform)` —
+foreign-key-less by design so any sellable thing can be paywalled.
+Backend uniqueness: `(item_type, item_id, platform)` on
+`ItemPaywallConfig`; `(item_type, item_id, platform, user)` on
+`ItemSubscription`.
+
+**Custom items** are slugged by `slugify()` (lowercases, strips
+non-word chars, collapses whitespace/dashes) and stored with the
+`custom:` prefix so the strategy router falls through to
+`GenericCheckoutStrategy`. The wizard creates them dormant
+(`is_enabled: false`, `allow_free_tier: false`, `trial_period_days: 0`,
+`grandfathering_strategy: 'free_forever'`), then promotes via the
+Paywall step.
+
+**`buildOnSuccessfulPaymentUrl` defaults** — derived from `authURL`
+plus item type:
+
+| Item type | Default `on_successful_payment` |
+|---|---|
+| `mentor` / `agent` | `https://mentorai.{ext}/platform/{platformKey}/{itemId}` |
+| `course` | `https://skillsai.{ext}/courses/{itemId}` |
+| `program` | `https://skillsai.{ext}/programs/{itemId}` |
+| `pathway` | `undefined` — no default; admin must set manually |
+| `custom:*` | Operator's "Product URL" from the wizard |
+
+Full mapping + `BUILT_IN_ITEM_TYPES` enum + the `slugify` regex are in
+[`references/item-types.md`](./references/item-types.md).
+
+## The monetization API slice (RTK Query)
+
+The monetization slice ships in `@iblai/iblai-js/data-layer` and is
+registered automatically by `initializeDataLayer()`. Reducer path:
+`monetizationApiSlice`. All endpoints hit the DM service under two URL
+prefixes:
+
+```
+{dm_url}/api/service/platforms/{platform_key}/stripe/connect/...   ← Stripe Connect (Flow 1)
+{dm_url}/api/billing/platforms/{platform_key}/...                  ← everything else
+```
+
+The shipped `monetizationApiSlice` constructs **composite** URLs. Direct API
+callers (curl, server-to-server, third-party SDKs) should prefer the canonical
+`items/{item_unique_id}/...` form — see the canonical vs composite section
+above.
+
+The slice owns **nine flows / 33 hooks** — full hook catalog with
+arguments, response types, and cache tags lives in
+[`references/rtk-query-flows.md`](./references/rtk-query-flows.md).
+
+| Flow | Persona | Owning sub-skill |
+|---|---|---|
+| 1 — Stripe Connect (3 hooks) | Platform seller | `/iblai-vibe-monetization-onboard` |
+| 2 — Paywall Config (4 hooks) | Platform admin | `/iblai-vibe-monetization-configure` |
+| 3 — Prices (4 hooks) | Platform admin | `/iblai-vibe-monetization-configure` |
+| 4 — Public Pricing (1 hook, skipAuth) | Anonymous buyer | `/iblai-vibe-monetization-checkout` |
+| 5 — Access Check (2 hooks, 402-as-success) | Buyer | `/iblai-vibe-monetization-checkout` |
+| 6 — Checkout (2 hooks) | Buyer + guest | `/iblai-vibe-monetization-checkout` |
+| 7 — Cancel Subscription (1 hook) | Subscriber | `/iblai-vibe-monetization-subscription` |
+| 8 — User Subscriptions (2 hooks) | Subscriber | `/iblai-vibe-monetization-subscription` |
+| 9 — Platform Analytics (4 hooks) | Platform admin | `/iblai-vibe-monetization-analytics` |
+
+Cache tags: `stripeConnectStatus`, `paywallConfig`, `paywallPrices`,
+`publicPricing`, `accessCheck`, `mySubscriptions`, `itemSubscription`,
+`paywalls`, `subscribers`, `revenue`. Mutations invalidate the
+relevant tags, so re-renders propagate without manual `refetch()`
+calls.
+
+## RBAC
+
+Monetization uses three DRF permission classes — no custom
+RBAC decorators. The full endpoint-by-endpoint matrix is in
+[`references/rbac-matrix.md`](./references/rbac-matrix.md).
+
+| Class | Bind | Applies to |
+|---|---|---|
+| `IsPlatformAdmin` | Caller is admin on the path-scoped Platform | All paywall config + pricing + Stripe Connect + analytics endpoints |
+| `IsEdxAuthenticated` | Caller is any authenticated edX user | Access checks, authenticated checkout, my-subscriptions, subscription cancel |
+| `AllowAny` | Public, no auth | Public pricing (two variants), guest checkout (two variants), checkout callback (two variants) |
+
+Two non-obvious rules:
+- **`request.user` is the only cancel target.** `ItemSubscriptionCancelView`
+  uses `ItemSubscription.objects.get(user=request.user, ...)`. There is
+  NO admin override — an operator cannot cancel another user's
+  subscription via this API. To force-cancel, go to Stripe directly.
+- **Platform admin status is path-bound** via `{platform_key}`. Being
+  an admin on Platform A does not let you operate on Platform B.
+
+## The monetization skill family
+
+| Skill | Role | Covers |
+|---|---|---|
+| `/iblai-vibe-monetization` | Reference / index (this skill) | Auth, schema, Platform flags, item types, RTK Query, RBAC, family map |
+| `/iblai-vibe-monetization-onboard` | Build UI | Stripe Connect Express onboarding, status card, dashboard return, onboard-refresh, disconnect |
+| `/iblai-vibe-monetization-configure` | Build UI | Admin `MonetizationTab` inside `Account`, item search, configured-items list, wizard (Item Details → Paywall → Pricing), pricing tier CRUD |
+| `/iblai-vibe-monetization-checkout` | Build UI | `PaywallModal` + access-check (402-as-success) + Stripe checkout for authenticated buyers; public pricing + guest checkout for anonymous buy pages |
+| `/iblai-vibe-monetization-subscription` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
+| `/iblai-vibe-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
+
+When in doubt, the natural sequence is:
+1. **Onboard** — Platform owner connects Stripe Connect (`/iblai-vibe-monetization-onboard`)
+2. **Configure** — Platform admin creates a paywall + pricing tiers for an item (`/iblai-vibe-monetization-configure`)
+3. **Checkout** — Buyer hits the paywall and pays (`/iblai-vibe-monetization-checkout`)
+4. **Subscriptions** — Subscriber views and cancels their purchases (`/iblai-vibe-monetization-subscription`)
+5. **Analytics** — Platform admin watches revenue and subscribers (`/iblai-vibe-monetization-analytics`)
+
+## Important notes
+
+Cross-cutting reminders that apply across the whole family — surface
+these whenever you wire up monetization in a new app.
+
+- **Stripe Connect Express, not Standard.** Platforms onboard via
+  Express, which means commission auto-routes to the ibl.ai Platform
+  Stripe account via destination charges + `application_fee_amount`.
+  You do NOT compute or split fees in the SPA — Stripe handles it.
+  Commission percentages surface on the Connect status response
+  (`commission_percent`).
+- **`commission_percent` 3-way divergence.** Backend wire returns 4
+  keys (`mentor`, `course`, `program`, `pathway`). The OpenAPI schema
+  component declares 3 (`mentor`, `course`, `program` — no `pathway`).
+  The SDK TypeScript type declares only 2 (`mentor`, `course`). Read
+  defensively as `Record<string, number>` and iterate
+  `Object.entries`.
+- **`is_owner` is schema drift.** Backend wire AND SDK type include
+  `is_owner` on `StripeConnectStatusResponse`, but the OpenAPI schema
+  component does NOT declare it. Trust the wire.
+- **Next.js required for `Account` + the Monetization tab.** Import
+  from `@iblai/iblai-js/web-containers/next` (uses `next/image`).
+  `PaywallModal` is framework-agnostic — import from the plain
+  `@iblai/iblai-js/web-containers` path.
+- **Top-level exports.** `MonetizationTab` and `PaywallModal` are
+  exported at the top of `@iblai/iblai-js/web-containers`.
+  `PurchasesTab` is NOT — it is private to the `Profile` shell.
+  `CancelSubscription` is also NOT exported — copy from
+  `packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx`
+  if you need it standalone.
+- **Redux store and RTK dedup.** The monetization slice is registered
+  automatically by `initializeDataLayer()`. Include the standard
+  `mentorReducer` and `mentorMiddleware` in your store. Ensure your
+  `next.config.ts` carries the `@reduxjs/toolkit` webpack alias —
+  duplicate RTK Query instances break tag invalidation across the
+  monetization slice.
+- **Platform flags are operator-managed.** There is no in-app toggle
+  for `enable_monetization` or `show_paywall`. Direct app authors to
+  their ibl.ai operator when the flags need to change.
+- **`useCheckAccessQuery` treats 402 as success.** The scoped variant
+  carries a `validateStatus` override so a 402 lands in `data`, not
+  `error`. The UNSCOPED variant (`useCheckAccessUnscopedQuery`) does
+  NOT carry the override — wrap it or prefer the scoped query.
+- **`success_url` for custom buy pages.** `PaywallModal` hardcodes
+  `success_url = cancel_url = window.location.href`, which is fine
+  because the buyer returns to the same page and the access-check
+  cache invalidates on the webhook. For custom buy pages, choose a
+  thank-you destination explicitly — refreshing on the buy page after
+  success will re-hit the paywall until the webhook lands.
+- **Pagination shape: schema vs runtime.** The OpenAPI schema documents
+  DRF default `next`/`previous` URI strings. The runtime paginator
+  (`StandardPageNumberPagination`) overrides to `next_page` /
+  `previous_page` integers. Trust the runtime shape.
+- **`MySubscriptionsParams.item_name` is silently dropped.** The SDK
+  type lists `item_name?: string`, but the backend
+  `SubscriptionListQPSerializer` only honors `status`, `item_type`,
+  and `search` (filters by `item_id__icontains`). For text search,
+  send `search` — `item_name` becomes a no-op.
+- **Amounts ship as decimal strings.** Backend `DecimalField`
+  serializes `amount` as `"15.00"`. The SDK type may say `number` for
+  some hooks — `parseFloat` / `Number` before arithmetic.
+- **The shipped `CancelSubscription` is self-service only.** The
+  endpoint is hard-locked to `request.user`. An admin cannot cancel
+  another user's subscription via this API; route through the Stripe
+  Dashboard for true overrides.
+
+## Common mistakes
+
+The pitfalls that keep showing up across the family. Skim before
+wiring monetization into a new app — each workflow skill repeats the
+ones relevant to its surface.
+
+- **Building a custom `MonetizationTab`.** Don't. Render it indirectly
+  via `<Account authURL={...} />` — the tab strip, wizard state
+  machine, and `?profileTab=monetization` return URL contract come
+  with the host component.
+- **Forgetting `authURL` on the Account page.** The wizard silently
+  produces `on_successful_payment: undefined`, leaving Stripe Checkout
+  with nowhere to send buyers. Always pass `config.authUrl()`.
+- **Confusing `enable_monetization` with `show_paywall`.** Different
+  products, different gates. Both `MonetizationTab` and `PurchasesTab`
+  ride on `enable_monetization`. `CreditBalance` rides on
+  `show_paywall`. See `references/platform-flags.md`.
+- **Treating `useCheckAccessQuery` errors as fatal.** The scoped
+  query's `validateStatus` puts 402 in `data`, not `error`. Read
+  `data.has_access` first. The unscoped variant does NOT carry the
+  override.
+- **Setting `success_url = window.location.href` on a custom buy
+  page.** Refreshing after success will re-hit the paywall until the
+  access-check cache invalidates on webhook. Land buyers on a
+  thank-you page or the unlocked destination instead.
+- **Importing `PurchasesTab` or `CancelSubscription` directly.**
+  Neither is in the package's top-level exports. `PurchasesTab` is
+  private to `Profile`; `CancelSubscription` has no exports-map entry.
+  Use the host components or copy the source.
+- **Sending `item_name` to `my-subscriptions`.** The SDK type lists
+  it; the backend silently drops it. Send `search` instead (filters by
+  `item_id__icontains`).
+- **Treating the shipped `CancelSubscription` as an admin override.**
+  It cancels the caller's own subscription only. No `user_id`
+  argument exists. For true admin overrides, route through the Stripe
+  Dashboard.
+- **Setting `currency` to anything other than `'usd'`.** The SDK form
+  locks it; multi-currency is not supported via the UI yet.
+- **Treating `amount` as a number.** The backend serializes
+  `DecimalField` as `"15.00"` (string). `parseFloat` / `Number` before
+  arithmetic; the SDK type may say `number` for some hooks anyway.
+- **Restyling `PaywallModal`'s grid.** The `grid-cols-N` classes are
+  driven by `activePrices.length` and tuned for up to 4 prices.
+  Restyling breaks responsive behavior.
+- **Skipping `is_ready_for_payments`.** The admin pane already uses
+  it to disable the Paywall section. If you build a custom buy
+  surface, gate on it — otherwise buyers can hit a Checkout against
+  an unfinished Stripe account and Stripe will reject the payment.
+- **Ignoring the `portal_url` branch on cancel.** Recurring cancels
+  return `{ portal_url }`; immediate / grandfathered cancels return
+  the full `ItemSubscriptionSerializer` payload with
+  `status='canceled'`. Branch on which key is present — don't assume
+  the portal redirect.
+- **Hardcoding the schema `info.version`.** The build version rolls
+  forward each release. Cite the URL, not the version string.
+- **Claiming `/buy/{paywallUniqueId}` doesn't exist.** The auth app
+  ships `apps/auth/app/(auth)/buy/[id]/page.tsx`. The URL resolves
+  out-of-the-box wherever `authURL` is set.
+
+## Related skills
+
+- `/iblai-vibe-monetization-onboard` — Stripe Connect Express onboarding and status
+- `/iblai-vibe-monetization-configure` — admin `MonetizationTab` and item/pricing wizard
+- `/iblai-vibe-monetization-checkout` — `PaywallModal`, access check, Stripe checkout, guest buy
+- `/iblai-vibe-monetization-subscription` — user `PurchasesTab` and cancel flow
+- `/iblai-vibe-monetization-analytics` — revenue, subscribers, paywalls list
+- `/iblai-vibe-credit` — Platform-wide credits (different product — read the "vs credits" table above)
+- `/iblai-vibe-auth` — Token wiring; every monetization call uses `Authorization: Token <token>`
+- `/iblai-vibe-account` — Account page that hosts the admin `MonetizationTab`
+- `/iblai-vibe-profile` — Profile page that hosts the user `PurchasesTab`
+- `/iblai-vibe-navbar` — Where to mount the `CreditBalance` widget (credits, not monetization)
+- `/iblai-vibe-rbac` — Role-management UI for assigning Platform admin
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

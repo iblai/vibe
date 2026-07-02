@@ -10,7 +10,7 @@ Ship AI-powered apps fast. Backend included.
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-CC785C?logoColor=white)](https://claude.ai)
-[![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-ops-build/SKILL.md)
+[![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-vibe-ops-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
 </div>
@@ -99,77 +99,77 @@ This installs our vibe skills that teach your AI agent how to build with the ibl
 After installing the skills, use them directly in your AI agent with `/` commands:
 
 ```text
-/iblai-auth
-/iblai-agent-chat
-/iblai-project
-/iblai-profile
-/iblai-account
-/iblai-analytics
-/iblai-notification
-/iblai-invite
-/iblai-workflow
-/iblai-local-llm
-/iblai-course-access
-/iblai-course-create
-/iblai-onboard
+/iblai-vibe-auth
+/iblai-vibe-agent-chat
+/iblai-vibe-project
+/iblai-vibe-profile
+/iblai-vibe-account
+/iblai-vibe-analytics
+/iblai-vibe-notification
+/iblai-vibe-invite
+/iblai-vibe-workflow
+/iblai-vibe-local-llm
+/iblai-vibe-course-access
+/iblai-vibe-course-create
+/iblai-vibe-onboard
 /iblai-build
 /iblai-test
-/iblai-ops-upgrade
-/iblai-rbac
-/iblai-agent-search
-/iblai-agent-setting
-/iblai-agent-access
-/iblai-agent-api
-/iblai-agent-dataset
-/iblai-agent-disclaimer
-/iblai-agent-embed
-/iblai-agent-history
-/iblai-agent-llm
-/iblai-agent-memory
-/iblai-agent-prompt
-/iblai-agent-safety
-/iblai-agent-tasks
-/iblai-agent-tool
+/iblai-vibe-ops-upgrade
+/iblai-vibe-rbac
+/iblai-vibe-agent-search
+/iblai-vibe-agent-setting
+/iblai-vibe-agent-access
+/iblai-vibe-agent-api
+/iblai-vibe-agent-dataset
+/iblai-vibe-agent-disclaimer
+/iblai-vibe-agent-embed
+/iblai-vibe-agent-history
+/iblai-vibe-agent-llm
+/iblai-vibe-agent-memory
+/iblai-vibe-agent-prompt
+/iblai-vibe-agent-safety
+/iblai-vibe-agent-task
+/iblai-vibe-agent-tool
 ```
 
 What each skill does:
 
-- `/iblai-auth` -- adds authentication and configures the app for ibl.ai login.
-- `/iblai-agent-chat` -- adds the full in-process agent chat surface.
-- `/iblai-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
-- `/iblai-profile` -- adds profile UI and profile settings flows.
-- `/iblai-account` -- adds account and organization settings.
-- `/iblai-analytics` -- adds analytics dashboards and reporting views.
-- `/iblai-notification` -- adds notifications UI and notification center flows.
-- `/iblai-invite` -- adds user invitation dialogs for tenant admin.
-- `/iblai-workflow` -- adds workflow builder components (sidebar, modals, connectors).
-- `/iblai-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
-- `/iblai-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
-- `/iblai-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
-- `/iblai-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
-- `/iblai-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
-- `/iblai-ops-test` -- validates the app before it is presented to the user.
-- `/iblai-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
-- `/iblai-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
-- `/iblai-iconography` -- generates every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from a single source image.
-- `/iblai-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
-- `/iblai-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
-- `/iblai-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
-- `/iblai-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
-- `/iblai-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
-- `/iblai-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
-- `/iblai-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
-- `/iblai-agent-api` -- adds the agent API tab (API key management).
-- `/iblai-agent-dataset` -- adds the agent Datasets tab (searchable dataset table with upload).
-- `/iblai-agent-disclaimer` -- adds the agent Disclaimers tab (user agreement and advisory).
-- `/iblai-agent-embed` -- adds the agent Embed tab (embed code, custom styling, shareable links).
-- `/iblai-agent-history` -- adds the agent History tab (conversation history with filters and export).
-- `/iblai-agent-llm` -- adds the agent LLM tab (model provider selection).
-- `/iblai-agent-memory` -- adds the agent Memory tab (enable/disable memory and manage memories).
-- `/iblai-agent-prompt` -- adds the agent Prompts tab (system prompts and suggested prompts).
-- `/iblai-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
-- `/iblai-agent-tasks` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
-- `/iblai-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
+- `/iblai-vibe-auth` -- adds authentication and configures the app for ibl.ai login.
+- `/iblai-vibe-agent-chat` -- adds the full in-process agent chat surface.
+- `/iblai-vibe-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
+- `/iblai-vibe-profile` -- adds profile UI and profile settings flows.
+- `/iblai-vibe-account` -- adds account and organization settings.
+- `/iblai-vibe-analytics` -- adds analytics dashboards and reporting views.
+- `/iblai-vibe-notification` -- adds notifications UI and notification center flows.
+- `/iblai-vibe-invite` -- adds user invitation dialogs for tenant admin.
+- `/iblai-vibe-workflow` -- adds workflow builder components (sidebar, modals, connectors).
+- `/iblai-vibe-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
+- `/iblai-vibe-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
+- `/iblai-vibe-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
+- `/iblai-vibe-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
+- `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-vibe-ops-test` -- validates the app before it is presented to the user.
+- `/iblai-vibe-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
+- `/iblai-vibe-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
+- `/iblai-vibe-iconography` -- generates every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from a single source image.
+- `/iblai-vibe-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
+- `/iblai-vibe-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
+- `/iblai-vibe-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
+- `/iblai-vibe-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
+- `/iblai-vibe-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
+- `/iblai-vibe-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
+- `/iblai-vibe-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
+- `/iblai-vibe-agent-api` -- adds the agent API tab (API key management).
+- `/iblai-vibe-agent-dataset` -- adds the agent Datasets tab (searchable dataset table with upload).
+- `/iblai-vibe-agent-disclaimer` -- adds the agent Disclaimers tab (user agreement and advisory).
+- `/iblai-vibe-agent-embed` -- adds the agent Embed tab (embed code, custom styling, shareable links).
+- `/iblai-vibe-agent-history` -- adds the agent History tab (conversation history with filters and export).
+- `/iblai-vibe-agent-llm` -- adds the agent LLM tab (model provider selection).
+- `/iblai-vibe-agent-memory` -- adds the agent Memory tab (enable/disable memory and manage memories).
+- `/iblai-vibe-agent-prompt` -- adds the agent Prompts tab (system prompts and suggested prompts).
+- `/iblai-vibe-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
+- `/iblai-vibe-agent-task` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
+- `/iblai-vibe-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
 
 
 ### Security Skills
@@ -180,10 +180,10 @@ configuration auditing, dependency vulnerabilities, and prompt-injection
 testing. 
 
 ```text
-/iblai-security-recon              /iblai-security-incident-triage
-/iblai-security-owasp-audit        /iblai-security-cloud-audit
-/iblai-security-osint-recon        /iblai-security-dependency-audit
-/iblai-security-disk-forensics     /iblai-security-prompt-injection
+/iblai-vibe-security-recon              /iblai-vibe-security-incident-triage
+/iblai-vibe-security-owasp-audit        /iblai-vibe-security-cloud-audit
+/iblai-vibe-security-osint-recon        /iblai-vibe-security-dependency-audit
+/iblai-vibe-security-disk-forensics     /iblai-vibe-security-prompt-injection
 ```
 
 See [`CLAUDE.md`](CLAUDE.md#security-skills) for one-line descriptions.
@@ -222,13 +222,13 @@ Already have a project? Install the skills and let your AI agent add features:
 npx skills add iblai/vibe
 ```
 
-Then add features with the `/iblai-*` skills -- each creates the files and wires them in:
+Then add features with the `/iblai-vibe-*` skills -- each creates the files and wires them in:
 
-- `/iblai-auth` — SSO authentication
-- `/iblai-profile` — user profile dropdown
-- `/iblai-account` — account/organization settings
-- `/iblai-analytics` — analytics dashboard
-- `/iblai-notification` — notification bell
+- `/iblai-vibe-auth` — SSO authentication
+- `/iblai-vibe-profile` — user profile dropdown
+- `/iblai-vibe-account` — account/organization settings
+- `/iblai-vibe-analytics` — analytics dashboard
+- `/iblai-vibe-notification` — notification bell
 
 (Ensure the `@iblai/mcp` server + skills are configured in `.mcp.json` first.)
 
@@ -289,44 +289,44 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 
 | Skill | Description |
 |-------|-------------|
-| `/iblai-auth` | Add SSO authentication (includes CLI installation guide) |
-| `/iblai-agent-chat` | Add the full in-process agent chat surface |
-| `/iblai-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
-| `/iblai-profile` | Add profile dropdown + settings page |
-| `/iblai-account` | Add account/org settings page |
-| `/iblai-analytics` | Add analytics dashboard |
-| `/iblai-notification` | Add notification bell + center page |
-| `/iblai-invite` | Add user invitation dialogs |
-| `/iblai-workflow` | Add workflow builder components |
-| `/iblai-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
-| `/iblai-course-access` | Add course-content pages (edX learner UI) |
-| `/iblai-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
-| `/iblai-component` | Overview of all components + app creation paths |
-| `/iblai-onboard` | Design and build a high-converting onboarding questionnaire flow |
+| `/iblai-vibe-auth` | Add SSO authentication (includes CLI installation guide) |
+| `/iblai-vibe-agent-chat` | Add the full in-process agent chat surface |
+| `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
+| `/iblai-vibe-profile` | Add profile dropdown + settings page |
+| `/iblai-vibe-account` | Add account/org settings page |
+| `/iblai-vibe-analytics` | Add analytics dashboard |
+| `/iblai-vibe-notification` | Add notification bell + center page |
+| `/iblai-vibe-invite` | Add user invitation dialogs |
+| `/iblai-vibe-workflow` | Add workflow builder components |
+| `/iblai-vibe-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
+| `/iblai-vibe-course-access` | Add course-content pages (edX user UI) |
+| `/iblai-vibe-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
+| `/iblai-vibe-component` | Overview of all components + app creation paths |
+| `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
-| `/iblai-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
-| `/iblai-ops-test` | Test your app before showing work to the user |
-| `/iblai-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
-| `/iblai-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
-| `/iblai-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
-| `/iblai-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
-| `/iblai-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
-| `/iblai-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
-| `/iblai-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
-| `/iblai-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
-| `/iblai-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
-| `/iblai-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
-| `/iblai-agent-api` | Add the agent API tab (API key management) |
-| `/iblai-agent-dataset` | Add the agent Datasets tab (searchable dataset table with upload) |
-| `/iblai-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
-| `/iblai-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
-| `/iblai-agent-history` | Add the agent History tab (conversation history with filters and export) |
-| `/iblai-agent-llm` | Add the agent LLM tab (model provider selection) |
-| `/iblai-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
-| `/iblai-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
-| `/iblai-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
-| `/iblai-agent-tasks` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
-| `/iblai-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
+| `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
+| `/iblai-vibe-ops-test` | Test your app before showing work to the user |
+| `/iblai-vibe-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
+| `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
+| `/iblai-vibe-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
+| `/iblai-vibe-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
+| `/iblai-vibe-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
+| `/iblai-vibe-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
+| `/iblai-vibe-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
+| `/iblai-vibe-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
+| `/iblai-vibe-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
+| `/iblai-vibe-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
+| `/iblai-vibe-agent-api` | Add the agent API tab (API key management) |
+| `/iblai-vibe-agent-dataset` | Add the agent Datasets tab (searchable dataset table with upload) |
+| `/iblai-vibe-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
+| `/iblai-vibe-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
+| `/iblai-vibe-agent-history` | Add the agent History tab (conversation history with filters and export) |
+| `/iblai-vibe-agent-llm` | Add the agent LLM tab (model provider selection) |
+| `/iblai-vibe-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
+| `/iblai-vibe-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
+| `/iblai-vibe-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
+| `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
@@ -348,7 +348,7 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 ### Vercel (recommended)
 
 One-click deploy. Connect your repo, set your environment variables, and push.
-Or deploy with the `vercel` CLI -- see [`/iblai-ops-deploy`](skills/iblai-ops-deploy/SKILL.md):
+Or deploy with the `vercel` CLI -- see [`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md):
 
 ```bash
 npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
@@ -359,7 +359,7 @@ npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
 
 Build native apps for macOS, Windows, Linux, iOS, and Android:
 
-Add the Tauri shell (see [`/iblai-ops-build`](skills/iblai-ops-build/SKILL.md)), then:
+Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md)), then:
 
 ```bash
 pnpm exec tauri build           # Desktop build for current platform
