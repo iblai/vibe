@@ -62,18 +62,11 @@ is not installed.
 
 ## OpenClaw workspace & sandbox runtime
 
-The configuration UI above edits an agent's prompt files. For the agent's
-**runtime** — the OpenClaw / NemoClaw workspace it actually runs in — this
-skill bundles two things:
-
-- **Workspace `AGENTS.md`** — every ibl.ai OpenClaw agent setup must use the
-  canonical operating instructions at
-  [`assets/openclaw/AGENTS.md`](assets/openclaw/AGENTS.md) as its root
-  `AGENTS.md`. Point setups at this file rather than forking a divergent copy.
-- **NemoClaw sandbox hardening** — when the agent runs inside a NemoClaw /
-  OpenShell sandbox, follow [`references/nemoclaw-sandbox.md`](references/nemoclaw-sandbox.md):
-  a single `NODE_OPTIONS --require` preload ([`assets/nemoclaw/`](assets/nemoclaw/))
-  that loads guards fail-closed, `bash -ic`, and `/sandbox/command-logs` logging.
+- **Post-installation setup** — install this repo's skills into the OpenClaw
+  agent and swap the workspace `AGENTS.md`:
+  [`references/openclaw-post-installation-setup.md`](references/openclaw-post-installation-setup.md).
+- **NemoClaw sandbox hardening** — running the agent inside a NemoClaw /
+  OpenShell sandbox: [`references/nemoclaw-sandbox.md`](references/nemoclaw-sandbox.md).
 
 ## Prerequisites
 
