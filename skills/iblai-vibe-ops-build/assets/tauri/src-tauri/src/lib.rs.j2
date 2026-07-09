@@ -508,6 +508,38 @@ async fn open_external_url(app: tauri::AppHandle, url: String) -> Result<(), Str
 }
 
 // ---------------------------------------------------------------------------
+// Build-time configuration commands
+//
+// Both values are baked in at `cargo build` time via `option_env!`, so a single
+// codebase can produce differently-configured builds by setting the env vars in
+// the build shell (see build.rs `rerun-if-env-changed`). They default to the
+// "off" value when the env var is unset, so a normal build is unaffected.
+// ---------------------------------------------------------------------------
+
+/// Whether this build may offer in-app purchases. Controlled by the
+/// `IBL_ALLOW_IN_APP_PURCHASE` build-time env (accepts `1`/`true`/`yes`/`on`,
+/// case-insensitive); returns `false` when unset.
+#[tauri::command]
+fn allow_in_app_purchase() -> bool {
+    match option_env!("IBL_ALLOW_IN_APP_PURCHASE") {
+        Some(value) => matches!(
+            value.trim().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        ),
+        None => false,
+    }
+}
+
+/// The tenant key this build is locked to, injected at build time via the
+/// `IBL_TENANT` env var. Returns an empty string when unset (normal
+/// multi-tenant behaviour); a non-empty value tells the frontend to force the
+/// user onto that tenant and hide tenant switching.
+#[tauri::command]
+fn get_locked_tenant() -> String {
+    option_env!("IBL_TENANT").unwrap_or("").trim().to_string()
+}
+
+// ---------------------------------------------------------------------------
 // Mobile initialization script: safe area CSS + OAuth interception
 // ---------------------------------------------------------------------------
 
@@ -744,7 +776,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![open_external_url])
+        .invoke_handler(tauri::generate_handler![
+            open_external_url,
+            allow_in_app_purchase,
+            get_locked_tenant
+        ])
         .setup(|app| {
             // ---- Mobile: deep-link listeners ----
             #[cfg(any(target_os = "ios", target_os = "android"))]
