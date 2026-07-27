@@ -299,6 +299,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-evals` | Add the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export) |
 | `/iblai-vibe-agent-history` | Add the agent History tab (conversation history with filters and export) |
 | `/iblai-vibe-agent-llm` | Add the agent LLM tab (model provider selection) |
+| `/iblai-vibe-agent-lti` | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) |
 | `/iblai-vibe-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
 | `/iblai-vibe-agent-privacy` | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions) |
 | `/iblai-vibe-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
