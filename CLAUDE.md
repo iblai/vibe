@@ -296,6 +296,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-dataset` | Add the agent Datasets tab (searchable dataset table with upload) |
 | `/iblai-vibe-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
 | `/iblai-vibe-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
+| `/iblai-vibe-agent-evals` | Add the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export) |
 | `/iblai-vibe-agent-history` | Add the agent History tab (conversation history with filters and export) |
 | `/iblai-vibe-agent-llm` | Add the agent LLM tab (model provider selection) |
 | `/iblai-vibe-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
