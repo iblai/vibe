@@ -126,6 +126,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-evals
 /iblai-vibe-agent-history
 /iblai-vibe-agent-llm
+/iblai-vibe-agent-lti
 /iblai-vibe-agent-memory
 /iblai-vibe-agent-prompt
 /iblai-vibe-agent-safety
@@ -167,6 +168,7 @@ What each skill does:
 - `/iblai-vibe-agent-evals` -- adds the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export).
 - `/iblai-vibe-agent-history` -- adds the agent History tab (conversation history with filters and export).
 - `/iblai-vibe-agent-llm` -- adds the agent LLM tab (model provider selection).
+- `/iblai-vibe-agent-lti` -- adds the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints).
 - `/iblai-vibe-agent-memory` -- adds the agent Memory tab (enable/disable memory and manage memories).
 - `/iblai-vibe-agent-prompt` -- adds the agent Prompts tab (system prompts and suggested prompts).
 - `/iblai-vibe-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
@@ -325,6 +327,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-evals` | Add the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export) |
 | `/iblai-vibe-agent-history` | Add the agent History tab (conversation history with filters and export) |
 | `/iblai-vibe-agent-llm` | Add the agent LLM tab (model provider selection) |
+| `/iblai-vibe-agent-lti` | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) |
 | `/iblai-vibe-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
 | `/iblai-vibe-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-vibe-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
