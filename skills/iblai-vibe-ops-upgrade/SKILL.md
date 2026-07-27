@@ -1,0 +1,117 @@
+---
+name: iblai-vibe-ops-upgrade
+description: Upgrade the @iblai/iblai-js SDK and the vibe skills to the latest versions. Use when asked to "upgrade iblai", "get the latest SDK", "update ibl.ai", or "refresh the skills".
+globs:
+alwaysApply: false
+---
+
+# /iblai-vibe-ops-upgrade
+
+Upgrade the ibl.ai toolchain in the current project to the latest versions.
+Two things:
+
+1. The `@iblai/iblai-js` SDK in the project's `package.json`
+2. The vibe skills (re-runs `npx skills add iblai/vibe`)
+
+Use when asked to "upgrade iblai", "get the latest SDK", "update ibl.ai",
+or "refresh the skills".
+
+## Key commands
+
+| What | Command |
+|------|---------|
+| SDK version | `pnpm list @iblai/iblai-js` |
+| Skills source | `npx skills add iblai/vibe --all` |
+
+---
+
+## Step 1: Detect current SDK
+
+```bash
+OLD_SDK=$(node -p "require('./package.json').dependencies['@iblai/iblai-js'] || ''" 2>/dev/null || echo "")
+echo "Current SDK (package.json): ${OLD_SDK:-not-installed}"
+```
+
+---
+
+## Step 2: Upgrade the SDK
+
+Skip this step if there is no `package.json` in the current directory, or if
+`@iblai/iblai-js` is not a dependency.
+
+```bash
+if [ -f package.json ] && [ -n "$OLD_SDK" ]; then
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm update @iblai/iblai-js@latest
+  elif command -v npm >/dev/null 2>&1; then
+    npm install @iblai/iblai-js@latest
+  fi
+  NEW_SDK=$(node -p "require('./package.json').dependencies['@iblai/iblai-js']")
+  echo "SDK: $OLD_SDK → $NEW_SDK"
+fi
+```
+
+Run a quick sanity check afterward:
+
+```bash
+pnpm typecheck 2>/dev/null || npx tsc --noEmit 2>/dev/null || true
+```
+
+If typecheck fails with new errors, surface them to the user — the SDK
+may have introduced breaking changes. Point them at the
+[CHANGELOG](https://raw.githubusercontent.com/iblai/iblai-js/refs/heads/main/CHANGELOG.md)
+for migration notes.
+
+---
+
+## Step 3: Refresh skills
+
+Re-run the installer to pull the latest vibe skills. Pass `--all` so it
+runs non-interactively and refreshes every skill in the pack.
+
+```bash
+npx skills add iblai/vibe --all
+```
+
+---
+
+## Step 4: Show What's New
+
+Fetch the last few entries from the vibe CHANGELOG and summarize as
+3-7 bullets grouped by theme. Focus on user-facing changes, skip
+internal refactors.
+
+```bash
+curl -sL https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/CHANGELOG.md | head -80
+```
+
+Format the report:
+
+```
+ibl.ai upgrade complete!
+
+SDK:    {OLD_SDK} → {NEW_SDK}
+Skills: refreshed from iblai/vibe@main
+
+What's new:
+- [bullet 1]
+- [bullet 2]
+- ...
+```
+
+If any step was skipped (no `package.json`, SDK not a dependency, etc.),
+note that explicitly in the summary.
+
+---
+
+## When to run
+
+- After a new ibl.ai release is announced
+- Before starting work on a project you haven't touched in a while
+- When a skill misbehaves in a way that might be fixed upstream
+- Periodically (monthly) to stay current on security patches
+
+## Reference
+
+- SDK package: https://www.npmjs.com/package/@iblai/iblai-js
+- Vibe skills: https://github.com/iblai/vibe
