@@ -4,6 +4,41 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-27
+
+### Added
+
+- add tenant-lock & in-app-purchase build-time flags to Tauri shell
+- add openclaw post installation setup instruction
+- add iblai-credential skill
+- update openclaw skills
+- add nemoclaw-sandbox skill
+- add iblai-monetization-configure skill
+- add iblai-monetization-analytics skill
+- add iblai-monetization-subscriptions skill
+- add iblai-monetization-checkout skill
+- add iblai-monetization-onboard skill
+- adding skill for the tasks tab for agent settings
+
+### Fixed
+
+- rename learner and mentor to user and agent respectively
+- revert changelog renames
+- update iblai-profile skill to match ibl.ai OS
+
+### Changed
+
+- turn iblai-monetization into family index + extract references
+
+### Documentation
+
+- dm-base + DM token + canonical URLs in configure skill
+- dm-base + DM token + canonical URLs in analytics skill
+- dm-base + DM token + canonical URLs in subscriptions skill
+- dm-base + DM token + canonical URLs in checkout skill
+- dm-base + DM token for onboard skill
+- dm-base + DM token + canonical URLs in overview references
+
 ## [1.5.0] - 2026-06-10
 
 ### Added
