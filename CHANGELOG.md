@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-27
+
+### Added
+
+- adding skill for lti
+
 ## [1.7.0] - 2026-07-27
 
 ### Added
