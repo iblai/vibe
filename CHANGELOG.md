@@ -4,6 +4,18 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-10
+
+### Added
+- **iblai-app-cli migration** — the templates and commands from `iblai-app-cli` now live in this toolkit, completing the conversion
+- **iblai-crm-overview** skill
+
+### Changed
+- **iblai-local-llm** — generalized so the skill is no longer tied to a single backend
+
+### Documentation
+- "Built with iblai/vibe" showcase in `README.md` — moved below "What is Vibe", split into three columns with a Repo column, and de-duplicated
+
 ## [1.4.0] - 2026-06-02
 
 ### Added
