@@ -1,33 +1,191 @@
 name: Release
 
+# Publishes a release when work lands on main.
+#
+# The next version is derived from the conventional-commit subjects since the
+# previous tag, so there is no version file to maintain and nothing to bump by
+# hand:
+#
+#   any type with "!", or a BREAKING CHANGE footer  ->  major
+#   feat:                                           ->  minor
+#   fix:  perf:  docs:  refactor:                   ->  patch
+#   chore:  ci:  test:  style:  build:              ->  no release on their own
+#
+# A single pass updates CHANGELOG.md, tags the commit and publishes the GitHub
+# Release, so nothing downstream has to be triggered.
+
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
+# Never let two releases interleave, and never cancel one part-way through
+# tagging.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Least privilege: this job only writes commits, tags and releases. It uses the
+# built-in token, so no personal access token is exposed to this public repo.
 permissions:
   contents: write
 
 jobs:
   release:
+    # Ignore the release commits this workflow makes itself, so it cannot loop.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out full history
+        # Pinned to a commit SHA rather than a tag: tags can be moved, a SHA
+        # cannot.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
-      - name: Extract changelog for this version
-        id: changelog
+      - name: Work out the next version
+        id: next
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          # Extract the section for this version from CHANGELOG.md
-          body=$(awk "/^## \[${version}\]/{found=1; next} /^## \[/{if(found) exit} found{print}" CHANGELOG.md)
+          set -euo pipefail
+
+          # Closest release tag reachable from HEAD; empty before the first one.
+          prev="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
+          if [ -n "$prev" ]; then
+            range="${prev}..HEAD"
+            base="${prev#v}"
+          else
+            range="HEAD"
+            base="0.0.0"
+          fi
+
+          major="${base%%.*}"
+          rest="${base#*.}"
+          minor="${rest%%.*}"
+          patch="${rest##*.}"
+
+          # Commit text is read from git into variables and matched with grep.
+          # It is never interpolated into this script, so a crafted commit
+          # message cannot inject shell.
+          subjects="$(git log --format='%s' "$range")"
+          bodies="$(git log --format='%b' "$range")"
+
+          bump="none"
+          if printf '%s\n' "$subjects" | grep -qE '^(fix|perf|docs|refactor)(\([^)]+\))?!?:'; then
+            bump="patch"
+          fi
+          if printf '%s\n' "$subjects" | grep -qE '^feat(\([^)]+\))?!?:'; then
+            bump="minor"
+          fi
+          if printf '%s\n' "$subjects" | grep -qE '^[a-z]+(\([^)]+\))?!:' \
+            || printf '%s\n' "$bodies" | grep -qE '^BREAKING[ -]CHANGE'; then
+            bump="major"
+          fi
+
+          if [ "$bump" = "none" ]; then
+            echo "Nothing releasable since ${prev:-the start of history} - skipping."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          case "$bump" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+
+          next="${major}.${minor}.${patch}"
+          echo "Releasing v${next} (${bump} bump from ${prev:-no previous tag})."
           {
-            echo "body<<EOF"
-            echo "$body"
-            echo "EOF"
+            echo "release=true"
+            echo "version=${next}"
+            echo "range=${range}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          body: ${{ steps.changelog.body }}
-          generate_release_notes: false
+      - name: Build the changelog entry
+        if: steps.next.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+          RANGE: ${{ steps.next.outputs.range }}
+        run: |
+          set -euo pipefail
+
+          # Collect the commits of one conventional type into a markdown
+          # section, dropping the "type(scope):" prefix from each line.
+          section() {
+            heading="$1"
+            types="$2"
+            lines="$(git log --format='%s' "$RANGE" \
+              | grep -E "^(${types})(\([^)]+\))?!?:" \
+              | sed -E "s/^(${types})(\([^)]+\))?!?:[[:space:]]*//" \
+              | sed 's/^/- /' || true)"
+            if [ -n "$lines" ]; then
+              printf '\n### %s\n\n%s\n' "$heading" "$lines"
+            fi
+          }
+
+          {
+            section "Added" "feat"
+            section "Fixed" "fix"
+            section "Changed" "perf|refactor"
+            section "Documentation" "docs"
+          } > release-notes.md
+
+          # Every bump has at least one matching commit, but keep the release
+          # body from ever being empty.
+          if [ ! -s release-notes.md ]; then
+            printf '\n- See the commit history for details.\n' > release-notes.md
+          fi
+
+          {
+            printf '## [%s] - %s\n' "$VERSION" "$(date -u +%Y-%m-%d)"
+            cat release-notes.md
+          } > changelog-entry.md
+
+          # Insert the entry above the most recent release heading, leaving the
+          # file header and any Unreleased section untouched. If the changelog
+          # has no releases yet, append it at the end.
+          awk '
+            !inserted && /^## \[[0-9]/ {
+              while ((getline line < "changelog-entry.md") > 0) print line
+              print ""
+              inserted = 1
+            }
+            { print }
+            END {
+              if (!inserted) {
+                print ""
+                while ((getline line < "changelog-entry.md") > 0) print line
+              }
+            }
+          ' CHANGELOG.md > CHANGELOG.next.md
+
+          mv CHANGELOG.next.md CHANGELOG.md
+
+      - name: Commit, tag and publish
+        if: steps.next.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add CHANGELOG.md
+          git commit -m "chore(release): v${VERSION}"
+
+          # Rebase onto anything that landed while this run was in flight, so
+          # the push fast-forwards instead of being rejected. Tag afterwards so
+          # the tag always points at the commit that is actually pushed.
+          git fetch origin main
+          git rebase origin/main
+
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+          git push origin HEAD:main
+          git push origin "v${VERSION}"
+
+          # The GitHub CLI ships on the runner, so the release needs no
+          # third-party action.
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file release-notes.md
