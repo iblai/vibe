@@ -132,6 +132,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-safety
 /iblai-vibe-agent-task
 /iblai-vibe-agent-tool
+/iblai-agent-support
 ```
 
 What each skill does:
@@ -174,6 +175,7 @@ What each skill does:
 - `/iblai-vibe-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
 - `/iblai-vibe-agent-task` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
 - `/iblai-vibe-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
+- `/iblai-agent-support` -- adds the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies).
 
 
 ### Security Skills
@@ -333,6 +335,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
+| `/iblai-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 
