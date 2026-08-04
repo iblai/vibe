@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-08-04
+
+### Added
+
+- adding agent skill for human support
+
 ## [1.8.0] - 2026-07-27
 
 ### Added
