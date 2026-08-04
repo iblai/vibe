@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-08-04
+
+### Added
+
+- adding skill for grading
+
 ## [1.9.0] - 2026-08-04
 
 ### Added
