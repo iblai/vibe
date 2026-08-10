@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-08-10
+
+### Fixed
+
+- remove vibe-starter asset info in README.md and fix vibe-starter structure
+
 ## [1.11.0] - 2026-08-10
 
 ### Added
