@@ -27,6 +27,8 @@ Add ibl.ai skills to any project with one command:
 npx skills add iblai/vibe --all
 ```
 
+Once installed, start with [`/iblai-vibe-ops-init`](skills/iblai-vibe-ops-init/SKILL.md) — it bootstraps a new ibl.ai project (or wires up an existing one) and writes the project `CLAUDE.md`.
+
 #### Vibe Marketing Skills
 For marketing skills — conversion, copywriting, SEO, paid ads, lifecycle, growth (43 skills + 62 platform CLIs + 80 integration guides) — install the companion repo side-by-side:
 
