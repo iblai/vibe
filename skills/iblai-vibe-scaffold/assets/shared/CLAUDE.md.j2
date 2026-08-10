@@ -23,7 +23,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 - **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
 {% else %}
 - **Template**: base (auth + store + blank canvas)
-- **Extend with** the ibl.ai skills: `/iblai-auth`, `/iblai-agent-chat`, `/iblai-profile`, `/iblai-notification`, `/iblai-ops-build`
+- **Extend with** the ibl.ai skills: `/iblai-vibe-auth`, `/iblai-vibe-agent-chat`, `/iblai-vibe-profile`, `/iblai-vibe-notification`, `/iblai-vibe-ops-build`
 {% endif %}
 {% if builds %}
 - **Desktop/mobile**: Tauri v2 shell (`src-tauri/`)
@@ -177,7 +177,7 @@ Browse: https://shadcnspace.com/blocks
 ## ibl.ai Resources
 
 - [`iblai/vibe`](https://github.com/iblai/vibe) — the skills, SDK, and templates this app is built on
-- [`iblai/vibe-starter`](https://github.com/iblai/vibe-starter) — the pre-wired starter template
+- [vibe-starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) — the pre-wired starter template (bundled with the `iblai-vibe-ops-init` skill)
 - [`@iblai/iblai-js`](https://www.npmjs.com/package/@iblai/iblai-js) — the SDK (auth, chat, UI, data layer)
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — ibl.ai brand identity and design tokens
 

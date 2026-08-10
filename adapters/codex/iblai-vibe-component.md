@@ -84,7 +84,7 @@ When the project has its own design system:
 If you find none of the signals above, the project has no design
 system yet — use the patterns in **Layout & Page Patterns** as the
 starting point. Those defaults are derived from
-[`iblai/vibe-starter`](https://github.com/iblai/vibe-starter) and the
+[vibe-starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) and the
 reference apps in [`iblai/vibe`](https://github.com/iblai/vibe).
 
 ### Tell the user what you detected
@@ -104,13 +104,18 @@ If you find nothing:
 
 ## Creating a New App
 
-For a brand-new project, clone **vibe-starter** — a pre-wired Next.js 16 +
-Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
-and profile/account/notifications pages already in place:
+For a brand-new project, scaffold from **vibe-starter** — a pre-wired
+Next.js 16 + Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a
+responsive navbar, and profile/account/notifications pages already in
+place. It ships as the `iblai-vibe-ops-init` skill's `assets/vibe-starter/`
+directory; copy it into the project root, or fetch it from the vibe repo
+if those assets are not installed (tell the user which path you took):
 
 ```bash
-git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
+# or, without local assets:
+git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+
 pnpm install --ignore-scripts
 ```
 

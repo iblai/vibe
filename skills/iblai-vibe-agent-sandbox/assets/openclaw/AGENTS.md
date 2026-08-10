@@ -27,7 +27,7 @@ When work matches an ibl.ai skill, read that skill's `SKILL.md` before acting. T
 - Whenever installing with pnpm, run `pnpm install --ignore-scripts`.
 - For Next.js projects, read local project instructions such as `AGENTS.md`, `CLAUDE.md`, `README.md`, `PRODUCT.md`, and `DESIGN.md` when present.
 - If the project uses a newer Next.js version with local docs in `node_modules/next/dist/docs/`, read the relevant doc before changing App Router code.
-- For greenfield ibl.ai work, clone or scaffold from `vibe-starter` rather than starting from a blank Next app.
+- For greenfield ibl.ai work, scaffold from `vibe-starter` (bundled with the `iblai-vibe-ops-init` skill) rather than starting from a blank Next app.
 - Project names must be lowercase and npm-safe.
 
 ## ibl.ai Design Rules

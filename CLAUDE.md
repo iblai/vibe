@@ -39,13 +39,16 @@ auth, a responsive navbar, and profile/account/notifications pages
 already in place. Skips the manual `/iblai-vibe-auth`, `/iblai-vibe-navbar`,
 `/iblai-vibe-profile`, `/iblai-vibe-account`, and `/iblai-vibe-notification` skills.
 
-Clone into a temp directory and copy into the current directory before
-installing (running `pnpm install` inside the cloned subdirectory causes
-hardlink issues):
+The template is bundled with the `/iblai-vibe-ops-init` skill at
+`skills/iblai-vibe-ops-init/assets/vibe-starter/`. Copy it into the project
+root (or fetch it from the vibe repo when the skill's assets are not
+installed locally — say which path you took):
 
 ```bash
-git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
+# or, without local assets:
+git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+
 pnpm install --ignore-scripts
 ```
 
@@ -162,7 +165,7 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > not in a subdirectory.
 >
 > **Project names MUST be all lowercase.** npm rejects package names with
-> capital letters. When running `npx create-next-app` or cloning
+> capital letters. When running `npx create-next-app` or scaffolding
 > vibe-starter, lowercase every name. If the user supplies a
 > name like `MyApp` or `AgentBot`, convert it to `my-app` / `agent-bot`
 > before using it. Allowed characters: lowercase letters, digits, `-`, `_`.

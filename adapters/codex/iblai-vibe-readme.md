@@ -5,7 +5,7 @@
 # /iblai-vibe-readme
 
 Write or refresh the project's `README.md` in the standard ibl.ai format —
-the same shape used by [`iblai/vibe-starter`](https://github.com/iblai/vibe-starter)
+the same shape used by [vibe-starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter)
 and the reference apps in [`iblai/vibe`](https://github.com/iblai/vibe).
 The README tells humans what the project is, how to run it, how to build
 native shells, how to ship releases, and how to contribute — with
@@ -296,7 +296,7 @@ See `CLAUDE.md` for the full list of skills and component priority rules.
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the ibl.ai SDK
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development
 - [Vibe](https://github.com/iblai/vibe) — developer toolkit for building with ibl.ai
-- [Vibe Starter](https://github.com/iblai/vibe-starter) — pre-wired Next.js + ibl.ai SSO template
+- [Vibe Starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) — pre-wired Next.js + ibl.ai SSO template
 {{ Add other public repo links the user wants discoverable }}
 
 ---
@@ -330,20 +330,21 @@ After writing the file, tell the user:
 
 > Updated `README.md` to the ibl.ai standard format. The badges, Quick
 > Start, Native builds, Releasing, Project Structure, and Contributing
-> sections are now consistent with `iblai/vibe-starter` and the reference
-> apps in `iblai/vibe`. {{ If you skipped any sections (e.g. no
+> sections are now consistent with the bundled vibe-starter template and
+> the reference apps in `iblai/vibe`. {{ If you skipped any sections (e.g. no
 > Dockerfile present) }}, mention them so the maintainers know the
 > README adapts as those features land.
 
 ## Important Notes
 
-- **Source of truth:** `iblai/vibe-starter`'s `README.md` plus the
-  per-skill READMEs in `iblai/vibe`. When updating this skill, diff
-  against the latest `main` of those public repos and pull through
-  structural changes.
-- **Do not reference internal repos.** Only public, open-source
-  repositories under [`iblai/vibe`](https://github.com/iblai/vibe) and
-  [`iblai/vibe-starter`](https://github.com/iblai/vibe-starter) are
+- **Source of truth:** the bundled starter's README at
+  `skills/iblai-vibe-ops-init/assets/vibe-starter/README.md` plus the
+  per-skill READMEs, both in `iblai/vibe`. When updating this skill, diff
+  against the latest `main` of that repo and pull through structural
+  changes.
+- **Do not reference internal repos.** Only the public, open-source
+  [`iblai/vibe`](https://github.com/iblai/vibe) repository (including the
+  bundled vibe-starter under `skills/iblai-vibe-ops-init/assets/`) is
   citable from a generated README.
 - **No marketing prose:** Keep claims grounded in what the codebase
   actually ships. Don't add features the project hasn't implemented.

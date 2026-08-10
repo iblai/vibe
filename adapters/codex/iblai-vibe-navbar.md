@@ -61,17 +61,20 @@ The navbar MUST follow BRAND.md colors:
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe-starter/tree/spa) already ships this navbar
+> (https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) already ships this navbar
 > wired up (logo, nav links, notification bell, profile dropdown, mobile
 > drawer) along with auth and profile/account/notifications pages. Want to
 > use that instead of building the navbar from scratch?
 
-If yes, clone into a temp directory and copy into the current directory before
-installing (running pnpm install inside the cloned subdirectory causes hardlink
-issues), then skip this skill:
+If yes, copy the bundled starter template from the installed
+`iblai-vibe-ops-init` skill's `assets/vibe-starter/` directory (a sibling of
+this skill's directory), or fetch it from the vibe repo if those assets are
+not installed -- tell the user which path you took -- then skip this skill:
 
-    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
+    # or, without local assets:
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+
     pnpm install --ignore-scripts
 
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.

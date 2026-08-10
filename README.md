@@ -69,11 +69,11 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 4. **Deploy** -- push to Vercel or package with Tauri
 
 
-Get a complete app with auth, AI chat, profiles, and more by cloning **vibe-starter**:
+Get a complete app with auth, AI chat, profiles, and more from **vibe-starter** — the template bundled with the [`/iblai-vibe-ops-init`](skills/iblai-vibe-ops-init/SKILL.md) skill:
 
 ```bash
-git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp
+cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 pnpm install --ignore-scripts
 cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY
 pnpm dev
@@ -242,12 +242,14 @@ Then add features with the `/iblai-vibe-*` skills -- each creates the files and 
 
 ### CI/CD
 
-Cloning vibe-starter is already non-interactive -- inject the `NEXT_PUBLIC_*`
-vars from CI secrets:
+Scaffolding from vibe-starter is already non-interactive -- copy the
+template out of the vibe repo and inject the `NEXT_PUBLIC_*` vars from CI
+secrets:
 
 ```bash
-git clone -b spa https://github.com/iblai/vibe-starter.git app && cd app
-rm -rf node_modules && pnpm install
+git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp
+mkdir -p app && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. app/ && rm -rf vibe-tmp
+cd app && pnpm install --ignore-scripts
 cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY from CI secrets
 ```
 
@@ -380,7 +382,7 @@ pnpm exec tauri ios init        # iOS project setup
 
 ## Resources
 
-- [Vibe Starter](https://github.com/iblai/vibe-starter) -- pre-wired Next.js + ibl.ai SSO template
+- [Vibe Starter](skills/iblai-vibe-ops-init/assets/vibe-starter/) -- pre-wired Next.js + ibl.ai SSO template (bundled with the `/iblai-vibe-ops-init` skill)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) -- unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development

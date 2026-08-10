@@ -38,8 +38,8 @@ fi
 # Activate the virtual environment
 source "$SKILLS_REF_DIR/.venv/bin/activate"
 
-# Return to the original directory
-cd "$(dirname "$0")"
+# Return to the repo root (this script lives in scripts/)
+cd "$(dirname "$0")/.."
 
 # Track results
 PASSED=0

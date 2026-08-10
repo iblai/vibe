@@ -22,7 +22,7 @@ patches described in each reference.
 
 | Path | How | Result |
 |---|---|---|
-| **New app** | clone **vibe-starter**, or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
+| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../iblai-vibe-ops-init/SKILL.md)), or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
 | **Existing app** | [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
 
 Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
@@ -30,13 +30,13 @@ Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 [`references/config-command.md`](references/config-command.md)).
 
 > **Prefer the starter for greenfield work.** For brand-new projects,
-> `vibe-starter` (a pre-wired clone — see the repo CLAUDE.md "Getting
-> Started") is the recommended path; the `base`+`agent` templates here are
-> the manual equivalent.
+> `vibe-starter` (the pre-wired template bundled with `/iblai-vibe-ops-init` —
+> see the repo CLAUDE.md "Getting Started") is the recommended path; the
+> `base`+`agent` templates here are the manual equivalent.
 
 ## Env: `.env.local` before build
 
-A vibe app (cloned from **vibe-starter** or rendered from these templates)
+A vibe app (scaffolded from **vibe-starter** or rendered from these templates)
 needs a `.env.local` to build or run. **Always ensure one exists before
 `pnpm build`** — a missing file is the usual cause of a blank or
 mis-tenanted build:
