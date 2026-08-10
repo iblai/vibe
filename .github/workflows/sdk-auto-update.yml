@@ -40,11 +40,12 @@ jobs:
         with:
           package_json_file: skills/iblai-vibe-ops-init/assets/vibe-starter/package.json
 
+      # No pnpm store cache: most daily runs skip every pnpm step (SDK already
+      # current), and setup-node's post-job cache save hard-fails when the
+      # store dir was never created. A cold install on bump days is fine.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: skills/iblai-vibe-ops-init/assets/vibe-starter/pnpm-lock.yaml
 
       - name: Check npm for newer SDK versions
         id: check
