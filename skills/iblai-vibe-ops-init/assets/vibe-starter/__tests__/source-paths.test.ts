@@ -1,17 +1,11 @@
 
 import { describe, it, expect } from "vitest";
-import {
-  readFileSync,
-  existsSync,
-  readdirSync,
-  lstatSync,
-  readlinkSync,
-} from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { resolve, dirname, join } from "path";
 
 /**
  * Verify that every @source directive in CSS files points to an existing
- * directory and that the SDK symlink is valid.
+ * directory (they reach into node_modules/@iblai/iblai-js/dist).
  *
  * If these paths break, Tailwind v4 silently stops generating utility
  * classes for SDK components — no build error, just missing styles.
@@ -24,10 +18,6 @@ const nodeModulesExist = existsSync(join(projectRoot, "node_modules"));
 const appDir = existsSync(join(projectRoot, "src", "app"))
   ? join(projectRoot, "src", "app")
   : join(projectRoot, "app");
-
-const libDir = existsSync(join(projectRoot, "src", "lib"))
-  ? join(projectRoot, "src", "lib")
-  : join(projectRoot, "lib");
 
 describe.skipIf(!nodeModulesExist)("@source paths", () => {
   // Collect all CSS files in app/
@@ -67,36 +57,23 @@ describe.skipIf(!nodeModulesExist)("@source paths", () => {
         existsSync(resolved),
         `Path does not exist: ${resolved}\n` +
           `Referenced in: ${file}\n` +
-          `Hint: check that lib/iblai/sdk symlink resolves (ls -la lib/iblai/sdk)`,
+          `Hint: run pnpm install to populate node_modules`,
       ).toBe(true);
     });
   }
 });
 
-describe.skipIf(!nodeModulesExist)("SDK symlink", () => {
-  const sdkLink = join(libDir, "iblai", "sdk");
-
-  it("lib/iblai/sdk should exist", () => {
-    expect(existsSync(sdkLink)).toBe(true);
-  });
-
-  it("lib/iblai/sdk should be a symlink", () => {
-    expect(lstatSync(sdkLink).isSymbolicLink()).toBe(true);
-  });
-
-  it("lib/iblai/sdk symlink target should resolve", () => {
-    const target = readlinkSync(sdkLink);
-    const resolved = resolve(dirname(sdkLink), target);
-    expect(
-      existsSync(resolved),
-      `Symlink target does not exist: ${resolved}\n` +
-        `Symlink: ${sdkLink} -> ${target}\n` +
-        `Hint: run npm install to populate node_modules`,
-    ).toBe(true);
-  });
-
-  it("lib/iblai/sdk/web-containers/source should contain compiled JS", () => {
-    const sourceDir = join(sdkLink, "web-containers", "source");
+describe.skipIf(!nodeModulesExist)("SDK sources", () => {
+  it("web-containers/source should contain compiled JS", () => {
+    const sourceDir = join(
+      projectRoot,
+      "node_modules",
+      "@iblai",
+      "iblai-js",
+      "dist",
+      "web-containers",
+      "source",
+    );
     expect(existsSync(sourceDir)).toBe(true);
     const files = readdirSync(sourceDir);
     expect(files).toContain("index.esm.js");

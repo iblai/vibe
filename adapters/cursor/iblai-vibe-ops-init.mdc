@@ -61,8 +61,7 @@ Ask a clear yes/no question:
 
 The starter template ships with this skill, in the `assets/vibe-starter/`
 directory beside this SKILL.md. Copy it into the project root (`cp -a`
-keeps the dotfiles and the `lib/iblai/sdk` symlink -- the symlink dangles
-until `pnpm install` runs), then install:
+keeps the dotfiles), then install:
 
 ```bash
 cp -a <this-skill-dir>/assets/vibe-starter/. .

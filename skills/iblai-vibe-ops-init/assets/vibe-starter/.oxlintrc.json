@@ -9,5 +9,5 @@
     "jsx-a11y",
     "vitest"
   ],
-  "ignorePatterns": ["lib/iblai/sdk/**"]
+  "ignorePatterns": []
 }

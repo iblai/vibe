@@ -23,10 +23,10 @@
 @import '@iblai/iblai-js/web-containers/styles';
 
 /* Scan SDK compiled JS so Tailwind generates classes used inside SDK components.
- * lib/iblai/sdk is a symlink to node_modules/@iblai/iblai-js/dist (created by
- * iblai add auth or iblai startapp). */
-@source "../lib/iblai/sdk/web-containers/source";
-@source "../lib/iblai/sdk/web-containers/source/next";
+ * Explicit @source paths are required because Tailwind's auto-detection
+ * skips node_modules. */
+@source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
+@source "../node_modules/@iblai/iblai-js/dist/web-containers/source/next";
 
 @custom-variant dark (&:is(.dark *));
 

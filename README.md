@@ -24,7 +24,7 @@ Ship AI-powered apps fast. Backend included.
 Add ibl.ai skills to any project with one command:
 
 ```bash
-npx skills add iblai/vibe
+npx skills add iblai/vibe --all
 ```
 
 #### Vibe Marketing Skills
@@ -47,7 +47,7 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 
 **Why it matters:**
 
-- **Start building in minutes, not days** -- vibe-starter scaffolds a complete app with auth, AI chat, and a dashboard out of the box
+- **Start building in minutes, not days** -- the skills scaffold a complete app with auth, AI chat, and a dashboard out of the box
 - **Backend included** -- `iblai.app` provides SSO auth, AI agent infrastructure, analytics, and tenant management (free tier available)
 - **Client-side auth via SSO** -- no API tokens to store, rotate, or leak
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
@@ -68,27 +68,12 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 3. **Customize** -- use the skills to add features, swap components, and adjust business logic
 4. **Deploy** -- push to Vercel or package with Tauri
 
-
-Get a complete app with auth, AI chat, profiles, and more from **vibe-starter** — the template bundled with the [`/iblai-vibe-ops-init`](skills/iblai-vibe-ops-init/SKILL.md) skill:
-
-```bash
-git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp
-cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
-pnpm install --ignore-scripts
-cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY
-pnpm dev
-```
-
-> Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
-
-Open [http://localhost:3000](http://localhost:3000). You will be redirected to `login.iblai.app` for login -- sign in or create a free account, and you are back in your app with a fully authenticated session.
-
 ### Install Skills
 
 Add ibl.ai skills to any project with one command:
 
 ```bash
-npx skills add iblai/vibe
+npx skills add iblai/vibe --all
 ```
 
 
@@ -227,7 +212,7 @@ npx skills add iblai/vibe-marketing
 Already have a project? Install the skills and let your AI agent add features:
 
 ```bash
-npx skills add iblai/vibe
+npx skills add iblai/vibe --all
 ```
 
 Then add features with the `/iblai-vibe-*` skills -- each creates the files and wires them in:
@@ -239,19 +224,6 @@ Then add features with the `/iblai-vibe-*` skills -- each creates the files and 
 - `/iblai-vibe-notification` — notification bell
 
 (Ensure the `@iblai/mcp` server + skills are configured in `.mcp.json` first.)
-
-### CI/CD
-
-Scaffolding from vibe-starter is already non-interactive -- copy the
-template out of the vibe repo and inject the `NEXT_PUBLIC_*` vars from CI
-secrets:
-
-```bash
-git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp
-mkdir -p app && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. app/ && rm -rf vibe-tmp
-cd app && pnpm install --ignore-scripts
-cp .env.example .env.local   # then set NEXT_PUBLIC_MAIN_TENANT_KEY from CI secrets
-```
 
 ## The iblai Backend
 
@@ -382,11 +354,10 @@ pnpm exec tauri ios init        # iOS project setup
 
 ## Resources
 
-- [Vibe Starter](skills/iblai-vibe-ops-init/assets/vibe-starter/) -- pre-wired Next.js + ibl.ai SSO template (bundled with the `/iblai-vibe-ops-init` skill)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) -- unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) -- auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
-- [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe`
+- [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe --all`
 - [Skills Reference](https://github.com/iblai/vibe/tree/main/skills) -- documentation for all bundled Claude Code skills
 
 ## License

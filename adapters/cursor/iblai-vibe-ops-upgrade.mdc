@@ -10,7 +10,7 @@ Upgrade the ibl.ai toolchain in the current project to the latest versions.
 Two things:
 
 1. The `@iblai/iblai-js` SDK in the project's `package.json`
-2. The vibe skills (re-runs `npx skills add iblai/vibe`)
+2. The vibe skills (re-runs `npx skills add iblai/vibe --all`)
 
 Use when asked to "upgrade iblai", "get the latest SDK", "update ibl.ai",
 or "refresh the skills".

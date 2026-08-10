@@ -79,16 +79,16 @@ Open `app/iblai-styles.css` (or `app/globals.css` if styles live there)
 and ensure BOTH directives are present:
 
 ```css
-@source "../lib/iblai/sdk/web-containers/source";
-@source "../lib/iblai/sdk/web-containers/source/next";
-```
-
-If you are scanning `node_modules` directly instead of the `lib/iblai/sdk`
-symlink, the equivalent is:
-
-```css
 @source "../node_modules/@iblai/iblai-js/dist/web-containers/source";
 @source "../node_modules/@iblai/iblai-js/dist/web-containers/source/next";
+```
+
+If the app scans through a `lib/iblai/sdk` symlink instead (CLI-scaffolded
+apps ship one), the equivalent is:
+
+```css
+@source "../lib/iblai/sdk/web-containers/source";
+@source "../lib/iblai/sdk/web-containers/source/next";
 ```
 
 Both lines are required. The `source/next` path covers the next-bundle

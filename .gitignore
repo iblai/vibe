@@ -3,3 +3,4 @@
 
 # Personal daily work log — never commit
 .daily-work-log/
+node_modules

@@ -27,7 +27,7 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **API companion (recommended):** `npx skills add iblai/api`. Installs
-  the `/iblai-vibe-analytics` REST reference and a filtered snapshot of the
+  the `/iblai-analytics` REST reference and a filtered snapshot of the
   live OpenAPI schema. This skill (frontend wiring) and that one (API
   contract) stay in lockstep.
 
