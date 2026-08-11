@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-grader
-description: Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, and criteria table) to your Next.js app
+description: Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-synced overrides) to your Next.js app
 globs:
 alwaysApply: false
 ---
@@ -9,12 +9,14 @@ alwaysApply: false
 
 Add the agent **Grader tab** -- set up how the agent grades work against
 a rubric you define. A master "Grading" toggle attaches/detaches the
-Grading tool on the agent and gates two sub-tabs: **Grading setup** (what
-gets graded, how much feedback is shared, and the required grading
-instructions) and **Rubric** (a criteria table with modal-based
-add/edit/delete and a running points total). Great for essays, projects,
-and practice exercises. This is one tab in the wider agent-settings
-family. All tabs share the same `AgentSettingsProvider` wrapper.
+Grading tool on the agent and gates three sub-tabs: **Grading setup**
+(what gets graded, how much feedback is shared, and the required grading
+instructions), **Rubric** (a criteria table with modal-based
+add/edit/delete and a running points total), and **Results** (every
+grade the agent has issued, with human overrides that are pushed back to
+the LMS the grade came from). Great for essays, projects, and practice
+exercises. This is one tab in the wider agent-settings family. All tabs
+share the same `AgentSettingsProvider` wrapper.
 
 ![Grader Tab — Grading Setup](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-grader/iblai-vibe-agent-grader-setup.png)
 
@@ -27,6 +29,10 @@ family. All tabs share the same `AgentSettingsProvider` wrapper.
 ![Edit Criterion Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-grader/iblai-vibe-agent-grader-criterion-edit.png)
 
 ![Delete Criterion Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-grader/iblai-vibe-agent-grader-criterion-delete.png)
+
+![Grader Tab — Results](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-grader/iblai-vibe-agent-grader-results.png)
+
+![Override Grade Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-grader/iblai-vibe-agent-grader-result-override.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -125,6 +131,8 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | `tenantKey` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
 | `mentorId` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
 | `username` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
+| `enableRBAC` | `boolean` | No | Enable per-action RBAC checks; defaults to `AgentSettingsProvider` |
+| `rbacPermissions` | `object` | No | RBAC permission tree; defaults to `AgentSettingsProvider` |
 
 ## What the tab renders
 
@@ -170,6 +178,27 @@ worth; the overall score is points earned out of the total.
 - Until the grading setup is saved, the rubric shows a hint to save the
   setup first.
 
+### Results sub-tab
+
+Every grade this agent has issued. Override a score to correct it — the
+change is pushed back to the LMS the grade came from.
+
+- **Filters** — a searchable learner combobox (the same learner list as
+  the History tab's user filter, with an "All Users" reset), a status
+  select (All Statuses / Pending / Published / Failed), and a
+  date-range picker (two-month calendar).
+- **Results table** — 10 rows per page: Learner email, Score (the
+  effective score as a percent), Status, Override (shows
+  "Overridden · score · status" when one exists, otherwise —), Graded
+  (time-ago), and an **Override** button per row (only for users with
+  the `override_grade_results` permission).
+- **Override Grade modal** — shows the learner, AI score, and current
+  override, then collects **Override Points** (0 up to the rubric's
+  total, capped at 100; the score pushed to the LMS becomes points ÷
+  total) and optional **Override Feedback** explaining the change for
+  the learner. When an override already exists, a **Clear** button
+  removes it and restores the AI score.
+
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
@@ -190,9 +219,13 @@ for custom UI built on the same endpoints:
 - Criteria: `useListGraderCriteriaQuery`,
   `useCreateGraderCriterionMutation`, `useUpdateGraderCriterionMutation`,
   `useDeleteGraderCriterionMutation`
+- Results: `useListGradeResultsQuery`, `useGetGradeResultQuery`,
+  `useOverrideGradeResultMutation`, `useGetChatHistoryFilterQuery` (the
+  learner filter list)
 - Toggle: `useGetMentorSettingsQuery`, `useGetToolsQuery`,
   `useEditMentorMutation`
 - Types: `MentorGraderConfiguration`, `GradingMode`, `FeedbackMode`,
+  `GradeResult`, `GradeResultPublishStatus`,
   `CreateMentorGraderConfigurationRequest`,
   `CreateGraderCriterionRequest`, `UpdateGraderCriterionRequest`
 
@@ -226,4 +259,15 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   disable/re-enable. Attaching the tool auto-provisions the config row.
 - **First-run 404 is normal**: A missing grader config (404) is the
   documented first-run state, not an error — the first save creates it.
+- **RBAC**: With `enableRBAC` on, every grader action is checked as a
+  flat action on the mentor resource
+  (`/mentors/{dbId}/#<action>`): `read_grader_config`,
+  `create_grader_config`, `write_grader_config`, `view_grader_criteria`,
+  `create_grader_criteria`, `write_grader_criteria`,
+  `delete_grader_criteria`, `view_grade_results`,
+  `override_grade_results`. Sub-tab triggers only render for permitted
+  views (the default sub-tab is the first viewable one), the Override
+  button requires `override_grade_results`, and a user with no viewable
+  sub-tab sees the no-access notice. Older permission trees without
+  these actions are treated as allowed.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
