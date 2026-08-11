@@ -118,6 +118,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-memory
 /iblai-vibe-agent-prompt
 /iblai-vibe-agent-safety
+/iblai-vibe-agent-skills
 /iblai-vibe-agent-task
 /iblai-vibe-agent-tool
 /iblai-agent-support
@@ -162,6 +163,7 @@ What each skill does:
 - `/iblai-vibe-agent-memory` -- adds the agent Memory tab (enable/disable memory and manage memories).
 - `/iblai-vibe-agent-prompt` -- adds the agent Prompts tab (system prompts and suggested prompts).
 - `/iblai-vibe-agent-safety` -- adds the agent Safety tab (moderation prompts and flagged content).
+- `/iblai-vibe-agent-skills` -- adds the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill picker).
 - `/iblai-vibe-agent-task` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
 - `/iblai-vibe-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
 - `/iblai-agent-support` -- adds the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies).
@@ -312,6 +314,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-memory` | Add the agent Memory tab (enable/disable memory and manage memories) |
 | `/iblai-vibe-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-vibe-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-vibe-agent-skills` | Add the agent Skills tab (reusable Agent Skills with per-agent assignment, private skills, file resources, and the chat `/` skill picker) |
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
