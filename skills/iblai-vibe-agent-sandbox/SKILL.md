@@ -1,19 +1,22 @@
 ---
 name: iblai-vibe-agent-sandbox
-description: Add the agent Sandbox tab (OpenClaw instance management, agent prompt configuration, and agent skills) to your Next.js app
+description: Add the agent Sandbox tab (OpenClaw instance management and agent prompt configuration) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
 # /iblai-vibe-agent-sandbox
 
-Add the agent **Sandbox tab** -- a three-section workspace that
-connects an agent to an OpenClaw sandbox instance, edits the
+Add the agent **Sandbox tab** -- a two-section workspace that
+connects an agent to an OpenClaw sandbox instance and edits the
 agent-workspace prompt files (Identity, Soul, User Context, Tools,
 Agents, Bootstrap, Heartbeat, Memory) backing the agent's runtime
-behaviour, and assigns reusable Skills to the agent with toggleable
-enable/disable. Push pulls the current configuration onto the
+behaviour. Push pulls the current configuration onto the
 connected sandbox; Auto Push on Save pushes after every edit.
+
+Agent Skills are managed independently of the sandbox — see
+`/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
+per-agent assignment, skill resources, and the chat `/` picker).
 
 ![Sandbox — Instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
 
@@ -28,10 +31,6 @@ connected sandbox; Auto Push on Save pushes after every edit.
 ![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
 
 ![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
-
-![Sandbox — Skills list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-skills.png)
-
-![Sandbox — New Skill dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-skill.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.
@@ -78,7 +77,7 @@ is not installed.
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 - A reachable OpenClaw instance URL plus a Gateway Token to register
   the first instance. Without one, the Sandbox section sits empty
-  ("Add Instance") and the Prompts / Skills sections are gated until a
+  ("Add Instance") and the Prompts section is gated until a
   config is connected.
 
 ## Step 1: Check Environment
@@ -90,12 +89,12 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount the three sections
+## Step 2: Mount the two sections
 
-`SandboxConfig`, `AgentConfigPrompts`, and `AgentSkills` are independent
-components — none of them reads from `AgentSettingsProvider`. They each
+`SandboxConfig` and `AgentConfigPrompts` are independent
+components — neither reads from `AgentSettingsProvider`. They each
 take `platformKey` and `mentorUniqueId` as required props. Compose them
-on a single page so the user sees Sandbox → Prompts → Skills, top to
+on a single page so the user sees Sandbox → Prompts, top to
 bottom.
 
 ```tsx
@@ -107,7 +106,6 @@ import { useParams } from "next/navigation";
 import {
   SandboxConfig,
   AgentConfigPrompts,
-  AgentSkills,
 } from "@iblai/iblai-js/web-containers";
 
 export default function AgentSandboxPage() {
@@ -149,20 +147,15 @@ export default function AgentSandboxPage() {
         platformKey={platformKey}
         mentorUniqueId={mentorId}
       />
-      <AgentSkills
-        platformKey={platformKey}
-        mentorUniqueId={mentorId}
-      />
     </div>
   );
 }
 ```
 
-`AgentConfigPrompts` and `AgentSkills` self-gate on the connected
-sandbox config — they each call `useGetClawMentorConfigQuery` and
-short-circuit when no config exists, so it is safe (and intended) to
-mount all three together. The Prompts and Skills sections appear only
-after the user connects an instance.
+`AgentConfigPrompts` self-gates on the connected sandbox config — it
+calls `useGetClawMentorConfigQuery` and short-circuits when no config
+exists, so it is safe (and intended) to mount both together. The
+Prompts section appears only after the user connects an instance.
 
 `SandboxConfig`'s `username` prop is optional — if omitted, the
 component falls back to `getUserName()` (which reads from
@@ -173,7 +166,7 @@ to avoid the extra read.
 
 The Sandbox feature is **off by default per agent**. Whether the
 Sandbox tab is shown is governed by `enable_claw` (`boolean`) on the
-agent's settings — `true` = show, `false`/missing = hide. The three
+agent's settings — `true` = show, `false`/missing = hide. The two
 sandbox components themselves render their UI unconditionally; it is
 the host app's job to gate the navigation entry and route based on
 this flag, so users only see the "advanced" sandbox surface for
@@ -212,7 +205,6 @@ return (
   <div className="flex h-full flex-col gap-8 bg-white p-6">
     <SandboxConfig platformKey={platformKey} mentorUniqueId={mentorId} username={username} />
     <AgentConfigPrompts platformKey={platformKey} mentorUniqueId={mentorId} />
-    <AgentSkills platformKey={platformKey} mentorUniqueId={mentorId} />
   </div>
 );
 ```
@@ -246,13 +238,12 @@ across toggles; flipping the flag only affects visibility, not data.
 ```
 get_component_info("SandboxConfig")
 get_component_info("AgentConfigPrompts")
-get_component_info("AgentSkills")
 get_component_info("LLMProviderModal")
 ```
 
 ## Component Props
 
-All three components import from `@iblai/iblai-js/web-containers`.
+Both components import from `@iblai/iblai-js/web-containers`.
 
 ### `<SandboxConfig>`
 
@@ -263,13 +254,6 @@ All three components import from `@iblai/iblai-js/web-containers`.
 | `username` | `string \| null` | No | Current user. Falls back to `getUserName()` from `localStorage` when omitted |
 
 ### `<AgentConfigPrompts>`
-
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
-| `mentorUniqueId` | `string` | Yes | Agent UUID |
-
-### `<AgentSkills>`
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
@@ -321,24 +305,11 @@ that opens a `RichTextEditor` modal:
 
 Updates are upserts — the first PATCH bootstraps the row.
 
-### Skills (reusable instruction bundles)
-
-- **Skills table** — name, version (`v1.0.0`), info tooltip,
-  enable/disable switch, kebab (Edit / Delete).
-- **New Skill** dialog — Name, Slug, Version (default `1.0.0`),
-  Description, Instruction (`RichTextEditor`).
-- **Toggle** — flipping a skill on creates or re-enables a
-  `MentorSkillAssignment` keyed by skill UUID; flipping off deletes
-  it. Only `enabled=true` skills are shown in the toggle list.
-- Skill CRUD is **platform-level** (visible to every agent in the
-  tenant); assignment is **agent-level**.
-
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers`:
 
-- `SandboxConfig`, `AgentConfigPrompts`, `AgentSkills` — the three
-  section components.
+- `SandboxConfig`, `AgentConfigPrompts` — the two section components.
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
@@ -360,13 +331,9 @@ From `@iblai/data-layer`:
   `useTestConnectivityClawInstanceMutation` — instance CRUD + checks.
 - `useGetAgentConfigQuery`, `useUpdateAgentConfigMutation` — prompt
   fields + model.
-- `useGetAgentSkillsQuery`, `useGetMentorSkillAssignmentsQuery`,
-  `useCreateAgentSkillMutation`, `useUpdateAgentSkillMutation`,
-  `useDeleteAgentSkillMutation`,
-  `useCreateMentorSkillAssignmentMutation`,
-  `useUpdateMentorSkillAssignmentMutation`,
-  `useDeleteMentorSkillAssignmentMutation` — skills + assignments.
-- `AgentSkill`, `MentorSkillAssignment` — payload types.
+
+Skills hooks and types (`useGetAgentSkillsQuery`, `AgentSkill`, …)
+are documented in `/iblai-vibe-agent-skills`.
 
 ## Step 4: Verify
 
@@ -387,7 +354,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **No `AgentSettingsProvider`**: All three components take raw props.
+- **No `AgentSettingsProvider`**: Both components take raw props.
   If your app already mounts `AgentSettingsProvider` for sibling tabs,
   read its values via `useAgentSettings()` in the page wrapper and
   forward them.
@@ -402,9 +369,6 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `400 No configuration to push` when every agent-config field is
   empty. The component mirrors that gate locally — the manual Push
   button is disabled until the user has saved at least one prompt.
-- **Skill UUID, not pk**: `MentorSkillAssignment.skill` is the skill's
-  `unique_id`, not the integer id. Custom UI joining skills to
-  assignments must key on `skill.unique_id`.
 - **404 ≠ error**: `useGetClawMentorConfigQuery` 404s when no agent
   has been bound to a sandbox — that's the "not connected" state, not
   a failure. The component treats `isError` as `null` here. Custom
@@ -482,27 +446,8 @@ field is empty. Pre-flight by checking the agent config locally.
 body of the corresponding `*.md` workspace file), plus `model`
 (`"{provider}/{name}"`).
 
-### Agent skills (platform-level catalog)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `agent-skills/` | List skills available in the tenant |
-| POST | `agent-skills/` | Create a skill — `{ name, slug, version, description, instruction }` |
-| PATCH | `agent-skills/{id}/` | Update |
-| DELETE | `agent-skills/{id}/` | Delete |
-
-### Agent skill assignments (per-agent binding)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `mentors/{mentor_unique_id}/skill-assignments/` | Skills bound to this agent |
-| POST | `mentors/{mentor_unique_id}/skill-assignments/` | Bind — `{ "skill": "<skill-uuid>", "enabled": true }` |
-| PATCH | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Toggle `enabled` |
-| DELETE | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Unbind |
-
-The `skill` field is the **UUID** (`unique_id`), not the integer
-primary key — keying assignments by `unique_id` keeps the binding
-stable across skill edits.
+Agent Skills endpoints (catalog, resources, per-agent assignments)
+are documented in `/iblai-vibe-agent-skills`.
 
 ### Common errors
 

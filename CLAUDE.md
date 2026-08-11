@@ -308,6 +308,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-privacy` | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions) |
 | `/iblai-vibe-agent-prompt` | Add the agent Prompts tab (system prompts and suggested prompts) |
 | `/iblai-vibe-agent-safety` | Add the agent Safety tab (moderation prompts and flagged content) |
+| `/iblai-vibe-agent-skills` | Add the agent Skills tab (reusable Agent Skills with per-agent assignment, private skills, file resources, and the chat `/` skill picker) |
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
