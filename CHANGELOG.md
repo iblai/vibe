@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-08-11
+
+### Added
+
+- adding skills for agent
+
 ## [1.12.0] - 2026-08-11
 
 ### Added
