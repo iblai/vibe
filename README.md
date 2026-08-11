@@ -155,7 +155,7 @@ What each skill does:
 - `/iblai-vibe-agent-disclaimer` -- adds the agent Disclaimers tab (user agreement and advisory).
 - `/iblai-vibe-agent-embed` -- adds the agent Embed tab (embed code, custom styling, shareable links).
 - `/iblai-vibe-agent-evals` -- adds the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export).
-- `/iblai-vibe-agent-grader` -- adds the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, and criteria table).
+- `/iblai-vibe-agent-grader` -- adds the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-synced overrides).
 - `/iblai-vibe-agent-history` -- adds the agent History tab (conversation history with filters and export).
 - `/iblai-vibe-agent-llm` -- adds the agent LLM tab (model provider selection).
 - `/iblai-vibe-agent-lti` -- adds the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints).
@@ -305,7 +305,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
 | `/iblai-vibe-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
 | `/iblai-vibe-agent-evals` | Add the agent Evals tab (benchmark evaluation runs with LLM-as-Judge reviews, manual scores, and CSV export) |
-| `/iblai-vibe-agent-grader` | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, and criteria table) |
+| `/iblai-vibe-agent-grader` | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-synced overrides) |
 | `/iblai-vibe-agent-history` | Add the agent History tab (conversation history with filters and export) |
 | `/iblai-vibe-agent-llm` | Add the agent LLM tab (model provider selection) |
 | `/iblai-vibe-agent-lti` | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) |
