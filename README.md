@@ -114,6 +114,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-onboard
 /iblai-build
 /iblai-test
+/iblai-vibe-ops-release
 /iblai-vibe-ops-upgrade
 /iblai-vibe-rbac
 /iblai-vibe-agent-search
@@ -148,6 +149,7 @@ What each skill does:
 - `/iblai-vibe-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-vibe-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
 - `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-vibe-ops-release` -- generates a `Makefile` + Fastlane config to build and submit the app to the Apple App Store (TestFlight) and Google Play, including app-record/bundle-id creation and store-credential wiring.
 - `/iblai-vibe-ops-test` -- validates the app before it is presented to the user.
 - `/iblai-vibe-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
 - `/iblai-vibe-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
@@ -365,6 +367,37 @@ Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/S
 pnpm exec tauri build           # Desktop build for current platform
 pnpm exec tauri ios init        # iOS project setup
 ```
+
+### Ship to the App Store & Google Play
+
+Once the Tauri shell is in place, [`/iblai-vibe-ops-release`](skills/iblai-vibe-ops-release/SKILL.md)
+generates a `Makefile` + [Fastlane](https://fastlane.tools) config that builds
+**and submits** your app to both stores from one command. Tauri produces the
+`.ipa` / `.aab`; Fastlane creates the app records and uploads the binaries.
+
+Run the skill, then fill in `fastlane/.env` with your store credentials
+(App Store Connect API key + Google Play service-account JSON -- see the skill's
+[`references/credentials.md`](skills/iblai-vibe-ops-release/references/credentials.md)):
+
+```bash
+make doctor            # verify tooling + credentials are in place
+make ios-create        # create the App Store Connect app record + bundle id
+make ios-release       # build the .ipa and upload to TestFlight
+make android-release   # build the .aab and upload to the Play internal track
+make release-all       # ship to both stores
+```
+
+**Two platform constraints to know up front:**
+
+- **Google Play** cannot create the app listing or accept the *first* upload via
+  API -- create the app in the Play Console and push one `.aab` by hand once,
+  then `make android-release` handles every release after that.
+- **Apple** uploads run unattended with the API key, but creating the app record
+  (`make ios-create`) may prompt for Apple-ID auth; the skill documents the
+  app-specific-password fallback.
+
+`make *-submit` pushes to TestFlight / the Play internal track -- promoting to
+public App Store review or production stays a deliberate step in the consoles.
 
 ## Resources
 
