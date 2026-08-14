@@ -385,11 +385,21 @@ Or:
 pnpm tauri:build
 ```
 
-#### macOS CI
+#### Signed + notarized release — CI or local
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+**CI:** copy `assets/tauri/workflows/tauri-release-macos-dmg.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds a **signed + notarized**
+universal `.dmg` (Intel + Apple Silicon) and attaches it to the tag's GitHub
+Release; a manual run produces a build-only artifact.
+
+**Local (no CI):** copy `assets/tauri/desktop-release.mk` +
+`desktop-signing.env.example` to your project root and run
+`make -f desktop-release.mk macos-dmg` — same sign + notarize, on your own Mac.
+
+Either way needs Apple Developer ID credentials — full setup in
+[`references/signed-release.md`](references/signed-release.md). For a quick
+**unsigned** build across macOS/Linux/Windows, use
+`assets/tauri/workflows/tauri-build-desktop.yml`.
 
 ---
 
@@ -425,11 +435,18 @@ pnpm exec tauri build
 The installer targets are configured in `src-tauri/tauri.conf.json` under
 `bundle.targets` (includes `nsis` and `msi` by default).
 
-#### Surface CI
+#### Surface / Windows CI (signed NSIS, x64 + arm64)
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+Copy `assets/tauri/workflows/tauri-release-windows.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds **signed** NSIS
+installers for x64 and arm64 and attaches them to the Release. It signs with a
+stored `.pfx` if you provide one, otherwise generates a self-signed cert in the
+runner (zero setup) — see [`references/signed-release.md`](references/signed-release.md).
+Requires `bundle.windows.certificateThumbprint: null` in `tauri.conf.json` (the
+template already has it). To build **locally** instead, run
+`make -f desktop-release.mk windows-nsis` on a Windows machine. For a Store /
+sideload **MSIX** package instead, see
+[`/iblai-vibe-windows-msix`](../iblai-vibe-windows-msix/SKILL.md).
 
 ---
 
@@ -492,6 +509,10 @@ Generate CI workflows for all platforms at once:
 | **Desktop** | |
 | Run desktop dev mode | `pnpm exec tauri dev` |
 | Build desktop release | `pnpm exec tauri build` |
+| macOS signed + notarized DMG (CI) | `tauri-release-macos-dmg.yml` — push an `app-v*` tag |
+| Windows signed NSIS x64 + arm64 (CI) | `tauri-release-windows.yml` — push an `app-v*` tag |
+| macOS signed DMG (local, no CI) | `make -f desktop-release.mk macos-dmg` |
+| Windows signed NSIS (local, no CI) | `make -f desktop-release.mk windows-nsis` |
 | macOS CI workflow | the templates in `assets/tauri/workflows/` |
 | Surface CI workflow | the templates in `assets/tauri/workflows/` |
 | Linux CI workflow | the templates in `assets/tauri/workflows/` |
@@ -503,5 +524,6 @@ Generate CI workflows for all platforms at once:
 ## Reference
 
 - [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + scaffold and command behavior
+- [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
 - [`references/builds-command.md`](references/builds-command.md) -- full `iblai builds` subcommand behavior (for reference)
 - `references/builds-command.md` -- full list of build commands
