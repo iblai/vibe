@@ -78,6 +78,57 @@ This configures:
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
 
+## Build-Time Flags (Tenant Lock & In-App Purchase)
+
+The Tauri shell exposes two build-time flags so a **single codebase can
+produce differently-configured builds** — e.g. one desktop/mobile build
+locked to tenant A and another locked to tenant B, both served from the same
+app URL. The values are baked in at `cargo build` time via Rust's
+`option_env!`, so they are set as **environment variables in the build shell**
+(not `iblai.env`, which is CLI config) before running the build:
+
+| Env var | Command exposed to JS | Default | Effect |
+|---|---|---|---|
+| `IBL_TENANT` | `get_locked_tenant` → `string` | `""` (unlocked) | Locks the build to one tenant: the frontend forces login to it and hides tenant switching. |
+| `IBL_ALLOW_IN_APP_PURCHASE` | `allow_in_app_purchase` → `bool` | `false` | Enables in-app purchase UI. Truthy values: `1`/`true`/`yes`/`on` (case-insensitive). |
+
+Set them before the build (they are read at compile time, so they must be in
+the environment when cargo compiles `src-tauri`):
+
+```bash
+# tenant-locked build with in-app purchase enabled
+IBL_TENANT=acme IBL_ALLOW_IN_APP_PURCHASE=true iblai builds build
+```
+
+In CI, set them as env on the build step:
+
+```yaml
+- name: Build
+  env:
+    IBL_TENANT: acme
+    IBL_ALLOW_IN_APP_PURCHASE: "true"
+  run: iblai builds build
+```
+
+`src-tauri/build.rs` declares `cargo:rerun-if-env-changed` for both, so cargo
+recompiles when a value changes between builds. Unset → the "off" default, so
+a normal build is unaffected.
+
+**Frontend consumption** (app code, outside this template) invokes the
+commands and reacts to them:
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+const lockedTenant = await invoke<string>('get_locked_tenant'); // '' = unlocked
+const iap = await invoke<boolean>('allow_in_app_purchase');
+```
+
+When `get_locked_tenant` returns a non-empty key, force the user onto that
+tenant (logging out of any other) and hide the tenant switcher. The commands
+are registered in `src-tauri/src/lib.rs` (`generate_handler!`); no extra ACL
+entry is needed since they are application commands.
+
 ## App Icons
 
 Generate platform-ready icons from your logo (works for all platforms):
@@ -333,11 +384,21 @@ Or:
 pnpm tauri:build
 ```
 
-#### macOS CI
+#### Signed + notarized release — CI or local
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+**CI:** copy `assets/tauri/workflows/tauri-release-macos-dmg.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds a **signed + notarized**
+universal `.dmg` (Intel + Apple Silicon) and attaches it to the tag's GitHub
+Release; a manual run produces a build-only artifact.
+
+**Local (no CI):** copy `assets/tauri/desktop-release.mk` +
+`desktop-signing.env.example` to your project root and run
+`make -f desktop-release.mk macos-dmg` — same sign + notarize, on your own Mac.
+
+Either way needs Apple Developer ID credentials — full setup in
+[`references/signed-release.md`](references/signed-release.md). For a quick
+**unsigned** build across macOS/Linux/Windows, use
+`assets/tauri/workflows/tauri-build-desktop.yml`.
 
 ---
 
@@ -373,11 +434,18 @@ pnpm exec tauri build
 The installer targets are configured in `src-tauri/tauri.conf.json` under
 `bundle.targets` (includes `nsis` and `msi` by default).
 
-#### Surface CI
+#### Surface / Windows CI (signed NSIS, x64 + arm64)
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+Copy `assets/tauri/workflows/tauri-release-windows.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds **signed** NSIS
+installers for x64 and arm64 and attaches them to the Release. It signs with a
+stored `.pfx` if you provide one, otherwise generates a self-signed cert in the
+runner (zero setup) — see [`references/signed-release.md`](references/signed-release.md).
+Requires `bundle.windows.certificateThumbprint: null` in `tauri.conf.json` (the
+template already has it). To build **locally** instead, run
+`make -f desktop-release.mk windows-nsis` on a Windows machine. For a Store /
+sideload **MSIX** package instead, see
+[`/iblai-vibe-windows-msix`](../iblai-vibe-windows-msix/SKILL.md).
 
 ---
 
@@ -440,6 +508,10 @@ Generate CI workflows for all platforms at once:
 | **Desktop** | |
 | Run desktop dev mode | `pnpm exec tauri dev` |
 | Build desktop release | `pnpm exec tauri build` |
+| macOS signed + notarized DMG (CI) | `tauri-release-macos-dmg.yml` — push an `app-v*` tag |
+| Windows signed NSIS x64 + arm64 (CI) | `tauri-release-windows.yml` — push an `app-v*` tag |
+| macOS signed DMG (local, no CI) | `make -f desktop-release.mk macos-dmg` |
+| Windows signed NSIS (local, no CI) | `make -f desktop-release.mk windows-nsis` |
 | macOS CI workflow | the templates in `assets/tauri/workflows/` |
 | Surface CI workflow | the templates in `assets/tauri/workflows/` |
 | Linux CI workflow | the templates in `assets/tauri/workflows/` |
@@ -451,5 +523,6 @@ Generate CI workflows for all platforms at once:
 ## Reference
 
 - [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + scaffold and command behavior
+- [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
 - [`references/builds-command.md`](references/builds-command.md) -- full `iblai builds` subcommand behavior (for reference)
 - `references/builds-command.md` -- full list of build commands
