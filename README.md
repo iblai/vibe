@@ -398,6 +398,29 @@ make release-all       # ship to both stores
 
 `make *-submit` pushes to TestFlight / the Play internal track -- promoting to
 public App Store review or production stays a deliberate step in the consoles.
+#### Signed desktop releases (macOS DMG + Windows NSIS)
+
+`/iblai-vibe-ops-build` also ships **signed, distributable** desktop builds —
+a **notarized** universal macOS `.dmg` (Intel + Apple Silicon) and **signed**
+NSIS installers for Windows **x64 + arm64**. Run them two ways:
+
+- **CI** — copy the `tauri-release-macos-dmg.yml` / `tauri-release-windows.yml`
+  workflows into `.github/workflows/`, then push an `app-v*` tag. Each build is
+  signed (macOS also notarized + stapled) and attached to that tag's GitHub
+  Release. Great for producing macOS + Windows (+ arm64) from a single push.
+- **Local (no CI)** — copy `desktop-release.mk` to your project root and build
+  on your own machine:
+
+  ```bash
+  make -f desktop-release.mk macos-dmg      # signed + notarized universal DMG
+  make -f desktop-release.mk windows-nsis   # signed NSIS installer (on Windows)
+  ```
+
+Credentials (Apple Developer ID cert + notarization password; optional Windows
+cert) are the same for both paths — full setup in
+[`references/signed-release.md`](skills/iblai-vibe-ops-build/references/signed-release.md).
+For a Windows Store / sideload **MSIX** package instead, see
+[`/iblai-vibe-windows-msix`](skills/iblai-vibe-windows-msix/SKILL.md).
 
 ## Resources
 
