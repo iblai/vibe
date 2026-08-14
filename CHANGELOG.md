@@ -4,6 +4,13 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-08-14
+
+### Added
+
+- add signed + notarized macOS/Windows desktop release builds
+- add /iblai-vibe-ops-release for App Store & Play submission
+
 ## [1.13.0] - 2026-08-11
 
 ### Added
