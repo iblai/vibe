@@ -281,6 +281,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-vibe-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
 | `/iblai-vibe-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
+| `/iblai-vibe-ops-release` | Generate a Makefile + Fastlane config to build & submit to the App Store and Google Play |
 | `/iblai-vibe-ops-test` | Test your app before showing work to the user |
 | `/iblai-vibe-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
@@ -361,5 +362,13 @@ pnpm exec tauri dev          # Dev mode
 pnpm exec tauri build        # Production build
 pnpm exec tauri ios init     # iOS project setup
 ```
+
+### App Store / Google Play submission
+
+Generate a `Makefile` + Fastlane config that builds and submits to the Apple
+App Store and Google Play — see
+[`/iblai-vibe-ops-release`](skills/iblai-vibe-ops-release/SKILL.md)
+(`make ios-release`, `make android-release`; handles App Store Connect API key
+and Play service-account credentials).
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
