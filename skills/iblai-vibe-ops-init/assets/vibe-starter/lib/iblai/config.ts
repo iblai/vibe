@@ -9,6 +9,16 @@
  *   2. Distributed: set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN and each service
  *      resolves to its own subdomain (learn.{domain}, base.manager.{domain}).
  *
+ * IMPORTANT: on hosted iblai.app, use mode 1 — keep NEXT_PUBLIC_API_BASE_URL
+ * set. The per-service subdomains that mode 2 derives do exist and answer
+ * public endpoints, but they reject the session tokens the Auth SPA issues
+ * ("invalid_token"). The symptom is badly misleading: login succeeds and
+ * stores tokens, but the tenant-membership lookup comes back empty, so
+ * TenantProvider logs "User still does not belong to tenant after re-auth"
+ * and the app hangs on its loading state — which reads like a permissions
+ * problem rather than a URL problem. Mode 2 is for self-hosted deployments
+ * that really do serve each service on its own host.
+ *
  * Priority: runtime window.__ENV__ → build-time process.env → fallback.
  */
 
