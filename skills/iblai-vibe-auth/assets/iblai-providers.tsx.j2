@@ -16,7 +16,7 @@
  *   }
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 import { usePathname } from "next/navigation";
 import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
@@ -66,6 +66,15 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
     return true;
   });
 
+  // `isInitialized` is false during SSR but true on the client's first render,
+  // so gating the tree on it alone makes server and client markup disagree and
+  // React throws a hydration mismatch on every route. Gate on a mount flag
+  // instead: server and first client render both produce LOADING, and the tree
+  // appears on the next commit. The data layer is still initialized
+  // synchronously above, before any child can fire a query.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const username = useMemo(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -86,7 +95,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
     </div>
   );
 
-  if (!isInitialized) return LOADING;
+  if (!isInitialized || !mounted) return LOADING;
 
   return (
     <ReduxProvider store={iblaiStore}>
