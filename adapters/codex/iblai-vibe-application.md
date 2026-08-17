@@ -1,0 +1,442 @@
+# iblai-vibe-application
+
+> Add the platform application gate (admissions) — the admin Applications tab (forms editor, submissions pipeline, reviewer workspace, blocked users) and the public applicant apply wizard route. Use when the user mentions "applications", "admissions", "apply form", "application form", "enrollment application", "review applicants", "accept/decline applicants", or "apply wizard".
+
+# /iblai-vibe-application
+
+Add the **platform application gate** (admissions) — the surface a platform
+uses to make membership application-only: staff author application forms and
+review submissions, applicants fill the form on a public link and track their
+outcome.
+
+It ships as two independent halves:
+
+| Half | Component | Where it lives |
+|------|-----------|----------------|
+| **Admin** | `Admin` → Applications tab | Inside the account/settings page (`Account` → Management tab), or mounted directly |
+| **Applicant** | `ApplyWizard` | Two public routes: `/applications/<platform-key>` and `/applications/<platform-key>/<form-id>` |
+
+The two connect through a copyable link: an admin copies a form's applicant
+link from the Applications tab and shares it; the link opens the wizard for
+that form.
+
+Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
+They ship with their own styling. Keep the components as-is.
+Do NOT implement dark mode unless the user explicitly asks for it.
+
+When building custom UI around SDK components, use the ibl.ai brand:
+- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
+- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
+- Follow the component hierarchy: use ibl.ai SDK components
+  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
+  (`npx shadcn@latest add <component>`). Do NOT write custom components
+  when an ibl.ai or shadcn equivalent exists. Both share the same
+  Tailwind theme and render in ibl.ai brand colors automatically.
+- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
+  colors, typography, spacing, and component styles.
+
+You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
+
+After all work is complete, start a dev server (`pnpm dev`) so the user
+can see the result at http://localhost:3000.
+
+`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
+shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
+its runtime env vars from `.env.local`.
+
+Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
+is not installed.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## Prerequisites
+
+- Auth must be set up first (`/iblai-vibe-auth`)
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
+- `@iblai/iblai-js` recent enough to export both surfaces. Verify:
+  ```bash
+  grep -rl "ApplyWizard" node_modules/@iblai/iblai-js/dist/web-containers | head -1
+  ```
+  Nothing printed → upgrade (`/iblai-vibe-ops-upgrade`).
+- The admin half needs a reviewer account on the platform. The manage
+  endpoints are RBAC-gated — see `/iblai-vibe-rbac`.
+- The platform must be in **application mode** for the wizard to render a
+  form. `open` / `invite_only` platforms render an informational notice
+  instead (the gate `mode`, set platform-side, not from this UI).
+
+## Step 1: Check Environment
+
+Before proceeding, check for an `iblai.env` in the project root. Look for
+`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
+is missing these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+
+## Step 2: Mount the Admin Applications Tab
+
+The Applications tab lives inside the `Admin` component, which the `Account`
+component renders under its **Management** tab. If the app already has an
+account page (`/iblai-vibe-account`), the tab is one prop away — pass
+`authURL` so the copyable applicant links resolve:
+
+```tsx
+// app/(app)/account/page.tsx — existing Account page
+<Account
+  tenant={tenantKey}
+  tenants={tenants}
+  username={username}
+  isAdmin={isAdmin}
+  authURL={config.authUrl()}   // ← required for the copyable applicant link
+  onInviteClick={() => {}}
+  onClose={() => router.push("/")}
+  targetTab="management"       // opens straight on Management
+/>
+```
+
+To give applications their own page instead, mount `Admin` directly:
+
+```tsx
+// app/(app)/applications/page.tsx
+"use client";
+
+import { Admin } from "@iblai/iblai-js/web-containers";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function ApplicationsAdminPage() {
+  const tenantKey = resolveAppTenant();
+
+  return (
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[85vw] md:px-0">
+      <Admin
+        tenant={tenantKey}
+        authSpaUrl={config.authUrl()}
+        onInviteClick={() => {}}
+      />
+    </div>
+  );
+}
+```
+
+`Admin` renders the Applications tab **unconditionally** — every other tab
+(Users, Groups, Roles, Policies, Teams, Alerts) is behind a
+`has*TabPermission` prop, so with none of them passed the page shows
+Applications only. The tab reads `platformKey` from `tenant` and fetches
+everything itself; no other props are required.
+
+## Step 3: Add the Public Applicant Routes
+
+The wizard is what a form's copied link opens. Create two routes so both the
+default-form link and per-form links work:
+
+```
+app/applications/[platformKey]/page.tsx            → the platform's DEFAULT form
+app/applications/[platformKey]/[formId]/page.tsx   → one specific form
+```
+
+Both render the same component:
+
+```tsx
+// app/applications/[platformKey]/page.tsx        (and .../[formId]/page.tsx)
+"use client";
+
+import ApplicationPage from "@/components/applications/application-page";
+
+export const dynamic = "force-dynamic";
+
+export default ApplicationPage;
+```
+
+```tsx
+// components/applications/application-page.tsx
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ApplyWizard } from "@iblai/iblai-js/web-containers";
+import { useGetAppTokensMutation } from "@iblai/iblai-js/data-layer";
+import config from "@/lib/iblai/config";
+
+/** Origin to send the applicant back to after submitting (?redirect-to=). */
+function redirectTo(): string | null {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get("redirect-to");
+}
+
+export default function ApplicationPage() {
+  const router = useRouter();
+  const { platformKey, formId } = useParams<{
+    platformKey: string;
+    formId?: string;
+  }>();
+  const [getAppTokens] = useGetAppTokensMutation();
+  const [dmToken, setDmToken] = useState<string | null>(null);
+  const requested = useRef(false);
+
+  // The gate calls run with the MAIN tenant's DM token — applicants are
+  // usually not members of the platform they are applying to. Held in memory
+  // only, so the selected tenant's stored token is left untouched.
+  useEffect(() => {
+    if (requested.current) return;
+    requested.current = true;
+    (async () => {
+      const body = new FormData();
+      body.append("platform_key", config.mainTenantKey() || "main");
+      const { data } = await getAppTokens(body).unwrap();
+      setDmToken(data?.dm_token?.token ?? null);
+    })();
+  }, [getAppTokens]);
+
+  if (!platformKey || !dmToken) return <div className="p-8">Loading…</div>;
+
+  return (
+    <ApplyWizard
+      platformKey={platformKey}
+      {...(formId ? { formId } : {})}
+      token={dmToken}
+      dmUrl={config.dmUrl()}
+      onComplete={() => router.push(redirectTo() || "/")}
+    />
+  );
+}
+```
+
+### Provider requirements for the applicant routes
+
+- The wizard needs the **data-layer store + `initializeDataLayer`** only.
+- Do **not** wrap these routes in `TenantProvider` — it blocks on tenant
+  membership, and applicants are usually not members. In a vibe-starter app
+  the provider chain lives in `providers/iblai-providers.tsx`; skip the
+  tenant layer on these routes the same way it already skips SSO routes:
+
+  ```tsx
+  const isApplyRoute = pathname?.startsWith("/applications") ?? false;
+  // …
+  <TenantProvider skip={isSsoRoute || isApplyRoute} /* … */>
+  ```
+
+  Leave `AuthProvider` in place — applicants must still be **authenticated**.
+  It sends unauthenticated visitors through SSO with the current path and
+  query preserved, so the link's `?redirect-to=` survives the round trip.
+- Import the SDK stylesheet once: `@iblai/iblai-js/web-containers/styles`.
+- Keep the routes at `app/applications/…`, outside the `(app)` group, so the
+  navbar/chrome layout does not wrap the applicant experience.
+
+### The applicant link
+
+The Applications tab copies links in this shape — build them the same way if
+the app needs to render one itself (the SDK's internal helper is not exported):
+
+```
+<AUTH_URL>/applications/<platform-key>/<form-id>?redirect-to=<origin>
+<AUTH_URL>/applications/<platform-key>?redirect-to=<origin>        # default form
+```
+
+`AUTH_URL` comes from the `authSpaUrl` / `authURL` prop, else
+`window.__ENV__.NEXT_PUBLIC_AUTH_URL`, else `process.env.NEXT_PUBLIC_AUTH_URL`.
+With none of them resolvable the copy button hides itself. Hosting the routes
+in this app instead of the auth SPA? Pass that origin as `authSpaUrl`.
+
+## Surfaces
+
+### Admin (inside the Applications tab)
+
+| Surface | What it does |
+|---------|--------------|
+| **Forms list** (entry) | Every application form of the platform: title, version, enabled/disabled, default badge. Per-row: copy applicant link, view submissions, edit. Header: **Blocked users**, **All submissions** (count from pipeline stats), **New form** |
+| **Submissions pipeline** | Paginated rows (20/page) with status filter (all + the 9 statuses), debounced search, a structured student filter (`key=value` → `candidate.<key>=<value>`), and sort. Filtering by form is client-side per page — the endpoint has no form filter |
+| **Submission workspace** | One application: applicant header, per-student (candidate) cards with status / identity / enrollment-phase badges, decide dialogs (per student or family-wide), answers rendered against the form-version snapshot, attachment downloads, the submit-blocking checklist with waivers + override submit, placements and course assignments for accepted students, internal notes, audit trail |
+| **Questions editor** | Create or edit a form: title, description, enabled toggle, "make default", sections (reorder, repeatable, one candidate section) and fields via the question dialog. Save errors come back per `section.field` |
+| **Blocked users** | The ban list (entries are created by decline-with-block) with removal |
+
+### Applicant (the wizard)
+
+| State | What renders |
+|-------|--------------|
+| **Steps** | One step per section, a repeatable candidate section ("Add another student"), explicit **Save draft**, a review step, then submit |
+| **Resume** | An editable submission (`draft`, `needs_more_info`) seeds the steps with saved answers |
+| **Status page** | A decided/locked submission: family status, per-student outcomes with decision messages, withdraw while undecided, **Renew** once approved (pre-filled from the approved application), the caller's other applications |
+| **Mode notice** | Platform is `open` or `invite_only` — nothing to fill in |
+| **Gate block** | `already_member`, `open_submission_exists`, `reapply_cooldown`, `renewal_priority_window`, `cannot_apply` render as terminal states |
+| **404** | Bare link with no default form, an unresolvable form id, or no renderable schema |
+
+## Form schema contract
+
+A form is `sections` → `fields`, saved as the record's `schema`. The backend
+re-validates on save and on submit and stays authoritative.
+
+```jsonc
+{
+  "title": "Fall Admission",
+  "description": "Apply for the fall term.",
+  "sections": [
+    {
+      "key": "students",
+      "title": "Students",
+      "repeatable": true,      // applicant may add several entries
+      "candidate": true,       // ← entries become per-student candidates (max one such section)
+      "item_label": "student", // "Add another student"
+      "min_items": 1,
+      "fields": [
+        { "key": "name", "type": "text", "label": "Full name", "required": true },
+        { "key": "grade", "type": "select", "label": "Grade",
+          "options": [{ "value": "k", "label": "Kindergarten" }],
+          "ui": { "widget": "radio" } },
+        { "key": "transcript", "type": "file", "label": "Transcript",
+          "file_config": { "allowed_extensions": ["pdf"], "max_size_mb": 5, "max_files": 2 } },
+        { "key": "consent", "type": "boolean", "label": "I agree", "must_be_true": true },
+        { "key": "sibling", "type": "text", "label": "Sibling name",
+          "visible_if": { "field": "has_sibling", "operator": "equals", "value": true } }
+      ]
+    }
+  ],
+  "resources": [{ "label": "Handbook", "url": "https://…" }]
+}
+```
+
+- **Field types**: `text`, `textarea`, `email`, `phone`, `number`, `date`,
+  `boolean`, `select`, `multi_select`, `file`, `signature`, `info`
+  (`info` displays content and collects nothing).
+- **Validators**: `min_length`, `max_length`, `pattern`, `min`, `max`,
+  `min_items`, `max_items` — each `{ check, value, error? }`.
+- **`visible_if`** operators: `equals`, `not_equals`, `in`, `gte`, `lte`.
+  The field is `"section.field"` (absolute) or a bare `"field"` (same
+  repeatable entry).
+- **Uploads** are capped at 5 MB client-side; a field's `file_config.max_size_mb`
+  may tighten that, never widen it.
+- **`sensitive`** on a section or field masks the answer in the reviewer
+  workspace (the detail payload lists masked paths in `sensitive_masked`).
+- The question dialog edits label, type, required, placeholder, help text,
+  options, `must_be_true`, and `info` content — it preserves `visible_if`,
+  `validators`, and `file_config` untouched, so author those in the schema
+  and they survive edits. A field's `key` is slugified from its label on
+  creation and never changes afterward.
+
+## Statuses and transitions
+
+| Family (application) | Candidate (per student) |
+|---|---|
+| `draft`, `submitted`, `under_review`, `needs_more_info`, `interview_required`, `waitlisted`, `approved`, `denied`, `withdrawn` | `pending`, `under_review`, `needs_more_info`, `interview_required`, `waitlisted`, `accepted`, `declined` |
+
+Reviewer actions (`transitionApplication`, family-wide or with a
+`candidate_id`): `start_review`, `request_info`, `require_interview`,
+`waitlist`, `accept`, `decline`. `decline` with `block: true` adds the
+applicant to the ban list. `message` reaches the applicant (shown on the
+status page); `note` is internal.
+
+`draft` and `needs_more_info` are the **editable** statuses — the applicant
+resumes the wizard; everything else routes to the status page.
+
+## `<ApplyWizard>` Props
+
+Import from `@iblai/iblai-js/web-containers` (framework-agnostic bundle).
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `platformKey` | `string` | Yes | Platform whose gate/form is fetched |
+| `formId` | `number \| string` | No | Specific form; omit to resolve the platform default |
+| `token` | `string` | No | Explicit DM token overriding the stored one on every gate call — use the main tenant's token when the wizard runs outside the target tenant's app |
+| `dmUrl` | `string` | No | DM base URL; the top bar then shows `<dmUrl>/api/core/orgs/<platformKey>/logo/` |
+| `logoUrl` | `string` | No | Explicit logo URL; wins over `dmUrl` |
+| `brandName` | `string` | No | Top-bar name. Defaults to the form title |
+| `showTopBar` | `boolean` | No | Default `true` |
+| `showLogo` | `boolean` | No | Default `true` (renders only when a URL resolves) |
+| `className` | `string` | No | Wrapper class |
+| `onComplete` | `() => void` | No | Fires from the Continue CTA on the submitted / gate-blocked screens. Omitted → no CTA |
+
+## `<Admin>` Props (applications-relevant subset)
+
+Import from `@iblai/iblai-js/web-containers`.
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `tenant` | `string` | Yes | Platform key — becomes the tab's `platformKey` |
+| `onInviteClick` | `() => void` | Yes | Users-tab callback; pass a no-op when mounting for applications only |
+| `authSpaUrl` | `string` | No | Base URL for the copyable applicant link. Falls back to runtime env |
+| `has*TabPermission` | `boolean` | No | Gate the other tabs (Users, Groups, Roles, Policies, Teams, Alerts). Applications is always shown |
+
+## Data-layer hooks
+
+From `@iblai/iblai-js/data-layer` — all under
+`/api/catalog/applications/platform/…` on the DM service. Every
+applicant-facing hook takes an optional `token`.
+
+**Applicant:** `useGetApplicationStatusQuery` (the gate state that drives
+routing), `useGetApplicationFormQuery`, `useCreateApplicationDraftMutation`,
+`useUpdateApplicationMutation` (replaces the whole responses object, not a
+delta), `useSubmitApplicationMutation`,
+`useUploadApplicationAttachmentMutation`,
+`useDeleteApplicationAttachmentMutation`, `useListOwnApplicationsQuery`,
+`useRenewApplicationMutation`, `useWithdrawApplicationMutation`.
+
+**Forms management:** `useGetApplicationFormsQuery`,
+`useGetApplicationFormDetailQuery`, `useCreateApplicationFormMutation`,
+`useUpdateApplicationFormMutation`.
+
+**Reviewer:** `useGetApplicationsPipelineQuery`,
+`useGetApplicationsPipelineStatsQuery`, `useGetApplicationAdminDetailQuery`,
+`useTransitionApplicationMutation`, `useCreateApplicationWaiverMutation`,
+`useDeleteApplicationWaiverMutation`, `useSubmitApplicationOverrideMutation`,
+`useGetApplicationNotesQuery` + create/update/delete,
+`useLazyGetApplicationAttachmentFileQuery`, `useGetApplicationBlocksQuery`,
+`useDeleteApplicationBlockMutation`, `useGetApplicationPlacementsQuery` +
+create/update, `useGetApplicationCourseAssignmentsQuery` + create/delete,
+`useInviteApplicationCandidateMutation`,
+`useLinkApplicationCandidateMutation`.
+
+Build custom application UI on these hooks rather than calling the endpoints
+directly — they carry the cache tags (`platform_applications`,
+`platform_application_forms`) the SDK components invalidate.
+
+## Step 4: Use MCP Tools for Customization
+
+```
+get_component_info("ApplyWizard")
+get_component_info("Admin")
+get_component_info("Account")
+get_api_query_info("useGetApplicationStatusQuery")
+```
+
+## Step 5: Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+
+1. `pnpm build` — must pass with zero errors
+2. `pnpm test` — vitest must pass
+3. Start dev server and touch test both halves:
+   ```bash
+   pnpm dev &
+   npx playwright screenshot http://localhost:3000/account /tmp/applications-admin.png
+   npx playwright screenshot http://localhost:3000/applications/<platform-key> /tmp/apply.png
+   ```
+
+End-to-end check: create a form in the editor, enable it, mark it default,
+copy its link, open it in a private window as a non-member account, submit,
+then decide it from the pipeline.
+
+## Important Notes
+
+- **Redux store**: must include `mentorReducer` and `mentorMiddleware`; the
+  platform API slice ships inside those bundles.
+- **`initializeDataLayer()`**: 5 args (v1.2+).
+- **`@reduxjs/toolkit`**: deduplicated via webpack aliases in `next.config.ts`.
+- **Peer dep**: `sonner` — the admin surfaces toast on save/decide.
+- **Token nuance**: the wizard's `token` is held in memory and never written
+  to storage, so the selected tenant's `dm_token` stays intact. Skip it and
+  the wizard uses the current tenant's stored token — correct only when the
+  applicant is already a member of that tenant.
+- **Application rules are per form.** A family may hold applications on two
+  forms of one platform; a submission on a sibling form does not block a
+  fresh apply on this one.
+- **No default form set** and several forms active → a bare
+  `/applications/<key>` link 404s. Either mark one form default or hand out
+  per-form links.
+- **Blocking checklist**: a reviewer can waive individual required items
+  (excused items stop blocking) or force-submit a stuck draft with
+  `submitApplicationOverride`, which waives every missing required item.
+- **Placements and course assignments** only apply to `accepted` candidates.
+- **The fee panel is deliberately not implemented** in the reviewer
+  workspace — fee state comes back on the gate payload but no UI drives it.
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
