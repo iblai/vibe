@@ -39,12 +39,13 @@ Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 ## Env: `.env.local` before build
 
 A vibe app (scaffolded from **vibe-starter** or rendered from these templates)
-needs a `.env.local` to build or run. **Always ensure one exists before
-`pnpm build`** — a missing file is the usual cause of a blank or
-mis-tenanted build:
+reads its config from `.env.local`. **Always ensure one exists before
+`pnpm build`** — a missing file is the usual cause of a mis-tenanted build.
+(vibe-starter apps carry the URL defaults in code, so only the tenant key
+and `IBLAI_API_KEY` are at stake; CLI-rendered apps need the full set):
 
 ```bash
-[ -f .env.local ] || cp .env.example .env.local   # if the app ships .env.example
+[ -f .env.local ] || cp .env.example .env.local
 ```
 
 No `.env.example` in the project? Seed one from this skill's canonical copy

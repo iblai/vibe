@@ -2,12 +2,21 @@
 /**
  * ibl.ai runtime configuration.
  *
+ * Hosted-iblai.app defaults live in code: with no env vars at all, every
+ * service routes through https://api.iblai.app. `.env.local` (copied from
+ * `.env.example`) holds the tenant key, IBLAI_API_KEY, and any self-hosted
+ * overrides.
+ *
  * Supports two modes:
- *   1. Consolidated API (recommended): set NEXT_PUBLIC_API_BASE_URL to a
- *      single origin (e.g. https://api.iblai.app). LMS, DM, and AXD
- *      endpoints are derived as /lms, /dm, /axd path prefixes.
- *   2. Distributed: set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN and each service
- *      resolves to its own subdomain (learn.{domain}, base.manager.{domain}).
+ *   1. Consolidated API (default on hosted iblai.app): NEXT_PUBLIC_API_BASE_URL
+ *      is a single origin; LMS, DM, and AXD endpoints are derived as /lms,
+ *      /dm, /axd path prefixes.
+ *   2. Distributed (self-hosted only): set NEXT_PUBLIC_PLATFORM_BASE_DOMAIN
+ *      to your own domain and leave NEXT_PUBLIC_API_BASE_URL unset — each
+ *      service resolves to its own subdomain (learn.{domain},
+ *      base.manager.{domain}). Not available on hosted iblai.app: its
+ *      per-service hosts reject the session tokens the Auth SPA issues
+ *      (iblai/vibe#155).
  *
  * Priority: runtime window.__ENV__ → build-time process.env → fallback.
  */
@@ -39,24 +48,34 @@ const getEnv = (key: keyof typeof env, fallback = ""): string =>
 const domain = () =>
   getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app");
 
+// With no explicit NEXT_PUBLIC_API_BASE_URL, hosted iblai.app always routes
+// through the consolidated API — its per-service subdomains reject the
+// session tokens the Auth SPA issues (iblai/vibe#155). A non-iblai.app
+// domain with no API base opts into distributed mode.
+const apiBase = () => {
+  const explicit = getEnv("NEXT_PUBLIC_API_BASE_URL");
+  if (explicit) return explicit;
+  return domain() === "iblai.app" ? "https://api.iblai.app" : "";
+};
+
 const config = {
-  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", `https://auth.${domain()}`),
+  authUrl: () => getEnv("NEXT_PUBLIC_AUTH_URL", `https://login.${domain()}`),
 
   lmsUrl: () => {
-    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
-    if (apiBase) return `${apiBase}/lms`;
+    const base = apiBase();
+    if (base) return `${base}/lms`;
     return `https://learn.${domain()}`;
   },
 
   dmUrl: () => {
-    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
-    if (apiBase) return `${apiBase}/dm`;
+    const base = apiBase();
+    if (base) return `${base}/dm`;
     return `https://base.manager.${domain()}`;
   },
 
   axdUrl: () => {
-    const apiBase = getEnv("NEXT_PUBLIC_API_BASE_URL");
-    if (apiBase) return `${apiBase}/axd`;
+    const base = apiBase();
+    if (base) return `${base}/axd`;
     return `https://base.manager.${domain()}`;
   },
 
@@ -69,6 +88,13 @@ const config = {
   mainTenantKey: () => getEnv("NEXT_PUBLIC_MAIN_TENANT_KEY", ""),
   tauriCustomScheme: () => getEnv("NEXT_PUBLIC_TAURI_CUSTOM_SCHEME", ""),
   platformBaseDomain: () => domain(),
+
+  // Server-only: IBLAI_API_KEY is a secret and not NEXT_PUBLIC_*, so Next.js
+  // never inlines it into the client bundle — in the browser this returns "".
+  // Use it from route handlers / server components for platform API calls
+  // (`Authorization: Token <key>`). Deliberately not routed through
+  // getEnv/window.__ENV__, which are client-visible.
+  apiKey: () => process.env.IBLAI_API_KEY ?? "",
 };
 
 export default config;

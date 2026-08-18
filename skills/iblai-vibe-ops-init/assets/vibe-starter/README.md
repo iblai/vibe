@@ -24,8 +24,10 @@ The starting point for any ibl.ai single-page app.
 This project was scaffolded from the vibe-starter template bundled with
 [iblai/vibe](https://github.com/iblai/vibe) (the `/iblai-vibe-ops-init` skill).
 
-Copy `.env.example` to `.env.local` (then set `NEXT_PUBLIC_MAIN_TENANT_KEY`),
-install, and start the dev server:
+Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_MAIN_TENANT_KEY` —
+the API/auth/websocket URLs default to hosted iblai.app in
+`lib/iblai/config.ts`, so the tenant key (and optionally `IBLAI_API_KEY`) is
+all `.env.local` needs. Then install and start the dev server:
 
 ```bash
 cp .env.example .env.local
@@ -132,7 +134,8 @@ components/
 lib/iblai/                        # config, storage-service, auth-utils, tenant
 providers/iblai-providers.tsx     # Redux + Auth + Tenant providers
 store/iblai-store.ts              # RTK store
-iblai.env                         # Platform credentials (DOMAIN, PLATFORM, TOKEN)
+.env.example                      # Copy to .env.local — tenant key + IBLAI_API_KEY (URLs default in code)
+iblai.env.example                 # Copy to iblai.env — CLI shorthand (DOMAIN, PLATFORM, TOKEN)
 ```
 
 ## AI-Assisted Development
