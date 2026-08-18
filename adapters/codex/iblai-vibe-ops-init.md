@@ -105,9 +105,11 @@ Then write the values to both files:
 2. **`.env.local`** -- write directly. Do NOT re-run any scaffolding (e.g.
    the `/iblai-vibe-auth` file generation) -- the starter already has everything
    wired and regenerating those files can clobber the starter's versions.
-   If `.env.local` does not exist yet and the starter
-   ships an `.env.example`, copy it first (`cp .env.example .env.local`),
-   then update or append both lines (write `TOKEN` as `IBLAI_API_KEY`):
+   If `.env.local` does not exist yet, copy the starter's example first
+   (`cp .env.example .env.local`), then update or append both lines (write
+   `TOKEN` as `IBLAI_API_KEY`). The API/auth/websocket URLs default to
+   hosted iblai.app in `lib/iblai/config.ts`, so these two values are all
+   that must change:
 
    ```
    NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>

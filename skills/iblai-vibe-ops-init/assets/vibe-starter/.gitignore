@@ -30,7 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — only the *.example templates are committed. Real env files
+# (.env.local with your tenant key + secrets, iblai.env with your platform
+# token) must never be committed.
 .env*
 !.env.example
 !.env.*.example

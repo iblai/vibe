@@ -54,8 +54,11 @@ pnpm install --ignore-scripts
 
 > **Install policy:** always run `pnpm install` / `pnpm i` with `--ignore-scripts` to skip package lifecycle (postinstall) scripts — a sandbox-hardening default.
 
-Then fill in `iblai.env` with `PLATFORM` and `TOKEN`, and set
-`NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) in `.env.local`.
+Then copy `iblai.env.example` → `iblai.env` and fill in `PLATFORM` and
+`TOKEN`, and copy `.env.example` → `.env.local` setting
+`NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) and `IBLAI_API_KEY` (= `TOKEN`).
+The API/auth/websocket URLs default to hosted iblai.app in
+`lib/iblai/config.ts`, so those two values are all `.env.local` needs.
 
 ### Vanilla Next.js + ibl.ai Features
 
@@ -126,7 +129,9 @@ VERCEL_TOKEN=your-vercel-token   # Optional — for mobile dev builds via Vercel
 
 Map `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` into the
 `NEXT_PUBLIC_*` env vars in `.env.local` (`NEXT_PUBLIC_MAIN_TENANT_KEY` ←
-`PLATFORM`; the API URLs default to `iblai.app`).
+`PLATFORM`; the API URLs default to `iblai.app`). vibe-starter apps carry
+the URL defaults in code (`lib/iblai/config.ts`) — there `.env.local` only
+needs the tenant key and `IBLAI_API_KEY`.
 
 > **Important:** `iblai.env` is NOT a replacement for `.env.local`. It only
 > holds the 3 shorthand variables. Next.js reads its runtime env vars from
@@ -312,7 +317,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-skills` | Add the agent Skills tab (reusable Agent Skills with per-agent assignment, private skills, file resources, and the chat `/` skill picker) |
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
-| `/iblai-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
+| `/iblai-vibe-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
 | `/iblai-vibe-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
 
 ### Marketing Skills

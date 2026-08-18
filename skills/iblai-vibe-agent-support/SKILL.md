@@ -1,10 +1,11 @@
 ---
-description: "Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to your Next.js app"
+name: iblai-vibe-agent-support
+description: Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to your Next.js app
 globs:
 alwaysApply: false
 ---
 
-# /iblai-agent-support
+# /iblai-vibe-agent-support
 
 Add the agent **Support tab** -- human support ticket management for the
 agent. Support lets people chatting with the agent hand the conversation
@@ -15,11 +16,11 @@ with status control and a reply thread. This is one tab in the wider
 agent-settings family. All tabs share the same `AgentSettingsProvider`
 wrapper.
 
-![Support Tab — Ticket Inbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-support/iblai-agent-support-1-tickets.png)
+![Support Tab — Ticket Inbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-support/iblai-vibe-agent-support-1-tickets.png)
 
-![Support Tab — Ticket Detail](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-support/iblai-agent-support-2-ticket-detail.png)
+![Support Tab — Ticket Detail](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-support/iblai-vibe-agent-support-2-ticket-detail.png)
 
-![Support Tab — Conversation and Reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-agent-support/iblai-agent-support-3-reply.png)
+![Support Tab — Conversation and Reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-support/iblai-vibe-agent-support-3-reply.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
 They ship with their own styling. Keep the components as-is.

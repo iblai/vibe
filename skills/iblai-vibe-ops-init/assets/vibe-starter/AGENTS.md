@@ -84,10 +84,16 @@ All features require auth first (`/iblai-vibe-auth` or `iblai add auth`).
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `VERCEL_TOKEN` for mobile dev builds). The `NEXT_PUBLIC_*`
-env vars in `.env.local` are derived from it (by the CLI or your AI
-assistant). Treat `iblai.env` as the source of truth for platform config --
-update it there and re-derive rather than hand-editing `.env.local`.
+and optionally `VERCEL_TOKEN` for mobile dev builds; copy from
+`iblai.env.example`). Treat it as the source of truth: derive the runtime
+vars from it (CLI or AI assistant) rather than hand-editing them. The one
+real Next env file is the gitignored `.env.local` (copy from `.env.example`):
+it needs `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) and, for server-side
+platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
+(= `TOKEN`). The API/auth/websocket URLs default to hosted iblai.app in
+`lib/iblai/config.ts` — override them in `.env.local` only when self-hosting
+(distributed per-service hosts are unavailable on hosted iblai.app, see
+`lib/iblai/config.ts`).
 
 `VERCEL_TOKEN` in `iblai.env` enables `iblai deploy vercel` — builds,
 deploys to Vercel, disables auth protection, and updates `devUrl` in

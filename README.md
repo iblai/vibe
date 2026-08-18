@@ -122,7 +122,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-skills
 /iblai-vibe-agent-task
 /iblai-vibe-agent-tool
-/iblai-agent-support
+/iblai-vibe-agent-support
 ```
 
 What each skill does:
@@ -168,7 +168,7 @@ What each skill does:
 - `/iblai-vibe-agent-skills` -- adds the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill picker).
 - `/iblai-vibe-agent-task` -- adds the agent Tasks tab (schedule automated periodic agent tasks with run logs).
 - `/iblai-vibe-agent-tool` -- adds the agent Tools tab (enable/disable agent tools).
-- `/iblai-agent-support` -- adds the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies).
+- `/iblai-vibe-agent-support` -- adds the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies).
 
 
 ### Security Skills
@@ -319,7 +319,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-skills` | Add the agent Skills tab (reusable Agent Skills with per-agent assignment, private skills, file resources, and the chat `/` skill picker) |
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
-| `/iblai-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
+| `/iblai-vibe-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
 
 Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
 

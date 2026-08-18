@@ -77,10 +77,6 @@ jobs:
           UPDATES: ${{ steps.check.outputs.updates }}
         run: pnpm add $UPDATES
 
-      - name: Build env from example
-        if: steps.check.outputs.has-updates == 'true'
-        run: cp .env.example .env
-
       - name: Typecheck
         if: steps.check.outputs.has-updates == 'true'
         id: typecheck
