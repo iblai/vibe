@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.14.2] - 2026-08-18
+
+### Fixed
+
+- allow eval() in dev CSP; document distributed-mode footgun
+
 ## [1.14.1] - 2026-08-18
 
 ### Fixed
