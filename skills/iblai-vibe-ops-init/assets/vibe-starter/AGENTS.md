@@ -75,18 +75,18 @@ through the wiring:
 /iblai-vibe-onboard       # Onboarding questionnaire flow
 /iblai-vibe-ops-build     # Desktop/mobile builds (Tauri v2)
 /iblai-vibe-ops-test      # Test before showing work
-/iblai-vibe-ops-upgrade   # Upgrade CLI, SDK, and skills to latest
+/iblai-vibe-ops-upgrade   # Upgrade SDK and skills to latest
 /iblai-vibe-component     # Browse all available components
 ```
 
-All features require auth first (`/iblai-vibe-auth` or `iblai add auth`).
+All features require auth first (`/iblai-vibe-auth`).
 
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
 and optionally `VERCEL_TOKEN` for mobile dev builds; copy from
 `iblai.env.example`). Treat it as the source of truth: derive the runtime
-vars from it (CLI or AI assistant) rather than hand-editing them. The one
+vars from it (via the skills) rather than hand-editing them. The one
 real Next env file is the gitignored `.env.local` (copy from `.env.example`):
 it needs `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) and, for server-side
 platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
@@ -95,9 +95,9 @@ platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
 (distributed per-service hosts are unavailable on hosted iblai.app, see
 `lib/iblai/config.ts`).
 
-`VERCEL_TOKEN` in `iblai.env` enables `iblai deploy vercel` — builds,
-deploys to Vercel, disables auth protection, and updates `devUrl` in
-`tauri.conf.json` automatically. If missing when the user wants to deploy,
+`VERCEL_TOKEN` in `iblai.env` is used by `/iblai-vibe-ops-deploy` — builds,
+deploys to Vercel via `npx vercel`, disables auth protection, and updates
+`devUrl` in `tauri.conf.json`. If missing when the user wants to deploy,
 ask once for their token (https://vercel.com/account/tokens).
 
 ## Brand
@@ -113,13 +113,11 @@ ask once for their token (https://vercel.com/account/tokens).
 - **Responsive width**: `w-full px-4` mobile, `md:w-[75vw] md:px-0` desktop
 - **Mobile safe area**: `globals.css` must have `padding-top: env(safe-area-inset-top)` (and bottom/left/right) on body, and `app/layout.tsx` metadata must include `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"` -- prevents content from overlapping the iOS notch / Android status bar
 - **Package manager**: Use `pnpm` (fall back to `npm`)
-- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app`, `iblai startapp`, or `--app-name`.
+- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app` or `--app-name`.
 
 ## Commands
 
 ```bash
 pnpm dev             # Dev server
 pnpm build           # Production build
-iblai config show    # View configuration
-iblai add <feature>  # Add a feature
 ```

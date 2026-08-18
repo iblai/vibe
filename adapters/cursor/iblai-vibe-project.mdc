@@ -46,7 +46,7 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 - A **real `projectId`** to test against. Either:
   - Create one in the admin UI, or
   - List the user's projects:
-    `GET https://api.iblai.org/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
+    `GET https://api.iblai.app/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
     (use `Authorization: Token <axd_token>`).
 - **Minimum SDK versions.** The `projectId` prop on `<Chat>` and the
   `ProjectLandingPage` slot were added in:
@@ -266,23 +266,5 @@ fields.
 If the project surface renders but the chat WebSocket can't connect,
 that's a backend issue (LLM config on the agent) — see
 `/iblai-vibe-agent-chat`'s **Known issues**.
-
-## CLI Integration (proposal — not yet implemented)
-
-A future helper for this skill could:
-
-1. **Verify `/iblai-vibe-agent-chat` is wired** — refuse to run if the
-   provider/store/peer-dep setup isn't in place. Point the user at
-   the `/iblai-vibe-agent-chat` skill first.
-2. **Bump the SDK** if it's pinned below the versions in *Prerequisites*.
-3. **Scaffold the route** — write
-   `app/agents/[mentorId]/projects/[projectId]/page.tsx` parameterized
-   on the host's existing `redirectToAuthSpa` and `config` helpers.
-4. **Skip if already added** — detect the existing route file and
-   no-op.
-
-The generator should not regenerate `/iblai-vibe-agent-chat` artifacts —
-the two skills compose (the project surface needs the agent-chat
-wiring already done).
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

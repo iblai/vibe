@@ -67,7 +67,8 @@ not in a subdirectory.
   the **DM token** (not AXD) via `/iblai-vibe-auth`. The public/guest buy
   surface in Step 5 does NOT need auth — those calls pass
   `skipAuth: true`.
-- **MCP + skills** — `iblai add mcp`.
+- **MCP + skills** — `.mcp.json` configured with `@iblai/mcp` (and
+  skills installed via `npx skills add iblai/vibe --all`).
 - **`iblai.env`** populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **The item has a paywall configured.** A paywall config + at least one
@@ -89,13 +90,6 @@ not in a subdirectory.
    `useGetPublicPricingQuery` + `useCreateGuestCheckoutMutation` so a
    logged-out visitor can buy a single item with just an email. Used
    for landing pages, marketing emails, and shareable buy links.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 

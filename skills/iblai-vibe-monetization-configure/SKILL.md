@@ -52,7 +52,8 @@ not in a subdirectory.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same token wiring.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - The **Account** page is already wired up (`/iblai-vibe-account`). The
@@ -88,13 +89,6 @@ page and exposing a URL the Connect onboard return can land on.
 | Item detail wizard | 2-step (existing) or 3-step (custom) step indicator | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Paywall settings | `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `on_successful_payment` | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Pricing tiers | CRUD list with create-form, edit-in-place, delete | [admin-monetization-sample-pricing-config.png](./admin-monetization-sample-pricing-config.png) |
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 

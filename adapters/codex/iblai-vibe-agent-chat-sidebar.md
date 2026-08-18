@@ -276,15 +276,4 @@ When opening a PR to land these patches upstream, note:
 | `SidebarProvider` (and friends) not in the public barrel | `packages/web-containers/src/next/index.ts` | `export { SidebarProvider, SidebarTrigger, SidebarInset, useSidebar } from '../components/ui/sidebar';` — without this, `AppSidebar` can't be mounted by any host. |
 | Icons referenced by absolute path but not shipped | `projects-sidebar-dropdown.tsx`, `project-item.tsx`, and several `<img src="/placeholder.svg" />` fallbacks | Either bundle the SVGs into `packages/web-containers/public/` with a rollup `copy` plugin emitting them into `dist/`, or import them as ES modules / inline data URIs so they ride along with the JS. |
 
-## CLI Integration (proposal — not yet implemented)
-
-A future helper for this skill could:
-
-1. Verify `/iblai-vibe-agent-chat` has been run (look for the route file +
-   `hostChatReducer` in the store).
-2. Install or symlink the three SVGs into `public/icons/` and
-   `public/`.
-3. Scaffold `app/agents/[mentorId]/chat-projects/page.tsx` using the
-   host's existing `redirectToAuthSpa` and `config` helpers.
-
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

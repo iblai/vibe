@@ -135,10 +135,14 @@ needs the tenant key and `IBLAI_API_KEY`.
 
 > **Important:** `iblai.env` is NOT a replacement for `.env.local`. It only
 > holds the 3 shorthand variables. Next.js reads its runtime env vars from
-> `.env.local` / `.env` / `.env.development` as usual — copy the shorthand
-> values into the `NEXT_PUBLIC_*` vars there.
+> `.env.local` as usual — copy the shorthand values into the
+> `NEXT_PUBLIC_*` vars there.
 
-### `.env.local` — Next.js env vars (auto-derived)
+### `.env.local` — Next.js env vars
+
+For apps rendered from the scaffold templates. vibe-starter apps need only
+`NEXT_PUBLIC_MAIN_TENANT_KEY` and `IBLAI_API_KEY` — the URL vars default in
+`lib/iblai/config.ts`.
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app
@@ -153,9 +157,11 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > for an `iblai.env` file in the project root. Look for `PLATFORM`, `DOMAIN`,
 > and `TOKEN` variables. If the file does not exist or is missing these
 > variables, tell the user:
-> "You need an `iblai.env` with your platform configuration. Download the
-> template and fill in your values:
-> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+> "You need an `iblai.env` with your platform configuration. If the project
+> ships `iblai.env.example` (vibe-starter does), copy it:
+> `cp iblai.env.example iblai.env`. Otherwise download the template:
+> `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`.
+> Then fill in your values."
 >
 > Do NOT ask the user for their platform key directly. Guide them to populate
 > `iblai.env` instead, then map the values into `.env.local`
@@ -268,7 +274,7 @@ Invoke with `/` in Claude Code:
 
 | Skill | Description |
 |-------|-------------|
-| `/iblai-vibe-auth` | Add SSO authentication (includes CLI installation guide) |
+| `/iblai-vibe-auth` | Add SSO authentication (providers, store, `lib/iblai` files) |
 | `/iblai-vibe-agent-chat` | Add the full in-process agent chat surface (message stream, canvas, voice, prompts) |
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-vibe-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
@@ -291,12 +297,11 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
 | `/iblai-vibe-ops-release` | Generate a Makefile + Fastlane config to build & submit to the App Store and Google Play |
 | `/iblai-vibe-ops-test` | Test your app before showing work to the user |
-| `/iblai-vibe-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
+| `/iblai-vibe-ops-upgrade` | Upgrade the ibl.ai SDK and vibe skills to the latest versions |
 | `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
 | `/iblai-vibe-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
 | `/iblai-vibe-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
 | `/iblai-vibe-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
-| `/iblai-vibe-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
 | `/iblai-vibe-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
 | `/iblai-vibe-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-vibe-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |

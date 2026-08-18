@@ -7,20 +7,20 @@ with your own tooling when reproducing a generated app.
 
 ## Template layers
 
-The CLI rendered an app by layering directories, **first match wins**:
+An app is rendered by layering directories, **first match wins**:
 
 | Layer | Rendered into | Now lives at |
 |---|---|---|
 | `base/` | base + agent apps | [`iblai-vibe-scaffold/assets/base/`](../assets/base/) |
 | `shared/` | base + agent apps | [`iblai-vibe-scaffold/assets/shared/`](../assets/shared/) |
 | `agent/` | agent apps only (overrides base) | [`iblai-vibe-scaffold/assets/agent/`](../assets/agent/) |
-| `add/<feature>/` | `iblai add <feature>` | each feature skill's `assets/` |
-| `tauri/` | `iblai add builds` | [`iblai-vibe-ops-build/assets/tauri/`](../../iblai-vibe-ops-build/assets/tauri/) |
+| `add/<feature>/` | the feature skill | each feature skill's `assets/` |
+| `tauri/` | the build skill | [`iblai-vibe-ops-build/assets/tauri/`](../../iblai-vibe-ops-build/assets/tauri/) |
 | `icons/` | static copy | [`iblai-vibe-ops-build/assets/icons/`](../../iblai-vibe-ops-build/assets/icons/) |
 
-The base app composed `base/` + `shared/` (+ `add/` as a fallback). The
-agent app rendered the base, then overlaid `agent/` — so
-`agent/package.json.j2` won over `base/package.json.j2`. Reproduce that
+The base app composes `base/` + `shared/` (+ `add/` as a fallback). The
+agent app renders the base, then overlays `agent/` — so
+`agent/package.json.j2` wins over `base/package.json.j2`. Reproduce that
 precedence if you hand-assemble: **agent overrides base; shared fills the
 rest.**
 
@@ -60,9 +60,9 @@ Templates receive a small context dict. Fill these placeholders:
 {% if has_mentor_id %}NEXT_PUBLIC_DEFAULT_AGENT_ID={{ mentor_id }}{% endif %}
 ```
 
-The renderer used `trim_blocks` + `lstrip_blocks`, so `{% %}` blocks left no
+Render with `trim_blocks` + `lstrip_blocks`, so `{% %}` blocks leave no
 stray blank lines. Templates that need a **literal** `{{ }}` (e.g. GitHub
-Actions `${{ github.ref }}` in the `tauri/workflows/` files) wrapped it in
+Actions `${{ github.ref }}` in the `tauri/workflows/` files) wrap it in
 `{% raw %} … {% endraw %}` — when reading those `.j2` assets, treat
 `{% raw %}` spans as literal output.
 
@@ -77,4 +77,3 @@ Actions `${{ github.ref }}` in the `tauri/workflows/` files) wrapped it in
 ## Related
 
 - Owning skill: [`../SKILL.md`](../SKILL.md) (iblai-vibe-scaffold).
-- Full layout + generator internals: [`../../iblai-vibe-cli-maintenance/references/iblai-vibe-cli-templates.md`](../../iblai-vibe-cli-maintenance/references/iblai-vibe-cli-templates.md).

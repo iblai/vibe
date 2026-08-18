@@ -140,8 +140,9 @@ Open [http://localhost:3000](http://localhost:3000). {{ One sentence on
 what happens after the first request — e.g. SSO redirect / home redirect
 to a default route. }}
 
-`.env.local` is already populated with the iblai.app endpoints — no
-manual platform credentials are needed up front.
+URL defaults live in `lib/iblai/config.ts`; copy `.env.example` to
+`.env.local` and set `NEXT_PUBLIC_MAIN_TENANT_KEY` (plus `IBLAI_API_KEY`
+for server-side platform calls).
 
 ### Build
 
@@ -157,9 +158,7 @@ pnpm start
 ```bash
 docker build -t {{ image-name }}:{{ version }} {{ flags }} .
 docker run -p {{ port }}:{{ port }} \
-  -e NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app \
-  -e NEXT_PUBLIC_AUTH_URL=https://login.iblai.app \
-  -e NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app \
+  -e NEXT_PUBLIC_MAIN_TENANT_KEY=your-platform \
   {{ image-name }}:{{ version }}
 ```
 

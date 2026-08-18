@@ -14,7 +14,7 @@ export default function Home() {
           Welcome to ibl.ai
         </h1>
         <p className="text-muted-foreground text-sm max-w-md mx-auto">
-          Your app is ready. Add features with the ibl.ai CLI or start building.
+          Your app is ready. Add features with the /iblai-vibe skills or start building.
         </p>
         <div className="flex gap-3 justify-center">
           <a
@@ -26,16 +26,13 @@ export default function Home() {
             Documentation
           </a>
           <a
-            href="https://github.com/iblai/iblai-app-cli"
+            href="https://github.com/iblai/vibe"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
           >
             GitHub
           </a>
-        </div>
-        <div className="mt-8 text-xs text-muted-foreground font-mono space-y-1">
-          <p>iblai add chat &nbsp;&middot;&nbsp; iblai add profile &nbsp;&middot;&nbsp; iblai add analytics</p>
         </div>
       </div>
     </main>

@@ -94,8 +94,10 @@ If they prefer to wire auth into an existing app, continue below.
 Before proceeding, check for a `iblai.env`
 in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
 If the file does not exist or is missing these variables, tell the user:
-"You need an `iblai.env` with your platform configuration. Download the
-template and fill in your values:
+"You need an `iblai.env` with your platform configuration. Copy the
+bundled template and fill in your values:
+`cp iblai.env.example iblai.env` (vibe-starter ships the example) — or,
+when the project has no `iblai.env.example`:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 If `PLATFORM` is set to a real value (not `your-platform` or `your-main-platform`), use it
@@ -276,9 +278,10 @@ before editing; full mechanics in
   deduplicates RTK. Without it the SDK binds a different `ReactReduxContext`
   and RTK Query hooks silently return `undefined`.
 - **`globals.css`** — add `@import "./iblai-styles.css";`.
-- **`.env.local`** — set `NEXT_PUBLIC_MAIN_TENANT_KEY=<platform key>` (the
-  other `NEXT_PUBLIC_*` are derived from `iblai.env`; see
-  [`/iblai-vibe-scaffold` → config](../iblai-vibe-scaffold/references/config-command.md)).
+- **`.env.local`** — set `NEXT_PUBLIC_MAIN_TENANT_KEY=<platform key>` (←
+  `PLATFORM`) and, for server-side platform calls, `IBLAI_API_KEY` (←
+  `TOKEN`). Nothing else needs deriving — the URL vars default in the
+  rendered `lib/iblai/config.ts`.
 
 The SSO callback at `app/sso-login-complete/page.tsx` must stay **outside**
 the providers (Step 5 / Troubleshooting), or it deadlocks on login.
@@ -394,9 +397,9 @@ right value (edit the line directly if not):
 NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 ```
 
-The default `NEXT_PUBLIC_*` API URLs point to `iblai.app` and come from
-`iblai.env` (see
-[`/iblai-vibe-scaffold` → config](../iblai-vibe-scaffold/references/config-command.md)).
+The API URLs default to hosted `iblai.app` in the rendered
+`lib/iblai/config.ts`; override them in `.env.local` only when
+self-hosting.
 
 ## Step 7: Import SDK Styles
 
@@ -456,7 +459,8 @@ pnpm dev
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
 - **`globals.css`** -- SDK base styles import.
-- **`.env.local`** -- API URLs, auth URL, platform key, WebSocket URL.
+- **`.env.local`** -- platform key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) and, for
+  server-side platform calls, `IBLAI_API_KEY`.
 
 ## Advanced: Route Groups
 

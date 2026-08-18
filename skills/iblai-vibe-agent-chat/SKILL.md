@@ -95,17 +95,12 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
 ## Step 1: Check Environment
 
-Confirm `.env.local` has the env vars the SDK reads at runtime:
+The API URLs default to hosted `iblai.app` in `lib/iblai/config.ts`, so
+`.env.local` only needs:
 
-```
-NEXT_PUBLIC_BASE_WS_URL=wss://asgi.data.iblai.org
-NEXT_PUBLIC_AUTH_URL=https://auth.iblai.org
-NEXT_PUBLIC_DM_URL=https://api.iblai.org/dm
-NEXT_PUBLIC_LMS_URL=https://api.iblai.org/lms
-NEXT_PUBLIC_AXD_URL=https://api.iblai.org/dm
-NEXT_PUBLIC_AGENT_URL=http://localhost:3000
-NEXT_PUBLIC_MAIN_TENANT_KEY=<your-platform-key>
-NEXT_PUBLIC_SUPPORT_EMAIL=support@ibl.ai
+```bash
+NEXT_PUBLIC_MAIN_TENANT_KEY=your-platform
+NEXT_PUBLIC_DEFAULT_AGENT_ID=<agent uuid>
 ```
 
 Note: some host `config` helpers don't expose `supportEmail()`. If
@@ -578,15 +573,5 @@ export function RadixPointerEventsGuard() {
      working);
    - **resume/new** (if wired): history link loads the conversation;
      "new chat" starts empty.
-
-## CLI Integration (proposal — not yet implemented)
-
-Automating this skill would: install the Step 3 deps
-(incl. `@iblai/agent-ai`); patch providers (wrap `ServiceWorkerProvider`
-+ `skip`, pass `basePath`); copy `public/sw.js`; add the
-`Service-Worker-Allowed` header + `reactStrictMode:false`; register the
-Step 5 reducers (detecting + renaming host key collisions); scaffold the
-Step 6 route; drop in `RadixPointerEventsGuard`; and no-op if already
-added.
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

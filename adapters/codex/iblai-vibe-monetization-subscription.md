@@ -47,7 +47,8 @@ not in a subdirectory.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same token wiring.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - The Profile page is mounted (`/iblai-vibe-profile`). PurchasesTab is rendered by
@@ -76,13 +77,6 @@ mirrors the same shape.
 | Detail view | Status, plan, type, renewal/expiry date, since date, grandfathered badge, "Type `cancel` to confirm" input + destructive cancel button. |
 | Cancel result | Either a "Subscription Canceled" success card OR an "Open Stripe Portal" card — depends on the response branch. |
 | Pagination | 8 items per page; Previous / Page N / Next controls; disabled when there's no next/previous page. |
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 
@@ -355,7 +349,7 @@ After wiring:
 
 ## MCP tools for further detail
 
-Once `iblai add mcp` is set up, query the MCP tools for richer help:
+With `@iblai/mcp` in `.mcp.json`, query the MCP tools for richer help:
 
 - `get_hook_info("useGetMySubscriptionsQuery")`
 - `get_hook_info("useGetItemSubscriptionQuery")`

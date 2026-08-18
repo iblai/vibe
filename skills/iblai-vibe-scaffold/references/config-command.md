@@ -1,39 +1,13 @@
-# `iblai config` — view & manage `.env.local`
+# `.env.local` reference
 
-Reads and edits the Next.js environment configuration for a generated
-ibl.ai project. Two subcommands.
-
-```bash
-iblai config show                                  # print effective config + sources
-iblai config set NEXT_PUBLIC_MAIN_TENANT_KEY acme  # write/replace a key in .env.local
-iblai config set NEXT_PUBLIC_AUTH_URL https://login.example.com
-```
-
-> There is no `iblai config get` — use `show` (whole table) or read
-> `.env.local` directly.
-
-## `iblai config show`
-
-Prints every known variable with its current value and **where the value
-comes from**, resolved in priority order:
-
-```
-.env.local  >  system environment  >  built-in default
-```
-
-Missing values render as `(not set)`. If no `.env.local` exists, it prints
-a hint to `cp .env.example .env.local`. Read-only — it never writes.
-
-## `iblai config set KEY VALUE`
-
-Upserts `KEY=VALUE` into `.env.local`: if the key already exists it's
-replaced in place (comments and other lines preserved); otherwise it's
-appended. Creates the file if absent.
+The known environment variables for a generated ibl.ai project, resolved
+in priority order: `.env.local` > system environment > built-in default in
+`lib/iblai/config.ts`.
 
 ## Known variables & defaults
 
-These are the variables `config` knows about (defaults applied when the var
-is unset in both `.env.local` and the system env):
+Defaults apply when the var is unset in both `.env.local` and the system
+env:
 
 | Variable | Default |
 |---|---|
@@ -53,11 +27,9 @@ is unset in both `.env.local` and the system env):
 
 `iblai.env` holds only the **three shorthand** vars (`DOMAIN`, `PLATFORM`,
 `TOKEN`). It is **not** a replacement for `.env.local` — Next.js still reads
-its runtime vars from `.env.local`. The CLI bridges the two: when you
-scaffold or run `iblai add auth`, it reads `iblai.env` and **derives** the
-`NEXT_PUBLIC_*` values (API/auth/WS URLs, main tenant key) into
-`.env.local`. `iblai config` then lets you inspect or override individual
-derived values.
+its runtime vars from `.env.local`. The skills bridge the two: they read
+`iblai.env` and **derive** `NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM` and
+`IBLAI_API_KEY` ← `TOKEN` into `.env.local`.
 
 ## Related
 

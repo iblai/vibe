@@ -18,16 +18,6 @@
  *      per-service hosts reject the session tokens the Auth SPA issues
  *      (iblai/vibe#155).
  *
- * IMPORTANT: on hosted iblai.app, use mode 1 — keep NEXT_PUBLIC_API_BASE_URL
- * set. The per-service subdomains that mode 2 derives do exist and answer
- * public endpoints, but they reject the session tokens the Auth SPA issues
- * ("invalid_token"). The symptom is badly misleading: login succeeds and
- * stores tokens, but the tenant-membership lookup comes back empty, so
- * TenantProvider logs "User still does not belong to tenant after re-auth"
- * and the app hangs on its loading state — which reads like a permissions
- * problem rather than a URL problem. Mode 2 is for self-hosted deployments
- * that really do serve each service on its own host.
- *
  * Priority: runtime window.__ENV__ → build-time process.env → fallback.
  */
 
@@ -37,6 +27,8 @@ const env = {
   NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   NEXT_PUBLIC_AUTH_URL: process.env.NEXT_PUBLIC_AUTH_URL,
   NEXT_PUBLIC_BASE_WS_URL: process.env.NEXT_PUBLIC_BASE_WS_URL,
+  NEXT_PUBLIC_LEGACY_LMS_URL: process.env.NEXT_PUBLIC_LEGACY_LMS_URL,
+  NEXT_PUBLIC_MFE_URL: process.env.NEXT_PUBLIC_MFE_URL,
   NEXT_PUBLIC_PLATFORM_BASE_DOMAIN:
     process.env.NEXT_PUBLIC_PLATFORM_BASE_DOMAIN,
   NEXT_PUBLIC_MAIN_TENANT_KEY: process.env.NEXT_PUBLIC_MAIN_TENANT_KEY,
@@ -88,6 +80,16 @@ const config = {
     if (base) return `${base}/axd`;
     return `https://base.manager.${domain()}`;
   },
+
+  // Dedicated edX LMS host (learn.*): edX page routes (xblock iframes,
+  // bookmarks, instructor) and the data layer's legacy-LMS endpoints live
+  // here, NOT under the consolidated API base.
+  legacyLmsUrl: () =>
+    getEnv("NEXT_PUBLIC_LEGACY_LMS_URL", `https://learn.${domain()}`),
+
+  // Learner micro-frontend (progress, dates, discussions pages).
+  mfeUrl: () =>
+    getEnv("NEXT_PUBLIC_MFE_URL", `https://apps.learn.${domain()}`),
 
   baseWsUrl: () =>
     getEnv("NEXT_PUBLIC_BASE_WS_URL", `wss://asgi.data.${domain()}`),

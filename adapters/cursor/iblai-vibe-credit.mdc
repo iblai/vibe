@@ -83,8 +83,8 @@ and ensure BOTH directives are present:
 @source "../node_modules/@iblai/iblai-js/dist/web-containers/source/next";
 ```
 
-If the app scans through a `lib/iblai/sdk` symlink instead (CLI-scaffolded
-apps ship one), the equivalent is:
+If the app scans through a `lib/iblai/sdk` symlink instead (some older
+scaffolds ship one), the equivalent is:
 
 ```css
 @source "../lib/iblai/sdk/web-containers/source";

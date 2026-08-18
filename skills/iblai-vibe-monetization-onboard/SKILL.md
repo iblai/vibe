@@ -48,7 +48,8 @@ not in a subdirectory.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same token wiring
-- MCP and skills must be set up: `iblai add mcp`
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - The Account page already exists (`/iblai-vibe-account`) — the
@@ -87,13 +88,6 @@ contract before you put the tab on a page, and (b) you can build a
 custom Connect surface (for example, a setup wizard, an admin tool,
 or a standalone `/billing/setup` route) that talks to the same five
 endpoints when the default card does not fit.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 

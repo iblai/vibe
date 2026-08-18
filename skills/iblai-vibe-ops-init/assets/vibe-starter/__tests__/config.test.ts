@@ -12,6 +12,8 @@ const ENV_KEYS = [
   "NEXT_PUBLIC_API_BASE_URL",
   "NEXT_PUBLIC_PLATFORM_BASE_DOMAIN",
   "NEXT_PUBLIC_AUTH_URL",
+  "NEXT_PUBLIC_LEGACY_LMS_URL",
+  "NEXT_PUBLIC_MFE_URL",
   "IBLAI_API_KEY",
 ] as const;
 
@@ -43,6 +45,9 @@ describe("hosted defaults in code", () => {
     expect(config.dmUrl()).toBe("https://api.iblai.app/dm");
     expect(config.axdUrl()).toBe("https://api.iblai.app/axd");
     expect(config.authUrl()).toBe("https://login.iblai.app");
+    // edX hosts are NOT under the consolidated API base.
+    expect(config.legacyLmsUrl()).toBe("https://learn.iblai.app");
+    expect(config.mfeUrl()).toBe("https://apps.learn.iblai.app");
   });
 
   it("uses an explicit NEXT_PUBLIC_API_BASE_URL verbatim", async () => {
@@ -60,6 +65,18 @@ describe("hosted defaults in code", () => {
     expect(config.dmUrl()).toBe("https://base.manager.example.edu");
     expect(config.axdUrl()).toBe("https://base.manager.example.edu");
     expect(config.authUrl()).toBe("https://login.example.edu");
+    expect(config.legacyLmsUrl()).toBe("https://learn.example.edu");
+    expect(config.mfeUrl()).toBe("https://apps.learn.example.edu");
+  });
+
+  it("honors explicit overrides for auth and edX hosts", async () => {
+    process.env.NEXT_PUBLIC_AUTH_URL = "https://sso.example.edu";
+    process.env.NEXT_PUBLIC_LEGACY_LMS_URL = "https://edx.example.edu";
+    process.env.NEXT_PUBLIC_MFE_URL = "https://mfe.example.edu";
+    const config = await loadConfig();
+    expect(config.authUrl()).toBe("https://sso.example.edu");
+    expect(config.legacyLmsUrl()).toBe("https://edx.example.edu");
+    expect(config.mfeUrl()).toBe("https://mfe.example.edu");
   });
 });
 

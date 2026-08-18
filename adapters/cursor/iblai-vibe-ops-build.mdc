@@ -14,9 +14,9 @@ iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 > shell templates live in [`assets/tauri/`](assets/tauri/) (copy into
 > `src-tauri/`), the CI workflows in
 > [`assets/tauri/workflows/`](assets/tauri/workflows/), and the default app
-> icons in [`assets/icons/`](assets/icons/). The full mapping (`init`,
-> `device`, `ci-workflow`, `iconography`, `screenshot`) is in
-> [`references/builds-command.md`](references/builds-command.md).
+> icons in [`assets/icons/`](assets/icons/). The build commands,
+> prerequisites, and MSIX notes are in
+> [`references/tauri-commands.md`](references/tauri-commands.md).
 
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
@@ -85,7 +85,7 @@ produce differently-configured builds** — e.g. one desktop/mobile build
 locked to tenant A and another locked to tenant B, both served from the same
 app URL. The values are baked in at `cargo build` time via Rust's
 `option_env!`, so they are set as **environment variables in the build shell**
-(not `iblai.env`, which is CLI config) before running the build:
+(not `iblai.env`, which holds the platform shorthand) before running the build:
 
 | Env var | Command exposed to JS | Default | Effect |
 |---|---|---|---|
@@ -97,7 +97,7 @@ the environment when cargo compiles `src-tauri`):
 
 ```bash
 # tenant-locked build with in-app purchase enabled
-IBL_TENANT=acme IBL_ALLOW_IN_APP_PURCHASE=true iblai builds build
+IBL_TENANT=acme IBL_ALLOW_IN_APP_PURCHASE=true pnpm exec tauri build
 ```
 
 In CI, set them as env on the build step:
@@ -107,7 +107,7 @@ In CI, set them as env on the build step:
   env:
     IBL_TENANT: acme
     IBL_ALLOW_IN_APP_PURCHASE: "true"
-  run: iblai builds build
+  run: pnpm exec tauri build
 ```
 
 `src-tauri/build.rs` declares `cargo:rerun-if-env-changed` for both, so cargo
@@ -522,7 +522,6 @@ Generate CI workflows for all platforms at once:
 
 ## Reference
 
-- [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + scaffold and command behavior
+- [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
 - [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
-- [`references/builds-command.md`](references/builds-command.md) -- full `iblai builds` subcommand behavior (for reference)
-- `references/builds-command.md` -- full list of build commands
+- [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes

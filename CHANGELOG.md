@@ -21,7 +21,16 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ### Fixed
 
-- address the problems mentioned in issue #155
+- vibe-starter no longer hangs after login when `NEXT_PUBLIC_API_BASE_URL`
+  is unset (#155): the hosted URL defaults moved into `lib/iblai/config.ts`,
+  so hosted iblai.app always routes through the consolidated API and can no
+  longer silently fall back to the per-service hosts that reject Auth-SPA
+  session tokens
+- the template ships only `.env.example` / `iblai.env.example`; `.env.local`
+  needs just `NEXT_PUBLIC_MAIN_TENANT_KEY` and the secret `IBLAI_API_KEY`,
+  now exposed server-side via `config.apiKey()`
+- config URL resolution is covered by unit tests
+  (`__tests__/config.test.ts`)
 
 ## [1.14.0] - 2026-08-14
 

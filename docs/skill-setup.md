@@ -14,7 +14,7 @@ skills. Each skill links here instead of repeating this boilerplate.
   subdirectory.
 - Project names MUST be all lowercase — npm rejects package names with
   capital letters. Convert names like `MyApp` to `my-app` before passing
-  to `create-next-app`, `iblai startapp`, or `--app-name`. Allowed
+  to `create-next-app` or `--app-name`. Allowed
   characters: lowercase letters, digits, `-`, `_`.
 - When building a navbar or header, do NOT display the platform/tenant
   name. Use the ibl.ai logo instead.
@@ -43,18 +43,9 @@ Full brand guidelines:
 - `iblai.env` is **NOT** a `.env.local` replacement — it only holds the 3
   shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
   its runtime env vars from `.env.local`.
-- The CLI reads `iblai.env` and writes derived `NEXT_PUBLIC_*` values
-  into `.env.local` automatically.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date. Run
-`iblai --version` to check the current version, then upgrade directly:
-
-- **pip**: `pip install --upgrade iblai-app-cli`
-- **npm**: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
+- The skills read `iblai.env` and derive the `NEXT_PUBLIC_*` values into
+  `.env.local`. vibe-starter apps need only the tenant key and
+  `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.
 
 ## Step 1: Check Environment
 

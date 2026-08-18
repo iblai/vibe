@@ -29,11 +29,7 @@ import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant, checkTenantMismatch } from "@/lib/iblai/tenant";
-import {
-  redirectToAuthSpa,
-  hasNonExpiredAuthToken,
-  handleLogout,
-} from "@/lib/iblai/auth-utils";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 
 const storageService = LocalStorageService.getInstance();
 
@@ -57,7 +53,10 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
       initializeDataLayer(
         config.dmUrl(),
         config.lmsUrl(),
-        config.lmsUrl(),  // legacyLmsUrl (same as lmsUrl for consolidated API)
+        // Dedicated edX host (learn.*) — NOT lmsUrl: on hosted defaults that
+        // is the consolidated API path (api.iblai.app/lms), and the
+        // legacy-LMS endpoints + edX iframes live on the real LMS host.
+        config.legacyLmsUrl(),
         storageService,
         {
           401: () => redirectToAuthSpa(undefined, undefined, true),
@@ -105,7 +104,6 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
       <AuthProvider
         skip={isSsoRoute}
         redirectToAuthSpa={redirectToAuthSpa}
-        hasNonExpiredAuthToken={hasNonExpiredAuthToken}
         username={username}
         pathname={pathname ?? "/"}
         storageService={storageService}

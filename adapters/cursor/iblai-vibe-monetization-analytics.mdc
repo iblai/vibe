@@ -59,7 +59,8 @@ not in a subdirectory.
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same
   `Authorization: Token <token>` wiring the rest of the app uses.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **Platform admin role required.** All four analytics endpoints
@@ -93,13 +94,6 @@ not in a subdirectory.
    own** subscription on a given `(item_type, item_id)`. NOT an admin
    override; the endpoint resolves the subscription via `request.user`.
    To cancel another user's subscription, use the Stripe Dashboard.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 
