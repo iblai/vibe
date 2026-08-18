@@ -19,7 +19,10 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 import { usePathname } from "next/navigation";
-import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
+import {
+  initializeDataLayer,
+  type TokenResponse,
+} from "@iblai/iblai-js/data-layer";
 import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
 
 import { iblaiStore } from "@/store/iblai-store";
@@ -116,6 +119,27 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           }}
           saveUserTenants={(t: unknown) =>
             localStorage.setItem("tenants", JSON.stringify(t))
+          }
+          // TenantProvider re-authenticates against the requested tenant and
+          // hands back a fresh, tenant-scoped token pair. Without persisting it
+          // the next membership check still runs on the pre-switch tokens, so
+          // the provider loops on
+          //   "User still does not belong to tenant after re-auth"
+          // and the app never leaves its loading state. iblai/os wires these up
+          // (providers/index.tsx -> saveUserTokens).
+          saveUserTokens={(tokens: TokenResponse) => {
+            if (tokens?.axd_token) {
+              localStorage.setItem("axd_token", tokens.axd_token.token);
+              localStorage.setItem("axd_token_expires", tokens.axd_token.expires);
+            }
+            if (tokens?.dm_token) {
+              localStorage.setItem("dm_token", tokens.dm_token.token);
+              localStorage.setItem("dm_token_expires", tokens.dm_token.expires);
+            }
+          }}
+          saveTenant={(t: string) => localStorage.setItem("tenant", t)}
+          onAuthFailure={(reason: string) =>
+            console.error("[TenantProvider] Auth failure:", reason)
           }
           handleTenantSwitch={async () => {
             const tenant = resolveAppTenant();
