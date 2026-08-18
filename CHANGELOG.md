@@ -4,6 +4,13 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.14.3] - 2026-08-18
+
+### Fixed
+
+- persist the token pair TenantProvider returns from re-auth
+- hydration mismatch on every route
+
 ## [1.14.2] - 2026-08-18
 
 ### Fixed
