@@ -280,6 +280,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
 | `/iblai-vibe-account` | Add account/org settings page |
+| `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-credential` | Grant an API token RBAC access to list and unmask platform integration credentials |
@@ -307,6 +308,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-vibe-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
 | `/iblai-vibe-agent-api` | Add the agent API tab (API key management) |
+| `/iblai-vibe-agent-billing` | Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert thresholds) |
 | `/iblai-vibe-agent-dataset` | Add the agent Datasets tab (searchable dataset table with upload) |
 | `/iblai-vibe-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
 | `/iblai-vibe-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
