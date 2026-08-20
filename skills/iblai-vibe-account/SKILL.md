@@ -221,7 +221,7 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing` |
+| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing`, `memory` (the tenant Memory surface — see `/iblai-vibe-memory`) |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |

@@ -92,6 +92,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-profile
 /iblai-vibe-account
 /iblai-vibe-billing
+/iblai-vibe-memory
 /iblai-vibe-analytics
 /iblai-vibe-notification
 /iblai-vibe-invite
@@ -135,6 +136,7 @@ What each skill does:
 - `/iblai-vibe-profile` -- adds profile UI and profile settings flows.
 - `/iblai-vibe-account` -- adds account and organization settings.
 - `/iblai-vibe-billing` -- adds the tenant Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide spend limit; and the Agent Limits table managing every agent's spend cap in one place).
+- `/iblai-vibe-memory` -- adds the tenant Memory settings surface (manage every user's global memories and every agent's memories from one place — Global and Agent tabs with per-user memory toggles and the full per-agent memory manager).
 - `/iblai-vibe-analytics` -- adds analytics dashboards and reporting views.
 - `/iblai-vibe-notification` -- adds notifications UI and notification center flows.
 - `/iblai-vibe-invite` -- adds user invitation dialogs for tenant admin.
@@ -230,6 +232,7 @@ Then add features with the `/iblai-vibe-*` skills -- each creates the files and 
 - `/iblai-vibe-profile` — user profile dropdown
 - `/iblai-vibe-account` — account/organization settings
 - `/iblai-vibe-billing` — tenant billing settings (plan & credits, workspace spend limit, agent limits)
+- `/iblai-vibe-memory` — tenant memory settings (user global memories + agent memories admin)
 - `/iblai-vibe-analytics` — analytics dashboard
 - `/iblai-vibe-notification` — notification bell
 
@@ -287,6 +290,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
 | `/iblai-vibe-account` | Add account/org settings page |
 | `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
+| `/iblai-vibe-memory` | Add the tenant Memory settings surface (manage user global memories and agent memories from one place) |
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-invite` | Add user invitation dialogs |
