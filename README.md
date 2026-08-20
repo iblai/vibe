@@ -91,6 +91,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-project
 /iblai-vibe-profile
 /iblai-vibe-account
+/iblai-vibe-billing
 /iblai-vibe-analytics
 /iblai-vibe-notification
 /iblai-vibe-invite
@@ -108,6 +109,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-setting
 /iblai-vibe-agent-access
 /iblai-vibe-agent-api
+/iblai-vibe-agent-billing
 /iblai-vibe-agent-dataset
 /iblai-vibe-agent-disclaimer
 /iblai-vibe-agent-embed
@@ -132,6 +134,7 @@ What each skill does:
 - `/iblai-vibe-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
 - `/iblai-vibe-profile` -- adds profile UI and profile settings flows.
 - `/iblai-vibe-account` -- adds account and organization settings.
+- `/iblai-vibe-billing` -- adds the tenant Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide spend limit; and the Agent Limits table managing every agent's spend cap in one place).
 - `/iblai-vibe-analytics` -- adds analytics dashboards and reporting views.
 - `/iblai-vibe-notification` -- adds notifications UI and notification center flows.
 - `/iblai-vibe-invite` -- adds user invitation dialogs for tenant admin.
@@ -153,6 +156,7 @@ What each skill does:
 - `/iblai-vibe-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
 - `/iblai-vibe-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
 - `/iblai-vibe-agent-api` -- adds the agent API tab (API key management).
+- `/iblai-vibe-agent-billing` -- adds the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert thresholds).
 - `/iblai-vibe-agent-dataset` -- adds the agent Datasets tab (searchable dataset table with upload).
 - `/iblai-vibe-agent-disclaimer` -- adds the agent Disclaimers tab (user agreement and advisory).
 - `/iblai-vibe-agent-embed` -- adds the agent Embed tab (embed code, custom styling, shareable links).
@@ -225,6 +229,7 @@ Then add features with the `/iblai-vibe-*` skills -- each creates the files and 
 - `/iblai-vibe-auth` — SSO authentication
 - `/iblai-vibe-profile` — user profile dropdown
 - `/iblai-vibe-account` — account/organization settings
+- `/iblai-vibe-billing` — tenant billing settings (plan & credits, workspace spend limit, agent limits)
 - `/iblai-vibe-analytics` — analytics dashboard
 - `/iblai-vibe-notification` — notification bell
 
@@ -281,6 +286,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
 | `/iblai-vibe-account` | Add account/org settings page |
+| `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-invite` | Add user invitation dialogs |
@@ -303,6 +309,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
 | `/iblai-vibe-agent-access` | Add the agent Access tab (RBAC for editor and chat roles) |
 | `/iblai-vibe-agent-api` | Add the agent API tab (API key management) |
+| `/iblai-vibe-agent-billing` | Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert thresholds) |
 | `/iblai-vibe-agent-dataset` | Add the agent Datasets tab (searchable dataset table with upload) |
 | `/iblai-vibe-agent-disclaimer` | Add the agent Disclaimers tab (user agreement and advisory) |
 | `/iblai-vibe-agent-embed` | Add the agent Embed tab (embed code, custom styling, shareable links) |
