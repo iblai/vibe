@@ -84,7 +84,7 @@ All features require auth first (`/iblai-vibe-auth`).
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `VERCEL_TOKEN` for mobile dev builds; copy from
+and optionally `USERNAME` for deploys; copy from
 `iblai.env.example`). Treat it as the source of truth: derive the runtime
 vars from it (via the skills) rather than hand-editing them. The one
 real Next env file is the gitignored `.env.local` (copy from `.env.example`):
@@ -95,10 +95,10 @@ platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
 (distributed per-service hosts are unavailable on hosted iblai.app, see
 `lib/iblai/config.ts`).
 
-`VERCEL_TOKEN` in `iblai.env` is used by `/iblai-vibe-ops-deploy` — builds,
-deploys to Vercel via `npx vercel`, disables auth protection, and updates
-`devUrl` in `tauri.conf.json`. If missing when the user wants to deploy,
-ask once for their token (https://vercel.com/account/tokens).
+`/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API
+(Vercel-backed) using `TOKEN` from `iblai.env` — no Vercel account, token,
+or CLI. It zips the app, uploads it, polls until the build is READY, and
+updates `devUrl` in `tauri.conf.json`.
 
 ## Brand
 

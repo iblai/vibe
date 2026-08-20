@@ -48,9 +48,9 @@ All platforms (desktop and mobile) use a static `next build` export. Tauri
 runs the frontend build (via `beforeBuildCommand`) before starting the dev
 server -- the WebView loads the static files from `../out` on all platforms.
 
-For dev builds, you can optionally deploy to Vercel with the
-[`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) skill. That deploys `out/`
-and updates `devUrl` in `tauri.conf.json`.
+For dev builds, you can optionally deploy the frontend via ibl.ai hosting
+(Vercel) with the [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) skill.
+That deploys the app and updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
 
@@ -189,12 +189,8 @@ pnpm exec tauri device
 **Always pick a device from the list.** Choose the most mainstream iPhone
 (e.g., the newest Pro Max available). Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -311,12 +307,8 @@ pnpm exec tauri device
 (e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
 Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -361,12 +353,8 @@ pnpm tauri:build:android
 
 ### Run in Dev Mode
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -414,12 +402,8 @@ Build for Microsoft Surface tablets running Windows.
 
 ### Run in Dev Mode
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -518,8 +502,8 @@ Generate CI workflows for all platforms at once:
 | Linux CI workflow | the templates in `assets/tauri/workflows/` |
 | All CI workflows | the templates in `assets/tauri/workflows/` |
 | **Deploy** | |
-| Deploy frontend to Vercel | the `/iblai-vibe-ops-deploy` skill |
-| Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
+| Deploy frontend via ibl.ai hosting (Vercel) | the `/iblai-vibe-ops-deploy` skill |
+| Remove hosted dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
 
 ## Reference
 

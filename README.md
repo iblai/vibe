@@ -68,7 +68,7 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 1. **Scaffold** -- run `npx create-next-app@latest myapp` to generate a full Next.js app.
 2. **Connect** -- Use Claude Code skills to add auth, AI chat, profiles, and more components to your app to connect to `iblai.app` (or your own instance) for authentication, AI agents, and data
 3. **Customize** -- use the skills to add features, swap components, and adjust business logic
-4. **Deploy** -- push to Vercel or package with Tauri
+4. **Deploy** -- ship to the web via ibl.ai hosting (Vercel) or package with Tauri
 
 ### Install Skills
 
@@ -336,14 +336,13 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 
 ## Deploy Anywhere
 
-### Vercel (recommended)
+### ibl.ai hosting (recommended)
 
-One-click deploy. Connect your repo, set your environment variables, and push.
-Or deploy with the `vercel` CLI -- see [`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md):
-
-```bash
-npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
-```
+Deploy through the ibl.ai platform's hosting API (Vercel-backed) -- see
+[`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md). No Vercel
+account or token: the skill zips your app, uploads it with your platform
+API key, polls until the build is READY, and returns a live
+`https://<project>.vercel.app` URL.
 
 
 ### Tauri (Desktop & Mobile)

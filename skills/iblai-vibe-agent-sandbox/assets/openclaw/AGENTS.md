@@ -59,17 +59,16 @@ Follow ibl.ai design strictly unless the project has a documented partner brand 
 - For frontend work, run the app locally when useful and inspect layout if a browser is available. If browser tooling is unavailable, say what could not be verified.
 - Do not leave needed dev servers or long-running sessions active at the end of a turn.
 
-## Vercel Deployment
+## Web Deployment (ibl.ai hosting)
 
-Use Vercel when asked to publish or deploy.
+Deploy through the ibl.ai platform's hosting API when asked to publish or deploy — the `iblai-vibe-ops-deploy` skill is the playbook. Auth is the platform API key from `iblai.env`; there is no Vercel account, token, or CLI.
 
-- Static export (`next.config` has `output: "export"`): build locally, deploy `out/`, and include the SPA rewrite file when needed.
-- Server-mode Next: deploy the project root.
-- Use explicit Vercel scope when non-interactive mode requires it.
-- Pass required `.env.local` values into Vercel build/runtime env when deploying server-mode Next. Public `NEXT_PUBLIC_*` values must be present at build time.
-- Force a rebuild when env values change so public env is inlined into the client bundle.
-- Disable or confirm disabled deployment protection when the site should be public.
-- Report the live URL and any meaningful caveat, such as skipped verification, placeholder env values, or missing GitHub linking.
+- Static export (`next.config` has `output: "export"`): `pnpm build`, write the SPA rewrite `out/vercel.json`, zip the contents of `out/`, upload with `framework=static`.
+- Server-mode Next: write `.env.production` (`NEXT_PUBLIC_*` + `IBLAI_API_KEY` copied from `.env.local`, placeholders skipped), zip the project source without `node_modules/`, `.git/`, or `.next/`, upload with `framework=nextjs` — the platform installs and builds.
+- Poll the deployment until `READY`; on `ERROR` read `build_log_tail` and fix the reported problem.
+- Redeploy by uploading again with the same `project` slug.
+- Deployed apps are public by default — there is no Vercel deployment protection to disable.
+- Report the live URL and any meaningful caveat, such as skipped verification or placeholder env values.
 
 ## Memory
 

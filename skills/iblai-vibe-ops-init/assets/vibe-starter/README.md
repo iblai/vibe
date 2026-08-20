@@ -82,7 +82,7 @@ This starter is auth-ready, so any ibl.ai feature skill works out of the box. Us
 /iblai-vibe-onboard         # Onboarding questionnaire flow
 /iblai-vibe-component       # Browse all available components
 /iblai-vibe-ops-build       # Build and run on desktop and mobile
-/iblai-vibe-ops-deploy      # Deploy frontend to Vercel
+/iblai-vibe-ops-deploy      # Deploy via ibl.ai hosting (Vercel)
 /iblai-vibe-ops-test        # Test before showing work
 /iblai-vibe-ops-upgrade     # Upgrade SDK and skills to latest
 /iblai-vibe-agent-search    # Agent search/browse page
@@ -177,13 +177,12 @@ pnpm test:e2e        # Playwright E2E
 
 ## Deploy Anywhere
 
-### Vercel (recommended)
+### ibl.ai hosting (Vercel) — recommended
 
-```bash
-npx vercel deploy --prod
-```
-
-See `/iblai-vibe-ops-deploy` — builds, deploys, disables auth protection, and updates `devUrl` in `tauri.conf.json`.
+Run `/iblai-vibe-ops-deploy` — zips the app, uploads it to the ibl.ai
+platform's hosting API using your platform API key (no Vercel account or
+token), polls until the build is READY, and updates `devUrl` in
+`tauri.conf.json`. The app lands on `https://<project>.vercel.app`.
 
 ### Tauri (Desktop & Mobile)
 

@@ -124,7 +124,7 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 DOMAIN=iblai.app
 PLATFORM=your-platform
 TOKEN=your-api-token
-VERCEL_TOKEN=your-vercel-token   # Optional — for mobile dev builds via Vercel
+USERNAME=your-username           # Optional — filled in by /iblai-vibe-ops-deploy on first deploy
 ```
 
 Map `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` into the
@@ -134,8 +134,8 @@ the URL defaults in code (`lib/iblai/config.ts`) — there `.env.local` only
 needs the tenant key and `IBLAI_API_KEY`.
 
 > **Important:** `iblai.env` is NOT a replacement for `.env.local`. It only
-> holds the 3 shorthand variables. Next.js reads its runtime env vars from
-> `.env.local` as usual — copy the shorthand values into the
+> holds the platform shorthand variables. Next.js reads its runtime env vars
+> from `.env.local` as usual — copy the shorthand values into the
 > `NEXT_PUBLIC_*` vars there.
 
 ### `.env.local` — Next.js env vars
@@ -294,7 +294,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Surface) |
 | `/iblai-vibe-ops-init` | Update project CLAUDE.md with ibl.ai platform guidance |
-| `/iblai-vibe-ops-deploy` | Deploy frontend to Vercel (or other platforms) |
+| `/iblai-vibe-ops-deploy` | Deploy the frontend via the ibl.ai platform's hosting API (Vercel-backed) |
 | `/iblai-vibe-ops-release` | Generate a Makefile + Fastlane config to build & submit to the App Store and Google Play |
 | `/iblai-vibe-ops-test` | Test your app before showing work to the user |
 | `/iblai-vibe-ops-upgrade` | Upgrade the ibl.ai SDK and vibe skills to the latest versions |
@@ -358,12 +358,13 @@ testing.
 
 ## Deployment
 
-### Vercel
+### ibl.ai hosting (Vercel)
 
-Deploy with the `vercel` CLI — see [`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md)
-(`npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes`; for static
-`output: 'export'` builds, deploy `out/`). It also disables Vercel auth and
-updates `devUrl`.
+Deploy through the platform's hosting API — see
+[`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md). It zips
+the app (project source; for static `output: 'export'` builds, `out/`),
+uploads it with the platform API key, polls until READY, and updates
+`devUrl`. No Vercel token or CLI.
 
 ### Docker
 ```bash
