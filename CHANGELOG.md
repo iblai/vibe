@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-08-20
+
+### Added
+
+- deploy via ibl.ai hosting API, drop VERCEL_TOKEN
+
 ## [1.15.0] - 2026-08-19
 
 ### Added
