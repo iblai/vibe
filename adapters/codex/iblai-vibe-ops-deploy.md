@@ -81,7 +81,7 @@ the guards abort the deploy loudly instead of shipping a broken app:
 
 ```bash
 # 1. Regenerate runtime env from .env.local on every deploy (never stale)
-grep -E '^(NEXT_PUBLIC_[A-Za-z0-9_]+|IBLAI_API_KEY)=' .env.local | grep -vE '=$|=your-' > .env.production
+grep -E '^(NEXT_PUBLIC_[A-Za-z0-9_]+|IBLAI_API_KEY|PAYWALL_[A-Za-z0-9_]+)=' .env.local | grep -vE '=$|=your-' > .env.production
 
 # 2. Guard: the server needs its platform key
 grep -q '^IBLAI_API_KEY=' .env.production || { echo "ABORT: IBLAI_API_KEY missing/placeholder — fill it in .env.local"; exit 1; }

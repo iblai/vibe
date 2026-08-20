@@ -64,7 +64,7 @@ Follow ibl.ai design strictly unless the project has a documented partner brand 
 Deploy through the ibl.ai platform's hosting API when asked to publish or deploy — the `iblai-vibe-ops-deploy` skill is the playbook. Auth is the platform API key from `iblai.env`; there is no Vercel account, token, or CLI.
 
 - Static export (`next.config` has `output: "export"`): `pnpm build`, write the SPA rewrite `out/vercel.json`, zip the contents of `out/`, upload with `framework=static`.
-- Server-mode Next: write `.env.production` (`NEXT_PUBLIC_*` + `IBLAI_API_KEY` copied from `.env.local`, placeholders skipped), zip the project source without `node_modules/`, `.git/`, or `.next/`, upload with `framework=nextjs` — the platform installs and builds.
+- Server-mode Next: write `.env.production` (`NEXT_PUBLIC_*` + `IBLAI_API_KEY` + `PAYWALL_*` copied from `.env.local`, placeholders skipped), zip the project source without `node_modules/`, `.git/`, or `.next/`, upload with `framework=nextjs` — the platform installs and builds.
 - Poll the deployment until `READY`; on `ERROR` read `build_log_tail` and fix the reported problem.
 - Redeploy by uploading again with the same `project` slug.
 - Deployed apps are public by default — there is no Vercel deployment protection to disable.

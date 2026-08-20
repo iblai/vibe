@@ -100,8 +100,8 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-course-access
 /iblai-vibe-course-create
 /iblai-vibe-onboard
-/iblai-build
-/iblai-test
+/iblai-vibe-ops-build
+/iblai-vibe-ops-test
 /iblai-vibe-ops-release
 /iblai-vibe-ops-upgrade
 /iblai-vibe-rbac

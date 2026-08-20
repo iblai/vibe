@@ -1,0 +1,187 @@
+---
+description: "Put a Stripe \"pay to enter\" gate on a whole vibe-starter app using the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (store rk_ key, create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring."
+globs:
+alwaysApply: false
+---
+
+# /iblai-vibe-monetization-app-paywall
+
+Gate a whole app behind a one-time or subscription payment on the **tenant's
+own Stripe account**. The ibl.ai platform (DM) owns entitlement end to end:
+it mints the Stripe Checkout session, verifies the buyer's return
+read-after-write, records payments durably, caches answers (grants 60s,
+denies 15s — a `session_id` punches through a cached deny), checks
+subscriptions live so cancellation bites within the cache window, and keeps
+recorded payers in during a Stripe outage (`stale: true`) while failing
+closed for unknown users. The app stays thin: two server routes, one client
+gate, one pricing page. **No cookies, no webhooks, no local payment ledger.**
+
+How a visit flows: anonymous visitor → `AuthProvider` → hosted Auth SPA →
+back logged in → `PaywallGate` (inside the `(app)` layout) asks
+`GET /api/paywall/access` → denied → `/paywall` pricing page → buy → Stripe
+Checkout → `/paywall/return?session_id=…` → access confirmed → app.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## This rail vs the Connect family
+
+| | This skill (direct rail) | `/iblai-vibe-monetization-checkout` (Connect rail) |
+|---|---|---|
+| Sells | Entry to the **whole app** | Individual items (agents, courses…) in-platform |
+| Stripe account | Tenant's **own** key (`rk_…`) via the DM Stripe proxy | Stripe Connect Express, ibl.ai-managed |
+| Commission | None | ibl.ai commission on each sale |
+| Reconciliation | DM records + live checks, no webhooks | Webhook-reconciled subscriptions |
+| Platform flag | None required | `enable_monetization` |
+
+Selling items *inside* the app instead? Use the Connect family — start at
+`/iblai-vibe-monetization`.
+
+## Prerequisites
+
+- `iblai.env` with `PLATFORM` + `TOKEN` (platform API key). `USERNAME` is
+  auto-detected and persisted on first use (same Step 1 as
+  `/iblai-vibe-ops-deploy`).
+- A scaffolded vibe-starter app with working SSO auth.
+- The admin has a Stripe account and can mint a **restricted** key
+  (`rk_…`) — never store a full live secret key.
+- **Server mode**: `next.config.*` must NOT set `output: 'export'` — the
+  paywall needs API routes.
+- **Backend version**: probe
+  `GET $PAY/paywall/access/?app=probe` (see Step 1 shorthand). A **404 means
+  the platform backend predates the paywall endpoints** (needs ibl-dm-pro ≥
+  PR #2977) — stop and tell the user; nothing app-side can work around it.
+
+## Step 1: Admin setup (once per app)
+
+Full curls, error table, and verify list: [`references/setup-api.md`](references/setup-api.md).
+Condensed sequence — read `iblai.env` with the `val()` reader (do not
+`source` it), auto-detect `USERNAME` if absent (both exactly as in
+`/iblai-vibe-ops-deploy` Step 1), then with
+`PAY="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$USERNAME/providers/stripe/payments"`
+and `AUTH="Authorization: Api-Token $TOKEN"`:
+
+1. **Store the Stripe key** (skip if `GET $PAY/products/` already returns
+   200): `POST https://api.$DOMAIN/dm/api/ai-account/orgs/$PLATFORM/integration-credential/`
+   with `{"name":"stripe","value":{"key":"rk_…"},"platform":"$PLATFORM"}`.
+   Never echo the key.
+2. **Verify**: `GET $PAY/products/` → 200. (400 = credential missing,
+   502 = Stripe rejected the key, 404 = old backend or `$USERNAME` not a
+   member.)
+3. **Create the product**, tagged for this app:
+   `POST $PAY/products/` `{"name":"<App> access","metadata":{"app":"<slug>"}}`.
+   The `metadata.app` tag is what the DM enforces at checkout — it must
+   equal `PAYWALL_APP_SLUG` exactly. Use the deploy project slug
+   (lowercased package name) as the value.
+4. **Create price(s)**: `POST $PAY/prices/`
+   `{"product":"prod_…","unit_amount":2900,"currency":"usd"}` — add
+   `"recurring":{"interval":"month"}` for a subscription. Checkout mode
+   follows the price type automatically.
+5. **Capture display data**: `GET $PAY/prices/<id>/` → amount/currency/
+   interval → fill the `PRICES` constant in `app/paywall/page.tsx`.
+6. **Write env** — append to `.env.local`:
+
+   ```bash
+   PAYWALL_PRICE_IDS=price_xxx,price_yyy   # server-only allowlist, comma-separated
+   PAYWALL_APP_SLUG=my-app                 # must equal the product's metadata.app
+   ```
+
+## Step 2: Write the app files
+
+Complete drop-in bodies: [`references/app-files.md`](references/app-files.md).
+Copy them verbatim; only `PRICES` in `app/paywall/page.tsx` and the two env
+lines are per-app.
+
+| File | Role | ~Lines |
+|---|---|---|
+| `lib/paywall.ts` | Server-only helpers: `resolveUser` (identity from the forwarded `dm_token`), `userFromRequest`, `dmPaywallFetch` (Api-Token calls to the DM) | 75 |
+| `app/api/paywall/access/route.ts` | GET → resolve user → forward optional `session_id` → DM's answer verbatim | 22 |
+| `app/api/paywall/checkout/route.ts` | POST → resolve user → allowlisted `price_id` → DM mints the Checkout session | 32 |
+| `components/paywall-gate.tsx` | Client gate + shared `checkPaywallAccess()`; denied → `/paywall` | 55 |
+| `app/paywall/page.tsx` + `app/paywall/paywall-actions.tsx` | Pricing page (outside `(app)`, login-first via the existing providers) + buy/auto-verify/restore actions | 105 |
+| `app/paywall/return/page.tsx` | Confirms the purchase by `session_id`, then into the app | 38 |
+| `app/(app)/layout.tsx` | 3-line edit: wrap `{children}` in `<PaywallGate>` | — |
+
+**Trust rules (non-negotiable):**
+
+- User identity comes ONLY from `resolveUser` on the server — never accept a
+  client-sent username.
+- `price_id` must pass the `PAYWALL_PRICE_IDS` allowlist.
+- `IBLAI_API_KEY` and `PAYWALL_*` are server-only — never `NEXT_PUBLIC_*`,
+  never imported into client components.
+- Surface DM 400 bodies verbatim — they are actionable (missing credential,
+  wrong app tag, disallowed redirect host).
+
+## Step 3: Deploy
+
+Server mode is required (no `output: 'export'`). `/iblai-vibe-ops-deploy`
+regenerates `.env.production` from `.env.local` on every deploy and its copy
+list includes `PAYWALL_*`; before uploading, confirm
+`grep PAYWALL_ .env.production` shows both lines. The DM validates
+`success_url`/`cancel_url` against the platform's own deployed apps
+(`*.vercel.app` hosts), its custom domains, and localhost — a checkout 400
+naming the host means the app isn't deployed under this platform yet:
+deploy first, or attach the domain.
+
+## Step 4: Verify
+
+- [ ] Anon visit `/` → Auth SPA → back logged in → landed on `/paywall`
+      (never a blank app)
+- [ ] `/paywall` shows the price card(s) with real name/amount/interval;
+      buy → `checkout.stripe.com`
+- [ ] Test card `4242 4242 4242 4242` → `/paywall/return?session_id=…` →
+      "Confirming…" → app home (the `session_id` punches through any cached
+      deny)
+- [ ] Clear `sessionStorage` → reload `/` → brief loader → still in the app
+      (DM re-verifies)
+- [ ] Entitled user opening `/paywall` directly is bounced back to `/`
+- [ ] A second (unpaid) platform user is stuck on `/paywall`; "Restore
+      access" reports no payment found
+- [ ] `GET $PAY/paywall/payments/?app=<slug>` lists the test payment
+- [ ] Subscription price only: cancel in the Stripe dashboard → clear
+      `sessionStorage` → access lapses within ~75s (DM cache) + up to 60s of
+      client grant cache
+- [ ] Deployed: `.env.production` in the zip carries both `PAYWALL_*` lines;
+      SSO lands on `<project>.vercel.app/sso-login-complete` and `axd_token`
+      appears in localStorage
+
+## Deliberately not built
+
+- **Webhooks** — the DM records at the buyer's return and re-checks live;
+  there is nothing to receive.
+- **Self-serve cancel UI** — the admin cancels in their Stripe dashboard;
+  access lapses within the cache window.
+- **Refund auto-revoke** — a recorded one-time payment is permanent
+  entitlement by DM design (Stripe never flips a completed session).
+- **Guest checkout** — the app is login-first; `/paywall` sits behind
+  `AuthProvider`, so every buyer has an account. Anonymous buying belongs to
+  the Connect rail.
+
+## Common mistakes
+
+- Putting `/paywall` inside `(app)` — the gate would loop. It must live
+  OUTSIDE the gated group but inside the root providers.
+- Adding `^/paywall` to `PUBLIC_ROUTES` — checkout needs a logged-in
+  platform member; login-first is the design.
+- Calling the DM paywall endpoints from the browser — the Api-Token is
+  org-wide authority; only the app's server routes hold it.
+- Mixing auth schemes: DM paywall/proxy calls take
+  `Api-Token <platform key>`; `core/users/platforms/` identity resolution
+  takes the end user's `Token <dm_token>`.
+- Forgetting `PAYWALL_*` in `.env.production` — works locally, then every
+  deployed user gets 500s from the paywall routes.
+- Hardcoding a URL into `success_url` instead of using the request origin —
+  breaks the moment the app moves hosts.
+- Treating the `sessionStorage` grant cache as security — it only prevents a
+  loading flash; the DM is the authority.
+- Expecting instant lockout after a subscription cancel — the window is the
+  DM cache (≤ ~75s) plus up to 60s of client grant cache.
+
+## Related skills
+
+- [`/iblai-vibe-monetization`](../iblai-vibe-monetization/SKILL.md) — family index; item-level Connect rail overview
+- [`/iblai-vibe-monetization-checkout`](../iblai-vibe-monetization-checkout/SKILL.md) — sell individual items in-platform (Connect)
+- [`/iblai-vibe-monetization-onboard`](../iblai-vibe-monetization-onboard/SKILL.md) — Stripe Connect Express onboarding (Connect rail only)
+- [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) — ships the app + `.env.production` via ibl.ai hosting
+- [`/iblai-vibe-ops-test`](../iblai-vibe-ops-test/SKILL.md) — validate before showing work
+- [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md) — SSO token wiring the gate depends on
+- [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — visual language for the pricing page
