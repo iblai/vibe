@@ -7,9 +7,10 @@
 Add the agent **Voice tab** -- pick the voice your agent uses to read out
 chat replies, and configure how live voice calls work. The tab has two
 sub-tabs: **Voice** (choose a voice source -- Browser, OpenAI, or Google --
-then pick a specific voice from a searchable, previewable picker) and
-**Voice call** (call style, spoken language, AI provider, and the voice used
-on calls). This is one tab in the wider agent-settings family (`access`,
+then pick a specific voice from a searchable, previewable picker, and
+optionally write **Voice instructions**, a style prompt for how the voice
+should deliver replies) and **Voice call** (call style, spoken language,
+AI provider, and the voice used on calls). This is one tab in the wider agent-settings family (`access`,
 `api`, `datasets`, `disclaimers`, `embed`, `history`, `llm`, `memory`,
 `prompts`, `safety`, `settings`, `tools`, `voice`). Each tab is a separate
 skill. All tabs share the same `AgentSettingsProvider` wrapper -- set it up
@@ -23,6 +24,8 @@ once and mount as many tabs as you need.
 ![Enable voice calls in Settings -> Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-1-capabilities.png)
 ![Voice sub-tab: choose a voice source and pick a voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png)
 ![Voice picker: search, browse, and preview a sample](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png)
+![Voice instructions: style prompt card with Edit / Copy, character counter, and example presets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png)
+![Edit Voice Instructions modal (rich-text editor)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png)
 ![Voice call sub-tab: call style, language, provider, and call voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png)
 
 Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
@@ -167,12 +170,17 @@ mounted separately.
 |---------|-----------|------------------|---------------|
 | **Voice sub-tab** | [voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png) | `voice-tab` (Voice sub-tab) | Voice source cards -- **Browser** (the listener's own device, no setup), **OpenAI**, and **Google** -- plus a "Select a voice" trigger when OpenAI or Google is chosen, and a **Save voice** button |
 | **Voice picker** | [picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png) | `voice-picker-modal` / `voice-picker` | A searchable list of the provider's voices (e.g. OpenAI: Alloy, Ash, Coral, Echo, Fable, Nova, Onyx, Sage, Shimmer) with a play button to preview a sample before picking |
+| **Voice instructions** | [instructions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png) / [edit modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png) | `voice-tab` (Voice sub-tab) | A free-form style prompt for how the voice delivers replies (e.g. "Speak slowly in a warm, encouraging tone, like a patient tutor."): a prompt card with **Edit** (rich-text modal) and **Copy**, an info tooltip, a `0/1000` character counter, and one-click example presets (Warm and encouraging / Calm and measured / Energetic and upbeat) |
 | **Voice call sub-tab** | [voice call](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png) | `call-config-section` | Call style (Live conversation / Step-by-step), spoken language, AI provider, and the voice used on calls, with **Reset** and **Save changes** |
 
 The **Browser** source speaks through the user's own device (no API voice).
 **OpenAI** and **Google** use a custom voice you pick from the voice picker.
 A voice is only sent to the backend on save when the user picks one this
 session -- leaving it untouched preserves the existing server-side value.
+The same "absent = keep" contract applies to **Voice instructions**: the
+field is only included in the save payload when it changed, and clearing
+it sends an empty string (`""`) — an absent field means "no change" on
+the backend.
 
 ## `<AgentVoiceTab>` Props
 
@@ -214,6 +222,15 @@ Run `/iblai-ops-test` before telling the user the work is ready:
   calls". Without it, the call features have no effect.
 - **Voice sources**: **Browser** uses the listener's own device (no API
   voice and no picker). **OpenAI** and **Google** require picking a voice.
+- **Voice instructions** (`voice_instructions` on the agent's settings):
+  a style prompt forwarded to the TTS provider on every synthesis —
+  OpenAI voices receive it as speech `instructions`, Google voices as a
+  synthesis `prompt`; other sources (including Browser) ignore it. Leave
+  it blank for the provider's default delivery. Setting instructions
+  switches OpenAI synthesis to a pricier, instruction-capable speech
+  model — that trade-off is deliberate and surfaced in the help text.
+  The 1000-character cap is a UI guardrail (the backend column is
+  unbounded); the Save button blocks while over it.
 - **Redux store**: Must include `mentorReducer` and `mentorMiddleware`.
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
