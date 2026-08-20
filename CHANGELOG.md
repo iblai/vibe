@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-08-20
+
+### Added
+
+- app-paywall skill — whole-app pay-to-enter on the tenant's own Stripe key.
+
 ## [1.16.0] - 2026-08-20
 
 ### Added
