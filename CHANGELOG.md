@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-08-20
+
+### Documentation
+
+- document async LTI link creation and voice instructions
+
 ## [1.17.0] - 2026-08-20
 
 ### Added
