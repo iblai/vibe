@@ -19,7 +19,7 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@iblai/agent-ai": "^2.8.1",
-    "@iblai/iblai-js": "^2.5.1",
+    "@iblai/iblai-js": "^2.5.5",
     "@iblai/iblai-web-mentor": "^2.0.1",
     "@livekit/components-react": "^2.9.23",
     "@livekit/components-styles": "^1.2.0",
