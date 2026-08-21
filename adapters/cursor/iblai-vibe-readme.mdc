@@ -36,7 +36,7 @@ Before writing, gather these inputs:
 | Source | Reads |
 |--------|-------|
 | `package.json` | `name`, `version`, `description`, `scripts.{dev,build,start,release}` |
-| `iblai.env` | `DOMAIN`, `PLATFORM` (+ optional `USERNAME`) |
+| `iblai.env` | `DOMAIN`, `PLATFORM` (+ optional `IBLAI_USERNAME`) |
 | `Dockerfile` | Presence → include the **Docker** section |
 | `next.config.{ts,mjs,js}` | `output: 'export'` → static mode; otherwise server mode (for the Deploy section copy) |
 | `src-tauri/tauri.conf.json` | Presence → include the **Native builds** section AND keep the **Deploy** section (mobile dev builds use the hosted URL) |
@@ -174,7 +174,7 @@ Deploy through the ibl.ai platform's hosting API (Vercel-backed) with
 No Vercel account or token — auth is the platform API key (`TOKEN`) in
 `iblai.env`. The skill zips the app (the `out/` export in static mode, the
 project source in server mode), uploads it, polls until the build is
-READY, and prints the live `https://<project>.vercel.app` URL. Re-run it
+READY, and prints the live `*.vercel.app` URL Vercel reports. Re-run it
 to redeploy; attach custom domains via the hosting DNS endpoint (the skill
 returns the DNS records to add).
 

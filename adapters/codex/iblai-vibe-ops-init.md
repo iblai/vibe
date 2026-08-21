@@ -241,8 +241,9 @@ All features require auth first (`/iblai-vibe-auth`).
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `USERNAME` — your platform username, filled in by the deploy
-skill on first deploy). Map these into `.env.local`:
+and optionally `IBLAI_USERNAME` — your platform username; the
+`IBLAI_USERNAME` environment variable wins when the host exports it, and the
+deploy skill asks once and persists it otherwise). Map these into `.env.local`:
 `NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
 API URLs default to `iblai.app`.
 

@@ -352,8 +352,8 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 Deploy through the ibl.ai platform's hosting API (Vercel-backed) -- see
 [`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md). No Vercel
 account or token: the skill zips your app, uploads it with your platform
-API key, polls until the build is READY, and returns a live
-`https://<project>.vercel.app` URL.
+API key, polls until the build is READY, and returns the live `*.vercel.app` URL
+Vercel reports.
 
 
 ### Tauri (Desktop & Mobile)

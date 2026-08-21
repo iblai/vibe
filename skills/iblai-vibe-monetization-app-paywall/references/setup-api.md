@@ -6,29 +6,26 @@ echo the Stripe key into logs and never commit it.
 
 ## 0. Shorthand
 
-Read `iblai.env` (values may contain spaces — do not `source` it):
+Read `iblai.env` (values may contain spaces — do not `source` it). The
+platform username comes from the `IBLAI_USERNAME` environment variable when
+the host provides it, else from `iblai.env` — same as
+`/iblai-vibe-ops-deploy` Step 1 (never name the variable `USERNAME`: zsh
+binds that to the OS login name and silently discards assignments):
 
 ```bash
 val() { grep -m1 "^$1=" iblai.env | cut -d= -f2-; }
-DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN); USERNAME=$(val USERNAME)
+DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
+IBLAI_USERNAME="${IBLAI_USERNAME:-$(val IBLAI_USERNAME)}"
+[ -n "$IBLAI_USERNAME" ] || IBLAI_USERNAME=$(val USERNAME)   # legacy iblai.env key
 AUTH="Authorization: Api-Token $TOKEN"
 DM="https://api.$DOMAIN/dm"
 ```
 
-If `USERNAME` is empty, auto-detect the key owner's platform username and
-persist it (same as `/iblai-vibe-ops-deploy` Step 1):
+If `IBLAI_USERNAME` is still empty, ask the user once for their platform
+username and append `IBLAI_USERNAME=…` to `iblai.env`. Then:
 
 ```bash
-USERNAME=$(curl -s "$DM/api/core/users/platforms/" -H "$AUTH" \
-  | jq -r --arg p "$PLATFORM" '(.results // .) | first(.[] | select(.key == $p) | .username) // empty')
-[ -n "$USERNAME" ] && echo "USERNAME=$USERNAME" >> iblai.env
-```
-
-(If auto-detect comes back empty, ask the user once and append the line the
-same way.) Then:
-
-```bash
-PAY="$DM/api/ai-mentor/orgs/$PLATFORM/users/$USERNAME/providers/stripe/payments"
+PAY="$DM/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/payments"
 ```
 
 ## 1. Store the tenant's Stripe key
@@ -54,7 +51,7 @@ curl -s "$PAY/products/?limit=1" -H "$AUTH"
 - `400` with a self-describing message → credential missing; do step 1.
 - `502` → Stripe rejected the stored key (typo / wrong mode) — re-save it.
 - `404` → either the platform backend predates the Stripe proxy/paywall
-  (needs ibl-dm-pro ≥ PR #2977) or `$USERNAME` is not a member of
+  (needs ibl-dm-pro ≥ PR #2977) or `$IBLAI_USERNAME` is not a member of
   `$PLATFORM`. Fix before continuing.
 
 ## 3. Create the product, tagged for this app
@@ -114,7 +111,7 @@ refresh on every uncached access check.
 | Status | Meaning | Fix |
 |---|---|---|
 | 400 | Missing credential, or actionable input problem (wrong app tag, disallowed redirect host, bad body) | Read the body — it says exactly what to change |
-| 404 | Backend predates the paywall endpoints, or path user not a platform member | Upgrade ibl-dm-pro / fix `USERNAME` |
+| 404 | Backend predates the paywall endpoints, or path user not a platform member | Upgrade ibl-dm-pro / fix `IBLAI_USERNAME` |
 | 429 | Stripe rate limit (passed through) | Wait `Retry-After` seconds, retry |
 | 502 | Stripe rejected the stored key | Re-save a valid `rk_` key |
 
