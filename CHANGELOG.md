@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-08-21
+
+### Added
+
+- add iblai-vibe-memory tenant memory admin skill
+
 ## [1.17.1] - 2026-08-20
 
 ### Documentation
