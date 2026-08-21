@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-08-21
+
+### Fixed
+
+- IBLAI_USERNAME identity chain (no users/platforms auto-detect), API-reported deploy URLs only, force-dynamic starter CSP + CSP_MODE passthrough, push_state-aware deploy poll
+
 ## [1.18.0] - 2026-08-21
 
 ### Added
