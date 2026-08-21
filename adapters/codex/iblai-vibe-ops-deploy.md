@@ -12,35 +12,34 @@ no Vercel token, no `vercel` CLI.
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
-poll until the build is READY. The app lands on
-`https://<vercel_project_name>.vercel.app`, public by default (no Vercel
+poll until the build is READY. The app lands on the `*.vercel.app` URL the
+API reports (never derived from the project name), public by default (no Vercel
 SSO/password protection to disable). POST again with the same `project`
 slug to redeploy.
 
 ## Step 1: Config
 
-Read `iblai.env` (values may contain spaces — do not `source` it):
+Read `iblai.env` (values may contain spaces — do not `source` it). The
+platform username comes from the `IBLAI_USERNAME` environment variable when
+the host provides it (the ibl.ai desktop app exports it), else from
+`iblai.env`. (Never name the variable `USERNAME` — zsh binds that to the OS
+login name and silently discards assignments.)
 
 ```bash
 val() { grep -m1 "^$1=" iblai.env | cut -d= -f2-; }
-DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN); USERNAME=$(val USERNAME)
+DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
+IBLAI_USERNAME="${IBLAI_USERNAME:-$(val IBLAI_USERNAME)}"
+[ -n "$IBLAI_USERNAME" ] || IBLAI_USERNAME=$(val USERNAME)   # legacy iblai.env key
 AUTH="Authorization: Api-Token $TOKEN"
 ```
 
-If `USERNAME` is empty, auto-detect the key owner's platform username and
-persist it:
+If `IBLAI_USERNAME` is still empty, ask the user once for their platform
+username and persist it: append `IBLAI_USERNAME=…` to `iblai.env`. Do not
+try to auto-detect it and do not pre-verify the token — a wrong username or
+token fails loudly on the first deploy call below. Then:
 
 ```bash
-USERNAME=$(curl -s "https://api.$DOMAIN/dm/api/core/users/platforms/" -H "$AUTH" \
-  | jq -r --arg p "$PLATFORM" '(.results // .) | first(.[] | select(.key == $p) | .username) // empty')
-[ -n "$USERNAME" ] && echo "USERNAME=$USERNAME" >> iblai.env
-```
-
-If auto-detect comes back empty, ask the user once for their platform
-username and append `USERNAME=…` to `iblai.env` the same way. Then:
-
-```bash
-BASE="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$USERNAME"
+BASE="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME"
 ```
 
 ## Step 2: Project slug + mode
@@ -81,7 +80,7 @@ the guards abort the deploy loudly instead of shipping a broken app:
 
 ```bash
 # 1. Regenerate runtime env from .env.local on every deploy (never stale)
-grep -E '^(NEXT_PUBLIC_[A-Za-z0-9_]+|IBLAI_API_KEY|PAYWALL_[A-Za-z0-9_]+)=' .env.local | grep -vE '=$|=your-' > .env.production
+grep -E '^(NEXT_PUBLIC_[A-Za-z0-9_]+|IBLAI_API_KEY|PAYWALL_[A-Za-z0-9_]+|CSP_MODE)=' .env.local | grep -vE '=$|=your-' > .env.production
 
 # 2. Guard: the server needs its platform key
 grep -q '^IBLAI_API_KEY=' .env.production || { echo "ABORT: IBLAI_API_KEY missing/placeholder — fill it in .env.local"; exit 1; }
@@ -105,26 +104,45 @@ key.)
 RESP=$(curl -s -X POST "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
   -F "file=@app.zip" -F "project=$PROJECT" -F "framework=$MODE")
 ID=$(echo "$RESP" | jq -r .id)
-APP_URL="https://$(echo "$RESP" | jq -r .vercel_project_name).vercel.app"
+# The live URL is Vercel's to mint — NEVER build it from the project name
+# (long names get right-truncated, collisions get a hash suffix). `.url` is
+# the confirmed host from a previous deploy; empty on the very first one —
+# the poll below fills it from the deployment's alias list.
+APP_URL=$(echo "$RESP" | jq -r '.url // empty')
 ```
 
 A `202` returns the project row (`{id, name, vercel_project_name, url,
-push_state, …}`). Anything else → see the error table.
+vercel_alias, push_state, …}`). Anything else → see the error table.
 
 Poll until the build finishes (static deploys take seconds, server builds a
 few minutes; give up after ~10 min):
 
 ```bash
 STATE=BUILDING; TRIES=0
-until [ "$STATE" = "READY" ] || [ "$STATE" = "ERROR" ] || [ $TRIES -ge 60 ]; do
+until [ "$STATE" = "READY" ] || [ "$STATE" = "ERROR" ] || [ "$STATE" = "PUSH_FAILED" ] || [ $TRIES -ge 60 ]; do
   sleep 10; TRIES=$((TRIES+1))
-  STATE=$(curl -s "$BASE/providers/vercel/hosting/deployment/$ID/" -H "$AUTH" \
-    | jq -r '.deployment.ready_state')
+  R=$(curl -s "$BASE/providers/vercel/hosting/deployment/$ID/" -H "$AUTH")
+  case "$(echo "$R" | jq -r .push_state)" in
+    failed) echo "push failed: $(echo "$R" | jq -r .push_error)"; STATE=PUSH_FAILED ;;
+    # .deployment is the PREVIOUS deployment until the new push lands — read
+    # it only after push_state reaches "pushed", or a stale READY masks failure
+    pushed)
+      STATE=$(echo "$R" | jq -r '.deployment.ready_state // "BUILDING"')
+      # The deployment's alias list is the authoritative live host.
+      ALIAS=$(echo "$R" | jq -r '.deployment.aliases[0] // empty')
+      [ -n "$ALIAS" ] && APP_URL="https://$ALIAS" ;;
+  esac
 done
-echo "$STATE $APP_URL"
+echo "$STATE ${APP_URL:-'(URL not reported yet)'}"
 ```
 
-On `ERROR`, print the build log tail and fix what it reports:
+If `APP_URL` is still empty on READY, re-poll the detail endpoint and read
+`.deployment.aliases[0]` — tell the user the URL is not confirmed yet rather
+than guessing one from the project name.
+
+On `PUSH_FAILED`, the printed `push_error` says why the upload never reached
+Vercel (fix it, rebuild the zip, POST again). On `ERROR`, print the build
+log tail and fix what it reports:
 
 ```bash
 curl -s "$BASE/providers/vercel/hosting/deployment/$ID/" -H "$AUTH" | jq -r '.build_log_tail'
@@ -134,8 +152,9 @@ Redeploy = rebuild the zip, POST again with the same `project`.
 
 ## Step 5: Update Tauri (if present)
 
-If `src-tauri/tauri.conf.json` exists, set `build.devUrl` to the deployed
-URL so mobile/desktop dev builds load the hosted frontend.
+If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
+`build.devUrl` to it so mobile/desktop dev builds load the hosted frontend.
+(Skip while the URL is unconfirmed — never write a guessed one.)
 
 ## Errors
 

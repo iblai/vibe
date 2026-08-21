@@ -182,7 +182,7 @@ pnpm test:e2e        # Playwright E2E
 Run `/iblai-vibe-ops-deploy` — zips the app, uploads it to the ibl.ai
 platform's hosting API using your platform API key (no Vercel account or
 token), polls until the build is READY, and updates `devUrl` in
-`tauri.conf.json`. The app lands on `https://<project>.vercel.app`.
+`tauri.conf.json`. The app lands on the `*.vercel.app` URL the API reports.
 
 ### Tauri (Desktop & Mobile)
 

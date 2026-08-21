@@ -36,9 +36,10 @@ Selling items *inside* the app instead? Use the Connect family — start at
 
 ## Prerequisites
 
-- `iblai.env` with `PLATFORM` + `TOKEN` (platform API key). `USERNAME` is
-  auto-detected and persisted on first use (same Step 1 as
-  `/iblai-vibe-ops-deploy`).
+- `iblai.env` with `PLATFORM` + `TOKEN` (platform API key). `IBLAI_USERNAME`
+  comes from the environment (the ibl.ai desktop app exports it) or from
+  `iblai.env`; if neither has it, ask the user once and persist it (same
+  Step 1 as `/iblai-vibe-ops-deploy`).
 - A scaffolded vibe-starter app with working SSO auth.
 - The admin has a Stripe account and can mint a **restricted** key
   (`rk_…`) — never store a full live secret key.
@@ -53,9 +54,9 @@ Selling items *inside* the app instead? Use the Connect family — start at
 
 Full curls, error table, and verify list: [`references/setup-api.md`](references/setup-api.md).
 Condensed sequence — read `iblai.env` with the `val()` reader (do not
-`source` it), auto-detect `USERNAME` if absent (both exactly as in
-`/iblai-vibe-ops-deploy` Step 1), then with
-`PAY="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$USERNAME/providers/stripe/payments"`
+`source` it), resolve `IBLAI_USERNAME` (env → `iblai.env` → ask once; both
+exactly as in `/iblai-vibe-ops-deploy` Step 1), then with
+`PAY="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/payments"`
 and `AUTH="Authorization: Api-Token $TOKEN"`:
 
 1. **Store the Stripe key** (skip if `GET $PAY/products/` already returns
@@ -63,8 +64,8 @@ and `AUTH="Authorization: Api-Token $TOKEN"`:
    with `{"name":"stripe","value":{"key":"rk_…"},"platform":"$PLATFORM"}`.
    Never echo the key.
 2. **Verify**: `GET $PAY/products/` → 200. (400 = credential missing,
-   502 = Stripe rejected the key, 404 = old backend or `$USERNAME` not a
-   member.)
+   502 = Stripe rejected the key, 404 = old backend or `$IBLAI_USERNAME`
+   not a member.)
 3. **Create the product**, tagged for this app:
    `POST $PAY/products/` `{"name":"<App> access","metadata":{"app":"<slug>"}}`.
    The `metadata.app` tag is what the DM enforces at checkout — it must
@@ -139,7 +140,7 @@ deploy first, or attach the domain.
       `sessionStorage` → access lapses within ~75s (DM cache) + up to 60s of
       client grant cache
 - [ ] Deployed: `.env.production` in the zip carries both `PAYWALL_*` lines;
-      SSO lands on `<project>.vercel.app/sso-login-complete` and `axd_token`
+      SSO lands on the deployed app's `/sso-login-complete` and `axd_token`
       appears in localStorage
 
 ## Deliberately not built
@@ -163,7 +164,7 @@ deploy first, or attach the domain.
 - Calling the DM paywall endpoints from the browser — the Api-Token is
   org-wide authority; only the app's server routes hold it.
 - Mixing auth schemes: DM paywall/proxy calls take
-  `Api-Token <platform key>`; `core/users/platforms/` identity resolution
+  `Api-Token <platform key>`; `core/token/verify/` identity resolution
   takes the end user's `Token <dm_token>`.
 - Forgetting `PAYWALL_*` in `.env.production` — works locally, then every
   deployed user gets 500s from the paywall routes.

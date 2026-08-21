@@ -23,17 +23,17 @@ export async function resolveUser(dmToken: string): Promise<PaywallUser | null> 
   const hit = identityCache.get(dmToken);
   if (hit && Date.now() - hit.at < IDENTITY_TTL_MS) return hit.user;
 
-  const res = await fetch(`${config.dmUrl()}/api/core/users/platforms/`, {
+  const res = await fetch(`${config.dmUrl()}/api/core/token/verify/`, {
     headers: { Authorization: `Token ${dmToken}` },
     cache: "no-store",
   });
   if (!res.ok) return null; // don't cache failures — token may be mid-refresh
 
   const body = await res.json().catch(() => null);
-  // Tolerate both bare-array and {results: []} shapes.
-  const memberships: any[] = Array.isArray(body) ? body : (body?.results ?? []);
-  const m = memberships.find((x) => x?.key === config.mainTenantKey());
-  const user = m ? { username: m.username, email: m.email } : null;
+  // token/verify returns the token's own user: {username, email, …}. Platform
+  // membership is enforced server-side by the payments endpoints (404 for
+  // non-members), so there is no client-side membership check to get wrong.
+  const user = body?.username ? { username: body.username, email: body.email ?? "" } : null;
   identityCache.set(dmToken, { user, at: Date.now() });
   return user;
 }

@@ -41,9 +41,10 @@ Full brand guidelines:
 ## Environment files
 
 - `iblai.env` is **NOT** a `.env.local` replacement — it holds the platform
-  shorthand (`DOMAIN`, `PLATFORM`, `TOKEN`, optional `USERNAME` for deploys)
-  plus the `AUTH_*` branding values. Next.js still reads its runtime env
-  vars from `.env.local`.
+  shorthand (`DOMAIN`, `PLATFORM`, `TOKEN`, optional `IBLAI_USERNAME` for
+  deploys — the `IBLAI_USERNAME` environment variable wins when the host
+  exports it) plus the `AUTH_*` branding values. Next.js still reads its
+  runtime env vars from `.env.local`.
 - The skills read `iblai.env` and derive the `NEXT_PUBLIC_*` values into
   `.env.local`. vibe-starter apps need only the tenant key and
   `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.

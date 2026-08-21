@@ -124,7 +124,7 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 DOMAIN=iblai.app
 PLATFORM=your-platform
 TOKEN=your-api-token
-USERNAME=your-username           # Optional — filled in by /iblai-vibe-ops-deploy on first deploy
+IBLAI_USERNAME=your-username     # Optional — env var wins; /iblai-vibe-ops-deploy asks once and persists it
 ```
 
 Map `DOMAIN`, `PLATFORM`, and `TOKEN` from `iblai.env` into the

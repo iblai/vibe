@@ -84,7 +84,8 @@ All features require auth first (`/iblai-vibe-auth`).
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `USERNAME` for deploys; copy from
+and optionally `IBLAI_USERNAME` for deploys — the `IBLAI_USERNAME`
+environment variable wins when the host exports it; copy from
 `iblai.env.example`). Treat it as the source of truth: derive the runtime
 vars from it (via the skills) rather than hand-editing them. The one
 real Next env file is the gitignored `.env.local` (copy from `.env.example`):
