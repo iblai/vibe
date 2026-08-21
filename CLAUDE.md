@@ -281,6 +281,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
 | `/iblai-vibe-account` | Add account/org settings page |
 | `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
+| `/iblai-vibe-memory` | Add the tenant Memory settings surface (manage user global memories and agent memories from one place) |
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-credential` | Grant an API token RBAC access to list and unmask platform integration credentials |
