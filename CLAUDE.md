@@ -279,6 +279,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-vibe-navbar` | Add responsive navbar with logo, links, notifications, and profile dropdown |
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
+| `/iblai-vibe-history` | Add the user profile History surface (own conversations with filters, transcript preview, and exports) |
 | `/iblai-vibe-account` | Add account/org settings page |
 | `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
 | `/iblai-vibe-memory` | Add the tenant Memory settings surface (manage user global memories and agent memories from one place) |

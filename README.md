@@ -90,6 +90,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 /iblai-vibe-agent-chat
 /iblai-vibe-project
 /iblai-vibe-profile
+/iblai-vibe-history
 /iblai-vibe-account
 /iblai-vibe-billing
 /iblai-vibe-memory
@@ -134,6 +135,7 @@ What each skill does:
 - `/iblai-vibe-agent-chat` -- adds the full in-process agent chat surface.
 - `/iblai-vibe-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
 - `/iblai-vibe-profile` -- adds profile UI and profile settings flows.
+- `/iblai-vibe-history` -- adds the user profile History surface (review and export your own conversations with AI agents — Conversations tab with filters and a transcript preview, plus an Exports tab of generated reports).
 - `/iblai-vibe-account` -- adds account and organization settings.
 - `/iblai-vibe-billing` -- adds the tenant Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide spend limit; and the Agent Limits table managing every agent's spend cap in one place).
 - `/iblai-vibe-memory` -- adds the tenant Memory settings surface (manage every user's global memories and every agent's memories from one place — Global and Agent tabs with per-user memory toggles and the full per-agent memory manager).
@@ -230,6 +232,7 @@ Then add features with the `/iblai-vibe-*` skills -- each creates the files and 
 
 - `/iblai-vibe-auth` — SSO authentication
 - `/iblai-vibe-profile` — user profile dropdown
+- `/iblai-vibe-history` — user chat history (conversations + exports on the profile)
 - `/iblai-vibe-account` — account/organization settings
 - `/iblai-vibe-billing` — tenant billing settings (plan & credits, workspace spend limit, agent limits)
 - `/iblai-vibe-memory` — tenant memory settings (user global memories + agent memories admin)
@@ -288,6 +291,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-chat` | Add the full in-process agent chat surface |
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
 | `/iblai-vibe-profile` | Add profile dropdown + settings page |
+| `/iblai-vibe-history` | Add the user profile History surface (own conversations with filters, transcript preview, and exports) |
 | `/iblai-vibe-account` | Add account/org settings page |
 | `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
 | `/iblai-vibe-memory` | Add the tenant Memory settings surface (manage user global memories and agent memories from one place) |
