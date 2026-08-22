@@ -1,6 +1,6 @@
 # iblai-vibe-ops-deploy
 
-> Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web — it deploys through the ibl.ai platform's hosting API (Vercel-backed) using only the platform API key in iblai.env (no Vercel account, token, or CLI), then updates devUrl in tauri.conf.json for mobile dev builds. For desktop/mobile native builds, see /iblai-vibe-ops-build.
+> Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web — it deploys through the ibl.ai platform's hosting API (Vercel-backed) using only the platform API key in iblai.env (no Vercel account, token, or CLI), then updates devUrl in tauri.conf.json for mobile dev builds. Also covers deploying to infrastructure the team controls — a container on their own server, on-prem, Cloud Run, Kubernetes — and to any static host. For desktop/mobile native builds, see /iblai-vibe-ops-build.
 
 # /iblai-vibe-ops-deploy
 
@@ -16,6 +16,25 @@ poll until the build is READY. The app lands on the `*.vercel.app` URL the
 API reports (never derived from the project name), public by default (no Vercel
 SSO/password protection to disable). POST again with the same `project`
 slug to redeploy.
+
+## Which target
+
+Platform hosting (Steps 1–5 below) is the default and covers most asks. It is
+**not** the right answer when the app has to run on infrastructure the team
+controls:
+
+- The user said *server*, *on-prem*, *self-host*, *our own VM*, *Docker*,
+  *Kubernetes*, *air-gapped*, or named an internal hostname → **container**,
+  see [`references/docker-deploy.md`](references/docker-deploy.md).
+- The project already has a `Dockerfile` / `docker-compose.yml` /
+  `entrypoint.sh` (skillsai and mentorai both do) → **container**. Deploy the
+  way the project already deploys.
+- No `package.json`, or the app is plain HTML/JS served from a directory →
+  **static host** (see the section near the end), or a container, which adds
+  rewrites and runtime config a bare static host cannot do.
+
+If the target is a compliance or data-residency decision — a school district, a
+health system, a government tenant — do not pick it for them. Ask.
 
 ## Step 1: Config
 
@@ -178,14 +197,80 @@ Hand the returned `required_records` DNS instructions to the user — they
 add them at their registrar. `GET` / `DELETE` on the same path list /
 remove domains.
 
+## Deploy to a server the team controls
+
+Full recipe — Dockerfile (Next.js and static shapes), nginx routes,
+entrypoint, compose, TLS, CI smoke test — in
+[`references/docker-deploy.md`](references/docker-deploy.md). The shape:
+
+```bash
+docker build -t <app> .
+docker run -d -p 8080:8080 \
+  -e NEXT_PUBLIC_IBL_PLATFORM=<tenant> \
+  -e NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app \
+  <app>
+```
+
+Two rules decide whether the deploy survives contact with a second
+environment:
+
+- **One image, every environment.** No tenant, no backend, no customer baked
+  in. The digest that passed staging is the digest that runs production, and
+  repointing is a restart. See *Runtime configuration* below — do that part
+  before containerizing, not after.
+- **Reproduce the SSO callback route.** The ibl.ai Auth SPA returns to
+  `<origin>/sso-login-complete`. A static server that does not map that path
+  404s the callback and login dies with no useful error. Next.js routing
+  handles it; nginx, S3 and GitHub Pages do not, unless told.
+
+## Static host
+
+For an app with no build step, or an existing bucket/host:
+
+1. Render the config file the browser reads (below) for the *target*
+   environment, not the developer's.
+2. Upload the served directory.
+3. Reproduce the `/sso-login-complete` → `/sso-login-complete.html` rewrite in
+   the host's config.
+4. Serve that config file `Cache-Control: no-store`. Cached, a repointed
+   deployment keeps sending returning users to the old backend — and it looks
+   like the repoint silently failed.
+
+## Runtime configuration
+
+Read [`references/runtime-config.md`](references/runtime-config.md) before any
+deploy that is not throwaway.
+
+An ibl.ai frontend is defined by which backend it talks to. Baked in at build
+time — inlined `NEXT_PUBLIC_*`, a hand-edited committed config — those values
+make an artifact that can only ever be one environment: staging and production
+become different builds, and repointing means a rebuild. Rendering them at
+process start from the environment is what every ibl.ai app that ships to a
+server already does (`window.__ENV__` in skillsai/mentorai).
+
+## Every target: the tenant has to know the origin
+
+Add the deployment's origin to the tenant's **allowed redirect origins**.
+Sign-in leaves for the login SPA and returns to `<origin>/sso-login-complete`;
+an origin the tenant does not know is a login that never comes back — and the
+symptom looks like a broken app, not a missing setting.
+
 ## When to Deploy
 
 - Before running dev builds (`pnpm exec tauri dev`, `… tauri ios dev`,
   `… tauri android dev`) so the WebView loads from a network URL
 - After frontend changes when iterating on dev builds
 - When sharing a preview URL
+- When handing an app to someone who has to run it on their own
+  infrastructure — that is the container path, and it is worth setting up
+  before they ask
 
 ## Going Back to Local
 
 Remove `devUrl` from `src-tauri/tauri.conf.json`; the WebView loads local
 static files again.
+
+## Reference
+
+- Container/server: [`references/docker-deploy.md`](references/docker-deploy.md)
+- Runtime config: [`references/runtime-config.md`](references/runtime-config.md)
