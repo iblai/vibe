@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-08-22
+
+### Added
+
+- add container and static-host targets
+
 ## [1.18.1] - 2026-08-21
 
 ### Fixed
