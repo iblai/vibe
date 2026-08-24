@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.20.1] - 2026-08-24
+
+### Documentation
+
+- refresh iblai-vibe-profile for the current Profile tabs
+
 ## [1.20.0] - 2026-08-24
 
 ### Added
