@@ -99,7 +99,7 @@ import {
 <AgentAccessTab
   labels={{
     header: { title: "Mentor access", description: "Manage who can edit or chat with this mentor." },
-    table: { columns: { role: "Permission level" } },
+    table: { roleColumn: "Permission level" },
   }}
 />;
 ```

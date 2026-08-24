@@ -157,7 +157,7 @@ If you are using the SDK `PurchasesTab`, skip ahead to Step 6 to verify
 cache invalidation.
 
 ```ts
-import { useGetMySubscriptionsQuery, type SubscriptionObject } from '@iblai/data-layer';
+import { useGetMySubscriptionsQuery, type SubscriptionObject } from '@iblai/iblai-js/data-layer';
 
 const { data, isLoading, isFetching } = useGetMySubscriptionsQuery(
   {
@@ -211,7 +211,7 @@ is summary-only on some Platforms) and wire the cancel mutation:
 import {
   useGetItemSubscriptionQuery,
   useCancelSubscriptionMutation,
-} from '@iblai/data-layer';
+} from '@iblai/iblai-js/data-layer';
 
 const { data: fetched, isLoading } = useGetItemSubscriptionQuery(
   { platform_key, item_type: sub.item_type, item_id: sub.item_id },

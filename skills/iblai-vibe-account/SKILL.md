@@ -128,6 +128,7 @@ import { resolveAppTenant } from "@/lib/iblai/tenant";
 export default function AccountPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [tenantKey, setTenantKey] = useState("");
   const [tenants, setTenants] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -139,6 +140,7 @@ export default function AccountPage() {
       if (raw) {
         const parsed = JSON.parse(raw);
         setUsername(parsed.user_nicename ?? parsed.username ?? "");
+        setEmail(parsed.user_email ?? parsed.email ?? "");
       }
     } catch {}
 
@@ -173,6 +175,8 @@ export default function AccountPage() {
           tenant={tenantKey}
           tenants={tenants}
           username={username}
+          email={email}
+          mainPlatformKey={config.mainTenantKey()}
           isAdmin={isAdmin}
           authURL={config.authUrl()}
           currentPlatformBaseDomain={config.platformBaseDomain()}
@@ -212,6 +216,8 @@ get_component_info("Account")
 | `tenant` | `string` | Platform key |
 | `tenants` | `Tenant[]` | Full list of user platforms from localStorage |
 | `username` | `string` | Username |
+| `email` | `string` | User email (from `userData` in localStorage) |
+| `mainPlatformKey` | `string` | Main tenant key — `config.mainTenantKey()` |
 | `onInviteClick` | `() => void` | Called when "Invite user" is clicked |
 | `onClose` | `() => void` | Cancel/close callback |
 | `authURL` | `string` | Auth service URL |

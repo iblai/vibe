@@ -94,8 +94,8 @@ import {
   isLoggedIn,
 } from "@iblai/iblai-js/web-utils";
 import { Home, Settings, LogOut } from "lucide-react";
-import { redirectToAuthSpa } from "@/lib/utils";
-import { config } from "@/lib/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
 
 export default function AgentChatProjectsPageWrapper() {
   return (
@@ -131,7 +131,7 @@ function AgentChatProjectsPage() {
 
   const chatConfig: ChatConfig = {
     baseWsUrl: () => config.wsUrl(),
-    supportEmail: () => config.supportEmail(),
+    supportEmail: () => `support@${config.platformBaseDomain()}`,
     authUrl: () => config.authUrl(),
     mainTenantKey: config.mainTenantKey(),
     navigateToAdminBilling: () =>

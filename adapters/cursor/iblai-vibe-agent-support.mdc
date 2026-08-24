@@ -157,7 +157,7 @@ From `@iblai/iblai-js/web-containers/next`:
 - `AgentHumanSupportTabProps` -- props type for the tab.
 - `SupportTicketsFilter` -- type of the status/username filter state.
 
-From `@iblai/data-layer` -- the RTK Query hooks and types the tab uses,
+From `@iblai/iblai-js/data-layer` -- the RTK Query hooks and types the tab uses,
 for custom UI built on the same endpoints:
 
 - `useGetSupportTicketsQuery`, `useGetSupportTicketMessagesQuery`,

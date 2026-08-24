@@ -148,7 +148,7 @@ interface RevenueResponse {
 > to `Intl.NumberFormat` — formatting a string yields `NaN`.
 
 ```tsx
-import { useGetRevenueQuery } from '@iblai/data-layer';
+import { useGetRevenueQuery } from '@iblai/iblai-js/data-layer';
 
 function RevenueCard({ platformKey }: { platformKey: string }) {
   const { data } = useGetRevenueQuery({ platform_key: platformKey });
@@ -180,7 +180,7 @@ The commission ibl.ai takes per item type is on the Stripe Connect
 status endpoint, NOT on the revenue response.
 
 ```tsx
-import { useGetStripeConnectStatusQuery } from '@iblai/data-layer';
+import { useGetStripeConnectStatusQuery } from '@iblai/iblai-js/data-layer';
 
 function CommissionTable({ platformKey }: { platformKey: string }) {
   const { data } = useGetStripeConnectStatusQuery({ platform_key: platformKey });

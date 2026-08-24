@@ -96,11 +96,10 @@ fires after the chosen connector is auto-activated.
 
 ```tsx
 import { McpTab } from "@iblai/iblai-js/web-containers/next";
-import type { MCPServer } from "@iblai/data-layer";
 
 <McpTab
-  onSelect={(server: MCPServer) => {
-    console.log("connector selected", server.id, server.name);
+  onSelect={(server) => {
+    console.log("connector selected", server);
   }}
 />;
 ```

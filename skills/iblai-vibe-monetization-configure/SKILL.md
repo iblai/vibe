@@ -152,9 +152,9 @@ A typical Next.js host that supplies all the required props:
 // app/account/page.tsx
 'use client';
 
-import { Account } from '@iblai/iblai-js';
+import { Account } from '@iblai/iblai-js/web-containers/next';
 import { useAuth } from '@/lib/iblai/auth';
-import { config } from '@/lib/iblai/config';
+import config from '@/lib/iblai/config';
 
 export default function AccountPage() {
   const { user, tenants, rbacPermissions } = useAuth();
@@ -162,11 +162,11 @@ export default function AccountPage() {
 
   return (
     <Account
-      tenant={config.platform()}
+      tenant={tenantKey}
       tenants={tenants}
       username={user.username}
       email={user.email}
-      mainPlatformKey={config.mainPlatform()}
+      mainPlatformKey={config.mainTenantKey()}
       authURL={config.authUrl()}
       enableRbac={true}
       rbacPermissions={rbacPermissions}

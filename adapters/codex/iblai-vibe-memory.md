@@ -104,7 +104,7 @@ import { Account } from "@iblai/iblai-js/web-containers/next";
 export default function TenantMemoryPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <Account targetTab="memory" /* plus your usual Account props */ />
+      <Account {...accountProps} targetTab="memory" /* accountProps = your usual Account wiring */ />
     </div>
   );
 }

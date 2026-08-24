@@ -1,0 +1,18 @@
+{
+  "vars": { "app_name": "scaffold-test-app" },
+  "render_only": [
+    "assets/tauri/src-tauri/AppxManifest.xml.j2",
+    "assets/tauri/src-tauri/build-msix.ps1.j2",
+    "assets/tauri/src-tauri/capabilities/default.json.j2",
+    "assets/tauri/src-tauri/Cargo.toml.j2",
+    "assets/tauri/src-tauri/setup-test-cert.ps1.j2",
+    "assets/tauri/src-tauri/src/lib.rs.j2",
+    "assets/tauri/src-tauri/src/main.rs.j2",
+    "assets/tauri/src-tauri/tauri.conf.json.j2",
+    "assets/tauri/workflows/tauri-build-desktop.yml.j2",
+    "assets/tauri/workflows/tauri-build-ios.yml.j2",
+    "assets/tauri/workflows/tauri-build-windows-msix.yml.j2",
+    "assets/tauri/workflows/tauri-release-macos-dmg.yml.j2",
+    "assets/tauri/workflows/tauri-release-windows.yml.j2"
+  ]
+}

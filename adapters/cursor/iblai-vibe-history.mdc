@@ -97,7 +97,7 @@ import { Profile } from "@iblai/iblai-js/web-containers";
 export default function ProfileHistoryPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <Profile targetTab="chatHistory" /* plus your usual Profile props */ />
+      <Profile {...profileProps} targetTab="chatHistory" /* profileProps = your usual Profile wiring */ />
     </div>
   );
 }

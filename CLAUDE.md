@@ -237,8 +237,7 @@ See [BRAND.md](BRAND.md) for the complete brand guidelines.
 
 ## Skills
 
-Skills are in `skills/` (symlinked to `.claude/skills/` for Claude Code discovery).
-Edit the files in `skills/` — changes are reflected automatically.
+Skills live in `skills/` — one directory per skill, `SKILL.md` canonical.
 
 **Cursor / Codex adapters** are generated from the canonical SKILL.md
 files. To regenerate after editing skills:
@@ -256,19 +255,17 @@ The canonical SKILL.md files ARE the Claude Code format — no separate
 adapter needed for Claude. Use `templates/skill-template.md` as the
 starting point when authoring a new skill.
 
-**Skill validation:**
+**Skill validation & testing** (details in [TESTING.md](TESTING.md); PR CI runs the first three):
 
 ```bash
-bash scripts/validate-skills.sh           # local audit against the Agent Skills spec
-bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library
+bash scripts/validate-skills.sh           # spec conformance: name/description/frontmatter, ≤500 lines, off-spec dirs
+node scripts/check-sdk-pins.mjs           # no @iblai/* version mention may drift from vibe-starter's package.json
+node scripts/test-skills-render.mjs       # skill assets + SKILL.md ts/tsx fences typecheck against the pinned SDK
+scripts/test-skills-agent.sh --changed    # headless-agent execution of changed skills (needs claude CLI)
+bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)
 ```
 
-The local validator checks every `skills/<name>/SKILL.md` for:
-- `name:` field present and matching the directory name
-- `description:` present, 1–1024 chars, with trigger phrases
-- `SKILL.md` ≤ 500 lines (warning above)
-- Optional `license`, `metadata.version` fields validated
-- `references/`, `scripts/`, `assets/` subdirs detected if present
+Asset-bearing skills map their templates to app paths in `skills/<name>/test.json`; justified typecheck skips live in `scripts/skill-render-skips.json`.
 
 Invoke with `/` in Claude Code:
 

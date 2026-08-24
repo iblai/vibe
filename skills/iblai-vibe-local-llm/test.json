@@ -1,0 +1,5 @@
+{
+  "overlay": {
+    "assets/nextjs/types/tauri.ts": "types/tauri.ts"
+  }
+}

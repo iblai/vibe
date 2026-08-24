@@ -177,6 +177,7 @@ export default function ProfilePage() {
       <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
         <Profile
           tenant={tenantKey}
+          tenants={tenants}
           username={username}
           isAdmin={isAdmin}
           onClose={() => {}}

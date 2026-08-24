@@ -55,10 +55,11 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^1.10.3` |
-  | `@iblai/web-containers` | `1.6.14` |
-  | `@iblai/web-utils` | `1.6.9` |
-  | `@iblai/data-layer` | `1.5.7` |
+  | `@iblai/iblai-js` | `^2.5.10` |
+  | `@iblai/agent-ai` | `^2.8.1` |
+
+  (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
+  `@iblai/iblai-js/*` subpaths — do not install the separate v1 packages.)
 
 - **Pre-flight export check (do this before writing any code):**
 
@@ -289,8 +290,8 @@ import {
   useUsername, useAxdToken, useUserTenants, useVisitingTenant,
   useIsAdmin, useCachedSessionId,
 } from "@iblai/iblai-js/web-utils";
-import { redirectToAuthSpa } from "@/lib/utils";
-import { config } from "@/lib/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
 
 export default function AgentChatPageWrapper() {
   // `useSearchParams()` requires a Suspense boundary in the App Router

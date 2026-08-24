@@ -1,0 +1,149 @@
+name: skills-ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly live smoke (Mon 04:17 UTC) — runs only when live secrets are set.
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skills-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STARTER_DIR: skills/iblai-vibe-ops-init/assets/vibe-starter
+
+jobs:
+  # ---------------------------------------------------------------- tier 0/1/1.5
+  deterministic:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ env.STARTER_DIR }}/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ env.STARTER_DIR }}/pnpm-lock.yaml
+
+      - name: Validate skills (spec conformance)
+        run: bash scripts/validate-skills.sh
+
+      - name: SDK pin drift
+        run: node scripts/check-sdk-pins.mjs
+
+      - name: Adapters are regenerated
+        run: |
+          node scripts/build-adapters.mjs
+          git diff --exit-code adapters/ || {
+            echo "::error::adapters/ out of date — run 'node scripts/build-adapters.mjs' and commit"; exit 1; }
+
+      - name: Render + typecheck skills against vibe-starter
+        run: node scripts/test-skills-render.mjs --build
+
+  # ---------------------------------------------------------------- tier 2
+  # Agent-executes only the skills the PR touches. Skipped for fork PRs
+  # (no secrets) and when no skills changed.
+  agent:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed skills / secret availability
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- skills/ | awk -F/ '{print $2}' | sort -u | tr '\n' ' ')
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "has_key=$HAS_KEY" >> "$GITHUB_OUTPUT"
+          [ -z "$changed" ] && echo "No skills changed — agent tier skipped." || true
+          [ "$HAS_KEY" = "false" ] && echo "::notice::ANTHROPIC_API_KEY not available — agent tier skipped." || true
+
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.changed != '' && steps.gate.outputs.has_key == 'true'
+        with:
+          package_json_file: ${{ env.STARTER_DIR }}/package.json
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.changed != '' && steps.gate.outputs.has_key == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ env.STARTER_DIR }}/pnpm-lock.yaml
+
+      - name: Run changed skills through a headless agent
+        if: steps.gate.outputs.changed != '' && steps.gate.outputs.has_key == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          npm i -g @anthropic-ai/claude-code
+          ./scripts/test-skills-agent.sh --changed
+
+  # ---------------------------------------------------------------- tier 3
+  # Live platform smoke: agent-builds the core chain, then real SSO login.
+  # Manual dispatch + weekly schedule; skips cleanly without secrets.
+  # Log hygiene: secrets only via ${{ secrets.* }} (auto-masked); server and
+  # Playwright output stay in files; no artifacts are uploaded.
+  live:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        id: gate
+        env:
+          READY: ${{ secrets.ANTHROPIC_API_KEY != '' && secrets.IBLAI_TEST_USERNAME != '' && secrets.IBLAI_TEST_PASSWORD != '' }}
+        run: |
+          echo "ready=$READY" >> "$GITHUB_OUTPUT"
+          [ "$READY" = "false" ] && echo "::notice::live secrets not configured — live tier skipped." || true
+
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          package_json_file: ${{ env.STARTER_DIR }}/package.json
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ env.STARTER_DIR }}/pnpm-lock.yaml
+
+      - name: Install Playwright browser
+        if: steps.gate.outputs.ready == 'true'
+        working-directory: ${{ env.STARTER_DIR }}
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install chromium --with-deps
+
+      - name: Agent-build core chain + live SSO smoke
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RUN_LIVE: "1"
+          AUTH_HOST: ${{ vars.IBLAI_TEST_AUTH_HOST || 'https://login.iblai.app' }}
+          PLAYWRIGHT_USERNAME: ${{ secrets.IBLAI_TEST_USERNAME }}
+          PLAYWRIGHT_PASSWORD: ${{ secrets.IBLAI_TEST_PASSWORD }}
+          IBLAI_TEST_TENANT_KEY: ${{ vars.IBLAI_TEST_TENANT_KEY }}
+          IBLAI_TEST_AGENT_ID: ${{ vars.IBLAI_TEST_AGENT_ID }}
+          IBLAI_TEST_API_KEY: ${{ secrets.IBLAI_TEST_API_KEY }}
+        run: |
+          npm i -g @anthropic-ai/claude-code
+          ./scripts/test-skills-agent.sh iblai-vibe-auth iblai-vibe-navbar iblai-vibe-agent-chat

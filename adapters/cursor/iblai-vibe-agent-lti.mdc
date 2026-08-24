@@ -224,7 +224,7 @@ From `@iblai/iblai-js/web-containers/next`:
 - `LtiTabLabels` -- type for the full label bundle.
 - `AgentLtiTabProps` -- props type for the tab.
 
-From `@iblai/data-layer` -- the RTK Query hooks the tab uses, for custom
+From `@iblai/iblai-js/data-layer` -- the RTK Query hooks the tab uses, for custom
 UI built on the same endpoints:
 
 - Links: `useGetLtiMentorsQuery`, `useCreateLtiMentorMutation`

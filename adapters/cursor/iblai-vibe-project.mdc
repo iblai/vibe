@@ -53,11 +53,8 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^1.11.0` |
-  | `@iblai/web-containers` | `^1.7.0` |
-  | `@iblai/web-utils` | `^1.7.0` |
-  | `@iblai/data-layer` | `^1.5.7` |
-  | `@iblai/agent-ai` | `^2.6.0` |
+  | `@iblai/iblai-js` | `^2.5.10` |
+  | `@iblai/agent-ai` | `^2.8.1` |
 
 - **Pre-flight prop check (do this before writing the route):**
 
@@ -97,12 +94,12 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^1.11.0 \
-         @iblai/web-containers@^1.7.0 \
-         @iblai/web-utils@^1.7.0 \
-         @iblai/data-layer@^1.5.7 \
-         @iblai/agent-ai@^2.6.0
+pnpm add @iblai/iblai-js@^2.5.10 @iblai/agent-ai@^2.8.1
 ```
+
+(v2 bundles `web-containers`, `web-utils`, and `data-layer` as
+`@iblai/iblai-js/*` subpaths — the separate `@iblai/web-*`/`@iblai/data-layer`
+packages are v1-era and must not be installed alongside v2.)
 
 Run the **Pre-flight prop check** in *Prerequisites* to confirm
 `projectId?: string` is on the `Chat` Props type.
@@ -126,8 +123,8 @@ import {
   useVisitingTenant,
   useIsAdmin,
 } from "@iblai/iblai-js/web-utils";
-import { redirectToAuthSpa } from "@/lib/utils";
-import { config } from "@/lib/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
 
 export default function AgentProjectPageWrapper() {
   return (

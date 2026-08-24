@@ -119,13 +119,14 @@ export function InviteSection() {
       <InviteUserDialog
         isOpen={showInvite}
         onClose={() => setShowInvite(false)}
-        org={tenant}
+        tenant={tenant}
       />
-      <InvitedUsersDialog
-        isOpen={showPending}
-        onClose={() => setShowPending(false)}
-        org={tenant}
-      />
+      {showPending && (
+        <InvitedUsersDialog
+          onClose={() => setShowPending(false)}
+          tenant={tenant}
+        />
+      )}
     </div>
   );
 }
