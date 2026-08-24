@@ -2,6 +2,8 @@ name: skills-ci
 
 on:
   pull_request:
+    # `labeled` included so adding the run-tests label to an open PR triggers a run.
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
   schedule:
     # Weekly live smoke (Mon 04:17 UTC) — runs only when live secrets are set.
@@ -19,8 +21,12 @@ env:
 
 jobs:
   # ---------------------------------------------------------------- tier 0/1/1.5
+  # Testing is opt-in per PR via the run-tests label; skills-ci is not a
+  # merge-required check.
   deterministic:
-    if: github.event_name == 'pull_request'
+    if: >
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'run-tests')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +62,7 @@ jobs:
   agent:
     if: >
       github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'run-tests') &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
