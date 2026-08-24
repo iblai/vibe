@@ -8,8 +8,10 @@ alwaysApply: false
 # /iblai-vibe-profile
 
 Add user profile features -- a compact avatar dropdown for your navbar and
-a full settings page with tabs for Basic info, Social links, Education,
-Experience, Resume, and Security.
+a full settings page with sidebar tabs for Basic info, Social links,
+Education (with Credentials and Skills sub-tabs), Experience (with a
+Resume sub-tab), Purchases, Memory, Privacy, History, and Security —
+several of them feature-gated per tenant (see the tab table below).
 
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-profile/profile-page.png)
 
@@ -233,6 +235,25 @@ get_component_info("Profile")
 get_component_info("MediaBox")
 get_component_info("ResumeTab")
 ```
+
+## Profile tabs
+
+The sidebar tabs the `Profile` component renders, with the `targetTab`
+id and when each appears:
+
+| Tab | `targetTab` id | Shown when | Notes |
+|---|---|---|---|
+| Basic | `basic` | Always | Full name, email, title, about, language |
+| Social | `social` | Always | Social links |
+| Gradebook | `gradebook` | `customization.showGradebookTab` | Credentials + skills gradebook |
+| Education | `education` | Always | Sub-tabs: Education / Credentials / Skills |
+| Experience | `experience` | Always | Sub-tabs: Experience / Resume |
+| Purchases | `purchases` | Tenant has monetization enabled | Purchase history |
+| Memory | `memory` | `enableMemoryTab` prop AND tenant memsearch on | The user's own global memories + capture/personalization toggles (the admin view of the same data is `/iblai-vibe-memory`) |
+| Privacy | `privacy` | Tenant allows user chat-privacy control | "Private Mode" — see the Chat Privacy Settings API below |
+| History | `chatHistory` | Own profile only (hidden on read-only previews) | Conversations + Exports — documented in `/iblai-vibe-history` |
+| Security | `security` | Own profile only | Password reset, account deletion |
+| Advanced | `advanced` | Tauri desktop with `localLLMProps.isAvailable` | Local LLM models — see `/iblai-vibe-local-llm` |
 
 ---
 
@@ -748,8 +769,8 @@ Import from `@iblai/iblai-js/web-containers`.
 | `isAdmin` | `boolean` | Admin flag |
 | `onClose` | `() => void` | Close callback |
 | `customization` | `object` | See below |
-| `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security` |
-| `enableMemoryTab` | `boolean?` | Show AI memory management tab |
+| `targetTab` | `string` | Initial tab id — see the **Profile tabs** table (`basic`, `social`, `gradebook`, `education`, `experience`, `purchases`, `memory`, `privacy`, `chatHistory`, `security`, `advanced`) |
+| `enableMemoryTab` | `boolean?` | Show the Memory tab (still requires tenant memsearch to be on) |
 | `localLLMProps` | `object?` | Props for local LLM tab (Tauri desktop only) |
 | `onAccountDeleted` | `() => void` | Callback after account deletion |
 
@@ -825,7 +846,12 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **SDK hardcoded styles**: The SDK Profile component uses `bg-white` and
   `bg-gray-50` internally. Do NOT override these. Instead, wrap the component
   in a white container so it renders correctly against the gray page background.
-- **Billing/Purchases**: Lives on the Account page (`/iblai-vibe-account`), not
-  on the Profile page. Use `UserProfileModal` with `targetTab="billing"` and
-  `billingEnabled={true}` to access it from the combined modal.
+- **Billing vs Purchases**: Tenant billing (plan, credits, spend limits)
+  lives on the Account page (`/iblai-vibe-account`, `/iblai-vibe-billing`).
+  The Profile page's own **Purchases** tab shows the user's purchase
+  history and only appears when the tenant has monetization enabled.
+- **Feature-gated tabs**: Memory, Privacy, Purchases, Gradebook, and
+  Advanced only render when their gate is on (see the Profile tabs
+  table) — `targetTab` pointing at a hidden tab falls back to nothing
+  useful, so check the gate before deep-linking.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
