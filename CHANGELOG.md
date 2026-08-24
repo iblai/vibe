@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-08-24
+
+### Added
+
+- add test infra
+
 ## [1.20.1] - 2026-08-24
 
 ### Documentation
