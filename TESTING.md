@@ -1,6 +1,6 @@
 # Testing the skills
 
-Four tiers, cheapest first. Tiers 0–1.5 run on every PR (`.github/workflows/skills-ci.yml`); the agent tier runs on changed skills only; the live tier is weekly/manual.
+Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in per PR: add the `run-tests` label** (tiers 0–1.5 always; the agent tier additionally only on changed skills); the live tier is weekly/manual. skills-ci is not a merge-required check.
 
 | Tier | Command | What it proves |
 |---|---|---|
