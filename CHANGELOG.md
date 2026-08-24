@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.21.1] - 2026-08-24
+
+### Fixed
+
+- gate tests with `run-tests` label
+
 ## [1.21.0] - 2026-08-24
 
 ### Added
