@@ -4,6 +4,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-08-24
+
+### Added
+
+- add iblai-vibe-history user chat history skill
+
 ## [1.19.0] - 2026-08-22
 
 ### Added
