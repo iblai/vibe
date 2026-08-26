@@ -104,8 +104,10 @@ const config = {
   // Server-only: IBLAI_API_KEY is a secret and not NEXT_PUBLIC_*, so Next.js
   // never inlines it into the client bundle — in the browser this returns "".
   // Use it from route handlers / server components for platform API calls
-  // (`Authorization: Token <key>`). Deliberately not routed through
-  // getEnv/window.__ENV__, which are client-visible.
+  // (`Authorization: Api-Token <key>`; on the OpenAI-compatible endpoints,
+  // `https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1/*`, the same
+  // key is also a standard OpenAI `Bearer` api key). Deliberately not routed
+  // through getEnv/window.__ENV__, which are client-visible.
   apiKey: () => process.env.IBLAI_API_KEY ?? "",
 };
 

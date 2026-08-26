@@ -143,6 +143,16 @@ Then write the values to both files:
 Do NOT print or echo the `TOKEN` / `IBLAI_API_KEY` value back to the user
 once captured.
 
+`IBLAI_API_KEY` also unlocks LLM features without any separate provider key:
+it is a standard OpenAI api key on the platform's OpenAI-compatible endpoint.
+Point any OpenAI client at
+`base_url = https://asgi.data.{DOMAIN}/api/ai-mentor/orgs/{PLATFORM}/v1` with
+the key as `api_key` (sent as `Authorization: Bearer …`) for chat completions
+(including streaming) and model listing (`GET /models` returns what the
+platform can actually serve). Server-side only, like every other use of the
+key — never in client code. Note the `Bearer` scheme applies to this `/v1`
+surface only; all other platform APIs keep `Authorization: Api-Token`.
+
 After the starter is in place, the user's project already has auth, navbar,
 profile, account, and notifications wired. They can skip the matching
 `/iblai-vibe-auth`, `/iblai-vibe-navbar`, `/iblai-vibe-profile`, `/iblai-vibe-account`, and

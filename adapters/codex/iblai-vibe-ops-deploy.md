@@ -134,13 +134,19 @@ SHA=sha256sum; command -v sha256sum >/dev/null 2>&1 || SHA="shasum -a 256"
 # entries (trailing /) have no content to read.
 HASH=$( (cd "$ROOT" && unzip -Z1 "$ZIP" | grep -v '/$' | tr '\n' '\0' | xargs -0 $SHA) \
   | LC_ALL=C sort | $SHA | cut -d' ' -f1 )
+case "$HASH" in *[!0-9a-f]*) HASH= ;; esac   # server rejects anything but lowercase hex
 [ ${#HASH} -eq 64 ] || HASH=    # any hashing hiccup -> no hash -> deploy as usual
 
 SKIP=
 if [ -n "$HASH" ]; then         # empty hash must never match a missing field
+  # push_state guard: while a push is pending/uploading, the stored hash and
+  # READY state still describe the *previous* deploy — skipping then would
+  # report "unchanged" while different content lands (the server answers a
+  # re-push with 409). Only a quiet row may satisfy the skip.
   PREV_URL=$(curl -s "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
     | jq -r --arg p "$PROJECT" --arg h "$HASH" '
         .projects[]? | select(.name == $p)
+        | select((.push_state // "") != "pending" and (.push_state // "") != "uploading")
         | select((.deployment_hash // "") == $h)
         | select((.latest_deployment.state // .last_ready_state // "") == "READY")
         | (.url // "") | select(. != "")' | head -1)
@@ -243,7 +249,7 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 | Status | Meaning | Fix |
 |---|---|---|
 | — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
-| 400 | No Vercel credential stored for this tenant, or bad zip | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits |
+| 400 | No Vercel credential stored for this tenant, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |

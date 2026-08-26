@@ -19,9 +19,10 @@ to the Platform on the token.
 > `` `${apiBase}/dm` `` (or read `SERVICES.DM` from a loaded SDK).
 > Never hit the bare AXD edge (`${NEXT_PUBLIC_API_BASE_URL}/api/...`) —
 > Stripe Connect routes live on DM only.
-> **Auth:** `Authorization: Token <DM token>` (PlatformApiKeyAuthentication).
-> This is the **DM token**, not the AXD token — using the AXD token here
-> returns `401`.
+> **Auth:** `Authorization: Token <DM token>` — a **user** DM token
+> (ManagerAuthTokenAuthentication; a platform API key would use the
+> `Api-Token` scheme instead). This is the **DM token**, not the AXD token —
+> using the AXD token here returns `401`.
 > **Permission:** `IsPlatformAdmin` on every endpoint — these are
 > Platform-owner-only surfaces, not user-facing.
 
