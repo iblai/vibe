@@ -80,15 +80,37 @@ pnpm install --ignore-scripts
 git init   # only if the project is not already a git repo
 ```
 
-### Ask for platform credentials and write env files
+### Resolve platform credentials and write env files
 
-After the copy completes, ask the user for their ibl.ai platform credentials
-**unless `iblai.env` already exists with real values for both `PLATFORM` and
-`TOKEN`** (in which case skip these prompts and reuse them).
+After the copy completes, climb this ladder and stop at the first rung that
+yields both values. Inside the ibl.ai desktop app both rungs 1 and 2 hit, so
+the user is asked nothing:
 
-> What is your ibl.ai **PLATFORM** (tenant key)?
+1. **`iblai.env` already exists with real values for both `PLATFORM` and
+   `TOKEN`** -- reuse them and skip the prompts entirely.
 
-> What is your ibl.ai **TOKEN** (platform API key)?
+2. **Otherwise read them from the environment.** The ibl.ai desktop app
+   exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, and `IBLAI_USERNAME` into
+   the agent's environment. Use whatever is present without asking for it and
+   without echoing it back:
+
+   ```bash
+   PLATFORM="${IBLAI_PLATFORM_KEY:-}"
+   TOKEN="${IBLAI_API_KEY:-}"
+   ```
+
+   When `IBLAI_USERNAME` is exported, persist it to `iblai.env` as well --
+   that saves `/iblai-vibe-ops-deploy` asking for it later.
+
+3. **Ask only for the values still missing** -- standalone opencode / Claude
+   Code users outside the desktop app:
+
+   > What is your ibl.ai **PLATFORM** (tenant key)?
+
+   > What is your ibl.ai **TOKEN** (platform API key)?
+
+   Never ask for `TOKEN` when `IBLAI_API_KEY` is exported -- the environment
+   already answered it.
 
 Then write the values to both files:
 
@@ -246,6 +268,10 @@ and optionally `IBLAI_USERNAME` — your platform username; the
 deploy skill asks once and persists it otherwise). Map these into `.env.local`:
 `NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
 API URLs default to `iblai.app`.
+
+When the host exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, or
+`IBLAI_USERNAME` (the ibl.ai desktop app does), use those values and never ask
+the user for a platform API key.
 
 `/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API
 (Vercel-backed) using `TOKEN` — no Vercel account, token, or CLI. It zips
