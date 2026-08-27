@@ -92,8 +92,11 @@ real Next env file is the gitignored `.env.local` (copy from `.env.example`):
 it needs `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) and, for server-side
 platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
 (= `TOKEN`). The API/auth/websocket URLs default to hosted iblai.app in
-`lib/iblai/config.ts` — override them in `.env.local` only when self-hosting
-(distributed per-service hosts are unavailable on hosted iblai.app, see
+`lib/iblai/config.ts` — override them in `.env.local` when self-hosting or
+when `DOMAIN` isn't `iblai.app` (map `NEXT_PUBLIC_PLATFORM_BASE_DOMAIN` ←
+`DOMAIN`, `NEXT_PUBLIC_API_BASE_URL` ← `https://api.<DOMAIN>`, and the
+sign-in URL when known — the auth host is not derivable from the domain;
+distributed per-service hosts are unavailable on hosted iblai.app, see
 `lib/iblai/config.ts`).
 
 `/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API

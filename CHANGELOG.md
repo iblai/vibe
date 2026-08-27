@@ -4,6 +4,31 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+### Fixed
+
+- `iblai-vibe-course-create` taught `Authorization: Token $IBLAI_API_KEY`, which the
+  platform rejects with 401 — a platform API key matches only the `Api-Token` scheme
+  outside `/v1`. Fixed the three sites (+ regenerated adapters), the stale
+  `Token <key>` comment on `config.apiKey()` in the auth template and the shipped
+  vibe-starter copy, and the mislabeled auth class in the monetization-onboard
+  Connect API reference (a user DM token, not `PlatformApiKeyAuthentication`).
+- `iblai-vibe-ops-deploy` Step 3.5: the skip now ignores rows whose `push_state` is
+  `pending`/`uploading` — while a push of different content is in flight, the stored
+  hash and READY state still describe the previous deploy, so the skip could report
+  "unchanged" while other content landed (the server answers a re-push with 409).
+  The client hash guard also rejects non-lowercase-hex (matching the server's
+  validation), and the 400 row in the error table names the malformed-hash cause.
+
+### Documentation
+
+- `IBLAI_API_KEY` is now a standard OpenAI api key on the platform's
+  OpenAI-compatible endpoint (`https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1`,
+  `Authorization: Bearer`): taught in `iblai-vibe-ops-init` (skill + starter
+  `.env.example` + `config.ts` comment) and the sandbox agent briefing, so apps get
+  LLM features (chat completions incl. streaming, tenant-scoped `GET /models`)
+  without a separate provider key. `Bearer` applies to `/v1` only; everything else
+  keeps `Api-Token`.
+
 ## [1.21.2] - 2026-08-27
 
 ### Documentation

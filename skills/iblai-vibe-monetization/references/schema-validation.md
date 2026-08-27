@@ -18,8 +18,9 @@ Validate against the schema before:
 
 ## Schema URLs
 
-> Throughout this file, `{dm_url}` = the DM service host (e.g.
-> `https://api.iblai.app/dm`). The full schema URL is
+> Throughout this file, `{dm_url}` = the DM service host —
+> `https://api.$DOMAIN/dm` with `DOMAIN` from `iblai.env` (default
+> `iblai.app`, e.g. `https://api.iblai.app/dm`). The full schema URL is
 > `{dm_url}/api/docs/schema/`. The auth token consumed by the endpoints
 > below is the **DM token** — not the AXD token.
 
@@ -42,7 +43,8 @@ every lookup is wasteful.
 
 ```bash
 # fetch + cache locally for the session
-curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+curl -sS -o /tmp/iblai_schema.yaml "https://api.${DOMAIN:-iblai.app}/dm/api/docs/schema/"
 
 # confirm the build you cached
 grep -E "^  title:|^  version:" /tmp/iblai_schema.yaml

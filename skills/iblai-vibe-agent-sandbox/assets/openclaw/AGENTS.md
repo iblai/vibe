@@ -70,6 +70,10 @@ Deploy through the ibl.ai platform's hosting API when asked to publish or deploy
 - Deployed apps are public by default — there is no Vercel deployment protection to disable.
 - Report the live URL and any meaningful caveat, such as skipped verification or placeholder env values.
 
+## App LLM calls
+
+- An app's LLM features need no separate provider key: `IBLAI_API_KEY` is a standard OpenAI api key at `https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1` (chat completions including streaming, `GET /models`; `<domain>` = `DOMAIN` from `iblai.env` — inside the ibl.ai desktop app the session guidance states it, default `iblai.app`). Server-side only — never ship it in the client bundle. This is for the software you build; your own inference already runs through the session's proxy.
+
 ## Memory
 
 You wake up fresh each session. Files are continuity.

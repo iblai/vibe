@@ -145,8 +145,9 @@ Data Reports lifecycle, and a local snapshot of the live OpenAPI schema
 at `references/analytics-schema.json`.
 
 > **The OpenAPI schema is the contract.** Live at
-> <https://api.iblai.app/dm/api/docs/schema/?format=json> (browsable at
-> <https://api.iblai.app/dm/api/docs/>). Consult it before writing any
+> `{dm_url}/api/docs/schema/?format=json` (browsable at `{dm_url}/api/docs/`;
+> `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default
+> `iblai.app`). Consult it before writing any
 > analytics request. The `iblai/api` skill's `references/schema.md`
 > gives the fetch + drift-check routine.
 
@@ -154,7 +155,8 @@ at `references/analytics-schema.json`.
 
 - **Auth header:** `Authorization: Token <token>`. The SDK attaches
   this automatically via `SERVICES.DM`.
-- **Anchor:** `{dm_url}` = `https://api.iblai.app/dm` throughout the
+- **Anchor:** `{dm_url}` = `https://api.$DOMAIN/dm` (`DOMAIN` from
+  `iblai.env`, default `iblai.app`) throughout the
   companion `/iblai-analytics` skill. Endpoints there are written
   `{dm_url}/api/analytics/…` and `{dm_url}/api/reports/…`. In
   TypeScript, `dmUrl` is the first arg passed to
