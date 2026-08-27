@@ -47,7 +47,8 @@ login name and silently discards assignments.)
 
 ```bash
 val() { grep -m1 "^$1=" iblai.env | cut -d= -f2-; }
-DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
+DOMAIN=$(val DOMAIN); DOMAIN="${DOMAIN:-iblai.app}"
+PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
 IBLAI_USERNAME="${IBLAI_USERNAME:-$(val IBLAI_USERNAME)}"
 [ -n "$IBLAI_USERNAME" ] || IBLAI_USERNAME=$(val USERNAME)   # legacy iblai.env key
 AUTH="Authorization: Api-Token $TOKEN"
@@ -277,7 +278,7 @@ entrypoint, compose, TLS, CI smoke test — in
 docker build -t <app> .
 docker run -d -p 8080:8080 \
   -e NEXT_PUBLIC_IBL_PLATFORM=<tenant> \
-  -e NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app \
+  -e NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-https://api.iblai.app}" \
   <app>
 ```
 

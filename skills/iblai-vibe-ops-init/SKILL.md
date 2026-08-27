@@ -118,8 +118,12 @@ the user is asked nothing:
 Then write the values to both files:
 
 1. **`iblai.env`** -- create if missing, or update the `PLATFORM` and `TOKEN`
-   lines in place. Keep `DOMAIN=iblai.app` (or whatever the user already
-   set). Example contents:
+   lines in place. `DOMAIN` is the platform's **base domain**: inside the
+   ibl.ai desktop app your session guidance states it ("The platform's base
+   domain is …") -- write exactly that value, and if an existing `iblai.env`
+   disagrees with it, update `DOMAIN` to match (a stale domain sends every
+   skill to the wrong host). Outside the desktop app keep whatever the user
+   already set, defaulting to `iblai.app`. Example contents:
 
    ```
    DOMAIN=iblai.app
@@ -133,12 +137,23 @@ Then write the values to both files:
    If `.env.local` does not exist yet, copy the starter's example first
    (`cp .env.example .env.local`), then update or append both lines (write
    `TOKEN` as `IBLAI_API_KEY`). The API/auth/websocket URLs default to
-   hosted iblai.app in `lib/iblai/config.ts`, so these two values are all
-   that must change:
+   hosted iblai.app in `lib/iblai/config.ts`, so when `DOMAIN` is
+   `iblai.app` these two values are all that must change:
 
    ```
    NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>
    IBLAI_API_KEY=<TOKEN>
+   ```
+
+   When `DOMAIN` is anything else, the hosted defaults would point at the
+   wrong platform -- also write, from the same `DOMAIN` (and the sign-in URL
+   your session guidance states, if it states one; the auth host is NOT
+   derivable from the domain, so never guess it):
+
+   ```
+   NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=<DOMAIN>
+   NEXT_PUBLIC_API_BASE_URL=https://api.<DOMAIN>
+   NEXT_PUBLIC_AUTH_URL=<the sign-in URL from the session guidance, when given>
    ```
 
 Do NOT print or echo the `TOKEN` / `IBLAI_API_KEY` value back to the user
@@ -280,7 +295,11 @@ and optionally `IBLAI_USERNAME` — your platform username; the
 `IBLAI_USERNAME` environment variable wins when the host exports it, and the
 deploy skill asks once and persists it otherwise). Map these into `.env.local`:
 `NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
-API URLs default to `iblai.app`.
+API URLs default to `iblai.app`. When `DOMAIN` is anything else, also map
+`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN` ← `DOMAIN` and
+`NEXT_PUBLIC_API_BASE_URL` ← `https://api.<DOMAIN>` (plus the sign-in URL
+from the session guidance when given — the auth host is not derivable from
+the domain).
 
 When the host exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, or
 `IBLAI_USERNAME` (the ibl.ai desktop app does), use those values and never ask

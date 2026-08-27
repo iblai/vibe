@@ -15,7 +15,8 @@ binds that to the OS login name and silently discards assignments):
 
 ```bash
 val() { grep -m1 "^$1=" iblai.env | cut -d= -f2-; }
-DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
+DOMAIN=$(val DOMAIN); DOMAIN="${DOMAIN:-iblai.app}"
+PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
 IBLAI_USERNAME="${IBLAI_USERNAME:-$(val IBLAI_USERNAME)}"
 [ -n "$IBLAI_USERNAME" ] || IBLAI_USERNAME=$(val USERNAME)   # legacy iblai.env key
 AUTH="Authorization: Api-Token $TOKEN"

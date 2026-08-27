@@ -36,7 +36,8 @@ When building custom UI around SDK components, use the ibl.ai brand:
 ## Authentication
 
 > **`{dm_url}` and DM token.** Throughout this family, `{dm_url}` resolves to
-> your data-manager host (e.g. `https://api.iblai.app/dm`); in TypeScript
+> your data-manager host — `https://api.$DOMAIN/dm` with `DOMAIN` from
+> `iblai.env` (default `iblai.app`); in TypeScript
 > compose it as `` `${apiBase}/dm` ``. The auth token is the **DM token** —
 > not the AXD token. The two are different tokens issued by different
 > services; using the AXD token against `{dm_url}` returns `401`. The SDK
@@ -93,13 +94,15 @@ orientation, but the live schema mirrors what is actually deployed.
 Before writing any code that constructs a URL, fetch the schema:
 
 ```bash
-curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+DM="https://api.${DOMAIN:-iblai.app}/dm"
+curl -sS -o /tmp/iblai_schema.yaml "$DM/api/docs/schema/"
 grep -E "^(  )?/api/billing|^(  )?/api/service/platforms/\{platform_key\}/stripe/connect" /tmp/iblai_schema.yaml
 ```
 
-Schema is OpenAPI 3.0.3 YAML at
-`https://api.iblai.app/dm/api/docs/schema/` (also browsable at
-`https://api.iblai.app/dm/api/docs/`). The `info.version` field
+Schema is OpenAPI 3.0.3 YAML at `{dm_url}/api/docs/schema/` (browsable at
+`{dm_url}/api/docs/`; e.g.
+`https://api.iblai.app/dm/api/docs/schema/`). The `info.version` field
 exposes the deployed `ibl-data-manager` build — it rolls forward each
 release, so do not pin to a specific value. The exact fetch routine
 and drift-detection workflow live in

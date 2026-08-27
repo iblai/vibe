@@ -60,9 +60,11 @@ from `@iblai/iblai-js/web-utils`.
 The full list of every action the platform recognizes:
 
 ```
-GET https://base.manager.iblai.app/api/core/rbac/actions/definitions/
+GET https://api.$DOMAIN/dm/api/core/rbac/actions/definitions/
 Authorization: Token <dm-token>
 ```
+
+(`$DOMAIN` is `DOMAIN` from `iblai.env`, default `iblai.app`.)
 
 Use this when authoring a custom role's `actions` / `data_actions`
 array or when validating that an action string is real before you ship

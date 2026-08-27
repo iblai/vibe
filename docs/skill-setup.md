@@ -45,6 +45,11 @@ Full brand guidelines:
   deploys — the `IBLAI_USERNAME` environment variable wins when the host
   exports it) plus the `AUTH_*` branding values. Next.js still reads its
   runtime env vars from `.env.local`.
+- `DOMAIN` is the single host knob: every platform API base is composed from
+  it as `https://api.$DOMAIN/dm` (default `iblai.app`). Inside the ibl.ai
+  desktop app the session guidance states the base domain — write that value.
+  The sign-in (auth SPA) host is the one exception: it is not derivable from
+  the domain, so use it only when the guidance or the user supplies it.
 - The skills read `iblai.env` and derive the `NEXT_PUBLIC_*` values into
   `.env.local`. vibe-starter apps need only the tenant key and
   `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.

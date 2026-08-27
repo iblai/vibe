@@ -72,7 +72,7 @@ Deploy through the ibl.ai platform's hosting API when asked to publish or deploy
 
 ## App LLM calls
 
-- An app's LLM features need no separate provider key: `IBLAI_API_KEY` is a standard OpenAI api key at `https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1` (chat completions including streaming, `GET /models`). Server-side only — never ship it in the client bundle. This is for the software you build; your own inference already runs through the session's proxy.
+- An app's LLM features need no separate provider key: `IBLAI_API_KEY` is a standard OpenAI api key at `https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1` (chat completions including streaming, `GET /models`; `<domain>` = `DOMAIN` from `iblai.env` — inside the ibl.ai desktop app the session guidance states it, default `iblai.app`). Server-side only — never ship it in the client bundle. This is for the software you build; your own inference already runs through the session's proxy.
 
 ## Memory
 

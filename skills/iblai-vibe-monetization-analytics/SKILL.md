@@ -54,7 +54,7 @@ not in a subdirectory.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at https://api.iblai.app/dm/api/docs/schema/ and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
 
 ## Prerequisites
 
@@ -102,7 +102,8 @@ Confirm the four analytics endpoints + the cancel endpoint are present
 before writing any code:
 
 ```bash
-curl -sS https://api.iblai.app/dm/api/docs/schema/ -o /tmp/iblai_schema.yaml
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+curl -sS "https://api.${DOMAIN:-iblai.app}/dm/api/docs/schema/" -o /tmp/iblai_schema.yaml
 grep -E "/api/billing/platforms/\{platform_key\}/(revenue|subscribers|paywalls)/|/api/billing/platforms/\{platform_key\}/items/\{item_type\}/\{item_id\}/(subscribers|subscription/cancel)/" /tmp/iblai_schema.yaml
 ```
 
