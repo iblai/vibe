@@ -29,6 +29,17 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.22.0] - 2026-08-27
+
+### Added
+
+- add support for alternative ibl.ai base domains
+- skip unchanged deploys, read credentials from the env, stop asking for Stripe keys
+
+### Fixed
+
+- use Api-Token for platform keys, guard the deploy skip against in-flight pushes, teach IBLAI_API_KEY as an OpenAI api key on /v1
+
 ## [1.21.2] - 2026-08-27
 
 ### Documentation
