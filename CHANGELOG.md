@@ -29,6 +29,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.21.2] - 2026-08-27
+
+### Documentation
+
+- document sandbox type selection in iblai-vibe-agent-sandbox
+
 ## [1.21.1] - 2026-08-24
 
 ### Fixed
