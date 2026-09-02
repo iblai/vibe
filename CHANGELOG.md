@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [1.25.2] - 2026-09-02
+
+### Documentation
+
+- explain the five core iblai/api families, add the live-tenant pattern, ibl.ai/docs links, README truth pass
+
 ## [1.25.1] - 2026-09-02
 
 
