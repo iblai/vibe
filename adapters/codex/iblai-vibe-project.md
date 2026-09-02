@@ -44,8 +44,9 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 - A **real `projectId`** to test against. Either:
   - Create one in the admin UI, or
   - List the user's projects:
-    `GET https://api.iblai.app/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
-    (use `Authorization: Token <axd_token>`).
+    `GET https://api.$DOMAIN/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
+    (use `Authorization: Token <axd_token>`; `$DOMAIN` is `DOMAIN` from
+    `iblai.env`, default `iblai.app`).
 - **Minimum SDK versions.** The `projectId` prop on `<Chat>` and the
   `ProjectLandingPage` slot were added in:
 

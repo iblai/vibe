@@ -15,7 +15,8 @@ no Vercel token, no `vercel` CLI.
 poll until the build is READY. The app lands on the `*.vercel.app` URL the
 API reports (never derived from the project name), public by default (no Vercel
 SSO/password protection to disable). POST again with the same `project`
-slug to redeploy.
+slug to redeploy — content identical to what is already live is skipped
+automatically (Step 3.5).
 
 ## Which target
 
@@ -46,7 +47,8 @@ login name and silently discards assignments.)
 
 ```bash
 val() { grep -m1 "^$1=" iblai.env | cut -d= -f2-; }
-DOMAIN=$(val DOMAIN); PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
+DOMAIN=$(val DOMAIN); DOMAIN="${DOMAIN:-iblai.app}"
+PLATFORM=$(val PLATFORM); TOKEN=$(val TOKEN)
 IBLAI_USERNAME="${IBLAI_USERNAME:-$(val IBLAI_USERNAME)}"
 [ -n "$IBLAI_USERNAME" ] || IBLAI_USERNAME=$(val USERNAME)   # legacy iblai.env key
 AUTH="Authorization: Api-Token $TOKEN"
@@ -117,17 +119,82 @@ unzip -l app.zip | grep -q '\.env\.production' || { echo "ABORT: .env.production
 (Skip guard 2 only if this app deliberately has no server-side platform
 key.)
 
-## Step 4: Deploy + poll
+## Step 3.5: Skip if unchanged
+
+Hash what went *into* the zip — never `app.zip` itself, which embeds mtimes
+and so differs on every run even when nothing changed. `unzip -Z1` (already a
+dependency, Step 3's proof guard uses it) enumerates the members the exclude
+list actually produced, so the hash can never drift from what is uploaded:
 
 ```bash
-RESP=$(curl -s -X POST "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
-  -F "file=@app.zip" -F "project=$PROJECT" -F "framework=$MODE")
-ID=$(echo "$RESP" | jq -r .id)
-# The live URL is Vercel's to mint — NEVER build it from the project name
-# (long names get right-truncated, collisions get a hash suffix). `.url` is
-# the confirmed host from a previous deploy; empty on the very first one —
-# the poll below fills it from the deployment's alias list.
-APP_URL=$(echo "$RESP" | jq -r '.url // empty')
+ROOT=.; [ "$MODE" = static ] && ROOT=out   # zip members are relative to this
+ZIP="$PWD/app.zip"
+# Both print "hash<2 spaces>path", so the combined digest matches cross-OS
+SHA=sha256sum; command -v sha256sum >/dev/null 2>&1 || SHA="shasum -a 256"
+# per-member digest -> LC_ALL=C sorted lines -> one digest. Directory
+# entries (trailing /) have no content to read.
+HASH=$( (cd "$ROOT" && unzip -Z1 "$ZIP" | grep -v '/$' | tr '\n' '\0' | xargs -0 $SHA) \
+  | LC_ALL=C sort | $SHA | cut -d' ' -f1 )
+case "$HASH" in *[!0-9a-f]*) HASH= ;; esac   # server rejects anything but lowercase hex
+[ ${#HASH} -eq 64 ] || HASH=    # any hashing hiccup -> no hash -> deploy as usual
+
+SKIP=
+if [ -n "$HASH" ]; then         # empty hash must never match a missing field
+  # push_state guard: while a push is pending/uploading, the stored hash and
+  # READY state still describe the *previous* deploy — skipping then would
+  # report "unchanged" while different content lands (the server answers a
+  # re-push with 409). Only a quiet row may satisfy the skip.
+  PREV_URL=$(curl -s "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
+    | jq -r --arg p "$PROJECT" --arg h "$HASH" '
+        .projects[]? | select(.name == $p)
+        | select((.push_state // "") != "pending" and (.push_state // "") != "uploading")
+        | select((.deployment_hash // "") == $h)
+        | select((.latest_deployment.state // .last_ready_state // "") == "READY")
+        | (.url // "") | select(. != "")' | head -1)
+  if [ -n "$PREV_URL" ]; then
+    SKIP=1; APP_URL="$PREV_URL"
+    echo "unchanged — already live at $APP_URL"
+  fi
+fi
+```
+
+Every edge degrades to deploying, which is today's behaviour:
+
+- **First deploy** — no row named `$PROJECT` in `projects`, nothing selects,
+  deploy.
+- **Older backend** without the field — the stored hash reads empty, never
+  equal to a 64-char digest, deploy. The extra POST field below is harmlessly
+  dropped too: the deploy serializer is a plain DRF `Serializer` over
+  multipart, and unknown keys are ignored, not rejected.
+- **Vercel unreachable** — the list is served `stale: true` with
+  `latest_deployment: null`, so the jq falls back to the row's cached
+  `last_ready_state`; if neither says `READY`, deploy.
+- **No confirmed URL yet** — `url` is only non-empty once Vercel has minted an
+  alias, so a skip can always name the live host instead of guessing one.
+
+> **ponytail:** in **static** mode the Next.js build mints a fresh build ID
+> every run, so identical source usually still hashes differently and the
+> dedupe rarely fires. **Server** mode (the vibe-starter default) hashes app
+> source and dedupes reliably. Upgrade path if static dedupe matters: hash the
+> source tree *before* `pnpm build` and compare that instead.
+
+## Step 4: Deploy + poll
+
+Both blocks are no-ops when Step 3.5 set `SKIP` — `APP_URL` is already the
+live host, so Step 5 still runs.
+
+```bash
+if [ -z "$SKIP" ]; then
+  RESP=$(curl -s -X POST "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
+    -F "file=@app.zip" -F "project=$PROJECT" -F "framework=$MODE" \
+    ${HASH:+-F "deployment_hash=$HASH"})
+  ID=$(echo "$RESP" | jq -r .id)
+  # The live URL is Vercel's to mint — NEVER build it from the project name
+  # (long names get right-truncated, collisions get a hash suffix). `.url` is
+  # the confirmed host from a previous deploy; empty on the very first one —
+  # the poll below fills it from the deployment's alias list.
+  APP_URL=$(echo "$RESP" | jq -r '.url // empty')
+fi
 ```
 
 A `202` returns the project row (`{id, name, vercel_project_name, url,
@@ -138,6 +205,7 @@ few minutes; give up after ~10 min):
 
 ```bash
 STATE=BUILDING; TRIES=0
+[ -n "$SKIP" ] && STATE=READY   # nothing was pushed — the loop below never runs
 until [ "$STATE" = "READY" ] || [ "$STATE" = "ERROR" ] || [ "$STATE" = "PUSH_FAILED" ] || [ $TRIES -ge 60 ]; do
   sleep 10; TRIES=$((TRIES+1))
   R=$(curl -s "$BASE/providers/vercel/hosting/deployment/$ID/" -H "$AUTH")
@@ -167,7 +235,9 @@ log tail and fix what it reports:
 curl -s "$BASE/providers/vercel/hosting/deployment/$ID/" -H "$AUTH" | jq -r '.build_log_tail'
 ```
 
-Redeploy = rebuild the zip, POST again with the same `project`.
+Redeploy = rebuild the zip, POST again with the same `project` — and when the
+rebuilt content hashes to what is already live, Step 3.5 turns that into a
+no-op instead of a push.
 
 ## Step 5: Update Tauri (if present)
 
@@ -179,7 +249,8 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 
 | Status | Meaning | Fix |
 |---|---|---|
-| 400 | No Vercel credential stored for this tenant, or bad zip | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits |
+| — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
+| 400 | No Vercel credential stored for this tenant, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
@@ -207,7 +278,7 @@ entrypoint, compose, TLS, CI smoke test — in
 docker build -t <app> .
 docker run -d -p 8080:8080 \
   -e NEXT_PUBLIC_IBL_PLATFORM=<tenant> \
-  -e NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app \
+  -e NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-https://api.iblai.app}" \
   <app>
 ```
 

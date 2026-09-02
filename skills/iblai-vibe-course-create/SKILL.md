@@ -28,10 +28,10 @@ All endpoints are rooted at:
 
 | Variable    | Purpose                                            | Env var           |
 | ----------- | -------------------------------------------------- | ----------------- |
-| `base_url`  | Server URL (e.g. `https://base.manager.iblai.app`) | `IBLAI_BASE_URL`  |
+| `base_url`  | Server URL (default `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`) | `IBLAI_BASE_URL`  |
 | `org`       | Platform / tenant key                              | `IBLAI_ORG`       |
 | `user_id`   | Authenticated user's username                      | `IBLAI_USER_ID`   |
-| `api_key`   | API token used as `Authorization: Token <api_key>` | `IBLAI_API_KEY`   |
+| `api_key`   | Platform API key used as `Authorization: Api-Token <api_key>` | `IBLAI_API_KEY`   |
 | `mentor_id` | (Optional) Agent UUID for memory-aware generation | `IBLAI_MENTOR_ID` |
 
 
@@ -39,7 +39,7 @@ All endpoints are rooted at:
 Every request MUST include:
 
 ```
-Authorization: Token {api_key}
+Authorization: Api-Token {api_key}
 Content-Type: application/json   (for JSON bodies)
 ```
 
@@ -311,8 +311,10 @@ After the outline (step 3) and again after content drafting (step 6), always pul
 ## Curl Recipes
 
 ```bash
-export BASE=https://base.manager.iblai.app/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USER_ID
-export AUTH="Authorization: Token $IBLAI_API_KEY"
+# IBLAI_BASE_URL overrides; else compose from iblai.env's DOMAIN (default iblai.app).
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+export BASE="${IBLAI_BASE_URL:-https://api.${DOMAIN:-iblai.app}/dm}/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USER_ID"
+export AUTH="Authorization: Api-Token $IBLAI_API_KEY"
 
 # 1. Create task
 TASK_ID=$(curl -s -X POST "$BASE/course-creation/tasks/" \

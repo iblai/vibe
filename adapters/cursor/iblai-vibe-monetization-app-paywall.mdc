@@ -1,5 +1,5 @@
 ---
-description: "Put a Stripe \"pay to enter\" gate on a whole vibe-starter app using the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (store rk_ key, create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring."
+description: "Put a Stripe \"pay to enter\" gate on a whole vibe-starter app using the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (probe the tenant's stored Stripe credential — never collect a key in chat — then create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring."
 globs:
 alwaysApply: false
 ---
@@ -43,8 +43,10 @@ Selling items *inside* the app instead? Use the Connect family — start at
   `iblai.env`; if neither has it, ask the user once and persist it (same
   Step 1 as `/iblai-vibe-ops-deploy`).
 - A scaffolded vibe-starter app with working SSO auth.
-- The admin has a Stripe account and can mint a **restricted** key
-  (`rk_…`) — never store a full live secret key.
+- The tenant has **Stripe connected on the platform**: an integration
+  credential named `stripe` holding the account's secret key. The agent
+  **never asks for or accepts a Stripe key in chat** — Step 1 probes for the
+  credential and hands off to a platform admin when it is missing.
 - **Server mode**: `next.config.*` must NOT set `output: 'export'` — the
   paywall needs API routes.
 - **Backend version**: probe
@@ -61,25 +63,31 @@ exactly as in `/iblai-vibe-ops-deploy` Step 1), then with
 `PAY="https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/payments"`
 and `AUTH="Authorization: Api-Token $TOKEN"`:
 
-1. **Store the Stripe key** (skip if `GET $PAY/products/` already returns
-   200): `POST https://api.$DOMAIN/dm/api/ai-account/orgs/$PLATFORM/integration-credential/`
-   with `{"name":"stripe","value":{"key":"rk_…"},"platform":"$PLATFORM"}`.
-   Never echo the key.
-2. **Verify**: `GET $PAY/products/` → 200. (400 = credential missing,
-   502 = Stripe rejected the key, 404 = old backend or `$IBLAI_USERNAME`
-   not a member.)
-3. **Create the product**, tagged for this app:
+1. **Probe the tenant's Stripe connection**: `GET $PAY/products/?limit=1`.
+   - `200` → connected, continue.
+   - `400` (`No Stripe credential configured for platform '<org>'…`) →
+     **stop and hand off.** Ask a platform admin to add an integration
+     credential named `stripe` in the platform credentials UI, holding a
+     **restricted** key: Stripe Dashboard → Developers → API keys → Create
+     restricted key — write on Products, Prices, Checkout Sessions,
+     Customers; read on Subscriptions; everything else None. In the platform
+     UI, **not in this chat** — never ask for or accept the key here. Re-run
+     the probe once they confirm.
+   - `502` → Stripe rejected the stored key (typo / wrong mode); the admin
+     re-saves it in the credentials UI.
+   - `404` → old backend or `$IBLAI_USERNAME` not a member.
+2. **Create the product**, tagged for this app:
    `POST $PAY/products/` `{"name":"<App> access","metadata":{"app":"<slug>"}}`.
    The `metadata.app` tag is what the DM enforces at checkout — it must
    equal `PAYWALL_APP_SLUG` exactly. Use the deploy project slug
    (lowercased package name) as the value.
-4. **Create price(s)**: `POST $PAY/prices/`
+3. **Create price(s)**: `POST $PAY/prices/`
    `{"product":"prod_…","unit_amount":2900,"currency":"usd"}` — add
    `"recurring":{"interval":"month"}` for a subscription. Checkout mode
    follows the price type automatically.
-5. **Capture display data**: `GET $PAY/prices/<id>/` → amount/currency/
+4. **Capture display data**: `GET $PAY/prices/<id>/` → amount/currency/
    interval → fill the `PRICES` constant in `app/paywall/page.tsx`.
-6. **Write env** — append to `.env.local`:
+5. **Write env** — append to `.env.local`:
 
    ```bash
    PAYWALL_PRICE_IDS=price_xxx,price_yyy   # server-only allowlist, comma-separated

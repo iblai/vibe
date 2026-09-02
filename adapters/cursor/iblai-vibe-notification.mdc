@@ -125,7 +125,7 @@ npx playwright screenshot http://localhost:3000/notifications /tmp/notifications
 > arg passed to `initializeDataLayer()` (sourced from
 > `NEXT_PUBLIC_API_BASE_URL`).
 > **Auth:** `Authorization: Token <token>`
-> **Live OpenAPI:** <https://api.iblai.app/dm/api/docs/schema/swagger-ui/>
+> **Live OpenAPI:** `${dmUrl}/api/docs/schema/swagger-ui/`
 
 The SDK's RTK Query hooks (`useGetUserNotificationsQuery`,
 `useGetNotificationCountQuery`, `useUpdateNotificationStatusMutation`,
