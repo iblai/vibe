@@ -46,7 +46,10 @@ Do NOT implement dark mode unless the user explicitly asks for it.
   the axd token, username, and tenants from the providers tree.
 - A working store, providers, and SSO callback route — i.e. an app that
   already passes `/iblai-vibe-auth` verification.
-- An agent/mentor ID (a UUID) — get one at https://mentorai.iblai.app.
+- An agent/mentor ID (a UUID) — the last path segment of an
+  `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` URL the user gave, or
+  create an agent on [os.ibl.ai](https://os.ibl.ai) (or with
+  `/iblai-api-agent-create` from `iblai/api`).
 - **Minimum SDK versions.** The `Chat` component and its required hooks
   are only present in recent SDKs. Older-but-recent installs silently
   lack them. Require at least:
@@ -107,16 +110,18 @@ yours doesn't, read `process.env.NEXT_PUBLIC_SUPPORT_EMAIL` directly in
 
 ## Step 2: Get the Agent ID
 
-Ask the user for their agent/mentor UUID. Write it directly to
-`.env.local` using the Edit tool — do NOT echo it back in shell
-commands:
+If the user already gave an os.ibl.ai URL
+(`https://os.ibl.ai/platform/<tenant>/<agent-uuid>`), the UUID is its last
+path segment — use it, don’t ask. Otherwise ask the user for their
+agent/mentor UUID. Write it directly to `.env.local` using the Edit tool —
+do NOT echo it back in shell commands:
 
 ```
 NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
 ```
 
-If the user doesn't have one, direct them to https://mentorai.iblai.app
-to create an agent.
+If the user doesn't have one, direct them to create an agent on
+https://os.ibl.ai (or run `/iblai-api-agent-create` from `iblai/api`).
 
 ## Step 3: Install Dependencies
 

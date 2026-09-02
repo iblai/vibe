@@ -38,6 +38,12 @@ npx skills add iblai/vibe-marketing
 
 See [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) for the full catalogue.
 
+### Get your credentials
+
+1. Sign up at [ibl.ai/join](https://ibl.ai/join) -- it creates your account **and** your organization.
+2. Your org key (`PLATFORM` in `iblai.env`) is listed on [login.iblai.app/me](https://login.iblai.app/me).
+3. Mint a Platform API Token (`TOKEN`) from that signed-in session with [`/iblai-api-login`](https://github.com/iblai/api/blob/main/skills/iblai-api-login/SKILL.md) (`npx skills add iblai/api`), or use an org secret directly. Keep `iblai.env` out of git.
+
 ### ibl.ai Components for Next.js Apps
 Ask Claude to add ibl.ai Chat, Profile, Account, Notification or Analytics component to your Next.js project. 
 ### ibl.ai App Template
@@ -45,13 +51,13 @@ Ask Claude to start an ibl.ai agent app.
 
 ## What is Vibe
 
-A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. No API tokens to manage.
+A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. Vibe gives you a production-ready scaffold powered by the [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) SDK, pre-built components, Claude Code skills, and a full backend at `iblai.app`. You go from zero to a deployed AI app in minutes -- authentication, AI chat, profiles, notification, and analytics are already wired up. End users sign in through SSO -- no tokens in the browser; you keep one Platform API Token in a gitignored `iblai.env` for server-side calls and deploys.
 
 **Why it matters:**
 
 - **Start building in minutes, not days** -- the skills scaffold a complete app with auth, AI chat, and a dashboard out of the box
 - **Backend included** -- `iblai.app` provides SSO auth, AI agent infrastructure, analytics, and tenant management (free tier available)
-- **Client-side auth via SSO** -- no API tokens to store, rotate, or leak
+- **Client-side auth via SSO** -- end users never handle tokens; the one Platform API Token you hold stays server-side in `iblai.env`
 - **Claude Code skills guide every step** -- adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** -- consistent design language without the overhead of a custom design system
 - **Ship everywhere** -- web (Vercel), desktop (macOS/Windows/Linux), and mobile (iOS/Android) via Tauri v2
@@ -65,7 +71,7 @@ A developer toolkit for vibe coding with the [ibl.ai](https://ibl.ai) platform. 
 
 ## How It Works
 
-1. **Scaffold** -- run `npx create-next-app@latest myapp` to generate a full Next.js app.
+1. **Scaffold** -- ask your agent to start a new project: `/iblai-vibe-ops-init` copies the vibe-starter template (Next.js + SSO auth + navbar + profile/account/notifications) into the current directory. A vanilla `create-next-app` plus the individual skills is the fallback.
 2. **Connect** -- Use Claude Code skills to add auth, AI chat, profiles, and more components to your app to connect to `iblai.app` (or your own instance) for authentication, AI agents, and data
 3. **Customize** -- use the skills to add features, swap components, and adjust business logic
 4. **Deploy** -- ship to the web via ibl.ai hosting (Vercel) or package with Tauri
@@ -223,7 +229,7 @@ The `/iblai-vibe` index skill routes between this repo and all companions.
 
 | Feature | Description |
 |---------|-------------|
-| **Authentication** | SSO login via iblai.app -- no token management, session handling built in |
+| **Authentication** | SSO login via iblai.app -- session handling built in, no token management for end users |
 | **AI Chat** | Streaming chat with ibl.ai agents, markdown rendering, conversation history |
 | **User Profile** | Editable profile page with avatar, bio, and preferences |
 | **Account Settings** | Password changes, notification preferences, connected services |
@@ -316,7 +322,6 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |
 | `/iblai-vibe-component` | Overview of all components + app creation paths |
 | `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |
-| `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
 | `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
 | `/iblai-vibe-ops-test` | Test your app before showing work to the user |
 | `/iblai-vibe-ops-upgrade` | Upgrade the ibl.ai SDK and vibe skills to the latest versions |
@@ -346,20 +351,20 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-vibe-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
 
-Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them, or write your own.
+Skills are in `skills/`; `npx skills add` installs them into your project's `.claude/skills/` (in this repo that directory is a symlink). Read them, extend them, or write your own.
 
 ## Platform Capabilities
 
 | Feature | Web | macOS | Windows/Surface | iOS | Android |
 |---------|-----|-------|-----------------|-----|---------|
-| SSO Authentication | Yes | Yes | Yes | No | No |
+| SSO Authentication | Yes | Yes | Yes | Yes | Yes |
 | AI Chat | Yes | Yes | Yes | Yes | Yes |
 | User Profile | Yes | Yes | Yes | Yes | Yes |
 | Account Settings | Yes | Yes | Yes | Yes | Yes |
 | Analytics Dashboard | Yes | Yes | Yes | Yes | Yes |
 | Notifications | Yes | Yes | Yes | Yes | Yes |
 
-> **iOS & Android SSO limitation:** Mobile WebViews use a non-standard user-agent that SSO providers reject. Completing the OAuth flow requires a system browser popup (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android). This is not yet implemented -- mobile users must authenticate via another method for now.
+> **iOS & Android SSO:** mobile WebViews are rejected by SSO providers, so the Tauri shell opens sign-in in the system browser (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android) and returns through a deep link. Set `TAURI_CUSTOM_SCHEME` in `iblai.env` -- see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md) "Mobile SSO".
 
 ## Deploy Anywhere
 
@@ -444,6 +449,8 @@ For a Windows Store / sideload **MSIX** package instead, see
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) -- MCP server for AI-assisted development
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) -- install skills with `npx skills add iblai/vibe --all`
 - [Skills Reference](https://github.com/iblai/vibe/tree/main/skills) -- documentation for all bundled Claude Code skills
+- [ibl.ai/docs](https://ibl.ai/docs) -- platform documentation
+- [ibl.ai/developer](https://ibl.ai/developer) -- developer docs (API reference, platform guides)
 
 ## License
 
