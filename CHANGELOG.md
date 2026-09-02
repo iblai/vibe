@@ -29,6 +29,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.23.0] - 2026-09-02
+
+### Added
+
+- /iblai-vibe ecosystem index skill + iblai/api & iblai/os refs, AGENTS.md, .claude/skills symlink
+
 ## [1.22.0] - 2026-08-27
 
 ### Added
