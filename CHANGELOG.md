@@ -39,6 +39,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.24.0] - 2026-09-02
+
+### Added
+
+- add cross-repo link-liveness check (nightly + skills-ci); fix 2 dead links it caught
+
 ## [1.23.1] - 2026-09-02
 
 ### Documentation
