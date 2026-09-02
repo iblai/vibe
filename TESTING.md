@@ -7,6 +7,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 | 0 | `bash scripts/validate-skills.sh` | Frontmatter/spec conformance, off-spec dirs |
 | 1 | `node scripts/test-skills-render.mjs [--build]` | Skill **code** (assets + SKILL.md ts/tsx fences) typechecks against the currently-pinned SDK in vibe-starter |
 | 1.5 | `node scripts/check-sdk-pins.mjs [--fix]` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
+| 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 

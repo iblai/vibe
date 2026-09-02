@@ -132,6 +132,14 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/test-skills-render.mjs
 
+      # Cross-repo references (iblai/api, iblai/os, ...) rot when the target
+      # repo renames a path; runs every night regardless of bump state.
+      # Fails only on 404/410 — transient GitHub trouble warns and passes.
+      - name: Check cross-repo links
+        id: links
+        working-directory: ${{ github.workspace }}
+        run: node scripts/check-links.mjs
+
       - name: Commit and push
         if: steps.sync.outputs.changed == 'true' && inputs.dry-run != true
         working-directory: ${{ github.workspace }}
@@ -150,7 +158,8 @@ jobs:
       - name: Email on failure
         if: >
           failure() && inputs.dry-run != true && env.MAIL_USERNAME != '' &&
-          (steps.check.outputs.has-updates == 'true' || steps.sync.outcome == 'failure' || steps.render.outcome == 'failure')
+          (steps.check.outputs.has-updates == 'true' || steps.sync.outcome == 'failure' ||
+           steps.render.outcome == 'failure' || steps.links.outcome == 'failure')
         uses: dawidd6/action-send-mail@94de994a9f6fffee200243214e17002e2920bb59 # v18
         with:
           # AWS SES (IBL_SMTP_SYSTEM_* values); 587 + STARTTLS, so secure=false
@@ -175,6 +184,7 @@ jobs:
               unit tests:          ${{ steps.unit.outcome }}
               pin sync + adapters: ${{ steps.sync.outcome }}
               skills render:       ${{ steps.render.outcome }}
+              cross-repo links:    ${{ steps.links.outcome }}
 
             Logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 

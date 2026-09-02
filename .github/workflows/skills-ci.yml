@@ -47,6 +47,9 @@ jobs:
       - name: SDK pin drift
         run: node scripts/check-sdk-pins.mjs
 
+      - name: Cross-repo links resolve
+        run: node scripts/check-links.mjs
+
       - name: Adapters are regenerated
         run: |
           node scripts/build-adapters.mjs
