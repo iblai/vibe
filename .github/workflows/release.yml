@@ -3,7 +3,8 @@ name: Release
 # Publishes a release when work lands on main.
 #
 # The next version is derived from the conventional-commit subjects since the
-# previous tag, so there is no version file to maintain and nothing to bump by
+# latest tag (the highest one in the repo, whether or not it is still reachable
+# from main), so there is no version file to maintain and nothing to bump by
 # hand:
 #
 #   any type with "!", or a BREAKING CHANGE footer  ->  major
@@ -47,11 +48,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Closest release tag reachable from HEAD; empty before the first one.
-          prev="$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || true)"
-          if [ -n "$prev" ]; then
-            range="${prev}..HEAD"
-            base="${prev#v}"
+          # Version base: the highest tag anywhere in the repo, so the next tag is
+          # always free — even after a force-push leaves earlier release commits
+          # unreachable from main. Changelog range: what HEAD has that the latest
+          # release doesn't (its merge-base with HEAD; in the normal case that is
+          # the tagged commit itself, so nothing changes). Empty before the first
+          # release.
+          latest="$(git tag --list 'v[0-9]*' | sort -V | tail -n 1)"
+          if [ -n "$latest" ]; then
+            range="$(git merge-base "$latest" HEAD)..HEAD"
+            base="${latest#v}"
           else
             range="HEAD"
             base="0.0.0"
@@ -81,7 +87,7 @@ jobs:
           fi
 
           if [ "$bump" = "none" ]; then
-            echo "Nothing releasable since ${prev:-the start of history} - skipping."
+            echo "Nothing releasable since ${latest:-the start of history} - skipping."
             echo "release=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -93,7 +99,7 @@ jobs:
           esac
 
           next="${major}.${minor}.${patch}"
-          echo "Releasing v${next} (${bump} bump from ${prev:-no previous tag})."
+          echo "Releasing v${next} (${bump} bump from ${latest:-no previous tag})."
           {
             echo "release=true"
             echo "version=${next}"
