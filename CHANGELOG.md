@@ -39,6 +39,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.25.0] - 2026-09-02
+
+### Added
+
+- ship ready-made Stripe app-paywall components as installable assets, unit-tested via the render gate; vibe-starter stays Stripe-free
+
 ## [1.24.0] - 2026-09-02
 
 ### Added
