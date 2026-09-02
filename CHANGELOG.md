@@ -2,7 +2,9 @@
 
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
-## [Unreleased]
+
+## [1.25.1] - 2026-09-02
+
 
 ### Added
 
