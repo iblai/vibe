@@ -34,7 +34,10 @@ or skill that matches the task.
   wire `/iblai-vibe-auth` first, then the feature skill.
 - **Drive the platform REST API** (automations, backends, data work) →
   install `iblai/api` and open the `iblai-api-*` skill for that API family.
-- **See how a production app wires the SDK** → read the `iblai/os` source.
+- **See how a production app wires the SDK** → read the `iblai/os` source,
+  or — if the user is signed in to os.ibl.ai — learn from the live tenant
+  ([CLAUDE.md → Learn from a live tenant](https://github.com/iblai/vibe/blob/main/CLAUDE.md#learn-from-a-live-tenant)):
+  decode the URL, mint a token from the session, read real responses.
 - **Marketing / growth work** → install `iblai/vibe-marketing`.
 
 ## Key links
@@ -42,8 +45,14 @@ or skill that matches the task.
 - [CLAUDE.md](https://github.com/iblai/vibe/blob/main/CLAUDE.md) — full agent guidance and the complete skill table
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — brand guidelines
 - [skills/](https://github.com/iblai/vibe/tree/main/skills) — every skill in canonical SKILL.md format (Cursor / Codex adapters pre-generated in [adapters/](https://github.com/iblai/vibe/tree/main/adapters))
-- [docs.ibl.ai](https://docs.ibl.ai) — platform documentation
-- `iblai/api` quick references (raw SKILL.md): [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) · [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) · [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) · [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) · [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+- [ibl.ai/docs](https://ibl.ai/docs) — platform documentation
+- [ibl.ai/developer](https://ibl.ai/developer) — developer docs
+- `iblai/api` quick references for the five REST families most apps read or write (raw SKILL.md; the matching SDK hooks and vibe skills are in [CLAUDE.md → Platform data most apps lean on](https://github.com/iblai/vibe/blob/main/CLAUDE.md#platform-data-most-apps-lean-on)):
+  [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md) — schemaless per-user × org JSON for preferences, flags, onboarding progress, app state; no vibe skill, call the SDK hooks ·
+  [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) — an agent’s identity and capability flags via one PUT of changed fields; fork, delete ·
+  [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) — global, per-agent, and shared-knowledge memories plus capture/recall toggles ·
+  [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) — usage, costs, transcripts, per-user learning, reports; `mentor_unique_id` scopes to one agent ·
+  [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) — the signed-in user’s account, social links, career records, résumé
 
 ## Related skills
 
