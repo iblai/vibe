@@ -39,6 +39,12 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
   without a separate provider key. `Bearer` applies to `/v1` only; everything else
   keeps `Api-Token`.
 
+## [1.25.1] - 2026-09-02
+
+### Documentation
+
+- explain the five core iblai/api families, add the live-tenant pattern, ibl.ai/docs links, README truth pass
+
 ## [1.25.0] - 2026-09-02
 
 ### Added
