@@ -6,7 +6,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 |---|---|---|
 | 0 | `bash scripts/validate-skills.sh` | Frontmatter/spec conformance, off-spec dirs |
 | 1 | `node scripts/test-skills-render.mjs [--build]` | Skill **code** (assets + SKILL.md ts/tsx fences) typechecks against the currently-pinned SDK in vibe-starter |
-| 1.5 | `node scripts/check-sdk-pins.mjs` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
+| 1.5 | `node scripts/check-sdk-pins.mjs [--fix]` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 
@@ -31,7 +31,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 
 ## Tier 1.5 — pin drift
 
-`scripts/check-sdk-pins.mjs` scans `skills/**` for `@iblai/<pkg>` version mentions in JSON deps, `pnpm add` lines, and markdown tables. Rules: packages in vibe-starter must match its major+minor; retired v1 packages (`@iblai/web-containers`, `@iblai/web-utils`, `@iblai/data-layer`, `@iblai/iblai-api`) must not appear with versions at all; anything else must be registered in the script's `EXPECTED` map. vibe-starter's `package.json` is the single source of truth — bump it first, mentions follow.
+`scripts/check-sdk-pins.mjs` scans `skills/**` for `@iblai/<pkg>` version mentions in JSON deps, `pnpm add` lines, and markdown tables. Rules: packages in vibe-starter must match its major+minor; retired v1 packages (`@iblai/web-containers`, `@iblai/web-utils`, `@iblai/data-layer`, `@iblai/iblai-api`) must not appear with versions at all; anything else must be registered in the script's `EXPECTED` map. vibe-starter's `package.json` is the single source of truth — bump it first, mentions follow. `--fix` rewrites drifted mentions of starter-shipped packages to the starter's exact range in place, then re-checks (retired/unknown-package violations are never auto-fixed); the nightly `sdk-auto-update` workflow runs it on every run, so templates and SKILL.md pins follow a starter bump automatically.
 
 ## Tier 2 — agent-executed skills
 

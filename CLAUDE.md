@@ -259,7 +259,7 @@ starting point when authoring a new skill.
 
 ```bash
 bash scripts/validate-skills.sh           # spec conformance: name/description/frontmatter, ≤500 lines, off-spec dirs
-node scripts/check-sdk-pins.mjs           # no @iblai/* version mention may drift from vibe-starter's package.json
+node scripts/check-sdk-pins.mjs           # no @iblai/* version mention may drift from vibe-starter's package.json (--fix rewrites drifted mentions)
 node scripts/test-skills-render.mjs       # skill assets + SKILL.md ts/tsx fences typecheck against the pinned SDK
 scripts/test-skills-agent.sh --changed    # headless-agent execution of changed skills (needs claude CLI)
 bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)

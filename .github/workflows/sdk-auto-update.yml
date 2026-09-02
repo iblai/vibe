@@ -2,8 +2,11 @@ name: SDK auto-update
 
 # Daily check for new @iblai SDK releases (published from iblai/iblai-web-frontend)
 # against the bundled vibe-starter template (skills/iblai-vibe-ops-init/assets/vibe-starter).
-# If a newer version exists, bump it, validate (typecheck + lint + build + unit tests),
-# and push the bump to main when green. When red, email the maintainer instead.
+# If a newer version exists, bump it and validate (typecheck + lint + build + unit tests).
+# Every run (bump or not) then re-syncs the @iblai pins in the other skill templates
+# and SKILL.md docs to the starter via check-sdk-pins --fix, regenerates adapters/,
+# render-typechecks the skills against the pinned SDK, and pushes the converged
+# result to main when green. When red, email the maintainer instead.
 
 on:
   schedule:
@@ -29,7 +32,7 @@ defaults:
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       # surfaced as env because the secrets context is not usable in step `if`
       MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
@@ -100,21 +103,54 @@ jobs:
         id: unit
         run: pnpm test
 
-      - name: Commit and push bump
-        if: steps.check.outputs.has-updates == 'true' && inputs.dry-run != true
+      # Runs on quiet days too: heals template drift on main even when the
+      # starter itself needed no bump (drift can land via unlabeled PRs, where
+      # skills-ci's pin check never runs). Root working-directory overrides the
+      # workflow default (the starter dir). Unfixable pin violations (retired /
+      # unknown packages) fail here loudly instead of being pushed.
+      - name: Sync template SDK pins + adapters
+        id: sync
+        working-directory: ${{ github.workspace }}
+        run: |
+          node scripts/check-sdk-pins.mjs --fix
+          node scripts/build-adapters.mjs
+          node scripts/check-sdk-pins.mjs
+          if [ -n "$(git status --porcelain -- skills adapters)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Templates already in sync."
+          fi
+
+      # Template gate the starter steps don't cover: typechecks every skill
+      # asset + SKILL.md fence against the newly-pinned SDK. Reuses the
+      # starter's node_modules when the bump step installed one, else installs
+      # fresh into the gitignored .skill-tests/ scratch.
+      - name: Render + typecheck skills
+        if: steps.sync.outputs.changed == 'true'
+        id: render
+        working-directory: ${{ github.workspace }}
+        run: node scripts/test-skills-render.mjs
+
+      - name: Commit and push
+        if: steps.sync.outputs.changed == 'true' && inputs.dry-run != true
+        working-directory: ${{ github.workspace }}
         env:
           SUMMARY: ${{ steps.check.outputs.summary }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json pnpm-lock.yaml
-          git commit -m "chore(sdk): bump $SUMMARY"
+          git add skills adapters
+          if [ -n "$SUMMARY" ]; then MSG="chore(sdk): bump $SUMMARY"; else MSG="chore(sdk): sync template SDK pins with vibe-starter"; fi
+          git commit -m "$MSG"
           git push origin main || { git pull --rebase origin main && git push origin main; }
 
       # Skips cleanly while the SMTP secrets are unset — GitHub's built-in
       # workflow-failure email to the workflow author still fires either way.
       - name: Email on failure
-        if: failure() && steps.check.outputs.has-updates == 'true' && inputs.dry-run != true && env.MAIL_USERNAME != ''
+        if: >
+          failure() && inputs.dry-run != true && env.MAIL_USERNAME != '' &&
+          (steps.check.outputs.has-updates == 'true' || steps.sync.outcome == 'failure' || steps.render.outcome == 'failure')
         uses: dawidd6/action-send-mail@94de994a9f6fffee200243214e17002e2920bb59 # v18
         with:
           # AWS SES (IBL_SMTP_SYSTEM_* values); 587 + STARTTLS, so secure=false
@@ -125,20 +161,23 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: vibe CI <noreply@iblai.dev>
           to: devops@ibleducation.com
-          subject: '[vibe] starter SDK bump failed: ${{ steps.check.outputs.summary }}'
+          subject: "[vibe] SDK auto-update failed: ${{ steps.check.outputs.summary || 'template pin sync' }}"
           body: |
-            The daily SDK auto-update of the bundled vibe-starter failed and was NOT applied.
+            The daily SDK auto-update (starter bump + template pin sync) failed and was NOT pushed.
 
-            Attempted: ${{ steps.check.outputs.summary }}
+            Attempted: ${{ steps.check.outputs.summary || 'no starter bump — template pin sync only' }}
 
             Step results:
-              install (pnpm add): ${{ steps.bump.outcome }}
-              typecheck:          ${{ steps.typecheck.outcome }}
-              lint:               ${{ steps.lint.outcome }}
-              build:              ${{ steps.build.outcome }}
-              unit tests:         ${{ steps.unit.outcome }}
+              install (pnpm add):  ${{ steps.bump.outcome }}
+              typecheck:           ${{ steps.typecheck.outcome }}
+              lint:                ${{ steps.lint.outcome }}
+              build:               ${{ steps.build.outcome }}
+              unit tests:          ${{ steps.unit.outcome }}
+              pin sync + adapters: ${{ steps.sync.outcome }}
+              skills render:       ${{ steps.render.outcome }}
 
             Logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Fix the bundled starter (skills/iblai-vibe-ops-init/assets/vibe-starter),
-            then either bump manually or let tomorrow's run retry.
+            Fix the bundled starter (skills/iblai-vibe-ops-init/assets/vibe-starter)
+            or the flagged template pins, then either push manually or let
+            tomorrow's run retry.

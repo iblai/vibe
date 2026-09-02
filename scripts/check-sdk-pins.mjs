@@ -12,8 +12,13 @@
 //  - other @iblai packages: must be registered in EXPECTED below (major match),
 //    else fail — forces conscious registration of new pins.
 // Unversioned prose mentions ("use @iblai/mcp") are ignored.
+//
+// --fix: rewrite drifted mentions of starter-shipped packages to the starter's
+// exact range in place (stricter than the check: converges byte-identical, not
+// just major.minor), then run the check on the fixed content. Retired and
+// unknown-package violations are never auto-fixed and still exit 1.
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -36,6 +41,8 @@ const RETIRED = new Set([
 
 // Substring matches against "<relative-file>:<pkg>" for intentional exceptions.
 const ALLOWLIST = [];
+
+const FIX = process.argv.includes("--fix");
 
 const starterDeps = (() => {
   const pkg = JSON.parse(readFileSync(STARTER_PKG, "utf8"));
@@ -74,7 +81,25 @@ const violations = [];
 
 for (const file of walk(SKILLS_DIR)) {
   const rel = relative(ROOT, file);
-  const lines = readFileSync(file, "utf8").split("\n");
+  let content = readFileSync(file, "utf8");
+
+  if (FIX) {
+    const before = content;
+    for (const pattern of MENTION_PATTERNS) {
+      content = content.replace(pattern, (full, pkg, rawVersion, offset, whole) => {
+        const range = starterDeps[pkg];
+        if (!range || !parseVersion(rawVersion) || rawVersion === range) return full;
+        const line = whole.slice(0, offset).split("\n").length;
+        console.log(`fixed ${rel}:${line}  ${pkg} ${rawVersion} -> ${range}`);
+        // the version token is always the final version-shaped substring of a match
+        const at = full.lastIndexOf(rawVersion);
+        return full.slice(0, at) + range + full.slice(at + rawVersion.length);
+      });
+    }
+    if (content !== before) writeFileSync(file, content);
+  }
+
+  const lines = content.split("\n");
   lines.forEach((line, i) => {
     for (const pattern of MENTION_PATTERNS) {
       pattern.lastIndex = 0;
