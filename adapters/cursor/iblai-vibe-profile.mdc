@@ -259,6 +259,9 @@ id and when each appears:
 
 ## Profile Content API
 
+Full REST reference: [`/iblai-api-profile`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md)
+in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+
 The SDK `Profile` component handles all API calls internally. If you need
 to build custom profile UIs or interact with profile data programmatically,
 here are the APIs each tab uses.
@@ -467,6 +470,9 @@ localStorage), and tag invalidation on `["education", "experience",
 ---
 
 ## User Metadata API
+
+Full REST reference: [`/iblai-api-profile-metadata`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
 
 The ibl.ai platform provides per-user metadata storage via the **Agent
 Metadata** endpoint. This is useful for storing arbitrary JSON data scoped

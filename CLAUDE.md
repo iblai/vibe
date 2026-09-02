@@ -341,6 +341,13 @@ routes between all of them:
   npx skills add iblai/api
   ```
 
+  Direct skill references (raw SKILL.md):
+  [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) ·
+  [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) ·
+  [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) ·
+  [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) ·
+  [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+
 - [`iblai/os`](https://github.com/iblai/os) — source of the Agentic OS
   ([os.ibl.ai](https://os.ibl.ai)), the flagship production app built on
   this same SDK. Read it as the reference implementation, or self-host it.

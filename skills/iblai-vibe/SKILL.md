@@ -43,6 +43,7 @@ or skill that matches the task.
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — brand guidelines
 - [skills/](https://github.com/iblai/vibe/tree/main/skills) — every skill in canonical SKILL.md format (Cursor / Codex adapters pre-generated in [adapters/](https://github.com/iblai/vibe/tree/main/adapters))
 - [docs.ibl.ai](https://docs.ibl.ai) — platform documentation
+- `iblai/api` quick references (raw SKILL.md): [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) · [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) · [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) · [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) · [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
 
 ## Related skills
 
