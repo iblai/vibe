@@ -148,8 +148,23 @@ function testAssetSkill(name, manifest) {
     }
   }
   const err = run("pnpm", ["typecheck"], dir);
-  if (err) failures.push(`${name}: typecheck failed after overlay\n${indent(err)}`);
-  else log(`  ✓ ${name} (assets overlay)`);
+  if (err) {
+    failures.push(`${name}: typecheck failed after overlay\n${indent(err)}`);
+    return;
+  }
+  // Overlays that ship __tests__ files opt in with "run_tests": true —
+  // typecheck alone proves compilation, not behavior. Runs against exactly
+  // starter + this skill's overlay (each skill gets a fresh scratch).
+  if (manifest.run_tests) {
+    const testErr = run("pnpm", ["test"], dir);
+    if (testErr) {
+      failures.push(`${name}: unit tests failed after overlay\n${indent(testErr)}`);
+      return;
+    }
+    log(`  ✓ ${name} (assets overlay + unit tests)`);
+    return;
+  }
+  log(`  ✓ ${name} (assets overlay)`);
 }
 
 // ---------- source 2: SKILL.md ts/tsx fences ----------

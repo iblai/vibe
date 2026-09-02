@@ -3,12 +3,22 @@
 Copy these verbatim into the app. Only the `PRICES` constant in
 `app/paywall/page.tsx` and the two `.env.local` lines are per-app.
 
+> **Prefer the ready-made copies**: the same files (plus their unit tests)
+> ship as ops-init assets at
+> `skills/iblai-vibe-ops-init/assets/stripe-components/`, where the render
+> gate typechecks them and runs their tests against vibe-starter — SKILL.md
+> Step 2 copies from there. This reference is the fallback for installs whose
+> staged skills carry no `assets/`; keep it a byte mirror of the assets, never
+> a second truth.
+
 ## 1. `lib/paywall.ts` (server-only)
 
 ```ts
 // lib/paywall.ts — server-only paywall helpers. Uses IBLAI_API_KEY via
 // config.apiKey(); never import from a client component.
-import config from "@/lib/iblai/config";
+// Relative import (not @/): the shipped __tests__ load this module under
+// vitest, which resolves no path alias.
+import config from "./iblai/config";
 
 export const PAYWALL_APP_SLUG = process.env.PAYWALL_APP_SLUG ?? "";
 
@@ -66,7 +76,9 @@ export function dmPaywallFetch(username: string, path: string, init?: RequestIni
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
-import { PAYWALL_APP_SLUG, dmPaywallFetch, userFromRequest } from "@/lib/paywall";
+// Relative import (not @/): the shipped __tests__ invoke this handler under
+// vitest, which resolves no path alias.
+import { PAYWALL_APP_SLUG, dmPaywallFetch, userFromRequest } from "../../../../lib/paywall";
 
 export async function GET(req: NextRequest) {
   const user = await userFromRequest(req);
@@ -87,7 +99,9 @@ export async function GET(req: NextRequest) {
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
-import { PAYWALL_APP_SLUG, dmPaywallFetch, userFromRequest } from "@/lib/paywall";
+// Relative import (not @/): the shipped __tests__ invoke this handler under
+// vitest, which resolves no path alias.
+import { PAYWALL_APP_SLUG, dmPaywallFetch, userFromRequest } from "../../../../lib/paywall";
 
 const ALLOWED_PRICE_IDS = (process.env.PAYWALL_PRICE_IDS ?? "")
   .split(",")

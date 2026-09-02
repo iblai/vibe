@@ -95,11 +95,22 @@ and `AUTH="Authorization: Api-Token $TOKEN"`:
    PAYWALL_APP_SLUG=my-app                 # must equal the product's metadata.app
    ```
 
-## Step 2: Write the app files
+## Step 2: Install the app files
 
-Complete drop-in bodies: [`references/app-files.md`](references/app-files.md).
-Copy them verbatim; only `PRICES` in `app/paywall/page.tsx` and the two env
-lines are per-app.
+Ready-made, typecheck- and unit-test-gated copies ship as ops-init assets —
+install them with one copy (from wherever the skills are staged; same
+resolution as vibe-starter itself):
+
+```bash
+cp -a <skills-dir>/iblai-vibe-ops-init/assets/stripe-components/. .
+```
+
+If the staged skills carry no `assets/` (some installers strip them), fall
+back to the complete drop-in bodies in
+[`references/app-files.md`](references/app-files.md) — identical content.
+Either way, only `PRICES` in `app/paywall/page.tsx` and the two env lines are
+per-app; the copy also brings `__tests__/paywall*.test.ts`, which run under
+the app's existing `pnpm test`.
 
 | File | Role | ~Lines |
 |---|---|---|

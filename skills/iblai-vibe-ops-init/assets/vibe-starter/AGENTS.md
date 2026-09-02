@@ -31,6 +31,7 @@ When adding UI features, follow this priority order:
 | Course content | `/iblai-vibe-course-access` skill + `CourseContentLayout`, `CourseContentTabPage` from SDK | Custom course player |
 | Create / publish courses | `/iblai-vibe-course-create` skill (Course Creation API) | Manually authoring OLX in edX Studio |
 | Onboarding flow | `/iblai-vibe-onboard` skill | Custom onboarding from scratch |
+| Charge for the app / paywall / monetization | `/iblai-vibe-monetization-app-paywall` skill — installs the ready-made paywall components (ops-init `assets/stripe-components/`) and wires env + the `(app)/layout.tsx` gate | Custom Stripe integration, raw Stripe keys, or Stripe.js in the client |
 | Buttons, forms, modals, tables | shadcn/ui (`npx shadcn@latest add button dialog table`) | Raw HTML or other UI libraries |
 | Page sections / blocks | shadcn/ui blocks (`npx shadcn@latest add @shadcn-space/hero-01`) | Custom layout from scratch |
 

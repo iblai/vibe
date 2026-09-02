@@ -4,6 +4,16 @@ All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 ## [Unreleased]
 
+### Added
+
+- Ready-made Stripe app-paywall components as ops-init assets
+  (`skills/iblai-vibe-ops-init/assets/stripe-components/`): `lib/paywall.ts`, both
+  `/api/paywall/*` route handlers, `PaywallGate`, the `/paywall` pricing + return
+  pages, and unit tests for the helpers and handlers. vibe-starter itself stays
+  Stripe-free — `/iblai-vibe-monetization-app-paywall` Step 2 installs them with one
+  copy. Gated by the render script, which now also RUNS an overlay's unit tests when
+  its `test.json` sets `"run_tests": true`.
+
 ### Fixed
 
 - `iblai-vibe-course-create` taught `Authorization: Token $IBLAI_API_KEY`, which the
