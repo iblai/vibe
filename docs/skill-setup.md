@@ -64,6 +64,12 @@ these variables, tell the user:
 > template and fill in your values:
 > `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
+Where the values come from: the org key (`PLATFORM`) is listed on
+https://login.iblai.app/me (no account yet: https://ibl.ai/join); the
+Platform API Token (`TOKEN`) is minted from that signed-in session by
+`/iblai-api-login` (`npx skills add iblai/api`), or an org secret works
+directly. Make sure `iblai.env` is gitignored before writing a token into it.
+
 Do NOT ask the user for their platform key directly — guide them to
 populate `iblai.env` instead.
 

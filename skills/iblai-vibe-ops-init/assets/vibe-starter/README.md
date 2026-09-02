@@ -48,7 +48,7 @@ A pre-wired Next.js 16 + Tailwind v4 + shadcn/ui project with the [`@iblai/iblai
 
 - **Start building in minutes, not days** — auth, navbar, and the standard ibl.ai pages are already wired
 - **Backend included** — connects to [iblai.app](https://iblai.app) for SSO auth, AI agent infrastructure, analytics, and tenant management
-- **Client-side auth via SSO** — no API tokens to store, rotate, or leak
+- **Client-side auth via SSO** — end users never handle tokens; the one Platform API Token you hold stays server-side in `iblai.env`
 - **Claude Code skills guide every step** — adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** — consistent design language without the overhead of a custom design system
 - **Ship everywhere** — web (Vercel), desktop (macOS/Windows/Linux), and mobile (iOS/Android) via Tauri v2
@@ -146,7 +146,7 @@ create_page_template("Dashboard", "mentor")   # Generate a page following ibl.ai
 
 | Feature | Web | macOS | Windows/Surface | iOS | Android |
 |---------|-----|-------|-----------------|-----|---------|
-| SSO Authentication | Yes | Yes | Yes | No | No |
+| SSO Authentication | Yes | Yes | Yes | Yes | Yes |
 | AI Chat | Yes | Yes | Yes | Yes | Yes |
 | User Profile | Yes | Yes | Yes | Yes | Yes |
 | Account Settings | Yes | Yes | Yes | Yes | Yes |
@@ -154,7 +154,7 @@ create_page_template("Dashboard", "mentor")   # Generate a page following ibl.ai
 | Notifications | Yes | Yes | Yes | Yes | Yes |
 | Credit Balance | Yes | Yes | Yes | Yes | Yes |
 
-> **iOS & Android SSO limitation:** Mobile WebViews use a non-standard user-agent that SSO providers reject. Completing the OAuth flow requires a system browser popup (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android). This is not yet implemented — mobile users must authenticate via another method for now.
+> **iOS & Android SSO:** mobile WebViews are rejected by SSO providers, so the Tauri shell opens sign-in in the system browser (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android) and returns through a deep link. Set `TAURI_CUSTOM_SCHEME` in `iblai.env` — see [`/iblai-vibe-ops-build`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-build/SKILL.md) “Mobile SSO”.
 
 ## Brand
 

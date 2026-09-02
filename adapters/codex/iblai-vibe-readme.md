@@ -274,7 +274,7 @@ See `CLAUDE.md` for the full list of skills and component priority rules.
 
 ## Resources
 
-- [ibl.ai Documentation](https://docs.ibl.ai)
+- [ibl.ai Documentation](https://ibl.ai/docs)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the ibl.ai SDK
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development
 - [Vibe](https://github.com/iblai/vibe) — developer toolkit for building with ibl.ai

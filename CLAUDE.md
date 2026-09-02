@@ -163,6 +163,12 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`.
 > Then fill in your values."
 >
+> Where the values come from: an account and an organization at
+> https://ibl.ai/join; the org key (`PLATFORM`) is listed on
+> https://login.iblai.app/me; the Platform API Token (`TOKEN`) is minted
+> from that signed-in session by `/iblai-api-login` (`npx skills add
+> iblai/api`), or use an org secret directly. Keep `iblai.env` gitignored.
+>
 > Do NOT ask the user for their platform key directly. Guide them to populate
 > `iblai.env` instead, then map the values into `.env.local`
 > (`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`).
@@ -181,8 +187,55 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=your-agent-id
 > name like `MyApp` or `AgentBot`, convert it to `my-app` / `agent-bot`
 > before using it. Allowed characters: lowercase letters, digits, `-`, `_`.
 >
-> When adding chat (`/iblai-vibe-agent-chat`), you MUST ask the user for their
-> agent/mentor ID (a UUID). Do not use placeholder values for agent IDs.
+> When adding chat (`/iblai-vibe-agent-chat`) you MUST have a real
+> agent/mentor ID (a UUID): take it from an os.ibl.ai URL the user already
+> gave (see **Learn from a live tenant** below), otherwise ask. Never use a
+> placeholder.
+
+### Learn from a live tenant
+
+> **AI Assistant:** When the user says something like “You’re also logged
+> into `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` as `<email>`”,
+> that sentence is configuration plus a reference app. Act on it; do not
+> ask again for anything it already contains.
+>
+> 1. **Decode the URL.** In `iblai/os` the route is
+>    `app/platform/[tenantKey]/[mentorId]` — “chat with this agent in this
+>    tenant”; the agent-scoped pages (analytics, notifications, …) nest under
+>    it. So `<tenant>` → `PLATFORM` / `NEXT_PUBLIC_MAIN_TENANT_KEY`,
+>    `<agent-uuid>` → `NEXT_PUBLIC_DEFAULT_AGENT_ID`, and `os.ibl.ai` runs on
+>    the hosted platform → `DOMAIN=iblai.app` (`api.iblai.app`,
+>    `login.iblai.app`). A self-hosted OS host implies another domain — ask.
+> 2. **Get a token from the session, never a password.** With a browser tool
+>    (`claude --chrome`, or the Playwright server in `.mcp.json`): open the
+>    URL, confirm the user is signed in, read `dm_token` and
+>    `userData.user_nicename` (the username) from localStorage, then mint a
+>    Platform API Token exactly as `/iblai-api-login` step 2 documents —
+>    `POST https://api.iblai.app/dm/api/core/platform/api-tokens/` with
+>    `Authorization: Token <dm_token>` and body
+>    `{ username, name, key: "", platform_key: <tenant>, created, expires: "" }`;
+>    the secret is shown once. Write it to the gitignored `iblai.env` as
+>    `TOKEN` (plus `IBLAI_USERNAME`), map it into `.env.local` as
+>    `IBLAI_API_KEY`, and verify with
+>    `GET …/dm/api/core/platform/users/?platform_key=<tenant>` under
+>    `Authorization: Api-Token …` → 200. No browser tool? Ask the user to
+>    paste a Platform API Token instead.
+> 3. **Learn shapes from live data.** Call the families in *Platform data
+>    most apps lean on* (below) against that tenant and copy field names from
+>    real responses instead of guessing. For the surface you are building,
+>    watch the OS page’s network calls to see which endpoints and params the
+>    production app actually uses.
+> 4. **Learn wiring from source.** The same `iblai/os` route mounts the SDK
+>    components the `/iblai-vibe-agent-*` skills install —
+>    `components/modals/edit-mentor-modal/settings-tab.tsx` wraps
+>    `AgentSettingsTab` in `AgentSettingsProvider`;
+>    `…/[mentorId]/analytics/page.tsx` renders `AnalyticsOverview`. Read it
+>    before inventing props.
+> 5. **Keep it out of git.** The token (and `dm_token`) live only in
+>    gitignored env files; keep the tenant key and email out of docs,
+>    screenshots, and commit messages. No new env key is needed for the
+>    reference URL — rebuild it from `PLATFORM` and
+>    `NEXT_PUBLIC_DEFAULT_AGENT_ID`.
 
 ## Commands
 
@@ -300,6 +353,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-ops-release` | Generate a Makefile + Fastlane config to build & submit to the App Store and Google Play |
 | `/iblai-vibe-ops-test` | Test your app before showing work to the user |
 | `/iblai-vibe-ops-upgrade` | Upgrade the ibl.ai SDK and vibe skills to the latest versions |
+| `/iblai-vibe-readme` | Write or refresh the project README.md |
 | `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
 | `/iblai-vibe-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
 | `/iblai-vibe-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
@@ -326,7 +380,19 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-task` | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) |
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-vibe-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
+| `/iblai-vibe-agent-audit` | Add the agent Audit tab (audit log of who changed what and when, with user/date/action filters) |
+| `/iblai-vibe-agent-chat-sidebar` | Wrap the Chat surface with the SDK's AppSidebar (projects dropdown, pinned/recent messages, host-supplied menu items) |
+| `/iblai-vibe-agent-mcp` | Add the agent MCP tab (connector management — featured and custom connectors, OAuth, add/edit dialogs) |
+| `/iblai-vibe-agent-sandbox` | Add the agent Sandbox tab (Computing Runtime / Virtual Machine Shell / Claw sandbox types, OpenClaw instances, agent prompt config) |
+| `/iblai-vibe-agent-voice` | Add the agent Voice tab (pick the agent's voice and configure voice calls) |
 | `/iblai-vibe-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
+| `/iblai-vibe-monetization` | Family index for item-level monetization — Stripe Connect Express, paywalls, pricing tiers, checkout, subscriptions, revenue analytics |
+| `/iblai-vibe-monetization-onboard` | Stripe Connect Express onboarding surface (status card, complete-setup / dashboard actions, the `is_ready_for_payments` gate) |
+| `/iblai-vibe-monetization-configure` | Admin MonetizationTab + seller wizard (turn an agent/course/program/custom item into a paid product; paywall settings, pricing tiers) |
+| `/iblai-vibe-monetization-checkout` | Buyer-facing PaywallModal, access check, Stripe checkout, and public/guest buy |
+| `/iblai-vibe-monetization-subscription` | User PurchasesTab in the Profile (list, detail, cancel subscriptions) |
+| `/iblai-vibe-monetization-analytics` | Revenue dashboards, subscriber lists, and paywalls-overview hooks for custom admin surfaces |
+| `/iblai-vibe-monetization-app-paywall` | Pay-to-enter gate for the whole app on the tenant's own Stripe key (no Connect, no commission) |
 
 ### Companion repos
 
@@ -342,16 +408,97 @@ routes between all of them:
   npx skills add iblai/api
   ```
 
-  Direct skill references (raw SKILL.md):
-  [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) ·
-  [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) ·
-  [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) ·
-  [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) ·
-  [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+  The five families below are the ones most apps read or write.
 
 - [`iblai/os`](https://github.com/iblai/os) — source of the Agentic OS
   ([os.ibl.ai](https://os.ibl.ai)), the flagship production app built on
-  this same SDK. Read it as the reference implementation, or self-host it.
+  this same SDK. Read it as the reference implementation, or self-host it —
+  or learn from the live app: see **Learn from a live tenant** above.
+
+### Platform data most apps lean on
+
+Most apps on the platform read or write the same five REST families. Each
+entry: what it gives your app → the SDK entry points that call it from the
+browser → the `/iblai-vibe-*` skill that mounts the UI → the `iblai/api`
+skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
+(`get_api_query_info`, `get_component_info`) for the full hook/prop surface.
+
+- **Per-user metadata** — one schemaless JSON object per user × org
+  (`…/dm/api/core/users/platform-metadata/?platform_key=`). Preferences,
+  feature flags, onboarding progress, app state — without localStorage or a
+  database of your own. Auto-created on first GET (`{}`); PATCH merges
+  (`metadata` + `delete_keys`), PUT replaces, DELETE resets; org admins add
+  `&username=` to target another user. SDK: `useGetUserPlatformMetadataQuery`,
+  `useUpdateUserPlatformMetadataMutation` (PATCH only — PUT, DELETE and
+  `delete_keys` need a direct call). `OnboardingWizard` (`/web-containers`)
+  saves its answers here under `onboarding`; os.ibl.ai keeps its per-user
+  coding-mode preference here. No `/iblai-vibe-*` skill wraps this family —
+  call the hooks.
+  REST: [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+- **Agent settings** — one agent’s identity (name, description, categories,
+  image), visibility, and capability flags (anonymous, featured, LTI,
+  attachments, voice, memory, multi-query RAG, forkable). Everything saves
+  through one `PUT …/mentors/{mentor}/settings/` (multipart, only the changed
+  fields); fork copies the agent into any org you admin; delete is
+  destructive. SDK: `useGetMentorSettingsQuery`, `useEditMentorMutation`
+  (that PUT), `useForkMentorMutation`, `useDeleteMentorMutation`,
+  `useGetMentorCategoriesQuery`. UI: `AgentSettingsProvider` +
+  `AgentSettingsTab` (`/web-containers/next`) — the provider is the context
+  every `/iblai-vibe-agent-*` tab skill mounts.
+  Skill: `/iblai-vibe-agent-setting`. REST: [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md)
+- **Agent memory** — three stores: global memories (per user, every agent),
+  agent memories (per user × agent, filed under categories with extraction
+  prompts), and agent knowledge (per agent, no user, curated, injected into
+  every chat as `## Agent Knowledge`). Show users what an agent remembers,
+  let them add or delete facts, toggle capture/recall
+  (`auto_capture_enabled`, `use_memory_in_responses`); the org flag
+  `enable_memsearch` gates it all. SDK (`features/memory`):
+  `useGetUserMemorySettingsQuery` / `useUpdateUserMemorySettingsMutation`,
+  `useGetGlobalMemoriesQuery`, `useGetMentorMemoriesListQuery`,
+  `useCreateMentorMemoryMutation`, `useGetMemsearchStatusQuery`; agent
+  knowledge is REST-only today. UI: `AgentMemoryTab` (`/next`), the
+  `Profile` Memory tab, `Account targetTab="memory"`.
+  Skills: `/iblai-vibe-agent-memory` (one agent), `/iblai-vibe-memory`
+  (whole org). REST: [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
+- **Analytics** — one `/dm/api/analytics/` family; `mentor_unique_id`
+  present = one agent, absent = the whole org. Usage and engagement KPIs,
+  transcripts, catalog engagement, costs (already marked-up USD), per-user
+  learning snapshots (self-access needs no grant), audit logs of agent
+  changes, async Data Reports (POST → poll → CSV/JSON). SDK
+  (`features/analytics`): `useGetTopicsStatsQuery`, `useGetUsersStatsQuery`,
+  `useGetSessionStatsQuery`, `useGetFinancialStatsQuery`,
+  `useGetTranscriptsMessagesQuery`, `useGetLearnerDetailsQuery`,
+  `useTimeTrackingMutation`; reports `useGetReportsQuery` /
+  `useCreateReportMutation`; audit `useGetAuditLogsQuery`; `llm-usage/`
+  (per-model/-user cost, tokens, latency) is REST-only. UI:
+  `AnalyticsLayout`, `AnalyticsOverview`, `AnalyticsUsersStats`,
+  `AnalyticsFinancialStats`, `AnalyticsTranscriptsStats`,
+  `AnalyticsReports`, `AnalyticsAuditLogStats`, `AgentAnalyticsTab`.
+  Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`. The live
+  schema is the contract: `https://api.iblai.app/dm/api/docs/schema/`.
+  REST: [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
+- **Profile** — the signed-in user’s own record: account fields (name, bio,
+  language, social links, image) on the LMS host via `merge-patch+json`,
+  career records (education, experience, résumé) under
+  `…/dm/api/career/…`, and their own memory toggles. Any “me” page,
+  avatar/dropdown, or résumé feature. vibe-starter’s `/profile` page only
+  reads the SSO cache (`localStorage.userData`) — for live or editable data
+  use the hooks or mount `Profile`. SDK: `useGetUserMetadataQuery`,
+  `useUpdateUserMetadataEdxMutation`, `useUploadProfileImageMutation`
+  (`features/user`); `useGetUserEducationQuery`,
+  `useGetUserExperienceQuery`, `useGetUserResumeQuery` (`features/career`).
+  UI: `Profile` (+ `EducationTab` / `ExperienceTab` / `ResumeTab`),
+  `UserProfileDropdown`, `UserProfileModal`, `Account` (`/next`).
+  Skills: `/iblai-vibe-profile`, `/iblai-vibe-account`, `/iblai-vibe-history`.
+  REST: [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md)
+
+**Auth on the wire.** In the browser the SDK sends `Authorization: Token
+<dm_token>` (session tokens in localStorage `dm_token` / `axd_token`), so
+every hook above works with the signed-in user’s session and permissions —
+no API key. The REST skills send `Authorization: Api-Token $IBLAI_API_KEY`,
+a Platform API Token (`TOKEN` in `iblai.env`, `IBLAI_API_KEY` in
+`.env.local`): server-side only, never in client code. REST base is
+`https://api.iblai.app/dm` (profile account fields: `…/lms`).
 
 ### Marketing Skills
 
