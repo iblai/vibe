@@ -271,6 +271,7 @@ Invoke with `/` in Claude Code:
 
 | Skill | Description |
 |-------|-------------|
+| `/iblai-vibe` | Ecosystem index — which ibl.ai repo/skill family covers a task (this repo, `iblai/api`, `iblai/os`, `iblai/vibe-marketing`) |
 | `/iblai-vibe-auth` | Add SSO authentication (providers, store, `lib/iblai` files) |
 | `/iblai-vibe-agent-chat` | Add the full in-process agent chat surface (message stream, canvas, voice, prompts) |
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
@@ -325,6 +326,24 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-agent-tool` | Add the agent Tools tab (enable/disable agent tools) |
 | `/iblai-vibe-agent-support` | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) |
 | `/iblai-vibe-crm-overview` | Reference + family index for the CRM API (auth, seeded defaults, RBAC roles, sub-skill map) |
+
+### Companion repos
+
+Two sibling repos complete the toolkit — the `/iblai-vibe` index skill
+routes between all of them:
+
+- [`iblai/api`](https://github.com/iblai/api) — `iblai-api-*` skills for
+  operating the platform's REST API directly (agents, catalog, CRM,
+  billing, analytics, infrastructure, …), plus a chat MCP server and
+  tutorials. Installs stay in sync with the backend:
+
+  ```bash
+  npx skills add iblai/api
+  ```
+
+- [`iblai/os`](https://github.com/iblai/os) — source of the Agentic OS
+  ([os.ibl.ai](https://os.ibl.ai)), the flagship production app built on
+  this same SDK. Read it as the reference implementation, or self-host it.
 
 ### Marketing Skills
 

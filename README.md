@@ -207,6 +207,18 @@ Install side-by-side with vibe:
 npx skills add iblai/vibe-marketing
 ```
 
+### Companion Repos
+
+- [`iblai/api`](https://github.com/iblai/api) -- `iblai-api-*` skills for
+  operating the platform's REST API directly (agents, catalog, CRM,
+  billing, analytics, ...), plus a chat MCP server and tutorials.
+  Install: `npx skills add iblai/api`
+- [`iblai/os`](https://github.com/iblai/os) -- source of the
+  [Agentic OS](https://os.ibl.ai) from the table above -- the flagship
+  production app built on this SDK. Reference implementation, self-hostable.
+
+The `/iblai-vibe` index skill routes between this repo and all companions.
+
 ## What You Get
 
 | Feature | Description |
