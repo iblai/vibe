@@ -14,7 +14,7 @@ skills. Each skill links here instead of repeating this boilerplate.
   subdirectory.
 - Project names MUST be all lowercase — npm rejects package names with
   capital letters. Convert names like `MyApp` to `my-app` before passing
-  to `create-next-app`, `iblai startapp`, or `--app-name`. Allowed
+  to `create-next-app` or `--app-name`. Allowed
   characters: lowercase letters, digits, `-`, `_`.
 - When building a navbar or header, do NOT display the platform/tenant
   name. Use the ibl.ai logo instead.
@@ -40,21 +40,19 @@ Full brand guidelines:
 
 ## Environment files
 
-- `iblai.env` is **NOT** a `.env.local` replacement — it only holds the 3
-  shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-  its runtime env vars from `.env.local`.
-- The CLI reads `iblai.env` and writes derived `NEXT_PUBLIC_*` values
-  into `.env.local` automatically.
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date. Run
-`iblai --version` to check the current version, then upgrade directly:
-
-- **pip**: `pip install --upgrade iblai-app-cli`
-- **npm**: `npm install -g @iblai/cli@latest`
-
-This is safe to run even if already at the latest version.
+- `iblai.env` is **NOT** a `.env.local` replacement — it holds the platform
+  shorthand (`DOMAIN`, `PLATFORM`, `TOKEN`, optional `IBLAI_USERNAME` for
+  deploys — the `IBLAI_USERNAME` environment variable wins when the host
+  exports it) plus the `AUTH_*` branding values. Next.js still reads its
+  runtime env vars from `.env.local`.
+- `DOMAIN` is the single host knob: every platform API base is composed from
+  it as `https://api.$DOMAIN/dm` (default `iblai.app`). Inside the ibl.ai
+  desktop app the session guidance states the base domain — write that value.
+  The sign-in (auth SPA) host is the one exception: it is not derivable from
+  the domain, so use it only when the guidance or the user supplies it.
+- The skills read `iblai.env` and derive the `NEXT_PUBLIC_*` values into
+  `.env.local`. vibe-starter apps need only the tenant key and
+  `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.
 
 ## Step 1: Check Environment
 
@@ -65,6 +63,12 @@ these variables, tell the user:
 > "You need an `iblai.env` with your platform configuration. Download the
 > template and fill in your values:
 > `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+
+Where the values come from: the org key (`PLATFORM`) is listed on
+https://login.iblai.app/me (no account yet: https://ibl.ai/join); the
+Platform API Token (`TOKEN`) is minted from that signed-in session by
+`/iblai-api-login` (`npx skills add iblai/api`), or an org secret works
+directly. Make sure `iblai.env` is gitignored before writing a token into it.
 
 Do NOT ask the user for their platform key directly — guide them to
 populate `iblai.env` instead.

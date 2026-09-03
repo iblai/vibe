@@ -10,8 +10,10 @@ Before adding a component or creating a new app, check
 for a `iblai.env` in the project root. Look for `PLATFORM`,
 `DOMAIN`, and `TOKEN` variables. If the file does not exist or is missing
 these variables, tell the user:
-"You need an `iblai.env` with your platform configuration. Download the
-template and fill in your values:
+"You need an `iblai.env` with your platform configuration. Copy the
+bundled template and fill in your values:
+`cp iblai.env.example iblai.env` (vibe-starter ships the example) — or,
+when the project has no `iblai.env.example`:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 `iblai.env` is NOT a `.env.local` replacement — it only holds the 3
@@ -122,7 +124,7 @@ pnpm install --ignore-scripts
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 Fill `iblai.env` with `PLATFORM`/`TOKEN`, then map them into `.env.local`
-(`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`).
+(`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`, `IBLAI_API_KEY` ← `TOKEN`).
 
 To build up from a bare Next.js app instead, start with
 `npx create-next-app@latest`, run the [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md)

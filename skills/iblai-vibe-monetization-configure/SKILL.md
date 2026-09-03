@@ -45,14 +45,15 @@ not in a subdirectory.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at https://api.iblai.app/dm/api/docs/schema/ (also browsable at https://api.iblai.app/dm/api/docs/) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
 
 ![Admin Monetization tab inside the Account page](./admin-monetization-tab.png)
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same token wiring.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - The **Account** page is already wired up (`/iblai-vibe-account`). The
@@ -88,13 +89,6 @@ page and exposing a URL the Connect onboard return can land on.
 | Item detail wizard | 2-step (existing) or 3-step (custom) step indicator | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Paywall settings | `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `on_successful_payment` | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Pricing tiers | CRUD list with create-form, edit-in-place, delete | [admin-monetization-sample-pricing-config.png](./admin-monetization-sample-pricing-config.png) |
-
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
 
 ## Step 1: Validate the API schema
 
@@ -158,9 +152,9 @@ A typical Next.js host that supplies all the required props:
 // app/account/page.tsx
 'use client';
 
-import { Account } from '@iblai/iblai-js';
+import { Account } from '@iblai/iblai-js/web-containers/next';
 import { useAuth } from '@/lib/iblai/auth';
-import { config } from '@/lib/iblai/config';
+import config from '@/lib/iblai/config';
 
 export default function AccountPage() {
   const { user, tenants, rbacPermissions } = useAuth();
@@ -168,11 +162,11 @@ export default function AccountPage() {
 
   return (
     <Account
-      tenant={config.platform()}
+      tenant={tenantKey}
       tenants={tenants}
       username={user.username}
       email={user.email}
-      mainPlatformKey={config.mainPlatform()}
+      mainPlatformKey={config.mainTenantKey()}
       authURL={config.authUrl()}
       enableRbac={true}
       rbacPermissions={rbacPermissions}

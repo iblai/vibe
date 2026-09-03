@@ -16,20 +16,20 @@
  *   }
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
 import { usePathname } from "next/navigation";
-import { initializeDataLayer } from "@iblai/iblai-js/data-layer";
+import {
+  initializeDataLayer,
+  type TokenResponse,
+} from "@iblai/iblai-js/data-layer";
 import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
 
 import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant, checkTenantMismatch } from "@/lib/iblai/tenant";
-import {
-  redirectToAuthSpa,
-  handleLogout,
-} from "@/lib/iblai/auth-utils";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 
 const storageService = LocalStorageService.getInstance();
 
@@ -53,7 +53,10 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
       initializeDataLayer(
         config.dmUrl(),
         config.lmsUrl(),
-        config.lmsUrl(),  // legacyLmsUrl (same as lmsUrl for consolidated API)
+        // Dedicated edX host (learn.*) — NOT lmsUrl: on hosted defaults that
+        // is the consolidated API path (api.iblai.app/lms), and the
+        // legacy-LMS endpoints + edX iframes live on the real LMS host.
+        config.legacyLmsUrl(),
         storageService,
         {
           401: () => redirectToAuthSpa(undefined, undefined, true),
@@ -64,6 +67,15 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
     }
     return true;
   });
+
+  // `isInitialized` is false during SSR but true on the client's first render,
+  // so gating the tree on it alone makes server and client markup disagree and
+  // React throws a hydration mismatch on every route. Gate on a mount flag
+  // instead: server and first client render both produce LOADING, and the tree
+  // appears on the next commit. The data layer is still initialized
+  // synchronously above, before any child can fire a query.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const username = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -85,7 +97,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
     </div>
   );
 
-  if (!isInitialized) return LOADING;
+  if (!isInitialized || !mounted) return LOADING;
 
   return (
     <ReduxProvider store={iblaiStore}>
@@ -114,6 +126,27 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           }}
           saveUserTenants={(t: unknown) =>
             localStorage.setItem("tenants", JSON.stringify(t))
+          }
+          // TenantProvider re-authenticates against the requested tenant and
+          // hands back a fresh, tenant-scoped token pair. Without persisting it
+          // the next membership check still runs on the pre-switch tokens, so
+          // the provider loops on
+          //   "User still does not belong to tenant after re-auth"
+          // and the app never leaves its loading state. iblai/os wires these up
+          // (providers/index.tsx -> saveUserTokens).
+          saveUserTokens={(tokens: TokenResponse) => {
+            if (tokens?.axd_token) {
+              localStorage.setItem("axd_token", tokens.axd_token.token);
+              localStorage.setItem("axd_token_expires", tokens.axd_token.expires);
+            }
+            if (tokens?.dm_token) {
+              localStorage.setItem("dm_token", tokens.dm_token.token);
+              localStorage.setItem("dm_token_expires", tokens.dm_token.expires);
+            }
+          }}
+          saveTenant={(t: string) => localStorage.setItem("tenant", t)}
+          onAuthFailure={(reason: string) =>
+            console.error("[TenantProvider] Auth failure:", reason)
           }
           handleTenantSwitch={async () => {
             const tenant = resolveAppTenant();

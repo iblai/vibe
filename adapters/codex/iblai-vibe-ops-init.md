@@ -80,21 +80,47 @@ pnpm install --ignore-scripts
 git init   # only if the project is not already a git repo
 ```
 
-### Ask for platform credentials and write env files
+### Resolve platform credentials and write env files
 
-After the copy completes, ask the user for their ibl.ai platform credentials
-**unless `iblai.env` already exists with real values for both `PLATFORM` and
-`TOKEN`** (in which case skip these prompts and reuse them).
+After the copy completes, climb this ladder and stop at the first rung that
+yields both values. Inside the ibl.ai desktop app both rungs 1 and 2 hit, so
+the user is asked nothing:
 
-> What is your ibl.ai **PLATFORM** (tenant key)?
+1. **`iblai.env` already exists with real values for both `PLATFORM` and
+   `TOKEN`** -- reuse them and skip the prompts entirely.
 
-> What is your ibl.ai **TOKEN** (platform API key)?
+2. **Otherwise read them from the environment.** The ibl.ai desktop app
+   exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, and `IBLAI_USERNAME` into
+   the agent's environment. Use whatever is present without asking for it and
+   without echoing it back:
+
+   ```bash
+   PLATFORM="${IBLAI_PLATFORM_KEY:-}"
+   TOKEN="${IBLAI_API_KEY:-}"
+   ```
+
+   When `IBLAI_USERNAME` is exported, persist it to `iblai.env` as well --
+   that saves `/iblai-vibe-ops-deploy` asking for it later.
+
+3. **Ask only for the values still missing** -- standalone opencode / Claude
+   Code users outside the desktop app:
+
+   > What is your ibl.ai **PLATFORM** (tenant key)?
+
+   > What is your ibl.ai **TOKEN** (platform API key)?
+
+   Never ask for `TOKEN` when `IBLAI_API_KEY` is exported -- the environment
+   already answered it.
 
 Then write the values to both files:
 
 1. **`iblai.env`** -- create if missing, or update the `PLATFORM` and `TOKEN`
-   lines in place. Keep `DOMAIN=iblai.app` (or whatever the user already
-   set). Example contents:
+   lines in place. `DOMAIN` is the platform's **base domain**: inside the
+   ibl.ai desktop app your session guidance states it ("The platform's base
+   domain is …") -- write exactly that value, and if an existing `iblai.env`
+   disagrees with it, update `DOMAIN` to match (a stale domain sends every
+   skill to the wrong host). Outside the desktop app keep whatever the user
+   already set, defaulting to `iblai.app`. Example contents:
 
    ```
    DOMAIN=iblai.app
@@ -105,17 +131,40 @@ Then write the values to both files:
 2. **`.env.local`** -- write directly. Do NOT re-run any scaffolding (e.g.
    the `/iblai-vibe-auth` file generation) -- the starter already has everything
    wired and regenerating those files can clobber the starter's versions.
-   If `.env.local` does not exist yet and the starter
-   ships an `.env.example`, copy it first (`cp .env.example .env.local`),
-   then update or append both lines (write `TOKEN` as `IBLAI_API_KEY`):
+   If `.env.local` does not exist yet, copy the starter's example first
+   (`cp .env.example .env.local`), then update or append both lines (write
+   `TOKEN` as `IBLAI_API_KEY`). The API/auth/websocket URLs default to
+   hosted iblai.app in `lib/iblai/config.ts`, so when `DOMAIN` is
+   `iblai.app` these two values are all that must change:
 
    ```
    NEXT_PUBLIC_MAIN_TENANT_KEY=<PLATFORM>
    IBLAI_API_KEY=<TOKEN>
    ```
 
+   When `DOMAIN` is anything else, the hosted defaults would point at the
+   wrong platform -- also write, from the same `DOMAIN` (and the sign-in URL
+   your session guidance states, if it states one; the auth host is NOT
+   derivable from the domain, so never guess it):
+
+   ```
+   NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=<DOMAIN>
+   NEXT_PUBLIC_API_BASE_URL=https://api.<DOMAIN>
+   NEXT_PUBLIC_AUTH_URL=<the sign-in URL from the session guidance, when given>
+   ```
+
 Do NOT print or echo the `TOKEN` / `IBLAI_API_KEY` value back to the user
 once captured.
+
+`IBLAI_API_KEY` also unlocks LLM features without any separate provider key:
+it is a standard OpenAI api key on the platform's OpenAI-compatible endpoint.
+Point any OpenAI client at
+`base_url = https://asgi.data.{DOMAIN}/api/ai-mentor/orgs/{PLATFORM}/v1` with
+the key as `api_key` (sent as `Authorization: Bearer …`) for chat completions
+(including streaming) and model listing (`GET /models` returns what the
+platform can actually serve). Server-side only, like every other use of the
+key — never in client code. Note the `Bearer` scheme applies to this `/v1`
+surface only; all other platform APIs keep `Authorization: Api-Token`.
 
 After the starter is in place, the user's project already has auth, navbar,
 profile, account, and notifications wired. They can skip the matching
@@ -239,14 +288,24 @@ All features require auth first (`/iblai-vibe-auth`).
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `VERCEL_TOKEN` for mobile dev builds). Map these into
-`.env.local`: `NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
-API URLs default to `iblai.app`.
+and optionally `IBLAI_USERNAME` — your platform username; the
+`IBLAI_USERNAME` environment variable wins when the host exports it, and the
+deploy skill asks once and persists it otherwise). Map these into `.env.local`:
+`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
+API URLs default to `iblai.app`. When `DOMAIN` is anything else, also map
+`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN` ← `DOMAIN` and
+`NEXT_PUBLIC_API_BASE_URL` ← `https://api.<DOMAIN>` (plus the sign-in URL
+from the session guidance when given — the auth host is not derivable from
+the domain).
 
-`VERCEL_TOKEN` in `iblai.env` is used by `/iblai-vibe-ops-deploy` to deploy to
-Vercel (build, deploy, disable auth protection, update `devUrl` in
-`tauri.conf.json`). If missing when the user wants to deploy, ask once for
-their token (https://vercel.com/account/tokens).
+When the host exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, or
+`IBLAI_USERNAME` (the ibl.ai desktop app does), use those values and never ask
+the user for a platform API key.
+
+`/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API
+(Vercel-backed) using `TOKEN` — no Vercel account, token, or CLI. It zips
+the app, uploads it, polls until the build is READY, and updates `devUrl`
+in `tauri.conf.json`.
 
 ## Brand
 

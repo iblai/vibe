@@ -24,8 +24,10 @@ The starting point for any ibl.ai single-page app.
 This project was scaffolded from the vibe-starter template bundled with
 [iblai/vibe](https://github.com/iblai/vibe) (the `/iblai-vibe-ops-init` skill).
 
-Copy `.env.example` to `.env.local` (then set `NEXT_PUBLIC_MAIN_TENANT_KEY`),
-install, and start the dev server:
+Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_MAIN_TENANT_KEY` —
+the API/auth/websocket URLs default to hosted iblai.app in
+`lib/iblai/config.ts`, so the tenant key (and optionally `IBLAI_API_KEY`) is
+all `.env.local` needs. Then install and start the dev server:
 
 ```bash
 cp .env.example .env.local
@@ -46,7 +48,7 @@ A pre-wired Next.js 16 + Tailwind v4 + shadcn/ui project with the [`@iblai/iblai
 
 - **Start building in minutes, not days** — auth, navbar, and the standard ibl.ai pages are already wired
 - **Backend included** — connects to [iblai.app](https://iblai.app) for SSO auth, AI agent infrastructure, analytics, and tenant management
-- **Client-side auth via SSO** — no API tokens to store, rotate, or leak
+- **Client-side auth via SSO** — end users never handle tokens; the one Platform API Token you hold stays server-side in `iblai.env`
 - **Claude Code skills guide every step** — adding features is a conversation, not a scavenger hunt through docs
 - **shadcn/ui fills in UI gaps** — consistent design language without the overhead of a custom design system
 - **Ship everywhere** — web (Vercel), desktop (macOS/Windows/Linux), and mobile (iOS/Android) via Tauri v2
@@ -80,9 +82,9 @@ This starter is auth-ready, so any ibl.ai feature skill works out of the box. Us
 /iblai-vibe-onboard         # Onboarding questionnaire flow
 /iblai-vibe-component       # Browse all available components
 /iblai-vibe-ops-build       # Build and run on desktop and mobile
-/iblai-vibe-ops-deploy      # Deploy frontend to Vercel
+/iblai-vibe-ops-deploy      # Deploy via ibl.ai hosting (Vercel)
 /iblai-vibe-ops-test        # Test before showing work
-/iblai-vibe-ops-upgrade     # Upgrade CLI, SDK, and skills to latest
+/iblai-vibe-ops-upgrade     # Upgrade SDK and skills to latest
 /iblai-vibe-agent-search    # Agent search/browse page
 /iblai-vibe-agent-setting   # Agent Settings tab
 /iblai-vibe-agent-access    # Agent Access tab (RBAC)
@@ -101,16 +103,6 @@ This starter is auth-ready, so any ibl.ai feature skill works out of the box. Us
 Marketing skills (landing pages, screenshots, CRO, SEO, and more) live in
 the companion [iblai/vibe-marketing](https://github.com/iblai/vibe-marketing)
 repo: `npx skills add iblai/vibe-marketing`.
-
-Or use the CLI directly:
-
-```bash
-iblai add chat           # AI chat widget
-iblai add analytics      # Analytics dashboard
-iblai add invite         # User invitation dialogs
-iblai add workflow       # Workflow builder
-iblai add builds         # Tauri v2 desktop/mobile shell
-```
 
 See `CLAUDE.md` for the full component priority guide and the complete skill list.
 
@@ -132,7 +124,8 @@ components/
 lib/iblai/                        # config, storage-service, auth-utils, tenant
 providers/iblai-providers.tsx     # Redux + Auth + Tenant providers
 store/iblai-store.ts              # RTK store
-iblai.env                         # Platform credentials (DOMAIN, PLATFORM, TOKEN)
+.env.example                      # Copy to .env.local — tenant key + IBLAI_API_KEY (URLs default in code)
+iblai.env.example                 # Copy to iblai.env — platform shorthand (DOMAIN, PLATFORM, TOKEN)
 ```
 
 ## AI-Assisted Development
@@ -153,7 +146,7 @@ create_page_template("Dashboard", "mentor")   # Generate a page following ibl.ai
 
 | Feature | Web | macOS | Windows/Surface | iOS | Android |
 |---------|-----|-------|-----------------|-----|---------|
-| SSO Authentication | Yes | Yes | Yes | No | No |
+| SSO Authentication | Yes | Yes | Yes | Yes | Yes |
 | AI Chat | Yes | Yes | Yes | Yes | Yes |
 | User Profile | Yes | Yes | Yes | Yes | Yes |
 | Account Settings | Yes | Yes | Yes | Yes | Yes |
@@ -161,7 +154,7 @@ create_page_template("Dashboard", "mentor")   # Generate a page following ibl.ai
 | Notifications | Yes | Yes | Yes | Yes | Yes |
 | Credit Balance | Yes | Yes | Yes | Yes | Yes |
 
-> **iOS & Android SSO limitation:** Mobile WebViews use a non-standard user-agent that SSO providers reject. Completing the OAuth flow requires a system browser popup (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android). This is not yet implemented — mobile users must authenticate via another method for now.
+> **iOS & Android SSO:** mobile WebViews are rejected by SSO providers, so the Tauri shell opens sign-in in the system browser (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android) and returns through a deep link. Set `TAURI_CUSTOM_SCHEME` in `iblai.env` — see [`/iblai-vibe-ops-build`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-build/SKILL.md) “Mobile SSO”.
 
 ## Brand
 
@@ -178,34 +171,32 @@ pnpm dev             # Dev server (localhost:3000)
 pnpm build           # Production build
 pnpm test            # Vitest
 pnpm test:e2e        # Playwright E2E
-iblai config show    # View configuration
-iblai add <feature>  # Add a feature
-iblai deploy vercel  # Deploy to Vercel (requires VERCEL_TOKEN in iblai.env)
 ```
+
+> `pnpm test:e2e` needs Playwright credentials: `cp e2e/.env.development.example e2e/.env.development` and set `PLAYWRIGHT_USERNAME` / `PLAYWRIGHT_PASSWORD` (the auth setup refuses to run without them; the file is gitignored).
 
 ## Deploy Anywhere
 
-### Vercel (recommended)
+### ibl.ai hosting (Vercel) — recommended
 
-```bash
-iblai deploy vercel
-```
-
-Builds, deploys, disables auth protection, and updates `devUrl` in `tauri.conf.json` automatically.
+Run `/iblai-vibe-ops-deploy` — zips the app, uploads it to the ibl.ai
+platform's hosting API using your platform API key (no Vercel account or
+token), polls until the build is READY, and updates `devUrl` in
+`tauri.conf.json`. The app lands on the `*.vercel.app` URL the API reports.
 
 ### Tauri (Desktop & Mobile)
 
+Add the Tauri shell with `/iblai-vibe-ops-build`, then:
+
 ```bash
-iblai add builds              # Add Tauri support
-iblai builds build            # Desktop build for current platform
-iblai builds ios init         # iOS project setup
-iblai builds ci-workflow --all  # GitHub Actions for all platforms
+pnpm exec tauri dev           # Dev mode
+pnpm exec tauri build         # Desktop build for current platform
+pnpm exec tauri ios init      # iOS project setup
 ```
 
 ## Resources
 
 - [Vibe](https://github.com/iblai/vibe) — the full developer toolkit and skill source
-- [iblai-app-cli](https://github.com/iblai/iblai-app-cli) — the CLI that scaffolds Vibe apps
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — unified SDK for data, UI components, and auth utilities
 - [@iblai/iblai-api](https://www.npmjs.com/package/@iblai/iblai-api) — auto-generated API types
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development

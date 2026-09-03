@@ -1,24 +1,12 @@
-# `iblai add <feature>` — layer features onto an existing app
+# Adding a feature by hand — layer features onto an existing app
 
 Adds ibl.ai features to an **existing** Next.js (App Router) project. Each
-subcommand renders one feature's templates, installs its deps, and patches
-the project's config/store so the feature is wired up end-to-end.
+feature renders its templates, installs its deps, and patches the
+project's config/store so the feature is wired up end-to-end.
 
-```bash
-iblai add auth                 # always first — everything else needs it
-iblai add chat
-iblai add profile
-iblai add notification
-iblai add account
-iblai add analytics
-iblai add mcp                  # MCP config + Claude skills (no auth needed)
-iblai add homepage             # replace the default Next.js home page
-iblai add builds               # Tauri v2 desktop/mobile shell
-```
+## Features
 
-## Subcommands
-
-| Command | Needs auth? | What it generates |
+| Feature | Needs auth? | What it generates |
 |---|---|---|
 | `auth` | — (it *is* auth) | `AuthProvider`/`TenantProvider`, SSO callback, store, `lib/iblai/` |
 | `chat` | yes | `<mentor-ai>` chat widget (`components/iblai/chat-widget`) |
@@ -30,13 +18,11 @@ iblai add builds               # Tauri v2 desktop/mobile shell
 | `homepage` | no | replaces the default Next.js home page (no-op if none found) |
 | `builds` | no* | Tauri shell under `src-tauri/` (skips if it already exists) |
 
-`auth` takes `--platform/-p <key>` (also read from `IBLAI_PLATFORM_KEY` /
-`PLATFORM`); if omitted it prompts. *`builds` needs a Next.js project but
-not auth.
+*`builds` needs a Next.js project but not auth.
 
 ## Project detection
 
-Every subcommand calls a Next.js guard first:
+Every feature applies a Next.js guard first:
 
 - Aborts if there's no `package.json` in the current directory ("run from
   the root of your Next.js project").
@@ -44,10 +30,10 @@ Every subcommand calls a Next.js guard first:
 - **Warns** (but continues) if no `app/` directory is found — files are
   written assuming App Router layout.
 
-The auth-dependent commands additionally require auth to be present —
+The auth-dependent features additionally require auth to be present —
 detected by the existence of `lib/iblai/config.ts` **or** `lib/config.ts`
-(i.e. you've run `iblai add auth` or scaffolded with `iblai startapp`). If
-missing, they tell you to run `iblai add auth` first and stop.
+(i.e. auth is already wired — `/iblai-vibe-auth` or vibe-starter). If
+missing, wire auth first via `/iblai-vibe-auth`.
 
 Detection also adapts to the project's shape: `src/` vs root layout,
 TypeScript, an existing Redux store, and whether `@iblai/iblai-js` is
@@ -69,12 +55,12 @@ already a dependency.
 7. Print a success panel listing created files + next steps.
 
 All patchers are **idempotent** — they look for a marker before editing, so
-re-running `iblai add <feature>` won't duplicate aliases, imports, or env
+re-applying a feature won't duplicate aliases, imports, or env
 lines.
 
 ## Where each feature's templates live now
 
-The `.j2` templates each subcommand renders are stored as **assets** beside
+The `.j2` templates each feature renders are stored as **assets** beside
 that feature's skill — e.g.
 [`iblai-vibe-auth/assets/`](../../iblai-vibe-auth/assets/),
 [`iblai-vibe-agent-chat/assets/`](../../iblai-vibe-agent-chat/assets/),
@@ -82,10 +68,9 @@ that feature's skill — e.g.
 [`iblai-vibe-notification/assets/`](../../iblai-vibe-notification/assets/),
 [`iblai-vibe-profile/assets/`](../../iblai-vibe-profile/assets/),
 [`iblai-vibe-analytics/assets/`](../../iblai-vibe-analytics/assets/). The Tauri shell
-templates for `iblai add builds` are in
+templates for the build skill are in
 [`iblai-vibe-ops-build/assets/tauri/`](../../iblai-vibe-ops-build/assets/tauri/).
 
 ## Related
 
 - Owning skill: [`../SKILL.md`](../SKILL.md) (iblai-vibe-scaffold).
-- Implementation internals: [`../../iblai-vibe-cli-maintenance/references/iblai-vibe-cli-add-command.md`](../../iblai-vibe-cli-maintenance/references/iblai-vibe-cli-add-command.md).

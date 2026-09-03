@@ -18,8 +18,9 @@ Validate against the schema before:
 
 ## Schema URLs
 
-> Throughout this file, `{dm_url}` = the DM service host (e.g.
-> `https://api.iblai.app/dm`). The full schema URL is
+> Throughout this file, `{dm_url}` = the DM service host —
+> `https://api.$DOMAIN/dm` with `DOMAIN` from `iblai.env` (default
+> `iblai.app`, e.g. `https://api.iblai.app/dm`). The full schema URL is
 > `{dm_url}/api/docs/schema/`. The auth token consumed by the endpoints
 > below is the **DM token** — not the AXD token.
 
@@ -42,7 +43,8 @@ every lookup is wasteful.
 
 ```bash
 # fetch + cache locally for the session
-curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+curl -sS -o /tmp/iblai_schema.yaml "https://api.${DOMAIN:-iblai.app}/dm/api/docs/schema/"
 
 # confirm the build you cached
 grep -E "^  title:|^  version:" /tmp/iblai_schema.yaml
@@ -164,13 +166,14 @@ shape surprises you, work through them in this order:
 1. **Schema first.** Re-fetch `/tmp/iblai_schema.yaml`, re-run the pin command
    for the offending operation, and confirm the response code and `$ref` shape
    you actually expect. The schema is what the backend serializer emits.
-2. **SDK types.** Cross-check the corresponding TypeScript types in
-   `packages/data-layer/src/features/monetization/types.ts` (in
-   `iblai/ibl-web-frontend`). If schema and types disagree, the SDK is stale.
+2. **SDK types.** Cross-check the monetization types shipped in your
+   installed SDK — the `.d.ts` files under
+   `node_modules/@iblai/iblai-js/dist/` (search for the type name). If
+   schema and types disagree, the SDK is stale.
 3. **File an issue.** If the deployed behavior contradicts both schema and
    SDK, that's a backend bug — open it at
-   `https://github.com/iblai/ibl-web-frontend` (or the relevant repo) with the
-   path, method, expected schema ref, and actual response body.
+   `https://github.com/iblai/vibe/issues` with the path, method, expected
+   schema ref, and actual response body.
 
 ## Authentication note
 

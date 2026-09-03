@@ -44,18 +44,16 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 - A **real `projectId`** to test against. Either:
   - Create one in the admin UI, or
   - List the user's projects:
-    `GET https://api.iblai.org/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
-    (use `Authorization: Token <axd_token>`).
+    `GET https://api.$DOMAIN/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
+    (use `Authorization: Token <axd_token>`; `$DOMAIN` is `DOMAIN` from
+    `iblai.env`, default `iblai.app`).
 - **Minimum SDK versions.** The `projectId` prop on `<Chat>` and the
   `ProjectLandingPage` slot were added in:
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^1.11.0` |
-  | `@iblai/web-containers` | `^1.7.0` |
-  | `@iblai/web-utils` | `^1.7.0` |
-  | `@iblai/data-layer` | `^1.5.7` |
-  | `@iblai/agent-ai` | `^2.6.0` |
+  | `@iblai/iblai-js` | `^2.8.1` |
+  | `@iblai/agent-ai` | `^2.9.0` |
 
 - **Pre-flight prop check (do this before writing the route):**
 
@@ -95,12 +93,12 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^1.11.0 \
-         @iblai/web-containers@^1.7.0 \
-         @iblai/web-utils@^1.7.0 \
-         @iblai/data-layer@^1.5.7 \
-         @iblai/agent-ai@^2.6.0
+pnpm add @iblai/iblai-js@^2.8.1 @iblai/agent-ai@^2.9.0
 ```
+
+(v2 bundles `web-containers`, `web-utils`, and `data-layer` as
+`@iblai/iblai-js/*` subpaths — the separate `@iblai/web-*`/`@iblai/data-layer`
+packages are v1-era and must not be installed alongside v2.)
 
 Run the **Pre-flight prop check** in *Prerequisites* to confirm
 `projectId?: string` is on the `Chat` Props type.
@@ -124,8 +122,8 @@ import {
   useVisitingTenant,
   useIsAdmin,
 } from "@iblai/iblai-js/web-utils";
-import { redirectToAuthSpa } from "@/lib/utils";
-import { config } from "@/lib/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
 
 export default function AgentProjectPageWrapper() {
   return (
@@ -264,23 +262,5 @@ fields.
 If the project surface renders but the chat WebSocket can't connect,
 that's a backend issue (LLM config on the agent) — see
 `/iblai-vibe-agent-chat`'s **Known issues**.
-
-## CLI Integration (proposal — not yet implemented)
-
-A future helper for this skill could:
-
-1. **Verify `/iblai-vibe-agent-chat` is wired** — refuse to run if the
-   provider/store/peer-dep setup isn't in place. Point the user at
-   the `/iblai-vibe-agent-chat` skill first.
-2. **Bump the SDK** if it's pinned below the versions in *Prerequisites*.
-3. **Scaffold the route** — write
-   `app/agents/[mentorId]/projects/[projectId]/page.tsx` parameterized
-   on the host's existing `redirectToAuthSpa` and `config` helpers.
-4. **Skip if already added** — detect the existing route file and
-   no-op.
-
-The generator should not regenerate `/iblai-vibe-agent-chat` artifacts —
-the two skills compose (the project surface needs the agent-chat
-wiring already done).
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

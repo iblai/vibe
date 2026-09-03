@@ -51,8 +51,6 @@ function dedup(packageName: string): string | undefined {
 // Without this, RTK Query hooks inside SDK components silently return
 // undefined because they use a different ReactReduxContext.
 const resolveAliases: Record<string, string> = {};
-const dataLayerDir = dedup("@iblai/data-layer");
-if (dataLayerDir) resolveAliases["@iblai/data-layer"] = dataLayerDir;
 const rtkDir = dedup("@reduxjs/toolkit");
 if (rtkDir) resolveAliases["@reduxjs/toolkit"] = rtkDir;
 const reactReduxDir = dedup("react-redux");

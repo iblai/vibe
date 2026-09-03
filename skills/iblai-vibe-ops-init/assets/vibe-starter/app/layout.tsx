@@ -13,6 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// The middleware's nonce-based CSP requires per-request rendering: a statically
+// prerendered page ships nonce-less <script> tags that enforce mode blocks
+// (strict-dynamic disables 'self'/https: fallbacks), white-screening the
+// deployed app. Remove this only if the CSP middleware goes too.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "vibe-starter",
   description: "Built on the ibl.ai platform",

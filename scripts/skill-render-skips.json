@@ -1,0 +1,43 @@
+{
+  "_comment": "Per-skill skips for scripts/test-skills-render.mjs fence extraction. '<skill>': 'all' skips every fence; {'targets': ['store/index.ts']} skips fences by declared destination path; {'fences': [0,2]} skips by fence index (brittle — prefer targets; indexes count ts/tsx fences top-to-bottom). Fences with no import/export line, or with elided '...' import lists, are auto-skipped as docs shapes. Keep entries justified — every skip is untested prose code.",
+  "iblai-vibe-agent-chat": {
+    "targets": ["store/index.ts"],
+    "reason": "partial store-wiring fragment (imports + bare reducer map to merge into an existing store), not a compilable module"
+  },
+  "iblai-vibe-agent-billing": {
+    "fences": [0, 1],
+    "reason": "SDK v2 d.ts gap: AgentSpendCapsTab exists at runtime (dist js) but is missing from web-containers/next typings — unskip when the SDK ships the types"
+  },
+  "iblai-vibe-agent-sandbox": {
+    "fences": [1, 3],
+    "reason": "SDK v2 d.ts gap: useGetMentorSettingsQuery / useEditMentorJsonMutation exist at runtime but are missing from data-layer typings"
+  },
+  "iblai-vibe-agent-skills": {
+    "fences": [1],
+    "reason": "SDK v2 d.ts gap: slashSkillsEnabled prop exists at runtime (dist js) but not in the Chat props typings"
+  },
+  "iblai-vibe-profile": {
+    "fences": [6],
+    "reason": "SDK v2 d.ts gap: the career-profile CRUD hooks (useGetUserEducationQuery et al.) exist at runtime but are missing from data-layer typings"
+  },
+  "iblai-vibe-ops-test": {
+    "fences": [1, 6],
+    "reason": "snippets assume @testing-library/jest-dom matcher typings, which the skill installs into the target app; vibe-starter does not ship them"
+  },
+  "iblai-vibe-workflow": {
+    "all": true,
+    "reason": "documents v1-era workflow hooks (useGetWorkflowsQuery, workflowsApiSlice, …) that are absent from the v2 runtime entirely — the skill needs a v2 rewrite"
+  },
+  "iblai-vibe-monetization-checkout": {
+    "all": true,
+    "reason": "documents v1-era monetization hooks: useCheckAccessQuery/useGetPublicPricingQuery are absent from the v2 runtime, the rest from typings — needs an SDK/API verification pass and a skill refresh"
+  },
+  "iblai-vibe-monetization-onboard": {
+    "all": true,
+    "reason": "Stripe-Connect onboarding hooks absent from v2 data-layer typings — same refresh needed as monetization-checkout"
+  },
+  "iblai-vibe-course-access": {
+    "all": true,
+    "reason": "documents v1-era course hooks: useGetDepartmentMemberCheckQuery is gone from the v2 runtime entirely, useCourseNavigator/exam/enrollment hooks are d.ts gaps — the skill needs a v2 rewrite"
+  }
+}

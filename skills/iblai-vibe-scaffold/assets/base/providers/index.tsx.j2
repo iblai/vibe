@@ -180,7 +180,6 @@ export function Providers({ children }: { children: ReactNode }) {
     <AuthProvider
       skip={isSsoRoute}
       redirectToAuthSpa={redirectToAuthSpa}
-      hasNonExpiredAuthToken={hasNonExpiredAuthToken}
       username={username}
       pathname={pathname ?? "/"}
       storageService={storageService}

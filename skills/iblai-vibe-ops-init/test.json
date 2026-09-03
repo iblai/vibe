@@ -1,0 +1,14 @@
+{
+  "overlay": {
+    "assets/stripe-components/lib/paywall.ts": "lib/paywall.ts",
+    "assets/stripe-components/app/api/paywall/access/route.ts": "app/api/paywall/access/route.ts",
+    "assets/stripe-components/app/api/paywall/checkout/route.ts": "app/api/paywall/checkout/route.ts",
+    "assets/stripe-components/components/paywall-gate.tsx": "components/paywall-gate.tsx",
+    "assets/stripe-components/app/paywall/page.tsx": "app/paywall/page.tsx",
+    "assets/stripe-components/app/paywall/paywall-actions.tsx": "app/paywall/paywall-actions.tsx",
+    "assets/stripe-components/app/paywall/return/page.tsx": "app/paywall/return/page.tsx",
+    "assets/stripe-components/__tests__/paywall.test.ts": "__tests__/paywall.test.ts",
+    "assets/stripe-components/__tests__/paywall-routes.test.ts": "__tests__/paywall-routes.test.ts"
+  },
+  "run_tests": true
+}

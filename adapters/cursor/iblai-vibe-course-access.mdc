@@ -60,18 +60,22 @@ not in a subdirectory.
 Before proceeding, check for a `iblai.env`
 in the project root. Look for `PLATFORM`, `DOMAIN`, and `TOKEN` variables.
 If the file does not exist or is missing these variables, tell the user:
-"You need an `iblai.env` with your platform configuration. Download the
-template and fill in your values:
+"You need an `iblai.env` with your platform configuration. Copy the
+bundled template and fill in your values:
+`cp iblai.env.example iblai.env` (vibe-starter ships the example) — or,
+when the project has no `iblai.env.example`:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-You will also need the following in `.env.local` for the learning MFE / LMS
-iframes to load correctly:
+No extra env vars are needed for the URLs: `lib/iblai/config.ts` derives the
+edX LMS host (`config.legacyLmsUrl()` → `https://learn.iblai.app`), the
+learner MFE (`config.mfeUrl()` → `https://apps.learn.iblai.app`), and the DM
+base (`config.dmUrl()`) from the hosted defaults. Self-hosted deployments
+override them in `.env.local`:
 
 ```bash
-NEXT_PUBLIC_LMS_URL=https://lms.<your-platform>.iblai.app
-NEXT_PUBLIC_MFE_URL=https://learning.<your-platform>.iblai.app
-NEXT_PUBLIC_LEGACY_LMS_URL=https://lms.<your-platform>.iblai.app
-NEXT_PUBLIC_DM_URL=https://dm.<your-platform>.iblai.app
+# Only for self-hosted deployments — hosted iblai.app needs none of these.
+NEXT_PUBLIC_LEGACY_LMS_URL=https://learn.example.edu
+NEXT_PUBLIC_MFE_URL=https://apps.learn.example.edu
 ```
 
 ## Architecture
@@ -154,6 +158,7 @@ import { CourseContentLayout } from "@iblai/iblai-js/web-containers/next";
 import { useGetDepartmentMemberCheckQuery } from "@iblai/iblai-js/data-layer";
 import { toast } from "sonner";
 
+import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export default function CourseContentLayoutWrapper({
@@ -185,7 +190,7 @@ export default function CourseContentLayoutWrapper({
       courseId={courseId}
       currentTenant={tenant}
       isPlatformAdmin={isPlatformAdmin}
-      dmUrl={process.env.NEXT_PUBLIC_DM_URL ?? ""}
+      dmUrl={config.dmUrl()}
       courseEligibilityEnabled
       onUnauthorized={() => router.push("/error/403")}
       onNotFound={() => router.push("/error/404")}
@@ -214,7 +219,8 @@ export default function CourseContentLayoutWrapper({
   and Stripe checkout redirects. `opts.external === true` means full-page
   navigation; otherwise use `router.push`.
 - **`dmUrl`**: required for the Stripe `success_url` returned by
-  `useCourseDetail`. Read from `NEXT_PUBLIC_DM_URL`.
+  `useCourseDetail`. Use `config.dmUrl()` (add
+  `import config from "@/lib/iblai/config";` to the layout's imports).
 - **`courseEligibilityEnabled`**: pass `true` to opt into the richer
   enrollment / eligibility branch (Enroll Now / Buy Now / Request Access
   labels). Pass `false` / omit for the simple "Access Course" branch.
@@ -237,10 +243,15 @@ Note the route segment / tab-value mismatch: the `forum` tab is served at
 
 import { CourseContentTabPage } from "@iblai/iblai-js/web-containers/next";
 
+import config from "@/lib/iblai/config";
+
+// The iframe params want the edX host (learn.*), NOT the consolidated API
+// base — `config.lmsUrl()` is `https://api.iblai.app/lms` on hosted defaults
+// and edX page routes (xblock, bookmarks, instructor) do not live there.
 const iframeProps = {
-  lmsUrl: process.env.NEXT_PUBLIC_LMS_URL ?? "",
-  mfeUrl: process.env.NEXT_PUBLIC_MFE_URL ?? "",
-  legacyLmsUrl: process.env.NEXT_PUBLIC_LEGACY_LMS_URL ?? "",
+  lmsUrl: config.legacyLmsUrl(),
+  mfeUrl: config.mfeUrl(),
+  legacyLmsUrl: config.legacyLmsUrl(),
 };
 
 export default function CoursePage() {
@@ -286,7 +297,7 @@ Next-specific. Owns `CourseOutlineContext` + `EdxIframeContext`.
 | `courseId` | `string` | edX course id (the `[course_id]` path param) |
 | `isPlatformAdmin` | `boolean` | Whether the viewer is an admin on the current tenant (gates the `instructor` tab) |
 | `currentTenant` | `string` | Tenant / platform key the viewer operates in |
-| `dmUrl` | `string` | LMS data-management base URL — used to build the Stripe `success_url` |
+| `dmUrl` | `string` | DM base URL (`config.dmUrl()`) — used to build the Stripe `success_url` |
 | `children` | `ReactNode` | Per-tab content (typically a `CourseContentTabPage`) |
 
 ### Optional
@@ -310,8 +321,8 @@ Next-specific. Renders `<EdxIframe />` inside the layout's
 | Prop | Type | Description |
 |------|------|-------------|
 | `tab` | `"course" \| "dates" \| "progress" \| "bookmarks" \| "forum" \| "instructor"` | Which edX tab this page represents |
-| `lmsUrl` | `string` | LMS base URL |
-| `mfeUrl` | `string` | User MFE base URL |
+| `lmsUrl` | `string` | edX LMS host (`config.legacyLmsUrl()` — not the consolidated API base) |
+| `mfeUrl` | `string` | Learner MFE host (`config.mfeUrl()`) |
 | `legacyLmsUrl` | `string` | Legacy LMS base URL |
 | `edxTokenKey` | `string?` | localStorage key for the edX JWT token. Defaults to `"edx_jwt_token"` |
 | `sandbox` | `string?` | iframe `sandbox` attribute. Defaults to the permissive set for the learning MFE |
@@ -505,6 +516,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 4. **`dmUrl` missing**: Required for Stripe checkout's `success_url`.
    Without it, the paid-enrollment branch of `useCourseDetail` throws.
+   `config.dmUrl()` always resolves (hosted default in code), so only a
+   hand-rolled empty string can hit this.
 
 5. **`platform_key: "main"` exception**: `CourseAccessGuard` always allows
    courses whose `platform_key === "main"`. This is intentional — global
@@ -531,6 +544,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Redux store**: must include `mentorReducer` and `mentorMiddleware`
 - **`initializeDataLayer()`**: 5 args (v1.2+)
 - **`@reduxjs/toolkit`**: deduplicated via webpack aliases in `next.config.ts`
-- **Env vars**: `NEXT_PUBLIC_LMS_URL`, `NEXT_PUBLIC_MFE_URL`,
-  `NEXT_PUBLIC_LEGACY_LMS_URL`, `NEXT_PUBLIC_DM_URL`
+- **URLs**: all from `lib/iblai/config.ts` — `config.legacyLmsUrl()` and
+  `config.mfeUrl()` for the iframes, `config.dmUrl()` for Stripe. Hosted
+  defaults are in code; self-hosted overrides via `NEXT_PUBLIC_LEGACY_LMS_URL`
+  / `NEXT_PUBLIC_MFE_URL` in `.env.local`.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

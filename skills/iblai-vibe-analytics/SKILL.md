@@ -28,7 +28,7 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **API companion (recommended):** `npx skills add iblai/api`. Installs
-  the `/iblai-analytics` REST reference and a filtered snapshot of the
+  the `/iblai-api-analytics` REST reference and a filtered snapshot of the
   live OpenAPI schema. This skill (frontend wiring) and that one (API
   contract) stay in lockstep.
 
@@ -125,11 +125,11 @@ npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
 
 ---
 
-# Analytics REST API — see `/iblai-analytics` in `iblai/api`
+# Analytics REST API — see `/iblai-api-analytics` in `iblai/api`
 
 Every analytics endpoint and Data Report — URLs, required params, RBAC
 role names, response shapes — lives in the companion skill
-[`/iblai-analytics`](https://github.com/iblai/api/tree/main/skills/iblai-analytics)
+[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
 in the [`iblai/api`](https://github.com/iblai/api) repo. Install once
 and it stays in sync with the backend:
 
@@ -137,7 +137,7 @@ and it stays in sync with the backend:
 npx skills add iblai/api
 ```
 
-Then `/iblai-analytics` covers auth, the schema-first workflow, the
+Then `/iblai-api-analytics` covers auth, the schema-first workflow, the
 analyst-shaped endpoint groupings (Overview / Costs / Users & engagement
 / Topics & conversations / Transcripts / Sessions & ratings / Course /
 Program / Pathway & skill / Per-learner / Time-on-platform), the async
@@ -145,8 +145,9 @@ Data Reports lifecycle, and a local snapshot of the live OpenAPI schema
 at `references/analytics-schema.json`.
 
 > **The OpenAPI schema is the contract.** Live at
-> <https://api.iblai.app/dm/api/docs/schema/?format=json> (browsable at
-> <https://api.iblai.app/dm/api/docs/>). Consult it before writing any
+> `{dm_url}/api/docs/schema/?format=json` (browsable at `{dm_url}/api/docs/`;
+> `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default
+> `iblai.app`). Consult it before writing any
 > analytics request. The `iblai/api` skill's `references/schema.md`
 > gives the fetch + drift-check routine.
 
@@ -154,8 +155,9 @@ at `references/analytics-schema.json`.
 
 - **Auth header:** `Authorization: Token <token>`. The SDK attaches
   this automatically via `SERVICES.DM`.
-- **Anchor:** `{dm_url}` = `https://api.iblai.app/dm` throughout the
-  companion `/iblai-analytics` skill. Endpoints there are written
+- **Anchor:** `{dm_url}` = `https://api.$DOMAIN/dm` (`DOMAIN` from
+  `iblai.env`, default `iblai.app`) throughout the
+  companion `/iblai-api-analytics` skill. Endpoints there are written
   `{dm_url}/api/analytics/…` and `{dm_url}/api/reports/…`. In
   TypeScript, `dmUrl` is the first arg passed to
   `initializeDataLayer()` (sourced from `NEXT_PUBLIC_API_BASE_URL`),

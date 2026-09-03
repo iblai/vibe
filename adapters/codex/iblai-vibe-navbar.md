@@ -242,7 +242,9 @@ Create `components/navbar/user-profile-button.tsx`. This wraps the SDK's
 import { UserProfileDropdown } from '@iblai/iblai-js/web-containers/next';
 
 interface UserProfileButtonProps {
-  username?: string;
+  username: string;
+  email: string;
+  mainPlatformKey: string;
   isAdmin: boolean;
   tenantKey: string;
   currentTenant?: any;
@@ -256,6 +258,8 @@ interface UserProfileButtonProps {
 
 export function UserProfileButton({
   username,
+  email,
+  mainPlatformKey,
   isAdmin,
   tenantKey,
   currentTenant,
@@ -268,6 +272,8 @@ export function UserProfileButton({
 }: UserProfileButtonProps) {
   return (
     <UserProfileDropdown
+      email={email}
+      mainPlatformKey={mainPlatformKey}
       username={username}
       userIsAdmin={isAdmin}
       userIsStudent={false}
@@ -280,15 +286,11 @@ export function UserProfileButton({
       showHelpLink={false}
       showLogoutButton={true}
       showLearnerModeSwitch={false}
-      billingEnabled={false}
-      billingURL=""
-      topUpEnabled={false}
-      topUpURL=""
       currentPlan=""
       authURL={authURL}
       onLogout={onLogout}
-      onTenantChange={onTenantChange}
-      onTenantUpdate={onTenantUpdate}
+      onTenantChange={onTenantChange ?? (() => {})}
+      onTenantUpdate={onTenantUpdate ?? (() => {})}
       onAccountDeleted={onAccountDeleted}
     />
   );
@@ -492,7 +494,7 @@ export function NavBar({
           {showNotifications && (
             <NotificationDropdown
               org={tenantKey}
-              userId={username}
+              userId={username ?? ""}
               isAdmin={isAdmin}
               onViewNotifications={handleViewNotifications}
             />
@@ -501,7 +503,9 @@ export function NavBar({
           {showProfileDropdown && (
             <div className="relative">
               <UserProfileButton
-                username={username}
+                username={username ?? ""}
+                email={email}
+                mainPlatformKey={mainPlatformKey}
                 isAdmin={isAdmin}
                 tenantKey={tenantKey}
                 currentTenant={currentTenant}
@@ -582,6 +586,7 @@ export default function ProfilePage() {
       <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
         <Profile
           tenant={tenantKey}
+          tenants={tenants}
           username={username}
           isAdmin={isAdmin}
           onClose={() => {}}
@@ -669,6 +674,8 @@ export default function AccountPage() {
           tenant={tenantKey}
           tenants={tenants}
           username={username}
+          email={email}
+          mainPlatformKey={config.mainTenantKey()}
           isAdmin={isAdmin}
           authURL={config.authUrl()}
           currentPlatformBaseDomain={config.platformBaseDomain()}
@@ -805,12 +812,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <NavBar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         links={NAV_LINKS}
-        tenantKey={/* getTenant() */}
-        username={/* getUserName() */}
-        isAdmin={/* from your auth context */}
-        authURL={/* config.urls.auth() */}
-        onLogout={/* your logout handler */}
-        onTenantChange={/* your tenant switch handler */}
+        tenantKey={tenantKey /* getTenant() */}
+        username={username /* getUserName() */}
+        email={email /* from userData in localStorage */}
+        mainPlatformKey={mainPlatformKey /* config.mainTenantKey() */}
+        isAdmin={isAdmin /* from your auth context */}
+        authURL={authURL /* config.authUrl() */}
+        onLogout={onLogout /* your logout handler */}
+        onTenantChange={onTenantChange /* your tenant switch handler */}
       />
 
       <NavigationDrawer

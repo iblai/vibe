@@ -53,13 +53,14 @@ not in a subdirectory.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at https://api.iblai.app/dm/api/docs/schema/ and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same
   `Authorization: Token <token>` wiring the rest of the app uses.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **Platform admin role required.** All four analytics endpoints
@@ -94,20 +95,14 @@ not in a subdirectory.
    override; the endpoint resolves the subscription via `request.user`.
    To cancel another user's subscription, use the Stripe Dashboard.
 
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
 ## Step 1: Validate the API schema
 
 Confirm the four analytics endpoints + the cancel endpoint are present
 before writing any code:
 
 ```bash
-curl -sS https://api.iblai.app/dm/api/docs/schema/ -o /tmp/iblai_schema.yaml
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+curl -sS "https://api.${DOMAIN:-iblai.app}/dm/api/docs/schema/" -o /tmp/iblai_schema.yaml
 grep -E "/api/billing/platforms/\{platform_key\}/(revenue|subscribers|paywalls)/|/api/billing/platforms/\{platform_key\}/items/\{item_type\}/\{item_id\}/(subscribers|subscription/cancel)/" /tmp/iblai_schema.yaml
 ```
 
@@ -156,7 +151,7 @@ interface RevenueResponse {
 > to `Intl.NumberFormat` — formatting a string yields `NaN`.
 
 ```tsx
-import { useGetRevenueQuery } from '@iblai/data-layer';
+import { useGetRevenueQuery } from '@iblai/iblai-js/data-layer';
 
 function RevenueCard({ platformKey }: { platformKey: string }) {
   const { data } = useGetRevenueQuery({ platform_key: platformKey });
@@ -188,7 +183,7 @@ The commission ibl.ai takes per item type is on the Stripe Connect
 status endpoint, NOT on the revenue response.
 
 ```tsx
-import { useGetStripeConnectStatusQuery } from '@iblai/data-layer';
+import { useGetStripeConnectStatusQuery } from '@iblai/iblai-js/data-layer';
 
 function CommissionTable({ platformKey }: { platformKey: string }) {
   const { data } = useGetStripeConnectStatusQuery({ platform_key: platformKey });

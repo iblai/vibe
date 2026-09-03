@@ -34,10 +34,10 @@ Before writing, gather these inputs:
 | Source | Reads |
 |--------|-------|
 | `package.json` | `name`, `version`, `description`, `scripts.{dev,build,start,release}` |
-| `iblai.env` | `DOMAIN`, `PLATFORM`, presence of `VERCEL_TOKEN` |
+| `iblai.env` | `DOMAIN`, `PLATFORM` (+ optional `IBLAI_USERNAME`) |
 | `Dockerfile` | Presence → include the **Docker** section |
-| `next.config.{ts,mjs,js}` | `output: 'export'` → static mode; otherwise server mode (for the Vercel section copy) |
-| `src-tauri/tauri.conf.json` | Presence → include the **Native builds** section AND keep the **Deploy to Vercel** section (mobile dev builds use the Vercel URL) |
+| `next.config.{ts,mjs,js}` | `output: 'export'` → static mode; otherwise server mode (for the Deploy section copy) |
+| `src-tauri/tauri.conf.json` | Presence → include the **Native builds** section AND keep the **Deploy** section (mobile dev builds use the hosted URL) |
 | `app/(onboarding|onboarding)/`, `app/sso-login*` | Presence → list under features |
 | `CLAUDE.md` / `AGENTS.md` | Presence → cross-link them |
 | `docs/screenshots/*.png` | Use existing names; do NOT invent missing files |
@@ -137,8 +137,9 @@ Open [http://localhost:3000](http://localhost:3000). {{ One sentence on
 what happens after the first request — e.g. SSO redirect / home redirect
 to a default route. }}
 
-`.env.local` is already populated with the iblai.app endpoints — no
-manual platform credentials are needed up front.
+URL defaults live in `lib/iblai/config.ts`; copy `.env.example` to
+`.env.local` and set `NEXT_PUBLIC_MAIN_TENANT_KEY` (plus `IBLAI_API_KEY`
+for server-side platform calls).
 
 ### Build
 
@@ -154,49 +155,30 @@ pnpm start
 ```bash
 docker build -t {{ image-name }}:{{ version }} {{ flags }} .
 docker run -p {{ port }}:{{ port }} \
-  -e NEXT_PUBLIC_API_BASE_URL=https://api.iblai.app \
-  -e NEXT_PUBLIC_AUTH_URL=https://login.iblai.app \
-  -e NEXT_PUBLIC_PLATFORM_BASE_DOMAIN=iblai.app \
+  -e NEXT_PUBLIC_MAIN_TENANT_KEY=your-platform \
   {{ image-name }}:{{ version }}
 ```
 
-{{ INCLUDE this **Deploy to Vercel** subsection whenever the project
-can ship a Vercel deployment (it covers both static `output: 'export'`
-Tauri shells and server-rendered Next.js apps).
-Drop only if the project is explicitly self-hosted with no Vercel
-target. Full guide:
+{{ INCLUDE this **Deploy** subsection whenever the project can ship a web
+deployment (it covers both static `output: 'export'` Tauri shells and
+server-rendered Next.js apps). Drop only if the project is explicitly
+self-hosted. Full guide:
 [`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md). }}
 
-### Deploy to Vercel
+### Deploy
 
-Deploy with the `vercel` CLI (full procedure in
-[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md)):
-
-```bash
-# server-rendered app (Vercel runs the build remotely):
-npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
-# static export (Tauri shells): build first, then deploy out/:
-pnpm build && npx vercel deploy out/ --token="$VERCEL_TOKEN" --yes --public
-```
-
-After deploying, disable the project's Vercel auth / password protection.
-For server mode, also push `.env.local` to the project (production + preview)
-and redeploy with `--force` + `VERCEL_FORCE_NO_BUILD_CACHE=1` so the
-`NEXT_PUBLIC_*` values re-inline into the client bundle.
-
-**Setup:** generate a Vercel token at
-[https://vercel.com/account/tokens](https://vercel.com/account/tokens)
-and add it to `iblai.env`:
-
-```bash
-echo 'VERCEL_TOKEN=<token>' >> iblai.env
-```
+Deploy through the ibl.ai platform's hosting API (Vercel-backed) with
+[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md).
+No Vercel account or token — auth is the platform API key (`TOKEN`) in
+`iblai.env`. The skill zips the app (the `out/` export in static mode, the
+project source in server mode), uploads it, polls until the build is
+READY, and prints the live `*.vercel.app` URL Vercel reports. Re-run it
+to redeploy; attach custom domains via the hosting DNS endpoint (the skill
+returns the DNS records to add).
 
 **Going back to local** (Tauri dev builds): remove `devUrl` from
 `src-tauri/tauri.conf.json` and the WebView loads local static files
 again.
-
-> **Tip:** You can change the vercel domain name by clicking on the three-dot button on your Vercel project on [`vercel.com`](https://vercel.com) and select "Manage Domains".
 
 {{ INCLUDE if `src-tauri/tauri.conf.json` exists. Mirror the structure
 in `/iblai-vibe-ops-build` — one subsection per platform (iOS / Android /
@@ -292,7 +274,7 @@ See `CLAUDE.md` for the full list of skills and component priority rules.
 
 ## Resources
 
-- [ibl.ai Documentation](https://docs.ibl.ai)
+- [ibl.ai Documentation](https://ibl.ai/docs)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the ibl.ai SDK
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development
 - [Vibe](https://github.com/iblai/vibe) — developer toolkit for building with ibl.ai

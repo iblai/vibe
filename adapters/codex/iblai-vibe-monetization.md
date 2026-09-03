@@ -1,6 +1,6 @@
 # iblai-vibe-monetization
 
-> Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
+> Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-monetization-app-paywall to charge for the whole app (pay-to-enter on the tenant's own Stripe key, no Connect), /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
 
 # /iblai-vibe-monetization
 
@@ -33,7 +33,8 @@ When building custom UI around SDK components, use the ibl.ai brand:
 ## Authentication
 
 > **`{dm_url}` and DM token.** Throughout this family, `{dm_url}` resolves to
-> your data-manager host (e.g. `https://api.iblai.app/dm`); in TypeScript
+> your data-manager host — `https://api.$DOMAIN/dm` with `DOMAIN` from
+> `iblai.env` (default `iblai.app`); in TypeScript
 > compose it as `` `${apiBase}/dm` ``. The auth token is the **DM token** —
 > not the AXD token. The two are different tokens issued by different
 > services; using the AXD token against `{dm_url}` returns `401`. The SDK
@@ -90,13 +91,15 @@ orientation, but the live schema mirrors what is actually deployed.
 Before writing any code that constructs a URL, fetch the schema:
 
 ```bash
-curl -sS -o /tmp/iblai_schema.yaml "https://api.iblai.app/dm/api/docs/schema/"
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+DM="https://api.${DOMAIN:-iblai.app}/dm"
+curl -sS -o /tmp/iblai_schema.yaml "$DM/api/docs/schema/"
 grep -E "^(  )?/api/billing|^(  )?/api/service/platforms/\{platform_key\}/stripe/connect" /tmp/iblai_schema.yaml
 ```
 
-Schema is OpenAPI 3.0.3 YAML at
-`https://api.iblai.app/dm/api/docs/schema/` (also browsable at
-`https://api.iblai.app/dm/api/docs/`). The `info.version` field
+Schema is OpenAPI 3.0.3 YAML at `{dm_url}/api/docs/schema/` (browsable at
+`{dm_url}/api/docs/`; e.g.
+`https://api.iblai.app/dm/api/docs/schema/`). The `info.version` field
 exposes the deployed `ibl-data-manager` build — it rolls forward each
 release, so do not pin to a specific value. The exact fetch routine
 and drift-detection workflow live in
@@ -254,6 +257,7 @@ Two non-obvious rules:
 | `/iblai-vibe-monetization-checkout` | Build UI | `PaywallModal` + access-check (402-as-success) + Stripe checkout for authenticated buyers; public pricing + guest checkout for anonymous buy pages |
 | `/iblai-vibe-monetization-subscription` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
 | `/iblai-vibe-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
+| `/iblai-vibe-monetization-app-paywall` | Build app gate | Whole-app "pay to enter" gate on the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — server routes + `PaywallGate` + `/paywall` pricing page. No Connect, no commission |
 
 When in doubt, the natural sequence is:
 1. **Onboard** — Platform owner connects Stripe Connect (`/iblai-vibe-monetization-onboard`)
@@ -261,6 +265,8 @@ When in doubt, the natural sequence is:
 3. **Checkout** — Buyer hits the paywall and pays (`/iblai-vibe-monetization-checkout`)
 4. **Subscriptions** — Subscriber views and cancels their purchases (`/iblai-vibe-monetization-subscription`)
 5. **Analytics** — Platform admin watches revenue and subscribers (`/iblai-vibe-monetization-analytics`)
+
+Selling access to the whole app rather than items sits outside this sequence — it runs on the tenant's own Stripe key, not Connect. See `/iblai-vibe-monetization-app-paywall`.
 
 ## Important notes
 
@@ -394,6 +400,7 @@ ones relevant to its surface.
 - `/iblai-vibe-monetization-checkout` — `PaywallModal`, access check, Stripe checkout, guest buy
 - `/iblai-vibe-monetization-subscription` — user `PurchasesTab` and cancel flow
 - `/iblai-vibe-monetization-analytics` — revenue, subscribers, paywalls list
+- `/iblai-vibe-monetization-app-paywall` — whole-app pay-to-enter gate on the tenant's own Stripe key (DM Stripe proxy; no Connect, no commission)
 - `/iblai-vibe-credit` — Platform-wide credits (different product — read the "vs credits" table above)
 - `/iblai-vibe-auth` — Token wiring; every monetization call uses `Authorization: Token <token>`
 - `/iblai-vibe-account` — Account page that hosts the admin `MonetizationTab`

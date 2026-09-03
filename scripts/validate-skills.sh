@@ -116,12 +116,15 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         skill_warnings+=("SKILL.md is $line_count lines (should be <500, move details to references/)")
     fi
 
-    # Check for optional directories
-    for optdir in references scripts assets; do
-        if [[ -d "$skill_dir/$optdir" ]]; then
-            # Just note its presence - no validation required
-            :
-        fi
+    # Spec-defined optional dirs are references/, scripts/, assets/.
+    # Warn on other subdirs (typo'd names like reference/ silently ship dead weight).
+    for subdir in "$skill_dir"*/; do
+        [[ -d "$subdir" ]] || continue
+        dirname=$(basename "$subdir")
+        case "$dirname" in
+            references|scripts|assets|node_modules) ;;
+            *) skill_warnings+=("Off-spec directory '$dirname/' (spec dirs: references/, scripts/, assets/)") ;;
+        esac
     done
 
     # ===== REPORT RESULTS =====

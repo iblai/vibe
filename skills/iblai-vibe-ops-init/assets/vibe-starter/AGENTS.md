@@ -31,6 +31,7 @@ When adding UI features, follow this priority order:
 | Course content | `/iblai-vibe-course-access` skill + `CourseContentLayout`, `CourseContentTabPage` from SDK | Custom course player |
 | Create / publish courses | `/iblai-vibe-course-create` skill (Course Creation API) | Manually authoring OLX in edX Studio |
 | Onboarding flow | `/iblai-vibe-onboard` skill | Custom onboarding from scratch |
+| Charge for the app / paywall / monetization | `/iblai-vibe-monetization-app-paywall` skill — installs the ready-made paywall components (ops-init `assets/stripe-components/`) and wires env + the `(app)/layout.tsx` gate | Custom Stripe integration, raw Stripe keys, or Stripe.js in the client |
 | Buttons, forms, modals, tables | shadcn/ui (`npx shadcn@latest add button dialog table`) | Raw HTML or other UI libraries |
 | Page sections / blocks | shadcn/ui blocks (`npx shadcn@latest add @shadcn-space/hero-01`) | Custom layout from scratch |
 
@@ -75,24 +76,34 @@ through the wiring:
 /iblai-vibe-onboard       # Onboarding questionnaire flow
 /iblai-vibe-ops-build     # Desktop/mobile builds (Tauri v2)
 /iblai-vibe-ops-test      # Test before showing work
-/iblai-vibe-ops-upgrade   # Upgrade CLI, SDK, and skills to latest
+/iblai-vibe-ops-upgrade   # Upgrade SDK and skills to latest
 /iblai-vibe-component     # Browse all available components
 ```
 
-All features require auth first (`/iblai-vibe-auth` or `iblai add auth`).
+All features require auth first (`/iblai-vibe-auth`).
 
 ## Environment
 
 Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `VERCEL_TOKEN` for mobile dev builds). The `NEXT_PUBLIC_*`
-env vars in `.env.local` are derived from it (by the CLI or your AI
-assistant). Treat `iblai.env` as the source of truth for platform config --
-update it there and re-derive rather than hand-editing `.env.local`.
+and optionally `IBLAI_USERNAME` for deploys — the `IBLAI_USERNAME`
+environment variable wins when the host exports it; copy from
+`iblai.env.example`). Treat it as the source of truth: derive the runtime
+vars from it (via the skills) rather than hand-editing them. The one
+real Next env file is the gitignored `.env.local` (copy from `.env.example`):
+it needs `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`) and, for server-side
+platform API calls via `config.apiKey()`, the secret `IBLAI_API_KEY`
+(= `TOKEN`). The API/auth/websocket URLs default to hosted iblai.app in
+`lib/iblai/config.ts` — override them in `.env.local` when self-hosting or
+when `DOMAIN` isn't `iblai.app` (map `NEXT_PUBLIC_PLATFORM_BASE_DOMAIN` ←
+`DOMAIN`, `NEXT_PUBLIC_API_BASE_URL` ← `https://api.<DOMAIN>`, and the
+sign-in URL when known — the auth host is not derivable from the domain;
+distributed per-service hosts are unavailable on hosted iblai.app, see
+`lib/iblai/config.ts`).
 
-`VERCEL_TOKEN` in `iblai.env` enables `iblai deploy vercel` — builds,
-deploys to Vercel, disables auth protection, and updates `devUrl` in
-`tauri.conf.json` automatically. If missing when the user wants to deploy,
-ask once for their token (https://vercel.com/account/tokens).
+`/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API
+(Vercel-backed) using `TOKEN` from `iblai.env` — no Vercel account, token,
+or CLI. It zips the app, uploads it, polls until the build is READY, and
+updates `devUrl` in `tauri.conf.json`.
 
 ## Brand
 
@@ -107,13 +118,11 @@ ask once for their token (https://vercel.com/account/tokens).
 - **Responsive width**: `w-full px-4` mobile, `md:w-[75vw] md:px-0` desktop
 - **Mobile safe area**: `globals.css` must have `padding-top: env(safe-area-inset-top)` (and bottom/left/right) on body, and `app/layout.tsx` metadata must include `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"` -- prevents content from overlapping the iOS notch / Android status bar
 - **Package manager**: Use `pnpm` (fall back to `npm`)
-- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app`, `iblai startapp`, or `--app-name`.
+- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app` or `--app-name`.
 
 ## Commands
 
 ```bash
 pnpm dev             # Dev server
 pnpm build           # Production build
-iblai config show    # View configuration
-iblai add <feature>  # Add a feature
 ```

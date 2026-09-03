@@ -33,7 +33,7 @@ for s in 32x32 128x128 256x256; do \
 
 Both write to `src-tauri/icons/`, overwriting existing files. For the complete
 MSIX size list plus the multi-resolution `.ico` / `.icns` recipe, see
-[`/iblai-vibe-ops-build` → builds-command](../iblai-vibe-ops-build/references/builds-command.md).
+[`/iblai-vibe-ops-build` → tauri-commands](../iblai-vibe-ops-build/references/tauri-commands.md).
 
 ---
 

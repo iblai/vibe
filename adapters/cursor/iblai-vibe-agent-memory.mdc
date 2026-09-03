@@ -136,6 +136,10 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 ## Memory REST API
 
+Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
+in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+The tables below are the frontend-relevant summary.
+
 For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`
 and `{org}` is the platform/tenant key.

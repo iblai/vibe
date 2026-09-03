@@ -15,7 +15,7 @@ external LTI platforms), and **Tool Endpoints** (the fixed URLs to share
 with the LMS). This is one tab in the wider agent-settings family. All
 tabs share the same `AgentSettingsProvider` wrapper.
 
-![LTI Tab — Links](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-links.png)
+![LTI Tab — Links (async build status + Refresh)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-links.png)
 
 ![LTI Tab — Keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-keys.png)
 
@@ -144,12 +144,30 @@ Import from `@iblai/iblai-js/web-containers/next`.
 ### Links sub-tab
 
 The LTI link that lets this agent be launched from an LMS. Table shows
-**Name** and **Target Link URI** (with copy button) plus an edit action.
-Create/Edit modal collects a single required **Name**, displayed when
-selecting this agent during deep linking content selection. The link is
-created with the agent's stable id (`mentor_config.mentor`) and the
-tenant's `platform_key`. Creating a link while the LTI toggle is off
-enables `is_lti_accessible` automatically.
+**Name**, **Target Link URI** (with copy button), **Status**, and a
+per-row action. Create/Edit modal collects a single required **Name**,
+displayed when selecting this agent during deep linking content
+selection. The link is created with the agent's stable id
+(`mentor_config.mentor`) and the tenant's `platform_key`. Creating a
+link while the LTI toggle is off enables `is_lti_accessible`
+automatically.
+
+**Creation is asynchronous.** The synchronous build provisions an edX
+course and regularly outlives the 20s proxy timeout, so the data layer
+sends `async_create: true` on the POST — the backend answers `202`
+immediately with `{ id, status: "pending" }` and builds the link in
+the background:
+
+- **Status badge** — `Pending` / `Building` (amber, with a spinner),
+  `Ready` (green), `Failed` (red, with a hint tooltip). The Target
+  Link URI shows `—` until the build completes.
+- **Refresh button** — shown while any link is still
+  pending/building; re-fetches the list to pick up the latest status.
+- **Retry** — a failed row swaps its edit action for a **Retry**
+  button, which deletes the failed entity and re-posts the original
+  payload as a fresh async create.
+- **Edit is gated** — a link is only editable once it is `Ready`;
+  in-progress and failed rows can't be renamed.
 
 ### Keys sub-tab
 
@@ -206,11 +224,14 @@ From `@iblai/iblai-js/web-containers/next`:
 - `LtiTabLabels` -- type for the full label bundle.
 - `AgentLtiTabProps` -- props type for the tab.
 
-From `@iblai/data-layer` -- the RTK Query hooks the tab uses, for custom
+From `@iblai/iblai-js/data-layer` -- the RTK Query hooks the tab uses, for custom
 UI built on the same endpoints:
 
-- Links: `useGetLtiMentorsQuery`, `useCreateLtiMentorMutation`,
-  `useUpdateLtiMentorMutation`
+- Links: `useGetLtiMentorsQuery`, `useCreateLtiMentorMutation`
+  (sends `async_create: true`), `useUpdateLtiMentorMutation`,
+  `useDeleteLtiMentorMutation`, `useGetLtiMentorDetailQuery` (poll a
+  single link by id until its `status` is `ready` or `failed`), plus
+  the `LtiAgentLink` / `LtiAgentLinkStatus` types
 - Keys: `useGetLtiKeysQuery`, `useCreateLtiKeyMutation`,
   `useUpdateLtiKeyMutation`, `useDeleteLtiKeyMutation`
 - Tools: `useGetLtiToolsQuery`, `useCreateLtiToolMutation`,
@@ -246,4 +267,11 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   agent-specific.
 - **Delete order**: A key associated with an LTI tool cannot be deleted
   -- remove or re-key the tool first.
+- **Async link creation**: `POST lti-mentors/` is sent with
+  `async_create: true` and returns `202` with
+  `{ id, status: "pending" }` — the course build finishes out of band.
+  Custom UI should poll `useGetLtiMentorDetailQuery` (or re-fetch the
+  list) until `status` is `ready`/`failed` instead of awaiting the
+  POST; the SDK tab offers a manual **Refresh** button while a build
+  is in progress and a **Retry** (delete + re-create) on failure.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
