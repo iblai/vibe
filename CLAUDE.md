@@ -260,6 +260,7 @@ Each feature is a `/iblai-vibe-*` skill that creates the files and wires them in
 | SSO authentication + Redux store + providers | `/iblai-vibe-auth` |
 | User profile dropdown | `/iblai-vibe-profile` |
 | Account/organization settings page | `/iblai-vibe-account` |
+| Application gate (admissions) — admin tab + applicant wizard | `/iblai-vibe-application` |
 | Analytics dashboard page | `/iblai-vibe-analytics` |
 | Notification bell | `/iblai-vibe-notification` |
 | Tauri v2 desktop/mobile shell | `/iblai-vibe-ops-build` |
@@ -335,6 +336,7 @@ Invoke with `/` in Claude Code:
 | `/iblai-vibe-account` | Add account/org settings page |
 | `/iblai-vibe-billing` | Add the tenant Billing settings surface (plan & credits with Stripe flows, workspace spend limit, agent limits table) |
 | `/iblai-vibe-memory` | Add the tenant Memory settings surface (manage user global memories and agent memories from one place) |
+| `/iblai-vibe-application` | Add the application gate (admissions) — admin Applications tab (forms editor, submissions pipeline, reviewer workspace, blocked users) + the public applicant apply wizard |
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-credential` | Grant an API token RBAC access to list and unmask platform integration credentials |
