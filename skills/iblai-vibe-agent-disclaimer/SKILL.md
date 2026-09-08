@@ -3,6 +3,8 @@ name: iblai-vibe-agent-disclaimer
 description: Add the agent Disclaimers tab (user agreement and advisory) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-disclaimer

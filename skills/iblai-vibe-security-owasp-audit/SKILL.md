@@ -4,6 +4,8 @@ description: "Audit application source code against the OWASP Top 10 vulnerabili
 globs:
 alwaysApply: false
 allowed-tools: Read, Grep, Glob, Bash, Write
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-owasp-audit

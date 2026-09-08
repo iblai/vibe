@@ -4,6 +4,7 @@ description: When the user wants to add unit tests (Vitest), e2e tests (Playwrig
 globs:
 alwaysApply: false
 metadata:
+  kind: ops
   version: 2.0.0
 ---
 

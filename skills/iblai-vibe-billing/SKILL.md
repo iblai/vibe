@@ -3,6 +3,8 @@ name: iblai-vibe-billing
 description: Add the tenant Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide Spend Limit; and the Agent Limits table managing every agent's spend cap in one place) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-billing

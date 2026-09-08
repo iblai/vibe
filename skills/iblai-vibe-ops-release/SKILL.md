@@ -3,6 +3,8 @@ name: iblai-vibe-ops-release
 description: "Generate a Makefile + Fastlane config that builds and submits your Tauri app to the Apple App Store and Google Play. Use when the user mentions submitting/shipping/releasing to the App Store or Play Store, App Store Connect, Play Console, TestFlight, `.ipa`/`.aab` upload, Fastlane, creating an app record or bundle id, or wiring store credentials (App Store Connect API key, Play service account) into a Makefile. Builds on /iblai-vibe-ops-build (Tauri shell must exist first)."
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-ops-release — Build & Submit to the App Stores

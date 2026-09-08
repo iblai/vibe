@@ -3,6 +3,8 @@ name: iblai-vibe-agent-dataset
 description: Add the agent Datasets tab (searchable dataset table with upload) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-dataset

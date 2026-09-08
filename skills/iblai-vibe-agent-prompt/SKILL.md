@@ -3,6 +3,8 @@ name: iblai-vibe-agent-prompt
 description: Add the agent Prompts tab (system prompts and suggested prompts) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-prompt

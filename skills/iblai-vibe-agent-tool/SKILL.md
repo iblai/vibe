@@ -3,6 +3,8 @@ name: iblai-vibe-agent-tool
 description: Add the agent Tools tab (enable/disable agent tools) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-tool

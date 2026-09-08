@@ -103,7 +103,7 @@ Prefix `https://api.$DOMAIN/dm/api/ai-mentor/orgs/{org}/`:
 | Settings | `GET users/{username}/memsearch-settings/` · `GET …/memsearch-status/` | `PUT users/{username}/memsearch-settings/` (admins may target another username) |
 
 Errors: `400` content too short · `403` another user's memories without admin · `404` · `409` duplicate.
-Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md).
+Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md).
 
 ## 5. Privacy notes to tell the user
 

@@ -3,6 +3,8 @@ name: iblai-vibe-analytics
 description: Add analytics dashboard page to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-analytics
@@ -27,7 +29,7 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
-- **API companion (recommended):** `npx skills add iblai/api`. Installs
+- **API companion (recommended):** `npx skills add iblai/vibe --all`. Installs
   the `/iblai-api-analytics` REST reference and a filtered snapshot of the
   live OpenAPI schema. This skill (frontend wiring) and that one (API
   contract) stay in lockstep.
@@ -125,16 +127,16 @@ npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
 
 ---
 
-# Analytics REST API — see `/iblai-api-analytics` in `iblai/api`
+# Analytics REST API — see `/iblai-api-analytics` (headless twin)
 
 Every analytics endpoint and Data Report — URLs, required params, RBAC
 role names, response shapes — lives in the companion skill
-[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
-in the [`iblai/api`](https://github.com/iblai/api) repo. Install once
+[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
+in this repo (kind `api`). Installed with the rest of the skills
 and it stays in sync with the backend:
 
 ```bash
-npx skills add iblai/api
+npx skills add iblai/vibe --all
 ```
 
 Then `/iblai-api-analytics` covers auth, the schema-first workflow, the
@@ -148,7 +150,7 @@ at `references/analytics-schema.json`.
 > `{dm_url}/api/docs/schema/?format=json` (browsable at `{dm_url}/api/docs/`;
 > `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default
 > `iblai.app`). Consult it before writing any
-> analytics request. The `iblai/api` skill's `references/schema.md`
+> analytics request. The `/iblai-api-analytics` skill's `references/schema.md`
 > gives the fetch + drift-check routine.
 
 ## In this app (frontend wiring)

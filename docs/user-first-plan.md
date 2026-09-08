@@ -170,7 +170,7 @@ Steps:
    5. **How money works** — 6 lines: credits ceiling, LLM keys, spend caps, the three rails for charging *your* users, link to `/iblai-vibe-pricing` (T3.5).
    6. **Everything else** — Tier 2 (one row + link to `/iblai-vibe-agent`), Tier 3 family rows, Tier 4 rows.
    7. **Ship everywhere** — the existing Tauri/App Store/desktop-signing content, trimmed to 30 lines, screenshots kept.
-   8. **When there is no component** — 5 lines pointing at `/iblai-vibe-api` (T3.7) and `npx skills add iblai/api`.
+   8. **When there is no component** — 5 lines pointing at `/iblai-vibe-api` (T3.7) and `npx skills add iblai/vibe --all`.
    9. **Companion repos**, **Resources**, **Security skills** (one paragraph), **License**.
 2. Delete the duplicated 77-row lists. Do not list Tier 2 tabs individually anywhere in README.
 3. Fix the drift called out in §1.4 P7 ("What You Get" table rows must describe what the SDK components actually render — take wording from `ibl.ai/docs/os/*` overview lines).
@@ -602,7 +602,7 @@ Verified by grepping the packages' `dist/**/*.d.ts` on 2026-09-08. Re-verify wit
 
 ### 7.4 Appendix C — REST endpoints for the common stuff (from `iblai/api`, verified against its `main` on 2026-09-08)
 
-All under `https://api.iblai.app`, header `Authorization: Api-Token $IBLAI_API_KEY` (server-side), `{org}` = org key. Raw skill URL pattern: the `iblai/api` raw base plus `skills/<skill>/SKILL.md` — e.g. [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md), [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md), [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md), [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md), [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md).
+All under `https://api.iblai.app`, header `Authorization: Api-Token $IBLAI_API_KEY` (server-side), `{org}` = org key. Raw skill URL pattern: the `iblai/api` raw base plus `skills/<skill>/SKILL.md` — e.g. [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md), [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md), [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md), [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md), [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md).
 
 | Need | Method + path | Skill |
 |---|---|---|
@@ -714,3 +714,14 @@ lint / unit tests):
 Not done, deliberately: moving the security skills to a sibling repo;
 un-gating CI tiers; the live 20-minute test (needs an `ibl.ai/join` account
 and an admin on a demo org); real screenshots.
+
+## 9. Addendum — `iblai/api` merged into this repo (2026-09-08)
+
+The 50 headless `iblai-api-*` skills, the hosted chat MCP server docs (`mcp/`),
+and `tutorials/` now live here; `iblai/api` is to be deleted. Every skill
+carries `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`), enforced
+by `scripts/check-skill-kinds.mjs`; the delineation is `docs/skill-kinds.md`,
+the headless authoring contract `docs/api-skills.md`, and the historical api
+changelog `docs/api-skills-changelog.md`. `/iblai-api-login` writes both
+credential files (`.env` for the api family, `iblai.env` for the ui family).
+References in this plan to "`iblai/api`" as a separate repo are historical.

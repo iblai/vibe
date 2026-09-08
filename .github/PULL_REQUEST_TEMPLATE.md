@@ -11,6 +11,7 @@
 
 - [ ] `bash scripts/validate-skills.sh`
 - [ ] `node scripts/build-adapters.mjs` (adapters committed)
-- [ ] `node scripts/check-sdk-pins.mjs` · `node scripts/check-links.mjs` · `node scripts/check-skill-tables.mjs`
+- [ ] `node scripts/check-sdk-pins.mjs` · `node scripts/check-links.mjs` · `node scripts/check-skill-tables.mjs` · `node scripts/check-skill-kinds.mjs`
+- [ ] `api` skills: every endpoint verified against the live schema / backend `urls.py` (docs/api-skills.md); no UI language
 - [ ] `node scripts/test-skills-render.mjs --skills <touched>` (and `--build` when vibe-starter changed)
 - [ ] No token, org key, or email in code, docs, screenshots, or this PR

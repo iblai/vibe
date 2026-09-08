@@ -4,8 +4,10 @@
 
 # iblai/vibe
 
-Ship AI-powered apps fast. Backend included.
+Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
+[![Release](https://img.shields.io/github/v/release/iblai/vibe?label=skills%20release)](https://github.com/iblai/vibe/releases/latest)
+[![Skills](https://img.shields.io/badge/skills-135_%C2%B7_ui_53_%C2%B7_api_51-CC785C)](docs/skill-kinds.md)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -78,23 +80,23 @@ chatting with it thirty seconds later. When it looks right:
 
 What `/iblai-vibe-ops-init` gives you, and the skill that owns each piece.
 ★ marks the five platform data families most apps read or write — each links
-the matching [`iblai/api`](https://github.com/iblai/api) REST reference.
+its headless twin, the `iblai-api-*` skill that documents the same data over REST.
 
 | You get | Skill | Reads / writes on the platform |
 |---|---|---|
-| SSO sign-in, session, org resolution (a placeholder or `main` org shows an alert, not a login loop) | [`/iblai-vibe-auth`](skills/iblai-vibe-auth/SKILL.md) | [login](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-login/SKILL.md) |
-| **Home = chat** with your agent — streaming, files, voice, canvas | [`/iblai-vibe-agent-chat`](skills/iblai-vibe-agent-chat/SKILL.md) (+ [sidebar](skills/iblai-vibe-agent-chat-sidebar/SKILL.md), [projects](skills/iblai-vibe-project/SKILL.md)) | [agent-session](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-session/SKILL.md) |
-| Agents browser (favorites, featured, custom, all) | [`/iblai-vibe-agent-search`](skills/iblai-vibe-agent-search/SKILL.md) | [search](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-search/SKILL.md) |
-| ★ Create an agent from the app; set its identity, visibility, capabilities; every settings tab | [`/iblai-vibe-agent-create`](skills/iblai-vibe-agent-create/SKILL.md), [`/iblai-vibe-agent-setting`](skills/iblai-vibe-agent-setting/SKILL.md), [`/iblai-vibe-agent`](skills/iblai-vibe-agent/SKILL.md) | ★ [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
-| ★ The user's profile — name, bio, image, education, résumé | [`/iblai-vibe-profile`](skills/iblai-vibe-profile/SKILL.md) | ★ [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) |
-| ★ **Custom data per user** — preferences, flags, onboarding, app state (no DB, no localStorage) | [`/iblai-vibe-user-metadata`](skills/iblai-vibe-user-metadata/SKILL.md) | ★ [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md) |
-| **Organization settings + custom org data**; name, logos, support email | [`/iblai-vibe-org-metadata`](skills/iblai-vibe-org-metadata/SKILL.md), [`/iblai-vibe-account`](skills/iblai-vibe-account/SKILL.md) | [org](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-org/SKILL.md) |
-| **Users vs admins** — User/Admin view switch, admin area, invites, roles and policies | [`/iblai-vibe-admin`](skills/iblai-vibe-admin/SKILL.md), [`/iblai-vibe-invite`](skills/iblai-vibe-invite/SKILL.md), [`/iblai-vibe-rbac`](skills/iblai-vibe-rbac/SKILL.md) | [management](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-management/SKILL.md), [rbac](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-rbac/SKILL.md), [invite](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-invite/SKILL.md) |
-| ★ **Memory** — what agents remember about people (user-global, per agent, agent knowledge) | [`/iblai-vibe-memory-guide`](skills/iblai-vibe-memory-guide/SKILL.md), [`/iblai-vibe-memory`](skills/iblai-vibe-memory/SKILL.md), [`/iblai-vibe-agent-memory`](skills/iblai-vibe-agent-memory/SKILL.md) | ★ [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
-| ★ **Analytics** — usage, users, topics, transcripts, costs, audit, reports; org-wide or per agent | [`/iblai-vibe-analytics`](skills/iblai-vibe-analytics/SKILL.md), [`/iblai-vibe-agent-audit`](skills/iblai-vibe-agent-audit/SKILL.md), [`/iblai-vibe-history`](skills/iblai-vibe-history/SKILL.md) | ★ [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
-| Notifications — bell, inbox, alerts, admin send | [`/iblai-vibe-notification`](skills/iblai-vibe-notification/SKILL.md) | [notification](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-notification/SKILL.md) |
+| SSO sign-in, session, org resolution (a placeholder or `main` org shows an alert, not a login loop) | [`/iblai-vibe-auth`](skills/iblai-vibe-auth/SKILL.md) | [login](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-login/SKILL.md) |
+| **Home = chat** with your agent — streaming, files, voice, canvas | [`/iblai-vibe-agent-chat`](skills/iblai-vibe-agent-chat/SKILL.md) (+ [sidebar](skills/iblai-vibe-agent-chat-sidebar/SKILL.md), [projects](skills/iblai-vibe-project/SKILL.md)) | [agent-session](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-session/SKILL.md) |
+| Agents browser (favorites, featured, custom, all) | [`/iblai-vibe-agent-search`](skills/iblai-vibe-agent-search/SKILL.md) | [search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-search/SKILL.md) |
+| ★ Create an agent from the app; set its identity, visibility, capabilities; every settings tab | [`/iblai-vibe-agent-create`](skills/iblai-vibe-agent-create/SKILL.md), [`/iblai-vibe-agent-setting`](skills/iblai-vibe-agent-setting/SKILL.md), [`/iblai-vibe-agent`](skills/iblai-vibe-agent/SKILL.md) | ★ [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
+| ★ The user's profile — name, bio, image, education, résumé | [`/iblai-vibe-profile`](skills/iblai-vibe-profile/SKILL.md) | ★ [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md) |
+| ★ **Custom data per user** — preferences, flags, onboarding, app state (no DB, no localStorage) | [`/iblai-vibe-user-metadata`](skills/iblai-vibe-user-metadata/SKILL.md) | ★ [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md) |
+| **Organization settings + custom org data**; name, logos, support email | [`/iblai-vibe-org-metadata`](skills/iblai-vibe-org-metadata/SKILL.md), [`/iblai-vibe-account`](skills/iblai-vibe-account/SKILL.md) | [org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-org/SKILL.md) |
+| **Users vs admins** — User/Admin view switch, admin area, invites, roles and policies | [`/iblai-vibe-admin`](skills/iblai-vibe-admin/SKILL.md), [`/iblai-vibe-invite`](skills/iblai-vibe-invite/SKILL.md), [`/iblai-vibe-rbac`](skills/iblai-vibe-rbac/SKILL.md) | [management](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-management/SKILL.md), [rbac](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-rbac/SKILL.md), [invite](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-invite/SKILL.md) |
+| ★ **Memory** — what agents remember about people (user-global, per agent, agent knowledge) | [`/iblai-vibe-memory-guide`](skills/iblai-vibe-memory-guide/SKILL.md), [`/iblai-vibe-memory`](skills/iblai-vibe-memory/SKILL.md), [`/iblai-vibe-agent-memory`](skills/iblai-vibe-agent-memory/SKILL.md) | ★ [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
+| ★ **Analytics** — usage, users, topics, transcripts, costs, audit, reports; org-wide or per agent | [`/iblai-vibe-analytics`](skills/iblai-vibe-analytics/SKILL.md), [`/iblai-vibe-agent-audit`](skills/iblai-vibe-agent-audit/SKILL.md), [`/iblai-vibe-history`](skills/iblai-vibe-history/SKILL.md) | ★ [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
+| Notifications — bell, inbox, alerts, admin send | [`/iblai-vibe-notification`](skills/iblai-vibe-notification/SKILL.md) | [notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-notification/SKILL.md) |
 | Navbar, onboarding flow, README | [`/iblai-vibe-navbar`](skills/iblai-vibe-navbar/SKILL.md), [`/iblai-vibe-onboard`](skills/iblai-vibe-onboard/SKILL.md), [`/iblai-vibe-readme`](skills/iblai-vibe-readme/SKILL.md) | — |
-| Anything with no component | [`/iblai-vibe-api`](skills/iblai-vibe-api/SKILL.md) | all 50 `iblai-api-*` skills |
+| Anything with no component | [`/iblai-vibe-api`](skills/iblai-vibe-api/SKILL.md) | any of the 51 `iblai-api-*` skills |
 | Test before showing work; keep current | [`/iblai-vibe-ops-test`](skills/iblai-vibe-ops-test/SKILL.md), [`/iblai-vibe-ops-upgrade`](skills/iblai-vibe-ops-upgrade/SKILL.md) | — |
 
 ## How money works
@@ -112,10 +114,75 @@ the matching [`iblai/api`](https://github.com/iblai/api) REST reference.
 | **Ops and polish** | [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md), [`/iblai-vibe-ops-release`](skills/iblai-vibe-ops-release/SKILL.md), [`/iblai-vibe-windows-msix`](skills/iblai-vibe-windows-msix/SKILL.md), [`/iblai-vibe-iconography`](skills/iblai-vibe-iconography/SKILL.md), [`/iblai-vibe-design`](skills/iblai-vibe-design/SKILL.md), [`/iblai-vibe-deslop`](skills/iblai-vibe-deslop/SKILL.md), [`/iblai-vibe-scaffold`](skills/iblai-vibe-scaffold/SKILL.md), [`/iblai-vibe-component`](skills/iblai-vibe-component/SKILL.md) |
 | **Security** (authorized use, unrelated to the platform) | [`/iblai-vibe-security-recon`](skills/iblai-vibe-security-recon/SKILL.md), [owasp-audit](skills/iblai-vibe-security-owasp-audit/SKILL.md), [osint-recon](skills/iblai-vibe-security-osint-recon/SKILL.md), [disk-forensics](skills/iblai-vibe-security-disk-forensics/SKILL.md), [incident-triage](skills/iblai-vibe-security-incident-triage/SKILL.md), [cloud-audit](skills/iblai-vibe-security-cloud-audit/SKILL.md), [dependency-audit](skills/iblai-vibe-security-dependency-audit/SKILL.md), [prompt-injection](skills/iblai-vibe-security-prompt-injection/SKILL.md) |
 
+
+## Two families of skills, one install
+
+Every skill carries a `kind` in its frontmatter (`ui`, `api`, `guide`, `ops`,
+`security` — [docs/skill-kinds.md](docs/skill-kinds.md)). The name prefix tells
+you the family; the kind tells you whether there is a screen.
+
+| | `iblai-vibe-*` — **build** (has a screen) | `iblai-api-*` — **operate** (no screen) |
+|---|---|---|
+| What it does | Mounts an SDK visual component in your Next.js app — a page, a tab, a dialog, a widget | Drives the platform headlessly: exact REST endpoints (method, URL, body, errors), `curl` first |
+| Who it is for | Builders shipping an app | Anyone operating an organization — from a terminal, a script, CI, a server route, or an agent |
+| Credentials | The signed-in user's session in the browser; `IBLAI_API_KEY` only in server routes | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`, from `.env` or `iblai.env` |
+| Start | `/iblai-vibe` → `/iblai-vibe-ops-init` | `/iblai-api-login` |
+| Also | `guide` (indexes and decision pages), `ops` (build, deploy, test, release), `security` | Tutorials in [`tutorials/`](tutorials/); the hosted chat MCP server in [`mcp/`](mcp/) |
+
+Builders use both: the `ui` skill mounts the component, its **Platform data**
+table names the `api` twin for anything the component doesn't cover, and
+[`/iblai-vibe-api`](skills/iblai-vibe-api/SKILL.md) is the server-route pattern
+that joins them. The `iblai-api-*` family is the former
+[`iblai/api`](https://github.com/iblai/vibe/tree/main/skills) repository, merged
+here with its authoring contract intact — [docs/api-skills.md](docs/api-skills.md).
+
+### Headless API skills (`kind: api`)
+
+Connect once with [`/iblai-api-login`](skills/iblai-api-login/SKILL.md) (org key,
+username, Platform API Token → `.env` + `iblai.env`), then any skill below is a
+`/` command that calls `https://api.iblai.app` with `Authorization: Api-Token`.
+
+| Area | Skills |
+|---|---|
+| **Setup** | [`/iblai-api-login`](skills/iblai-api-login/SKILL.md) |
+| **One agent** (★ = the families most apps read or write) | ★ [`agent-setting`](skills/iblai-api-agent-setting/SKILL.md), ★ [`agent-memory`](skills/iblai-api-agent-memory/SKILL.md), [`agent-create`](skills/iblai-api-agent-create/SKILL.md), [`agent-prompt`](skills/iblai-api-agent-prompt/SKILL.md), [`agent-llm`](skills/iblai-api-agent-llm/SKILL.md), [`agent-dataset`](skills/iblai-api-agent-dataset/SKILL.md), [`agent-tool`](skills/iblai-api-agent-tool/SKILL.md), [`agent-access`](skills/iblai-api-agent-access/SKILL.md), [`agent-embed`](skills/iblai-api-agent-embed/SKILL.md), [`agent-mcp`](skills/iblai-api-agent-mcp/SKILL.md), [`agent-safety`](skills/iblai-api-agent-safety/SKILL.md), [`agent-privacy`](skills/iblai-api-agent-privacy/SKILL.md), [`agent-disclaimer`](skills/iblai-api-agent-disclaimer/SKILL.md), [`agent-history`](skills/iblai-api-agent-history/SKILL.md), [`agent-audit`](skills/iblai-api-agent-audit/SKILL.md), [`agent-eval`](skills/iblai-api-agent-eval/SKILL.md), [`agent-skill`](skills/iblai-api-agent-skill/SKILL.md), [`agent-sandbox`](skills/iblai-api-agent-sandbox/SKILL.md), [`agent-support`](skills/iblai-api-agent-support/SKILL.md) |
+| **Talk to an agent** | [`agent-session`](skills/iblai-api-agent-session/SKILL.md) (REST/SSE/WebSocket), [`agent-chat`](skills/iblai-api-agent-chat/SKILL.md) (hosted MCP server), [`inference`](skills/iblai-api-inference/SKILL.md) (OpenAI-compatible `/v1`) |
+| **Organization** | [`org`](skills/iblai-api-org/SKILL.md), [`management`](skills/iblai-api-management/SKILL.md), [`rbac`](skills/iblai-api-rbac/SKILL.md), [`invite`](skills/iblai-api-invite/SKILL.md), [`scim`](skills/iblai-api-scim/SKILL.md), [`token`](skills/iblai-api-token/SKILL.md), [`integration`](skills/iblai-api-integration/SKILL.md), [`notification`](skills/iblai-api-notification/SKILL.md), [`feature`](skills/iblai-api-feature/SKILL.md), [`billing`](skills/iblai-api-billing/SKILL.md), [`spend-caps`](skills/iblai-api-spend-caps/SKILL.md), [`crm`](skills/iblai-api-crm/SKILL.md), [`external-service-proxy`](skills/iblai-api-external-service-proxy/SKILL.md) |
+| **The signed-in user** | ★ [`profile`](skills/iblai-api-profile/SKILL.md), ★ [`profile-metadata`](skills/iblai-api-profile-metadata/SKILL.md) |
+| **Content, discovery, analytics** | ★ [`analytics`](skills/iblai-api-analytics/SKILL.md), [`search`](skills/iblai-api-search/SKILL.md), [`catalog`](skills/iblai-api-catalog/SKILL.md), [`catalog-media`](skills/iblai-api-catalog-media/SKILL.md), [`catalog-invitation`](skills/iblai-api-catalog-invitation/SKILL.md), [`course-create`](skills/iblai-api-course-create/SKILL.md), [`milestone`](skills/iblai-api-milestone/SKILL.md), [`credential`](skills/iblai-api-credential/SKILL.md), [`apply`](skills/iblai-api-apply/SKILL.md) |
+| **Other LMSs** | [`canvas-course-builder`](skills/iblai-api-canvas-course-builder/SKILL.md) (Canvas REST API) |
+| **Guides (no endpoints)** | [`ecosystem`](skills/iblai-api-ecosystem/SKILL.md), [`infrastructure`](skills/iblai-api-infrastructure/SKILL.md) (self-hosting) |
+
+Every name above is `/iblai-api-<name>`.
+
 The full, tiered catalogue with one-line descriptions is in [`CLAUDE.md`](CLAUDE.md#skill-catalogue-by-tier).
 Skills are in `skills/`; `npx skills add` installs them into your project's
 `.claude/skills/`. Read them, extend them, or write your own — the front door
 for agents is [`/iblai-vibe`](skills/iblai-vibe/SKILL.md).
+
+## Keep your skills current
+
+This repository changes often — the SDK bumps daily, and skills are corrected as
+the platform's endpoints and components move. Installed skills are a **copy**;
+they do not update themselves.
+
+- **Refresh** with the same command that installed them (idempotent):
+
+  ```bash
+  npx skills add iblai/vibe --all
+  ```
+
+  In Claude Code, `/iblai-vibe-ops-upgrade` does this and also bumps the SDK,
+  then summarizes what changed.
+- **Know what you have.** The latest release is
+  [github.com/iblai/vibe/releases/latest](https://github.com/iblai/vibe/releases/latest);
+  every change is listed in [`CHANGELOG.md`](CHANGELOG.md). Your copy's age is the
+  modification time of `.claude/skills/iblai-vibe/SKILL.md`.
+- **Agents check for you.** The project `CLAUDE.md` that `/iblai-vibe-ops-init`
+  writes asks the assistant to suggest a refresh when the installed skills are
+  older than two weeks or older than the latest release.
+- **Adapters** for Cursor and Codex are regenerated from the same sources on
+  every change (`adapters/`), so every editor sees the same skill.
 
 ## Built with iblai/vibe
 
@@ -136,9 +203,11 @@ user's session token; your server holds one org-scoped Platform API Token in
 the gitignored `iblai.env` / `.env.local`. How that fits together:
 [docs/security-model.md](docs/security-model.md).
 
-### MCP server
+### Two MCP servers
 
-`.mcp.json` at the project root (vibe-starter ships it):
+**`@iblai/mcp`** — SDK documentation for your coding assistant (components,
+hooks, RTK Query endpoints, provider setup). `.mcp.json` at the project root
+(vibe-starter ships it):
 
 ```json
 {
@@ -151,6 +220,17 @@ the gitignored `iblai.env` / `.env.local`. How that fits together:
 (`npx -y @iblai/mcp` in npm projects.) It gives your assistant
 `get_component_info`, `get_hook_info`, `get_api_query_info`,
 `get_provider_setup`, `create_page_template`, `get_playwright_helper_info`.
+
+**`iblai-agent-chat`** — a *hosted* MCP server for the one runtime capability
+that is not a REST call: holding a live conversation with a deployed agent
+(streamed responses, tool use, RAG). No install; wire it with
+[`/iblai-api-agent-chat`](skills/iblai-api-agent-chat/SKILL.md) or by hand from
+[`mcp/iblai-agent-chat/README.md`](mcp/iblai-agent-chat/README.md):
+
+```bash
+claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/ \
+  --header "Authorization: Api-Token YOUR_API_TOKEN" --header "X-Mentor-Unique-Id: YOUR_AGENT_UUID"
+```
 
 ## Deploy Anywhere
 
@@ -230,7 +310,8 @@ For a Windows Store / sideload **MSIX** package instead, see
 
 ## Companion repos
 
-- [`iblai/api`](https://github.com/iblai/api) — `iblai-api-*` skills for operating every platform REST family directly, plus a chat MCP server. `npx skills add iblai/api`
+The former `iblai/api` repository now lives here as the `iblai-api-*` skills, `mcp/`, and `tutorials/` — one install covers both families.
+
 - [`iblai/os`](https://github.com/iblai/os) — the Agentic OS source: reference implementation, self-hostable.
 - [`iblai/vibe-agent`](https://github.com/iblai/vibe-agent) — a finished one-agent app with its own paywall.
 - [`iblai/vibe-marketing`](https://github.com/iblai/vibe-marketing) — 43 marketing skills (CRO, copywriting, SEO, paid ads, lifecycle, growth) plus 62 platform CLIs and 80 integration guides. `npx skills add iblai/vibe-marketing`
@@ -240,6 +321,7 @@ For a Windows Store / sideload **MSIX** package instead, see
 - [docs/platform-lifecycle.md](docs/platform-lifecycle.md) — join → org → credentials → credits → ship
 - [docs/glossary.md](docs/glossary.md) · [docs/security-model.md](docs/security-model.md) · [docs/screenshots/README.md](docs/screenshots/README.md)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the SDK · [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server
+- [docs/skill-kinds.md](docs/skill-kinds.md) — the two families and the five kinds · [docs/api-skills.md](docs/api-skills.md) — the headless contract · [tutorials/](tutorials/)
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) · [ibl.ai/docs](https://ibl.ai/docs) — every screen of the OS · [ibl.ai/developer](https://ibl.ai/developer)
 
 ## License

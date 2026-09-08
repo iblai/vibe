@@ -4,6 +4,8 @@ description: "Perform structured reconnaissance and attack surface enumeration f
 globs:
 alwaysApply: false
 allowed-tools: Bash, Read, Write, WebSearch, WebFetch
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-recon

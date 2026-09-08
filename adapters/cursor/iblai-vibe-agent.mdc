@@ -62,32 +62,32 @@ component reads the agent from context — no props needed for the basics.
 
 Start with the **core six** (bold). Add the others only when the user asks.
 
-| Tab | What it does | Skill | REST (`iblai/api`) |
+| Tab | What it does | Skill | REST twin (`iblai-api-*`, kind `api`) |
 |---|---|---|---|
-| **Settings** | name, description, avatar, category, visibility; copy to another org; delete | `/iblai-vibe-agent-setting` | [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
-| **Prompts** | system prompt, proactive/study/guided prompts, suggested prompts | `/iblai-vibe-agent-prompt` | [agent-prompt](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-prompt/SKILL.md) |
-| **LLM** | provider + model selection (incl. the org's own keys) | `/iblai-vibe-agent-llm` | [agent-llm](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-llm/SKILL.md) |
-| **Datasets** | RAG: files, URLs, YouTube, crawl, GitHub; train/retrain | `/iblai-vibe-agent-dataset` | [agent-dataset](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-dataset/SKILL.md) |
-| **Memory** | enable memory; manage memories and categories | `/iblai-vibe-agent-memory` (guide: `/iblai-vibe-memory-guide`) | [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
-| **Tools** | enable/disable the agent's tools | `/iblai-vibe-agent-tool` | [agent-tool](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-tool/SKILL.md) |
-| Access | RBAC sharing: editor / chat / analytics roles for users and groups | `/iblai-vibe-agent-access` | [agent-access](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-access/SKILL.md) |
-| API | API keys for this agent | `/iblai-vibe-agent-api` | [agent-embed](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-embed/SKILL.md) |
-| Billing | spend cap for the agent and per user | `/iblai-vibe-agent-billing` | [spend-caps](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
-| Embed | embed code, styling, shareable links | `/iblai-vibe-agent-embed` | [agent-embed](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-embed/SKILL.md) |
-| Evals | benchmarks, LLM-as-Judge reviews, manual scores, CSV export | `/iblai-vibe-agent-evals` | [agent-eval](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-eval/SKILL.md) |
+| **Settings** | name, description, avatar, category, visibility; copy to another org; delete | `/iblai-vibe-agent-setting` | [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
+| **Prompts** | system prompt, proactive/study/guided prompts, suggested prompts | `/iblai-vibe-agent-prompt` | [agent-prompt](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-prompt/SKILL.md) |
+| **LLM** | provider + model selection (incl. the org's own keys) | `/iblai-vibe-agent-llm` | [agent-llm](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-llm/SKILL.md) |
+| **Datasets** | RAG: files, URLs, YouTube, crawl, GitHub; train/retrain | `/iblai-vibe-agent-dataset` | [agent-dataset](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-dataset/SKILL.md) |
+| **Memory** | enable memory; manage memories and categories | `/iblai-vibe-agent-memory` (guide: `/iblai-vibe-memory-guide`) | [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
+| **Tools** | enable/disable the agent's tools | `/iblai-vibe-agent-tool` | [agent-tool](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-tool/SKILL.md) |
+| Access | RBAC sharing: editor / chat / analytics roles for users and groups | `/iblai-vibe-agent-access` | [agent-access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-access/SKILL.md) |
+| API | API keys for this agent | `/iblai-vibe-agent-api` | [agent-embed](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-embed/SKILL.md) |
+| Billing | spend cap for the agent and per user | `/iblai-vibe-agent-billing` | [spend-caps](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
+| Embed | embed code, styling, shareable links | `/iblai-vibe-agent-embed` | [agent-embed](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-embed/SKILL.md) |
+| Evals | benchmarks, LLM-as-Judge reviews, manual scores, CSV export | `/iblai-vibe-agent-evals` | [agent-eval](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-eval/SKILL.md) |
 | Grader | rubric-based grading with overrides | `/iblai-vibe-agent-grader` | — |
-| History | conversation history with filters and export | `/iblai-vibe-agent-history` | [agent-history](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-history/SKILL.md) |
+| History | conversation history with filters and export | `/iblai-vibe-agent-history` | [agent-history](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-history/SKILL.md) |
 | LTI | LTI 1.3 launch, keys, tools, endpoints | `/iblai-vibe-agent-lti` | — |
-| MCP | connectors (featured + custom), OAuth | `/iblai-vibe-agent-mcp` | [agent-mcp](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-mcp/SKILL.md) |
-| Privacy | PII detection: redact / mask / block | `/iblai-vibe-agent-privacy` | [agent-privacy](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-privacy/SKILL.md) |
-| Safety | moderation prompts, flagged content | `/iblai-vibe-agent-safety` | [agent-safety](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-safety/SKILL.md) |
-| Sandbox | computing runtime / VM shell / Claw instances | `/iblai-vibe-agent-sandbox` | [agent-sandbox](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-sandbox/SKILL.md) |
-| Skills | reusable Agent Skills, per-agent assignment, chat `/` picker | `/iblai-vibe-agent-skills` | [agent-skill](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-skill/SKILL.md) |
-| Support | human support ticket inbox | `/iblai-vibe-agent-support` | [agent-support](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-support/SKILL.md) |
+| MCP | connectors (featured + custom), OAuth | `/iblai-vibe-agent-mcp` | [agent-mcp](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-mcp/SKILL.md) |
+| Privacy | PII detection: redact / mask / block | `/iblai-vibe-agent-privacy` | [agent-privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-privacy/SKILL.md) |
+| Safety | moderation prompts, flagged content | `/iblai-vibe-agent-safety` | [agent-safety](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-safety/SKILL.md) |
+| Sandbox | computing runtime / VM shell / Claw instances | `/iblai-vibe-agent-sandbox` | [agent-sandbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-sandbox/SKILL.md) |
+| Skills | reusable Agent Skills, per-agent assignment, chat `/` picker | `/iblai-vibe-agent-skills` | [agent-skill](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-skill/SKILL.md) |
+| Support | human support ticket inbox | `/iblai-vibe-agent-support` | [agent-support](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-support/SKILL.md) |
 | Tasks | scheduled periodic agent tasks with run logs | `/iblai-vibe-agent-task` | — |
 | Voice | voice selection and voice-call configuration | `/iblai-vibe-agent-voice` | — |
-| Audit | who changed what and when | `/iblai-vibe-agent-audit` | [agent-audit](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-audit/SKILL.md) |
-| Disclaimers | user agreement and advisory text | `/iblai-vibe-agent-disclaimer` | [agent-disclaimer](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-disclaimer/SKILL.md) |
+| Audit | who changed what and when | `/iblai-vibe-agent-audit` | [agent-audit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-audit/SKILL.md) |
+| Disclaimers | user agreement and advisory text | `/iblai-vibe-agent-disclaimer` | [agent-disclaimer](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-disclaimer/SKILL.md) |
 
 Every tab skill has screenshots of the surface it mounts — open the skill before promising the user what they will see.
 

@@ -4,6 +4,8 @@ description: "Analyze disk images and file systems for digital evidence recovery
 globs:
 alwaysApply: false
 allowed-tools: Bash, Read, Write, Grep, Glob
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-disk-forensics

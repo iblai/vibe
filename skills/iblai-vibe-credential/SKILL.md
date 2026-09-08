@@ -3,6 +3,8 @@ name: iblai-vibe-credential
 description: RBAC setup that lets an API token list and unmask integration credentials on the ibl.ai platform. Use when the user mentions integration credentials, unmasking sensitive credentials, or credential access for a token; see /iblai-vibe-rbac for the broader RBAC model.
 globs:
 alwaysApply: false
+metadata:
+  kind: api
 ---
 
 # /iblai-vibe-credential

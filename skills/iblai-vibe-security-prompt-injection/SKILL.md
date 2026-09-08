@@ -4,6 +4,8 @@ description: "Audit applications for AI prompt injection, agent security, and LL
 globs:
 alwaysApply: false
 allowed-tools: Read, Grep, Glob, Bash, Write, WebSearch
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-prompt-injection

@@ -3,6 +3,8 @@ name: iblai-vibe-agent-billing
 description: Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert thresholds) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-billing

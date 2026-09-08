@@ -3,6 +3,8 @@ name: iblai-vibe-agent-embed
 description: Add the agent Embed tab (embed code, custom styling, shareable links) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-embed

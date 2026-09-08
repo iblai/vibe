@@ -3,6 +3,8 @@ name: iblai-vibe-invite
 description: Add user invitation dialogs to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-invite

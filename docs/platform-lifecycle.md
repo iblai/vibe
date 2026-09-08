@@ -63,7 +63,7 @@ authenticates with one org-scoped secret. Three ways to get it:
    expiry empty, keep the default Owner permissions, **Submit**. The secret
    is shown **once** — copy it now. (The same key list is reachable from any
    agent's Edit Agent → Integrations → API; they are one store.)
-2. **From your agent:** `npx skills add iblai/api` then `/iblai-api-login` — it
+2. **From your agent:** `npx skills add iblai/vibe --all` then `/iblai-api-login` — it
    reads the signed-in session and mints the token for you (needs a browser
    tool such as `claude --chrome`).
 3. **CI / headless:** an **org secret** (issued for automation) works directly

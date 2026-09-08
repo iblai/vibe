@@ -3,6 +3,8 @@ name: iblai-vibe-agent-safety
 description: Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-safety

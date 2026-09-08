@@ -1,0 +1,167 @@
+---
+description: "Connect/disconnect an ibl.ai agent's sandbox (Claw) instance, manage Claw instances, push config, run health/connectivity checks, and set the agent's model — via the platform API. Use when wiring an agent to a sandboxed workspace."
+globs:
+alwaysApply: false
+---
+
+# iblai-api-agent-sandbox
+
+Wire an agent to a Claw sandbox instance, manage the available instances, push
+config and run health/connectivity checks, and set the model the agent's
+workspace uses. Use when connecting an agent to a sandboxed workspace.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Prefix:** paths shown as `…` are under `https://api.iblai.app/dm/api/ai-mentor` —
+  the `/dm` gateway routes to the Data Manager service. (`…/api/ai-agent/…` is an
+  accept-only alias for the same routes.)
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (a UUID, e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+  `{id}` on `claw/instances/` and `claw/model-providers/` is the **integer** primary key.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+### Instances
+
+- **GET** `…/orgs/{org}/claw/instances/` — list registered Claw instances.
+- **GET** `…/orgs/{org}/claw/instances/{id}/` — retrieve one instance (status, `claw_version`, last health/pairing).
+
+### Model providers
+
+- **GET** `…/orgs/{org}/claw/model-providers/` — list the org's model-provider blocks.
+- **GET** `…/orgs/{org}/claw/model-providers/{id}/` — retrieve one provider block.
+
+### Agent config
+
+- **GET** `…/orgs/{org}/mentors/{mentor}/claw-config/` — the agent's connected instance + push status (404 = not connected).
+- **GET** `…/orgs/{org}/mentors/{mentor}/agent-config/` — agent workspace config (includes current model).
+- **GET** `…/orgs/{org}/users/{username}/mentor-llms/?mentor_id={mentor}` — available model options.
+
+## Writes
+
+### Instances
+
+- **POST** `…/orgs/{org}/claw/instances/` — register an instance:
+  ```json
+  {
+    "name": "string",
+    "claw_type": "openclaw | ironclaw | nemoclaw",
+    "server_url": "https://claw.example.com",
+    "gateway_token": "string (write-only)",
+    "connection_params": { "device_identity": {} },
+    "auth_headers": {},
+    "deployment_backend": "backend id (optional)"
+  }
+  ```
+- **PATCH** `…/claw/instances/{id}/` — edit (send only changed writable keys: `name`, `claw_type`, `server_url`, `gateway_token`, `connection_params`, `auth_headers`, `deployment_backend`).
+- **DELETE** `…/claw/instances/{id}/` — delete instance. Destructive — confirm with the user first.
+- **POST** `…/claw/instances/{id}/health-check/` — queue a health check (returns `202`; poll the instance for `last_health_status`).
+- **POST** `…/claw/instances/{id}/test-connectivity/` — TLS reachability + health check.
+- **POST** `…/claw/instances/{id}/refresh-version/` — detect `claw_version` from the instance handshake.
+- **POST** `…/claw/instances/{id}/request-pairing/` — queue a device-pairing request (pending request expires ~5 min). Outward-facing — confirm with the user first.
+- **POST** `…/claw/instances/{id}/push-providers/` — push all enabled model providers to the instance. Outward-facing — confirm with the user first.
+- **POST** `…/claw/instances/{id}/security-audit/` — run a security audit (OpenClaw only). Outward-facing — confirm with the user first.
+
+### Model providers
+
+- **POST** `…/orgs/{org}/claw/model-providers/` — register a provider block:
+  ```json
+  {
+    "server": "instance id (required)",
+    "name": "minimax",
+    "base_url": "https://api.minimax.io/anthropic",
+    "api_type": "anthropic-messages",
+    "credential_name": "string",
+    "credential_key": "key",
+    "model_catalog": [{ "id": "...", "name": "..." }],
+    "models_mode": "merge | replace",
+    "enabled": true
+  }
+  ```
+- **PATCH** `…/claw/model-providers/{id}/` — edit a provider (send only changed keys).
+- **DELETE** `…/claw/model-providers/{id}/` — delete a provider. Destructive — confirm with the user first.
+
+### Agent config
+
+- **POST** `…/mentors/{mentor}/claw-config/` — connect the agent to an instance:
+  ```json
+  {
+    "server": "instance id (required)",
+    "enabled": true,
+    "auto_push": false,
+    "agent_config": {}
+  }
+  ```
+- **PATCH** `…/mentors/{mentor}/claw-config/` — edit the connection (`enabled`, `auto_push`, `agent_config`).
+- **DELETE** `…/mentors/{mentor}/claw-config/` — disconnect. Destructive — confirm with the user first.
+- **POST** `…/mentors/{mentor}/claw-config/push-config/` — push the agent's `agent_config` to the instance. Outward-facing — confirm with the user first.
+- **PATCH** `…/mentors/{mentor}/agent-config/` — update the agent's workspace config (send only changed keys):
+  ```json
+  {
+    "model": "string",
+    "allowed_models": "string[]",
+    "identity": "string", "soul": "string", "user_context": "string",
+    "tools": "string", "agents": "string", "bootstrap": "string",
+    "heartbeat": "string", "memory": "string",
+    "config": {}
+  }
+  ```
+  `identity` / `soul` / `user_context` / `tools` / `agents` / `bootstrap` / `heartbeat` /
+  `memory` are the claw **workspace files** (IDENTITY.md, SOUL.md, …) pushed to the instance;
+  `config` is a JSON instance-config patch (heartbeat schedule, session isolation, skill
+  toggles, model fallbacks). `config` is deny-list validated — writes to `gateway.auth`,
+  `gateway.controlUi.dangerouslyDisableDeviceAuth`, `tools.exec.host`, `sandbox.mode`, and
+  `hooks.allowUnsafeExternalContent` are rejected.
+
+## Example
+
+Connect an agent to a Claw instance and enable it (`server` is the instance's integer id):
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/mentors/$MENTOR/claw-config/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"server": 12, "enabled": true}'
+```
+
+## Notes
+
+- **Ids differ by resource:** `{mentor}` is a UUID, but `server` and `{id}` on
+  `claw/instances/` and `claw/model-providers/` are integer primary keys.
+- A `404` from `claw-config/` means the agent is not connected to a sandbox yet —
+  use the connect POST to wire it up.
+- **OpenClaw device identity:** include an Ed25519 keypair under
+  `connection_params.device_identity` when registering an OpenClaw instance, or
+  config push fails with `missing scope: operator.read`.
+- `health-check` is queued (`202`) — poll the instance for `last_health_status`.
+  Run `test-connectivity` before connecting an agent to confirm the sandbox is reachable.
+- `request-pairing` mints a pending request that must be approved on the instance
+  side (once per platform connection); `security-audit` is OpenClaw-only.
+- After connecting, `push-config` (or set `auto_push` on the claw-config) so the
+  agent's workspace reflects the latest `agent_config`; `push-providers` syncs the
+  org's enabled provider blocks to the instance.
+- `claw_type` is `openclaw`, `ironclaw`, or `nemoclaw`; `gateway_token` authenticates
+  the instance to its server. `gateway_token`, `auth_headers`, and `connection_params`
+  are write-only (never returned by reads).
+
+## Reference material
+
+Concepts, architecture, response shapes, enums, and a full walkthrough — ported from the
+platform-integration guide — live alongside this skill. Read them when the endpoints above
+aren't enough:
+
+- **[`references/concepts.md`](references/concepts.md)** — how instances, model providers,
+  agent bindings, pairing, and config push fit together; register/response shapes with the
+  `status` / `deploy_state` enums; model-provider setup; skills in the push flow (CRUD in
+  **`/iblai-api-agent-skill`**); the two-sided device-pairing flow; **prebuilt agent-config
+  library by vertical (`iblai/claws`)**; the self-hosted `iblai-claw-setup` connection
+  orientation (server provisioning → **`/iblai-api-infrastructure`**); a
+  register→configure→push→chat walkthrough; and troubleshooting.
+- **[`references/workspace-files.md`](references/workspace-files.md)** — the `agent-config`
+  field → claw workspace-file map (`identity`→IDENTITY.md, `soul`→SOUL.md, …), the `config`
+  instance patch, and the blocked-path deny-list with what each protects.

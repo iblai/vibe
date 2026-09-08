@@ -3,6 +3,8 @@ name: iblai-vibe-agent-support
 description: Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-support

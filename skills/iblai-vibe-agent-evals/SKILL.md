@@ -3,6 +3,8 @@ name: iblai-vibe-agent-evals
 description: Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-evals

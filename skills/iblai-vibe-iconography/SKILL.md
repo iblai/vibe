@@ -3,6 +3,8 @@ name: iblai-vibe-iconography
 description: Generate every required app-icon size for Tauri desktop, iOS, Windows MSIX, and macOS builds from a single source image. Use when the user mentions app icons, icon generation, iconography, favicons, replacing the logo, or needs the full icon set for a desktop/mobile build. The ready-made default ibl.ai icon set ships in iblai-vibe-ops-build/assets/icons/.
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # Generate Tauri App Icons

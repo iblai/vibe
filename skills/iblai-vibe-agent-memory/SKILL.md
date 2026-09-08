@@ -3,6 +3,8 @@ name: iblai-vibe-agent-memory
 description: Add the agent Memory tab (enable/disable memory and manage memories) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-memory
@@ -109,8 +111,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 ## Memory REST API
 
-Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
-in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
+(headless twin, installed with the rest of this repo's skills).
 The tables below are the frontend-relevant summary.
 
 For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with

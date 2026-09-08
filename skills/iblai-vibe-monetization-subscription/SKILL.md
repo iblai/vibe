@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-subscription
 description: Build the user-facing PurchasesTab inside the Profile page — list, detail, and cancel for the current user's subscriptions on a Platform. Use when the user mentions purchases, my subscriptions, subscription list, cancel subscription, stripe portal, grandfathered, legacy subscription, subscription detail, or cancel-at-period-end. See /iblai-vibe-monetization for the family index + auth + RBAC, /iblai-vibe-monetization-checkout for how the user got here (paywall, checkout, callback), /iblai-vibe-monetization-analytics for the admin subscriber view, /iblai-vibe-profile for the Profile shell that hosts this tab, and /iblai-vibe-auth for the token wiring.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-subscription

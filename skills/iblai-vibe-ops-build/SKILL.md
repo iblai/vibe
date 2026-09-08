@@ -3,6 +3,8 @@ name: iblai-vibe-ops-build
 description: Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface)
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-ops-build

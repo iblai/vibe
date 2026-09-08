@@ -1,6 +1,8 @@
 ---
 name: iblai-vibe-course-create
 description: Use this skill when a user asks to create, draft, scaffold, generate, or publish a course on ibl.ai / OpenEdX — including programmatic outlines, unit/component generation, or edits to an AI-generated course. Invoke to drive the ibl.ai Course Creation API end-to-end: create the task, build the course on EdX, generate the outline, draft unit content, review/edit structure, and publish. Do NOT invoke for enrollment, grading, agent configuration, or analytics queries — those are handled by other skills.
+metadata:
+  kind: api
 ---
 
 # /iblai-vibe-course-create

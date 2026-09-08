@@ -3,6 +3,8 @@ name: iblai-vibe-profile
 description: Add profile dropdown and settings page to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-profile
@@ -228,7 +230,7 @@ id and when each appears:
 
 ## Profile Content API, User Metadata, Memory, Privacy, MediaBox, Career tabs
 
-Everything behind the tabs — the service layer, the RTK Query hooks, the career/resume backend contract, `MediaBox`, and the standalone `ResumeTab` / `EducationTab` / `ExperienceTab` — is in [`references/profile-api.md`](references/profile-api.md). Per-user custom data is `/iblai-vibe-user-metadata`; memory is `/iblai-vibe-memory-guide`; REST: [iblai-api-profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md).
+Everything behind the tabs — the service layer, the RTK Query hooks, the career/resume backend contract, `MediaBox`, and the standalone `ResumeTab` / `EducationTab` / `ExperienceTab` — is in [`references/profile-api.md`](references/profile-api.md). Per-user custom data is `/iblai-vibe-user-metadata`; memory is `/iblai-vibe-memory-guide`; REST: [iblai-api-profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md).
 
 ## `<UserProfileDropdown>` Props
 

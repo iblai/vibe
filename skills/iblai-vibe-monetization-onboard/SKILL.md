@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-onboard
 description: Build the Stripe Connect Express onboarding surface for Platform sellers — the status card with Configured / Incomplete / Not Configured badge, the Configure Stripe / Complete Setup / Stripe Dashboard action button, the onboard-refresh round-trip when an onboarding link expires, and the is_ready_for_payments gate every later paywall depends on. Use when the user mentions Stripe Connect, Connect Express, onboarding, status card, is_ready_for_payments, dashboard link, disconnect Stripe, or "the Platform can't accept payments yet". See /iblai-vibe-monetization for the family overview, /iblai-vibe-monetization-configure for what comes next once Connect is ready, /iblai-vibe-monetization-checkout for the buyer flow, /iblai-vibe-account for the page that hosts the MonetizationTab, /iblai-vibe-auth for token wiring, /iblai-vibe-rbac for IsPlatformAdmin.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-onboard

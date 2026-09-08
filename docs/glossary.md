@@ -1,6 +1,6 @@
 # Glossary
 
-The words used across `iblai/vibe`, `iblai/api`, `iblai/os`, and the platform
+The words used across `iblai/vibe` (both skill families), `iblai/os`, and the platform
 itself. When a term has several spellings on the wire, the **Meaning** column is
 what to say in prose and the **On the wire / in code** column is what to keep
 verbatim in code, env files, and endpoint references.
@@ -9,7 +9,7 @@ verbatim in code, env files, and endpoint references.
 |---|---|---|
 | **Platform** | The ibl.ai system as a whole — `api.iblai.app`, `login.iblai.app`, `os.ibl.ai`. One platform serves every customer. | Product terms only: "Platform API Token", "the platform API" |
 | **Organization (org)** | One customer's isolated workspace: its users, agents, branding, data, and credits. The primary noun for a workspace. | `platform_key`, `platform_org`, `org`, `tenant`; SDK/env: `NEXT_PUBLIC_MAIN_TENANT_KEY`, `localStorage.tenants` |
-| **Org key** | The organization's identifier — a slug like `acme` or a UUID. Listed on [login.iblai.app/me](https://login.iblai.app/me) and in every `os.ibl.ai/platform/<org-key>/…` URL. | `PLATFORM` in `iblai.env`; `IBLAI_ORG` in `iblai/api` |
+| **Org key** | The organization's identifier — a slug like `acme` or a UUID. Listed on [login.iblai.app/me](https://login.iblai.app/me) and in every `os.ibl.ai/platform/<org-key>/…` URL. | `PLATFORM` in `iblai.env`; `IBLAI_ORG` for the `iblai-api-*` skills |
 | **`main`** | The shared default org every account belongs to. It is never *your* org; apps refuse it. | `PLACEHOLDER_PLATFORMS` in `lib/iblai/tenant.ts` |
 | **Member / user** | A signed-in person who belongs to the org. | `is_admin: false` on the org's entry in `localStorage.tenants` |
 | **Admin** | A member holding the org's Admin role — every policy implicitly. Manages users, roles, billing, memory, branding. | `is_admin: true`; `isTenantAdmin()` in the app; `Ibl.*` in RBAC |

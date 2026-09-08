@@ -1,6 +1,8 @@
 ---
 name: iblai-vibe-deslop
 description: Audit and harden existing codebases (especially AI-generated / vibe-coded ones) for production readiness. Use when the user asks to review, audit, clean up, harden, deslop, refactor, or fix quality issues across an existing codebase. Works in two phases — first a thorough multi-pass audit written to a structured file, then systematic fixes applied in safety-tiered order. Language-agnostic. Does NOT change business logic — only hardens, cleans, and robustifies.
+metadata:
+  kind: ops
 ---
 
 # Deslop — Code Hardening Skill

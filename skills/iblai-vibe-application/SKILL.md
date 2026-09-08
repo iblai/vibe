@@ -3,6 +3,8 @@ name: iblai-vibe-application
 description: Add the platform application gate (admissions) — the admin Applications tab (forms editor, submissions pipeline, reviewer workspace, blocked users) and the public applicant apply wizard route. Use when the user mentions "applications", "admissions", "apply form", "application form", "enrollment application", "review applicants", "accept/decline applicants", or "apply wizard".
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-application

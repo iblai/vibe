@@ -3,6 +3,8 @@ name: iblai-vibe-account
 description: Add account and organization settings page to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-account

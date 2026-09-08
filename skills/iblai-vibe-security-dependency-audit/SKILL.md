@@ -4,6 +4,8 @@ description: "Audit project dependencies, frameworks, languages, and dev tools f
 globs:
 alwaysApply: false
 allowed-tools: Bash, Read, Write, Grep, Glob, WebSearch
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-dependency-audit

@@ -3,6 +3,8 @@ name: iblai-vibe-agent-search
 description: Add the agent search/browse page (starred, featured, custom, and default agents) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-search

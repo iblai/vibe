@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-<feature>
-description: <What the user gets, in one sentence.> Use when the user mentions '<trigger one>', '<trigger two>', or wants <the outcome>. For <sibling need> see /iblai-vibe-<sibling>; for the REST contract see iblai/api's <family> skill. (200–1024 characters; triggers and siblings are what the router reads.)
+description: <What the user gets, in one sentence.> Use when the user mentions '<trigger one>', '<trigger two>', or wants <the outcome>. For <sibling need> see /iblai-vibe-<sibling>; for the REST contract see /iblai-api-<family>. (200–1024 characters; triggers and siblings are what the router reads.)
 globs:
 alwaysApply: false
 ---
@@ -63,7 +63,7 @@ get_component_info("<Component>")
 | `use<…>Query` | <…> |
 | `POST …/dm/api/<…>/` (REST only) | <…> |
 
-REST reference: [<family>](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-<family>/SKILL.md).
+REST reference: [<family>](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-<family>/SKILL.md).
 
 ## Related skills
 

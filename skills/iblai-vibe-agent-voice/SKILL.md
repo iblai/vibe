@@ -3,6 +3,8 @@ name: iblai-vibe-agent-voice
 description: Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-voice

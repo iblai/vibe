@@ -3,6 +3,8 @@ name: iblai-vibe-crm-overview
 description: Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ — auth, seeded defaults (default Pipeline + 6 stages + 4 Lead Sources), the four CRM RBAC roles (Viewer/User/Manager/Inviter), and the workflow sub-skill map. Use when the user mentions CRM, leads, pipelines, deals, contacts, or asks where a CRM workflow lives. The CRM workflow skills live in the DM skill set (iblai-dm-pro) as `crm-*`: see `crm-foundation` for auth/RBAC/notifications, `crm-contacts` + `crm-person-onboarding` for people, `crm-pipeline` for pipelines + deals, `crm-activities` for the timeline, `crm-tags` for tags; /iblai-vibe-auth for token wiring, /iblai-vibe-rbac for role assignment.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-crm-overview

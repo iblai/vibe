@@ -3,6 +3,8 @@ name: iblai-vibe-agent-sandbox
 description: Add the agent Sandbox tab (sandbox type selection — Computing Runtime, Virtual Machine Shell, or Claw — plus OpenClaw instance management and agent prompt configuration) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-sandbox

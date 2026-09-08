@@ -37,4 +37,4 @@ Base: `{dm_url}/api/billing/…` with the signed-in user's **DM token**
 | My subscriptions / cancel | `GET …/platforms/{org}/my-subscriptions/` | `/iblai-vibe-monetization-subscription` |
 | Subscribers / revenue / paywalls overview | `GET …/platforms/{org}/{subscribers,revenue,paywalls}/` | `/iblai-vibe-monetization-analytics` |
 
-Full REST: [iblai-api-billing](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-billing/SKILL.md).
+Full REST: [iblai-api-billing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-billing/SKILL.md).

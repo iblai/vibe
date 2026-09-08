@@ -4,6 +4,8 @@ description: "Audit cloud infrastructure (AWS, GCP, Azure) for misconfigurations
 globs:
 alwaysApply: false
 allowed-tools: Bash, Read, Write, Grep, Glob, WebSearch
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-cloud-audit

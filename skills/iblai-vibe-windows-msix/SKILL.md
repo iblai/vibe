@@ -3,6 +3,8 @@ name: iblai-vibe-windows-msix
 description: Build and distribute a Tauri app as a Windows MSIX package for sideloading (test) or the Microsoft Store (release). Use when the user mentions MSIX, Windows packaging, Microsoft Store / Partner Center submission, sideloading, AppxManifest, or signing a Windows desktop build. For the general desktop/mobile build flow, see iblai-vibe-ops-build.
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # Build Windows MSIX

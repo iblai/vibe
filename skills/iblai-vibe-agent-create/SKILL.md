@@ -3,6 +3,8 @@ name: iblai-vibe-agent-create
 description: Create an ibl.ai agent from inside your app — there is no SDK component for creation, so this is the server route (org authority, admin-verified) that calls the platform's mentor-with-settings endpoint, the browser helper that calls it, and the pick-or-create setup screen vibe-starter uses to choose the app's default agent; then hand off to /iblai-vibe-agent-setting and the agent tabs. Use when the user says create an agent, new agent, let admins create agents, agent from a template, or the app has no agent yet. For editing an existing agent see /iblai-vibe-agent; for chatting see /iblai-vibe-agent-chat.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-create
@@ -99,8 +101,8 @@ To copy an existing agent instead, use **fork** in `/iblai-vibe-agent-setting`.
 | `GET …/orgs/{org}/users/{username}/mentor/categories/` | categories to assign afterwards |
 | `POST …/users/{username}/mentors/{mentor}/fork/` | copy an agent |
 
-REST references: [agent-create](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-create/SKILL.md),
-[agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md).
+REST references: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-create/SKILL.md),
+[agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md).
 
 ## Related skills
 

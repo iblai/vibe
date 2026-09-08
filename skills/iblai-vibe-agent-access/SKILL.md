@@ -3,6 +3,8 @@ name: iblai-vibe-agent-access
 description: Add the agent Access tab (role-based access control for editor and chat roles) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-access

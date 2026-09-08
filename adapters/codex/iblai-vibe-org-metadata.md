@@ -97,7 +97,7 @@ end that opens the org.
 | `useTenantMetadata()` (`web-utils`) | the SDK's cached view of the same object |
 | `GET/PUT https://api.<domain>/dm/api/core/orgs/{org}/metadata/` | REST |
 
-REST reference: [iblai-api-org](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-org/SKILL.md).
+REST reference: [iblai-api-org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-org/SKILL.md).
 
 ## Related skills
 

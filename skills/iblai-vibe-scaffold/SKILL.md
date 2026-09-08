@@ -3,6 +3,8 @@ name: iblai-vibe-scaffold
 description: Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project — the project templates and the assembly steps that put them together. Use when creating a new app, scaffolding from templates, wiring up the base providers/store/auth, or adding a feature by hand. Holds the base + agent project templates as assets. For per-feature wiring see /iblai-vibe-auth; for the desktop/mobile shell see /iblai-vibe-ops-build.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-scaffold

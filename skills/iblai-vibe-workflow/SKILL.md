@@ -3,6 +3,8 @@ name: iblai-vibe-workflow
 description: Add workflow builder components to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-workflow

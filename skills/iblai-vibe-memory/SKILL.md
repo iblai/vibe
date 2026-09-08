@@ -3,6 +3,8 @@ name: iblai-vibe-memory
 description: Add the tenant Memory settings surface (manage every user's global memories and every agent's memories from one place — Global and Agent tabs with per-user memory toggles and the full per-agent memory manager) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-memory

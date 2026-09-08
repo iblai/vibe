@@ -1,6 +1,6 @@
 # iblai-vibe-api
 
-> When there is no SDK component or hook for what the user wants, the ibl.ai REST API is fair game — this skill is the bridge. It gives the one rule (browser → SDK hooks with the session token; server → Api-Token, never in client code), a 30-line server helper, the admin-verification pattern, three worked examples (admin writes another user's metadata, create an agent, send a notification), and the map from a need to the exact iblai/api skill that documents the endpoints. Use when the user says "there's no component for", "call the API", "endpoint", "REST", "server route", "backend call", or asks for a platform feature the vibe skills don't cover. For the API skills themselves run npx skills add iblai/api.
+> When there is no SDK component or hook for what the user wants, the ibl.ai REST API is fair game — this skill is the bridge. It gives the one rule (browser → SDK hooks with the session token; server → Api-Token, never in client code), a 30-line server helper, the admin-verification pattern, three worked examples (admin writes another user's metadata, create an agent, send a notification), and the map from a need to the exact `iblai-api-*` skill that documents the endpoints. Use when the user says "there's no component for", "call the API", "endpoint", "REST", "server route", "backend call", or asks for a platform feature the vibe skills don't cover. The `iblai-api-*` skills (kind api) install with this repo.
 
 # /iblai-vibe-api
 
@@ -8,7 +8,7 @@ Every `/iblai-vibe-*` skill mounts an SDK component. When none exists for
 what the user wants, do not build a workaround in the browser — call the
 platform's REST API from a Next.js route handler with the org's Platform API
 Token. Everything the platform can do is reachable that way; the
-[`iblai/api`](https://github.com/iblai/api) skills document each endpoint
+`iblai-api-*` skills (kind `api`, same repo) document each endpoint
 (method, URL, body, errors).
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
@@ -80,7 +80,7 @@ await platformFetch(
 );
 ```
 
-Reference: [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md).
+Reference: [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md).
 
 ### B · Create an agent
 
@@ -101,7 +101,7 @@ const agent = await platformFetch<{ unique_id: string }>(
 // agent.unique_id is the UUID every other agent skill needs
 ```
 
-Reference: [agent-create](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-create/SKILL.md); the full UI pattern is `/iblai-vibe-agent-create`.
+Reference: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-create/SKILL.md); the full UI pattern is `/iblai-vibe-agent-create`.
 
 ### C · Send a notification to a user
 
@@ -113,39 +113,39 @@ await platformFetch(`/dm/api/notifications/orgs/${org}/send/`, {
 ```
 
 Confirm the exact path and body in
-[notification](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-notification/SKILL.md)
+[notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-notification/SKILL.md)
 before shipping — notification sending is outward-facing; confirm the
 recipient list with the user first.
 
-## Which `iblai/api` skill documents what
+## Which `iblai-api-*` skill documents what
 
-Install once: `npx skills add iblai/api`. Raw links resolve without installing.
+They install with the rest of this repo's skills (`npx skills add iblai/vibe --all`); raw links resolve without installing.
 The five families most apps read or write are marked ★.
 
 | Need | Skill |
 |---|---|
-| ★ Per-user custom data (preferences, flags, onboarding, app state) | [profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md) |
-| ★ The user's own profile (name, bio, image, education, résumé) | [profile](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md) |
-| ★ Agent identity, visibility, capability flags; fork; delete | [agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
-| ★ Memory: global, per-agent, agent knowledge, toggles | [agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
-| ★ Analytics: usage, users, topics, transcripts, costs, per-user, audit, reports | [analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
-| Org settings (default agent, help URL, toggles, your keys) | [org](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-org/SKILL.md) |
-| Users, groups, roles, policies, teams, alerts | [management](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-management/SKILL.md), [rbac](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-rbac/SKILL.md) |
-| Invitations (single, CSV) | [invite](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-invite/SKILL.md) |
-| Directory sync (SCIM 2.0) | [scim](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-scim/SKILL.md) |
-| Create an agent; chat over REST/SSE/WebSocket; sessions | [agent-create](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-create/SKILL.md), [agent-session](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-session/SKILL.md), [agent-chat](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-chat/SKILL.md) |
+| ★ Per-user custom data (preferences, flags, onboarding, app state) | [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md) |
+| ★ The user's own profile (name, bio, image, education, résumé) | [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md) |
+| ★ Agent identity, visibility, capability flags; fork; delete | [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md) |
+| ★ Memory: global, per-agent, agent knowledge, toggles | [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md) |
+| ★ Analytics: usage, users, topics, transcripts, costs, per-user, audit, reports | [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
+| Org settings (default agent, help URL, toggles, your keys) | [org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-org/SKILL.md) |
+| Users, groups, roles, policies, teams, alerts | [management](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-management/SKILL.md), [rbac](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-rbac/SKILL.md) |
+| Invitations (single, CSV) | [invite](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-invite/SKILL.md) |
+| Directory sync (SCIM 2.0) | [scim](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-scim/SKILL.md) |
+| Create an agent; chat over REST/SSE/WebSocket; sessions | [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-create/SKILL.md), [agent-session](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-session/SKILL.md), [agent-chat](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-chat/SKILL.md) |
 | Agent tabs: prompts, LLM, datasets, tools, access, embed, MCP, safety, privacy, evals, audit, history, sandbox, skills, support, disclaimers | `iblai-api-agent-<tab>` — see `/iblai-vibe-agent` for the map |
-| LLM inference with the platform key (OpenAI-compatible) | [inference](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-inference/SKILL.md) |
-| Search agents and content; recommendations | [search](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-search/SKILL.md) |
-| Notifications: counts, inbox, mark read, send | [notification](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-notification/SKILL.md) |
-| Credits, paywalls, checkout, subscriptions, revenue | [billing](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-billing/SKILL.md) |
-| Spend caps (org / agent / user) | [spend-caps](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
-| Per-user feature config, app onboarding flags, trials | [feature](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-feature/SKILL.md) |
-| API tokens; LLM / data-source credentials | [token](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-token/SKILL.md), [integration](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-integration/SKILL.md) |
-| Courses, programs, catalog, milestones, credentials, media, applications | [catalog](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-catalog/SKILL.md), [course-create](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-course-create/SKILL.md), [milestone](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-milestone/SKILL.md), [credential](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-credential/SKILL.md), [apply](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-apply/SKILL.md) |
-| CRM (people, deals, pipelines) | [crm](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-crm/SKILL.md) |
-| Third-party AI services through the platform (ElevenLabs, HeyGen) | [external-service-proxy](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-external-service-proxy/SKILL.md) |
-| Self-hosting the backend | [infrastructure](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-infrastructure/SKILL.md) |
+| LLM inference with the platform key (OpenAI-compatible) | [inference](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-inference/SKILL.md) |
+| Search agents and content; recommendations | [search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-search/SKILL.md) |
+| Notifications: counts, inbox, mark read, send | [notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-notification/SKILL.md) |
+| Credits, paywalls, checkout, subscriptions, revenue | [billing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-billing/SKILL.md) |
+| Spend caps (org / agent / user) | [spend-caps](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
+| Per-user feature config, app onboarding flags, trials | [feature](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-feature/SKILL.md) |
+| API tokens; LLM / data-source credentials | [token](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-token/SKILL.md), [integration](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-integration/SKILL.md) |
+| Courses, programs, catalog, milestones, credentials, media, applications | [catalog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-catalog/SKILL.md), [course-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-course-create/SKILL.md), [milestone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-milestone/SKILL.md), [credential](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-credential/SKILL.md), [apply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-apply/SKILL.md) |
+| CRM (people, deals, pipelines) | [crm](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-crm/SKILL.md) |
+| Third-party AI services through the platform (ElevenLabs, HeyGen) | [external-service-proxy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-external-service-proxy/SKILL.md) |
+| Self-hosting the backend | [infrastructure](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-infrastructure/SKILL.md) |
 
 ## The schema is the contract
 

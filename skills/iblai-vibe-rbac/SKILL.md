@@ -3,6 +3,8 @@ name: iblai-vibe-rbac
 description: Use when building, auditing, or extending ibl.ai role-based access control — default roles seeded by the platform, the action-definitions endpoint, and the SDK components (Admin, RolesTab, PoliciesTab) that render the Roles + Policies management UI. For agent-scoped sharing (editor / chat roles on a single agent) see /iblai-vibe-agent-access; for mounting the host Account modal see /iblai-vibe-account.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-rbac

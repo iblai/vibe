@@ -96,8 +96,8 @@ To copy an existing agent instead, use **fork** in `/iblai-vibe-agent-setting`.
 | `GET …/orgs/{org}/users/{username}/mentor/categories/` | categories to assign afterwards |
 | `POST …/users/{username}/mentors/{mentor}/fork/` | copy an agent |
 
-REST references: [agent-create](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-create/SKILL.md),
-[agent-setting](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md).
+REST references: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-create/SKILL.md),
+[agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md).
 
 ## Related skills
 

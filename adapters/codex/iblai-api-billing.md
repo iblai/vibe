@@ -1,0 +1,293 @@
+# iblai-api-billing
+
+> Operate an ibl.ai organization's billing surface via the platform API — credit accounts (balance, auto-recharge, manual top-up), transaction history, generic item paywalls (config + price tiers), Stripe Connect checkout (authenticated and guest), subscriptions, access checks, public pricing, and platform reporting (subscribers, revenue, paywalls). Generic item_type/item_id model: any sellable item (agent, course, program, pathway, or custom). Use when reading credit balances, configuring an item's paywall and prices, generating a checkout link, checking access, or pulling subscriber/revenue reports.
+
+# iblai-api-billing
+
+Operate the organization's **billing, credits, and item-paywall** surface from
+the API: credit accounts (display balance, auto-recharge preferences, manual
+top-up), transaction history, per-item paywall configuration and price tiers,
+Stripe-Connect checkout (authenticated + guest), subscriptions, access checks,
+public pricing, and platform-wide reporting. Paywalls are **generic**: every
+endpoint keys off `item_type` + `item_id`, so the same surface sells agents,
+courses, programs, pathways, or any custom item type. Use when reading a credit
+balance, enabling a paywall and adding prices, generating a checkout link,
+checking whether a user has access, or pulling subscriber/revenue reports.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app/dm` — these are Data Manager (DM)
+  endpoints, so the **`/dm` prefix is required**; the `/api/billing/...` paths
+  below are appended to it (e.g.
+  `https://api.iblai.app/dm/api/billing/account/`). Omitting `/dm` will not
+  resolve.
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{platform_key}` = `$IBLAI_ORG` (the org key; also called
+  `org` / `platform_org` elsewhere on the wire). `{item_type}` = the item kind
+  (`mentor`, `course`, `program`, `pathway`, or a custom type — see Notes).
+  `{item_id}` = the item's identifier (e.g. a agent slug, course id, or
+  `config`/`price` UUID for the by-id variants).
+- DELETE / destructive / outward-facing calls (paywall writes, price create/
+  update/delete, checkout, subscribe, cancel) say "Confirm with the user
+  first."
+- **Permission tiers** vary by endpoint and are noted inline: *authenticated
+  user* (own account), *platform admin / CanSellItems* (paywall config,
+  prices, reporting), and *public / no-auth* (public pricing, guest checkout,
+  Stripe callback). See Notes.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+### Credit account & transactions
+
+- **GET** `/api/billing/account/` — current user's credit account info:
+  `has_credits`, `account_id`, `available_credits`, auto-recharge fields,
+  plan info (`current_plan`, `previous_plan`, `free_trial`,
+  `can_use_auto_recharge`), `has_payment_method`, `is_owner`, and
+  `pricing_table`/`message` when applicable. Pass `platform_key` query param to
+  read a **platform** account instead of your own — requires platform admin, a
+  platform API token, or `Ibl.Billing/Credits/read`; plain members get minimal
+  info; non-members are denied.
+- **GET** `/api/billing/transactions/` — paginated transaction history for the
+  account (only user-facing fields: `payment_amount_usd`, `credits_amount`,
+  `credits_balance_after`, `description`). Query params: `platform_key` (omit
+  for own account; read permission enforced), `transaction_type`
+  (`add`|`subtract`|`reserve`|`release`|`rollover`|`refund`),
+  `from_date`/`to_date` (`YYYY-MM-DD`, inclusive), `page`, `page_size`
+  (default 20, max 100).
+
+### Paywall config & prices (platform admin / CanSellItems)
+
+- **GET** `/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/paywall/`
+  — read the item's paywall config; returns a default disabled config when none
+  exists.
+- **GET** `…/{item_type}/{item_id}/paywall/prices/` — list active price tiers
+  (sorted by `sort_order`, then `amount`).
+- **GET** `…/paywall/prices/{price_id}/` — get one price by its UUID.
+
+### Subscriptions
+
+- **GET** `…/{item_type}/{item_id}/subscription/` — the current user's
+  subscription to this item. `404` if none.
+- **GET** `/api/billing/platforms/{platform_key}/my-subscriptions/` — paginated
+  list of the current user's subscriptions on the platform. Query params:
+  `status` (subscription status — see Notes), `item_type`, `search` (matches
+  `item_id`), `page`, `page_size`.
+
+### Access checks
+
+- **GET** `/api/billing/access-check/{item_type}/{item_id}/` — does the
+  authenticated user have payment access to the item? Returns `200` with
+  `{has_access, item_type, item_id, reason, requires_payment,
+  pricing_available, pricing, subscription}` when access is granted, or
+  **`402` Payment Required** (same body, `has_access:false`, with `pricing`)
+  when payment is needed. Resolves the platform from the `platform_key` query
+  param or request context. Items with no registered paywall backend grant
+  access by default.
+- **GET** `…/{item_type}/{item_id}/access-check/` (platform-scoped) — same
+  check, with `platform_key` taken from the path instead of a query param.
+
+### Public pricing (no auth)
+
+- **GET** `…/{item_type}/{item_id}/pricing/` — **public / no-auth** pricing for
+  an item: `{item_type, item_id, item_name, is_paywalled, allow_free_tier,
+  trial_period_days, prices[]}`. Returns sensible defaults when no paywall
+  config exists.
+- **GET** `/api/billing/items/{config_unique_id}/public-pricing/` —
+  **public / no-auth** variant that resolves the item from the paywall config's
+  UUID, then returns the same payload.
+
+### Checkout (Stripe Connect)
+
+- **GET** `…/{item_type}/{item_id}/checkout-callback/{checkout_session_id}/`
+  and **GET** `…/{item_type}/{item_id}/checkout-callback/` — **public / no-auth**
+  endpoint Stripe redirects to after checkout. Verifies the session, processes
+  completion (creates/updates the subscription, same path as the webhook), and
+  `302`-redirects to the return URL. Session id comes from the path or the
+  `checkout_session_id`/`stripe_checkout_id` query param; `return_url` query
+  param optional. Not called directly — Stripe drives it.
+
+### Platform reporting (platform admin / CanSellItems)
+
+- **GET** `…/{item_type}/{item_id}/subscribers/` — paginated subscribers for one
+  item. Query params: `status` (subscription status), `search` (matches
+  username / email / item_id), `page`, `page_size`.
+- **GET** `/api/billing/platforms/{platform_key}/subscribers/` — paginated
+  subscribers across **all** items on the platform. Query params: `status`,
+  `item_type`, `search`, `page`, `page_size`.
+- **GET** `/api/billing/platforms/{platform_key}/paywalls/` — paginated list of
+  all paywall configs on the platform. Query params: `item_type`, `is_enabled`
+  (boolean), `search` (matches `item_id` / `description`), `page`, `page_size`.
+- **GET** `/api/billing/platforms/{platform_key}/revenue/` — aggregate sales
+  summary across all items: `{sales_volume, sales_count, currency}` (succeeded
+  payments only).
+
+## Writes
+
+### Credit account & transactions
+
+- **PUT** / **PATCH** `/api/billing/account/` — update auto-recharge preferences
+  on your own account (PATCH is identical to PUT). Body fields (all optional):
+  ```json
+  {
+    "auto_recharge_enabled": "boolean",
+    "auto_recharge_threshold_usd": "decimal (>= 0)",
+    "auto_recharge_amount_usd": "decimal (min 0.50)",
+    "auto_recharge_spending_limit_usd": "decimal (0 = unlimited)",
+    "platform_key": "string (read-only in this context)"
+  }
+  ```
+  When enabling, missing values are auto-filled (only-limit → amount = 20% of
+  limit; only-amount → limit = 5× amount; neither → limit 20 / amount 4).
+  Writing to a platform account requires write permission (admin / API token /
+  `Ibl.Billing/Credits/write`).
+- **POST** `/api/billing/auto-recharge/trigger/` — run a charge once.
+  With `amount_usd`: **manual top-up** (charge that amount, add credits; no
+  threshold/limit/cooldown). Without it: run auto-recharge once if enabled and
+  below threshold. Returns `{status: "triggered"|"skipped"}`; `400` if skipped
+  or failed (e.g. no payment method, cooldown, spending-limit exceeded).
+  Confirm with the user first (it charges a card).
+  ```json
+  { "amount_usd": "decimal (optional)", "platform_key": "string (optional, default 'main')" }
+  ```
+
+### Paywall config & prices (platform admin / CanSellItems)
+
+- **POST** / **PUT** `…/{item_type}/{item_id}/paywall/` — create or update the
+  paywall config (PUT is identical to POST). Creates a Stripe product on first
+  enable (requires a payment-ready Stripe Connect account). Confirm with the
+  user first. Body (all optional):
+  ```json
+  {
+    "is_enabled": "boolean",
+    "allow_free_tier": "boolean",
+    "trial_period_days": "integer (>= 0)",
+    "description": "string",
+    "on_successful_payment": "url (<= 500 chars)",
+    "grandfathering_strategy": "free_forever | require_subscription (default require_subscription)",
+    "item_name": "string",
+    "item_metadata": "object"
+  }
+  ```
+- **DELETE** `…/{item_type}/{item_id}/paywall/` — disable the paywall (sets
+  `is_enabled=False`; does **not** delete the config). Returns `204`. Confirm
+  with the user first.
+- **POST** `…/{item_type}/{item_id}/paywall/prices/` — create a price tier.
+  Requires the paywall enabled and a payment-ready Connect account; creates the
+  Stripe price. Returns `201`. Confirm with the user first.
+  ```json
+  {
+    "amount": "decimal (>= 0, required)",
+    "currency": "string (default 'usd')",
+    "interval": "month | year | one_time (default month)",
+    "name": "string", "description": "string",
+    "is_active": "boolean", "features": "object/list",
+    "remark": "string", "sort_order": "integer"
+  }
+  ```
+- **PUT** `…/paywall/prices/{price_id}/` — update a price (partial). If pricing
+  fields (`amount`/`currency`/`interval`) change and a Stripe price exists, a
+  new Stripe price is created and the old one deactivated. Confirm with the
+  user first.
+- **DELETE** `…/paywall/prices/{price_id}/` — soft-delete the price tier and
+  deactivate its Stripe price. Returns `204`. Confirm with the user first.
+
+### Checkout (Stripe Connect)
+
+- **POST** `…/{item_type}/{item_id}/checkout/` — create a Stripe checkout
+  session for the **authenticated** user. Returns
+  `{checkout_url, session_id, platform_key}`. `400` if the user already has an
+  active subscription. Requires a payment-ready Connect account and a Stripe-
+  configured price. Confirm with the user first.
+  ```json
+  { "price_id": "uuid (required)", "success_url": "url", "cancel_url": "url" }
+  ```
+- **POST** `…/{item_type}/{item_id}/checkout-guest/` — **public / no-auth**
+  guest checkout; `email` is required. Same response shape. Confirm with the
+  user first.
+  ```json
+  { "price_id": "uuid (required)", "email": "email (required)", "success_url": "url", "cancel_url": "url" }
+  ```
+- **POST** `/api/billing/prices/{price_unique_id}/checkout-guest/` —
+  **public / no-auth** guest checkout that resolves the platform / item_type /
+  item_id from the price's UUID, then runs the standard guest flow (`email`
+  required; the price's paywall must be enabled). Confirm with the user first.
+
+### Subscriptions
+
+- **POST** `…/{item_type}/{item_id}/subscription/cancel/` — cancel the current
+  user's subscription. For recurring subscriptions returns a Stripe customer-
+  portal URL (`{portal_url}`); for one-time purchases cancels directly and
+  returns the subscription. `404` if none. Confirm with the user first.
+  ```json
+  { "return_url": "url (optional)" }
+  ```
+
+### Credit consumption (sample)
+
+- **POST** `/api/billing/credits/sample-action/` — sample endpoint protected by
+  the `@consume_credits` decorator (authenticated). Checks balance first: if
+  insufficient, returns **`402`** with a `pricing_table`; otherwise runs and
+  consumes 1 credit, returning `{status, message, ...balance}`. This is a
+  reference/test endpoint demonstrating the credit-gating pattern, not a
+  production action.
+
+## Example
+
+Enable a paywall on a course-type item and read its public pricing (note the
+`/dm` prefix). Confirm the paywall write with the user first:
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/billing/platforms/$IBLAI_ORG/items/course/course-v1:ACME+CS101+2024/paywall/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"is_enabled": true, "trial_period_days": 7, "allow_free_tier": true}'
+```
+
+## Notes
+
+- **item_type values.** Built-in types are `mentor`, `course`, `program`, and
+  `pathway`. Any other value is normalized to a `custom:<slug>` namespace
+  (e.g. `workshop` → `custom:workshop`); the type must start with a letter
+  after slugification or the request `400`s. Do not treat this as a
+  agent-only paywall — it is the generic item-paywall surface for any sellable
+  item.
+- **Stripe Connect is required** for monetary operations. Enabling a paywall,
+  creating/updating prices, and checkout all need the platform's Stripe Connect
+  account to exist and be payment-ready; otherwise you get a `400`/validation
+  error. Checkout returns a Stripe-hosted `checkout_url`; cancellation of a
+  recurring subscription returns a Stripe customer-portal URL.
+- **402 Payment Required** is meaningful: `GET access-check/...` returns `402`
+  (not `403`) when the user lacks access and must pay, and the
+  `@consume_credits`-gated sample endpoint returns `402` with a `pricing_table`
+  when the balance is too low.
+- **Permission tiers.**
+  - *Authenticated user* (own data): `account/`, `auto-recharge/trigger/`,
+    `transactions/`, `access-check/...`, `subscription/`, `subscription/cancel/`,
+    `my-subscriptions/`, `checkout/`, `credits/sample-action/`. Reading/writing
+    another (platform) credit account additionally requires admin / platform API
+    token / `Ibl.Billing/Credits/read|write`.
+  - *Platform admin + CanSellItems*: all paywall config + price endpoints and
+    the platform reporting endpoints (`subscribers/`, `paywalls/`, `revenue/`).
+    These enforce `IsPlatformAdmin` and the `Ibl.Billing/CanSellItems/action`
+    RBAC policy (when RBAC is enabled) or a matching platform API key.
+  - *Public / no-auth*: `pricing/`, `items/{config_unique_id}/public-pricing/`,
+    `checkout-guest/` (both variants), and `checkout-callback/` (Stripe
+    redirect). These explicitly allow unauthenticated access.
+- **Subscription status** values used as the `status` filter / in responses:
+  `active`, `free`, `grandfathered`, `trialing`, `past_due`, `canceled`,
+  `incomplete`.
+- **Price `interval`** values: `month`, `year`, `one_time`. `one_time` prices
+  checkout in Stripe `payment` mode; recurring prices use `subscription` mode
+  and honor `trial_period_days`.
+- **Async / webhooks.** Checkout completion is processed both via the
+  `checkout-callback/` redirect and via Stripe webhooks (the same handler), so a
+  subscription may be created without your code polling. The callback enriches
+  its return URL with `email`, `platform_key`, and `subscription_id`.
+- **Pagination.** `transactions/` uses page-number pagination (default
+  `page_size` 20, max 100); the reporting/list endpoints (`subscribers/`,
+  platform `subscribers/`, `paywalls/`, `my-subscriptions/`) use the standard
+  page-number paginator. Internal USD amounts are never exposed in transaction
+  history — only the user-facing payment/credit fields.

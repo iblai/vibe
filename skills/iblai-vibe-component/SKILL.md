@@ -3,6 +3,8 @@ name: iblai-vibe-component
 description: Add an iblai component or feature to your app
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-component

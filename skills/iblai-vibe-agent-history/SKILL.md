@@ -3,6 +3,8 @@ name: iblai-vibe-agent-history
 description: Add the agent History tab (conversation history with filters and export) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-history

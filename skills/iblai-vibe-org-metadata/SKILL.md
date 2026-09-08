@@ -3,6 +3,8 @@ name: iblai-vibe-org-metadata
 description: Store custom organization-wide settings for your app on the ibl.ai platform — app name, welcome message, support URL, the default agent, any per-org configuration — in the org's metadata object with a GET-merge-PUT helper that never drops the OS's own keys, plus where branding (name, logos, support email, help center) lives instead. Use when the user mentions organization settings, org-level config, per-tenant settings, white-label, app settings for the whole org, or a setting every member should see. For per-user data see /iblai-vibe-user-metadata; for the SDK Organization tab see /iblai-vibe-account.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-org-metadata
@@ -100,7 +102,7 @@ end that opens the org.
 | `useTenantMetadata()` (`web-utils`) | the SDK's cached view of the same object |
 | `GET/PUT https://api.<domain>/dm/api/core/orgs/{org}/metadata/` | REST |
 
-REST reference: [iblai-api-org](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-org/SKILL.md).
+REST reference: [iblai-api-org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-org/SKILL.md).
 
 ## Related skills
 

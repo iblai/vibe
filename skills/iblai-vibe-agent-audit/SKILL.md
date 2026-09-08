@@ -3,6 +3,8 @@ name: iblai-vibe-agent-audit
 description: Add the agent Audit tab (audit log of who changed what and when, with user/date/action filters) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-audit

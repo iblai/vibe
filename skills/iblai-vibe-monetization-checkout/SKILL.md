@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-checkout
 description: Build the buyer-facing PaywallModal, access-check gate, Stripe checkout flow, and public/guest buy surface for ibl.ai's item-level monetization. Use when the user mentions paywall, checkout, gate content, access check, 402, hard paywall, locked content, PaywallModal, redirect to Stripe, success_url / cancel_url, guest checkout, anonymous buy, public pricing, or selling a single item to logged-out visitors. See /iblai-vibe-monetization for the family index, /iblai-vibe-monetization-configure for the prerequisite paywall + price setup, /iblai-vibe-monetization-onboard for the Connect-ready Platform requirement, /iblai-vibe-monetization-subscription for the post-purchase My Purchases tab, and /iblai-vibe-auth for token wiring.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-checkout

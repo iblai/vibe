@@ -3,6 +3,8 @@ name: iblai-vibe-course-access
 description: Add course-content pages (edX user UI) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-course-access

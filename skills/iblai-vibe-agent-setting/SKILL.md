@@ -3,6 +3,8 @@ name: iblai-vibe-agent-setting
 description: Add the agent Settings tab (name, description, visibility, copy, delete) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-setting
@@ -256,8 +258,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Labels ownership**: Consumer-specific bundles (agent, tutor, coach)
   live in the consuming app, not in `@iblai/iblai-js`. The package only
   ships `AGENT_SETTINGS_TAB_LABELS` as a neutral default.
-- **REST reference**: [`/iblai-api-agent-setting`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md)
-  in [`iblai/api`](https://github.com/iblai/api) — the agent-settings API
+- **REST reference**: [`/iblai-api-agent-setting`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md)
+  — the agent-settings API (headless twin, same repo)
   behind this tab (name, visibility, feature flags, fork). Install:
-  `npx skills add iblai/api`
+  `npx skills add iblai/vibe --all`
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

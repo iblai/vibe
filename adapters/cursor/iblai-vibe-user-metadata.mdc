@@ -141,7 +141,7 @@ Wire a UI for it only where it belongs (an admin page gated by `/iblai-vibe-admi
 | `PUT` / `DELETE` / `delete_keys` (REST only) | replace / reset / drop keys |
 | `&username=` (REST, org admin) | another user |
 
-REST reference: [iblai-api-profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+REST reference: [iblai-api-profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
 (concepts, best practices, and a migration strategy in its `references/guide.md`).
 
 ## Related skills

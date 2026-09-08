@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-analytics
 description: Build custom Platform analytics surfaces — revenue dashboards, subscriber lists, paywalls overview, and a self-service subscription cancel helper on top of ibl.ai's item monetization. The in-tab MonetizationTab does NOT render revenue or subscriber data today, so these hooks are the building blocks for custom dashboards, leaderboards, and admin tools. Use when the user mentions analytics, revenue, subscribers, sales volume, sales count, commission, dashboard, paywalls list, cancel subscription, or "monetization metrics". See /iblai-vibe-monetization for the family index, /iblai-vibe-monetization-onboard for Stripe Connect status + commission, /iblai-vibe-monetization-configure for paywall setup, /iblai-vibe-monetization-subscription for the user-side counterpart, /iblai-vibe-auth for token wiring, and /iblai-vibe-rbac for the IsPlatformAdmin gate.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-analytics

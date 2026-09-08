@@ -4,6 +4,8 @@ description: "Gather and correlate open source intelligence from public sources 
 globs:
 alwaysApply: false
 allowed-tools: Bash, WebSearch, WebFetch, Read, Write
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-osint-recon

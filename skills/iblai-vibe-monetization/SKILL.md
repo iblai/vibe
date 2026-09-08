@@ -3,6 +3,8 @@ name: iblai-vibe-monetization
 description: Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-monetization-app-paywall to charge for the whole app (pay-to-enter on the tenant's own Stripe key, no Connect), /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-monetization

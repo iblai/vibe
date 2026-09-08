@@ -3,6 +3,8 @@ name: iblai-vibe-agent-task
 description: Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-task

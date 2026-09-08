@@ -1,0 +1,83 @@
+---
+name: iblai-api-agent-setting
+description: Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, forkable). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
+metadata:
+  kind: api
+---
+
+# iblai-api-agent-setting
+
+Read and write an agent's core settings: identity (name, description, category,
+profile image), discovery/visibility, and capability flags (anonymous, featured,
+LTI, attachments, voice, memory, multi-query RAG, forkable) — all of which save
+through the single `settings/` endpoint — plus forking (copy) and deletion. Use
+when configuring an agent's basic identity and capabilities.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+- **Settings writes** go through one endpoint —
+  **PUT** `…/users/{username}/mentors/{mentor}/settings/` with
+  `multipart/form-data` — sending **only the changed field(s)**.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor/categories/` — category options.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — load all current field values.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/mentors/{mentor}/claw-config/` — detect sandbox wiring (404 = not connected).
+
+## Writes
+
+- **PUT** `…/users/{username}/mentors/{mentor}/settings/` — update settings (`multipart/form-data`, send only changed keys):
+  ```json
+  {
+    "mentor_name": "string",
+    "mentor_description": "string",
+    "categories": "number[]",
+    "uploaded_profile_image": "File",
+    "mentor_visibility": "string",
+    "allow_anonymous": "boolean",
+    "is_featured": "boolean",
+    "is_lti_accessible": "boolean",
+    "show_attachment": "boolean",
+    "show_voice_call": "boolean",
+    "show_voice_record": "boolean",
+    "enable_claw": "boolean",
+    "enable_memory_component": "boolean",
+    "enable_multi_query_rag": "boolean",
+    "forkable": "boolean"
+  }
+  ```
+- **POST** `…/users/{username}/mentors/{mentor}/fork/` — copy / duplicate agent:
+  ```json
+  {
+    "new_mentor_name": "string (required)",
+    "destination_platform_key": "string (required)",
+    "clone_documents": "boolean"
+  }
+  ```
+- **DELETE** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/{mentor}/` — delete agent (user-scoped path; no body). Destructive — confirm with the user first.
+
+## Example
+
+Rename an agent and make it featured (only the two changed fields are sent):
+
+```bash
+curl -X PUT \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/$MENTOR/settings/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -F "mentor_name=Joseph (Prod)" \
+  -F "is_featured=true"
+```
+
+## Notes
+
+- A field left out of the PUT is left unchanged — never resend the whole object.
+- `categories` expects numeric category ids from the categories endpoint, not names.
+- Deletion and forking are scoped to `{username}`; settings reads/writes use the
+  `users/{username}/mentors/{mentor}/` path.

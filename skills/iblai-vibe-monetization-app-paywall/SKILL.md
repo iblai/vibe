@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-app-paywall
 description: Put a Stripe "pay to enter" gate on a whole vibe-starter app using the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (probe the tenant's stored Stripe credential — never collect a key in chat — then create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-app-paywall

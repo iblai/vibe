@@ -3,6 +3,8 @@ name: iblai-vibe-memory-guide
 description: What memory means for an ibl.ai app and which surface to mount for which audience — user global memories, per-agent memories by category, shared agent knowledge, the org/agent/user gates that decide whether memory is on, and the SDK hooks and REST endpoints for anything custom. Use when the user mentions memory, remember, personalize, "what the agent knows about the user", forget, or wants memory UI in their app. For the org-wide admin surface see /iblai-vibe-memory; for one agent's tab see /iblai-vibe-agent-memory; the member's own view is the Profile Memory tab in /iblai-vibe-profile.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-memory-guide
@@ -106,7 +108,7 @@ Prefix `https://api.$DOMAIN/dm/api/ai-mentor/orgs/{org}/`:
 | Settings | `GET users/{username}/memsearch-settings/` · `GET …/memsearch-status/` | `PUT users/{username}/memsearch-settings/` (admins may target another username) |
 
 Errors: `400` content too short · `403` another user's memories without admin · `404` · `409` duplicate.
-Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md).
+Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md).
 
 ## 5. Privacy notes to tell the user
 

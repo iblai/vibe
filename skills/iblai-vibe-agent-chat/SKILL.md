@@ -3,6 +3,8 @@ name: iblai-vibe-agent-chat
 description: Add the in-process Chat SDK component (full agent surface — message stream, canvas, file attach, voice, prompts) to a Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-chat
@@ -52,7 +54,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 - An agent/mentor ID (a UUID) — the last path segment of an
   `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` URL the user gave, or
   create an agent on [os.ibl.ai](https://os.ibl.ai) (or with
-  `/iblai-api-agent-create` from `iblai/api`).
+  `/iblai-api-agent-create`).
 - **Minimum SDK versions.** The `Chat` component and its required hooks
   are only present in recent SDKs. Older-but-recent installs silently
   lack them. Require at least:
@@ -124,7 +126,7 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
 ```
 
 If the user doesn't have one, direct them to create an agent on
-https://os.ibl.ai (or run `/iblai-api-agent-create` from `iblai/api`).
+https://os.ibl.ai (or run `/iblai-api-agent-create`).
 
 ## Step 3: Install Dependencies
 

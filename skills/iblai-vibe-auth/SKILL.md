@@ -3,6 +3,8 @@ name: iblai-vibe-auth
 description: Add ibl.ai SSO authentication to a vanilla Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-auth

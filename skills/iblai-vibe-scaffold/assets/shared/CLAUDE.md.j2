@@ -145,6 +145,13 @@ Add features with the ibl.ai skills -- each creates the files and wires them in:
 
 ## Skills
 
+Two families are installed from one repo (`npx skills add iblai/vibe --all`):
+`iblai-vibe-*` (kind `ui`/`ops`/`guide` — visual components, build, ship) and
+`iblai-api-*` (kind `api` — headless REST, no screen). Installed skills are a
+copy: when `.claude/skills/iblai-vibe/SKILL.md` is older than 14 days or older
+than the latest release, run `/iblai-vibe-ops-upgrade` (Freshness rule).
+
+
 Available in `.claude/skills/` (invoke with `/` in Claude Code):
 
 | Skill | Description |

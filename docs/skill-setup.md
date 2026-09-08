@@ -54,6 +54,18 @@ Full brand guidelines:
   `.env.local`. vibe-starter apps need only the tenant key and
   `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.
 
+## Two skill families, one set of credentials
+
+`iblai-vibe-*` skills (kind `ui`/`ops`) read `iblai.env` (`DOMAIN`,
+`PLATFORM`, `TOKEN`, `IBLAI_USERNAME`) and, for Next.js, `.env.local`.
+`iblai-api-*` skills (kind `api`, headless) read `.env` (`IBLAI_ORG`,
+`IBLAI_USERNAME`, `IBLAI_API_KEY`). Same three values, family-specific names:
+`IBLAI_ORG` = `PLATFORM`; `IBLAI_API_KEY` = `TOKEN`. `/iblai-api-login` writes
+both files; the loader snippet in
+[docs/api-skills.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/api-skills.md)
+reads either. Kinds are explained in
+[docs/skill-kinds.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-kinds.md).
+
 ## Step 1: Check Environment
 
 Check for an `iblai.env` in the project root. Look for `PLATFORM`,
@@ -67,7 +79,7 @@ these variables, tell the user:
 Where the values come from: the org key (`PLATFORM`) is listed on
 https://login.iblai.app/me (no account yet: https://ibl.ai/join); the
 Platform API Token (`TOKEN`) is minted from that signed-in session by
-`/iblai-api-login` (`npx skills add iblai/api`), or an org secret works
+`/iblai-api-login` (`npx skills add iblai/vibe --all`), or an org secret works
 directly. Make sure `iblai.env` is gitignored before writing a token into it.
 
 Do NOT ask the user for their platform key directly — guide them to

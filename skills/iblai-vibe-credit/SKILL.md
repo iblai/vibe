@@ -3,6 +3,8 @@ name: iblai-vibe-credit
 description: Add the ibl.ai credit balance widget.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-credit

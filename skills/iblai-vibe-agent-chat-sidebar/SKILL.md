@@ -3,6 +3,8 @@ name: iblai-vibe-agent-chat-sidebar
 description: Wrap the Chat surface with the SDK's AppSidebar — projects dropdown, pinned/recent messages, and host-supplied content/footer menu items
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-chat-sidebar

@@ -3,6 +3,8 @@ name: iblai-vibe-ops-deploy
 description: Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web — it deploys through the ibl.ai platform's hosting API (Vercel-backed) using only the platform API key in iblai.env (no Vercel account, token, or CLI), then updates devUrl in tauri.conf.json for mobile dev builds. Also covers deploying to infrastructure the team controls — a container on their own server, on-prem, Cloud Run, Kubernetes — and to any static host. For desktop/mobile native builds, see /iblai-vibe-ops-build.
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-ops-deploy

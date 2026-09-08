@@ -3,6 +3,8 @@ name: iblai-vibe-readme
 description: Write or refresh the README.md 
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-readme

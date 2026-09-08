@@ -3,6 +3,8 @@ name: iblai-vibe-project
 description: Add the in-process Projects surface (project landing page — chat input + project files + instructions + assigned agents) to a Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-project

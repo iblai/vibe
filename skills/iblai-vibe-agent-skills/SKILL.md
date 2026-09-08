@@ -3,6 +3,8 @@ name: iblai-vibe-agent-skills
 description: Add the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill picker) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-skills

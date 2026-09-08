@@ -3,6 +3,8 @@ name: iblai-vibe-agent-api
 description: Add the agent API tab (API key management) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-api

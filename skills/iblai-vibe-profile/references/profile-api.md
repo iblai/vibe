@@ -4,8 +4,8 @@ Moved out of `SKILL.md` to keep the skill scannable; this is the full text.
 
 ## Profile Content API
 
-Full REST reference: [`/iblai-api-profile`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile/SKILL.md)
-in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+Full REST reference: [`/iblai-api-profile`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md)
+(headless twin, installed with the rest of this repo's skills).
 
 The SDK `Profile` component handles all API calls internally. If you need
 to build custom profile UIs or interact with profile data programmatically,
@@ -216,8 +216,8 @@ localStorage), and tag invalidation on `["education", "experience",
 
 ## User Metadata API
 
-Full REST reference: [`/iblai-api-profile-metadata`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
-in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+Full REST reference: [`/iblai-api-profile-metadata`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+(headless twin, installed with the rest of this repo's skills).
 
 The ibl.ai platform provides per-user metadata storage via the **Agent
 Metadata** endpoint. This is useful for storing arbitrary JSON data scoped

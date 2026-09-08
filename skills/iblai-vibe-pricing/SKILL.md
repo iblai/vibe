@@ -3,6 +3,8 @@ name: iblai-vibe-pricing
 description: Decide how money works for an ibl.ai app — how your organization is charged (prepaid credits, plans, auto-recharge, your own LLM keys, spend caps) and which of the three rails to use to charge your own users (platform credits, an app paywall on your own Stripe key, or item-level monetization via Stripe Connect). Use when the user mentions pricing, charging users, paywall, subscription, credits, "how do I get paid", Stripe, spend limits, budgets, or LLM cost. For the credit widget see /iblai-vibe-credit; for the org billing page see /iblai-vibe-billing; for per-agent caps see /iblai-vibe-agent-billing; for a whole-app paywall see /iblai-vibe-monetization-app-paywall; for selling items see /iblai-vibe-monetization.
 globs:
 alwaysApply: false
+metadata:
+  kind: guide
 ---
 
 # /iblai-vibe-pricing
@@ -85,11 +87,11 @@ REST (server-side, `Authorization: Api-Token $IBLAI_API_KEY`):
 
 | Need | Call | Reference |
 |---|---|---|
-| Org credit account | `GET /dm/api/billing/account/?platform_key={org}` | [iblai-api-billing](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-billing/SKILL.md) |
+| Org credit account | `GET /dm/api/billing/account/?platform_key={org}` | [iblai-api-billing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-billing/SKILL.md) |
 | Transactions | `GET /dm/api/billing/transactions/?platform_key={org}` | same |
-| Org cap | `PUT/GET/DELETE /dm/api/ai-mentor/orgs/{org}/spend-caps/tenant/` | [iblai-api-spend-caps](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
+| Org cap | `PUT/GET/DELETE /dm/api/ai-mentor/orgs/{org}/spend-caps/tenant/` | [iblai-api-spend-caps](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-spend-caps/SKILL.md) |
 | A user's cap status (safe to show learners) | `GET /dm/api/ai-mentor/orgs/{org}/spend-caps/status/{user_id}/[?mentor=]` | same |
-| Costs by provider / model / user | `GET /dm/api/analytics/financial/?platform_key={org}&metric=total_costs&date_filter=30d` | [iblai-api-analytics](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
+| Costs by provider / model / user | `GET /dm/api/analytics/financial/?platform_key={org}&metric=total_costs&date_filter=30d` | [iblai-api-analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md) |
 
 Details of every endpoint and error code for rails B and C:
 [`references/rails.md`](references/rails.md).

@@ -53,6 +53,9 @@ jobs:
       - name: Skill catalogue matches skills/ (CLAUDE.md + README.md)
         run: node scripts/check-skill-tables.mjs
 
+      - name: Every skill declares a valid metadata.kind
+        run: node scripts/check-skill-kinds.mjs
+
       - name: Adapters are regenerated
         run: |
           node scripts/build-adapters.mjs

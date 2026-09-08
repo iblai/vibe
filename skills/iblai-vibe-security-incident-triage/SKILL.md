@@ -4,6 +4,8 @@ description: "Guide rapid triage and initial response to security incidents foll
 globs:
 alwaysApply: false
 allowed-tools: Bash, Read, Write, Grep, Glob, WebSearch
+metadata:
+  kind: security
 ---
 
 # /iblai-vibe-security-incident-triage

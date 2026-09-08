@@ -3,6 +3,8 @@ name: iblai-vibe-navbar
 description: Add a responsive navbar with logo, page links, notification bell, and profile dropdown
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-navbar

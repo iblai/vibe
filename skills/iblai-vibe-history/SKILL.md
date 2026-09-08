@@ -3,6 +3,8 @@ name: iblai-vibe-history
 description: Add the user profile History surface (review and export your own conversations with AI agents — Conversations tab with filters and a two-column transcript preview, and an Exports tab listing generated reports) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-history

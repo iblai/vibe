@@ -3,6 +3,8 @@ name: iblai-vibe-ops-init
 description: Start a new ibl.ai project by default, scaffold from the bundled vibe-starter template, and write the project CLAUDE.md with ibl.ai platform guidance. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project.
 globs:
 alwaysApply: false
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-ops-init
@@ -120,7 +122,7 @@ the user is asked nothing:
    > **Integrations** → **APIs** tab → **Add API** → name it after this app,
    > leave the expiry empty, keep Owner permissions → Submit. The secret is
    > shown once -- paste it here. (Alternatives: `/iblai-api-login` from
-   > `npx skills add iblai/api` mints it from your signed-in session; an org
+   > `npx skills add iblai/vibe --all` mints it from your signed-in session; an org
    > secret works too.)
 
    Never ask for `TOKEN` when `IBLAI_API_KEY` is exported -- the environment
@@ -275,8 +277,18 @@ platform, and a first-run `/setup`.
 | "notifications" | `/iblai-vibe-notification` (already on `/notifications`) |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
-| anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai/api` skill |
+| anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill |
 | "tests", "before you show me" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, screenshot |
+
+**Freshness rule:** the installed skills are a copy of
+[iblai/vibe](https://github.com/iblai/vibe), which changes often. If
+`.claude/skills/iblai-vibe/SKILL.md` is older than 14 days or older than the
+latest release, suggest `/iblai-vibe-ops-upgrade` before substantial work.
+
+Two skill families are installed: `iblai-vibe-*` (mount visual components,
+build, ship — this app) and `iblai-api-*` (headless REST, no screen — for
+scripts, CI, server routes, and operating the org). See `docs/skill-kinds.md`
+in the vibe repo.
 
 Rules that never change: SDK components → shadcn/ui → custom, in that order;
 `pnpm install --ignore-scripts`; lowercase project names; ask for a real

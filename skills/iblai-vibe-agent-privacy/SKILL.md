@@ -3,6 +3,8 @@ name: iblai-vibe-agent-privacy
 description: Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions, entity-type selection, and AI-response filtering) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-privacy

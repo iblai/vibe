@@ -3,6 +3,8 @@ name: iblai-vibe-agent-llm
 description: Add the agent LLM tab (model provider selection) to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-agent-llm

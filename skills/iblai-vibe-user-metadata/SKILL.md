@@ -3,6 +3,8 @@ name: iblai-vibe-user-metadata
 description: Store custom data per user on the ibl.ai platform — preferences, feature flags, onboarding progress, any app state — with the SDK's per-user metadata hooks, namespaced so several apps on one org never collide, plus the server route an admin needs to read or write another user's data. Use when the user mentions custom user fields, user preferences, "remember the user's", onboarding progress, per-user feature flags, store data per user, or reaches for localStorage or a database for per-user state. For org-wide settings see /iblai-vibe-org-metadata; for the profile identity (name, bio, image) see /iblai-vibe-profile; for what agents remember see /iblai-vibe-memory-guide.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-user-metadata
@@ -142,7 +144,7 @@ Wire a UI for it only where it belongs (an admin page gated by `/iblai-vibe-admi
 | `PUT` / `DELETE` / `delete_keys` (REST only) | replace / reset / drop keys |
 | `&username=` (REST, org admin) | another user |
 
-REST reference: [iblai-api-profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+REST reference: [iblai-api-profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
 (concepts, best practices, and a migration strategy in its `references/guide.md`).
 
 ## Related skills

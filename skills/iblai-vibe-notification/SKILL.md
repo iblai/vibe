@@ -3,6 +3,8 @@ name: iblai-vibe-notification
 description: Add notification bell and center page to your Next.js app
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-notification

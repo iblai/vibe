@@ -8,6 +8,8 @@ user-invocable: true
 allowed-tools:
   - Bash(npx impeccable *)
 license: Apache-2.0. Based on Anthropic's frontend-design skill (https://github.com/anthropics/skills, Copyright 2025 Anthropic PBC); extended by Impeccable (Copyright 2025-2026 Paul Bakaus).
+metadata:
+  kind: ops
 ---
 
 # /iblai-vibe-design

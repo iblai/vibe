@@ -3,6 +3,8 @@ name: iblai-vibe-monetization-configure
 description: Build the admin MonetizationTab inside the Account page — the Platform seller wizard that turns an agent/course/program/pathway/custom item into a paid product, with paywall settings (grandfathering, free tier, trial days) and per-item pricing tiers. Use when the user mentions monetization tab, paywall configuration, item pricing, pricing tiers, wizard, custom items, grandfathering, item search, or "configure a paywall". See /iblai-vibe-monetization for the family index, /iblai-vibe-monetization-onboard for the Stripe Connect prerequisite, /iblai-vibe-monetization-checkout for what buyers see, /iblai-vibe-monetization-subscription for the user purchases pane, /iblai-vibe-monetization-analytics for revenue, /iblai-vibe-account for the host page, /iblai-vibe-rbac for the can_sell_items gate, /iblai-vibe-auth for token wiring.
 globs:
 alwaysApply: false
+metadata:
+  kind: ui
 ---
 
 # /iblai-vibe-monetization-configure
