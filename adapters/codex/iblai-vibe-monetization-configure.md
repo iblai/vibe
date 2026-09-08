@@ -11,35 +11,6 @@ custom item, then walks a wizard that enables the paywall and adds
 pricing tiers. The actual UI ships as a default-exported SDK component;
 your job is to host it correctly and pass the right props.
 
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 > **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.

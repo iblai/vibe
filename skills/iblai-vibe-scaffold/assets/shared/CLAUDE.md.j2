@@ -23,7 +23,7 @@ create_page_template("Dashboard", "mentor")    # Generate a page template
 - **Agent ID**: configured via `NEXT_PUBLIC_DEFAULT_AGENT_ID`
 {% else %}
 - **Template**: base (auth + store + blank canvas)
-- **Extend with** the ibl.ai skills: `/iblai-vibe-auth`, `/iblai-vibe-agent-chat`, `/iblai-vibe-profile`, `/iblai-vibe-notification`, `/iblai-vibe-ops-build`
+- **Extend with** the ibl.ai skills — start at `/iblai-vibe` (what you want → which skill): `/iblai-vibe-agent-chat`, `/iblai-vibe-admin`, `/iblai-vibe-user-metadata`, `/iblai-vibe-org-metadata`, `/iblai-vibe-agent-create`, `/iblai-vibe-memory-guide`, `/iblai-vibe-analytics`, `/iblai-vibe-pricing`, `/iblai-vibe-api`, `/iblai-vibe-ops-build`
 {% endif %}
 {% if builds %}
 - **Desktop/mobile**: Tauri v2 shell (`src-tauri/`)
@@ -149,12 +149,20 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 
 | Skill | Description |
 |-------|-------------|
+| `/iblai-vibe` | Start here — what you want → which skill |
 | `/iblai-vibe-auth` | Add SSO authentication |
 | `/iblai-vibe-agent-chat` | In-process agent chat surface |
+| `/iblai-vibe-agent-create` | Create an agent from the app; `/iblai-vibe-agent` for every settings tab |
+| `/iblai-vibe-admin` | User/Admin mode and the admin area (users, invites, roles) |
+| `/iblai-vibe-user-metadata` | Custom per-user data on the platform |
+| `/iblai-vibe-org-metadata` | Custom org-wide settings (GET-merge-PUT) |
 | `/iblai-vibe-profile` | Profile dropdown + settings page |
 | `/iblai-vibe-account` | Organization/account settings |
+| `/iblai-vibe-memory-guide` | What memory means for your app |
 | `/iblai-vibe-analytics` | Analytics dashboard |
 | `/iblai-vibe-notification` | Notification bell + center page |
+| `/iblai-vibe-pricing` | How money works; charge your users |
+| `/iblai-vibe-api` | REST without a component (server route + Api-Token) |
 | `/iblai-vibe-component` | Overview of all SDK components |
 | `/iblai-vibe-ops-build` | Desktop/mobile builds (Tauri v2) |
 | `/iblai-vibe-ops-deploy` | Deploy via ibl.ai hosting (Vercel) |

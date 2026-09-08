@@ -1,0 +1,153 @@
+---
+name: iblai-vibe-user-metadata
+description: Store custom data per user on the ibl.ai platform — preferences, feature flags, onboarding progress, any app state — with the SDK's per-user metadata hooks, namespaced so several apps on one org never collide, plus the server route an admin needs to read or write another user's data. Use when the user mentions custom user fields, user preferences, "remember the user's", onboarding progress, per-user feature flags, store data per user, or reaches for localStorage or a database for per-user state. For org-wide settings see /iblai-vibe-org-metadata; for the profile identity (name, bio, image) see /iblai-vibe-profile; for what agents remember see /iblai-vibe-memory-guide.
+globs:
+alwaysApply: false
+---
+
+# /iblai-vibe-user-metadata
+
+Every ibl.ai user carries **one schemaless JSON object per organization**.
+It is the place for everything your app needs to remember about a person
+that is not their profile identity: preferences, flags, onboarding progress,
+app state. No database, no localStorage — it follows the user to every device
+and every build of the app.
+
+![App preferences card on /profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-user-metadata/iblai-vibe-user-metadata-1-preferences.png)
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## What you get
+
+- `useUserSettings<T>()` — typed, namespaced read/merge/remove over the SDK's
+  `useGetUserPlatformMetadataQuery` / `useUpdateUserPlatformMetadataMutation`
+  (PATCH — untouched keys survive).
+- `AppPreferences` — a card with two example controls for `/profile`.
+- `app/api/admin/user-metadata/route.ts` — the **admin** path: read/patch
+  *another* user's metadata with the org's authority (the hook cannot).
+- Unit tests for the namespace rules.
+
+vibe-starter ships all of this already; on an existing app, install per Step 2.
+
+## When to use / when not
+
+| Use it for | Not for |
+|---|---|
+| theme, language, layout choices | name, bio, avatar, social links → `/iblai-vibe-profile` (`useGetUserMetadataQuery` / `useUpdateUserMetadataEdxMutation`) |
+| onboarding step, "seen the tour", dismissed banners | what an *agent* remembers about the user → `/iblai-vibe-memory-guide` |
+| per-user feature flags, beta access | org-wide config → `/iblai-vibe-org-metadata` |
+| lightweight app state (last-opened item, favorites) | secrets, tokens, payment data — never |
+
+## Prerequisites
+
+- Auth in place (`/iblai-vibe-auth`, or vibe-starter).
+- The org key in `.env.local` (`NEXT_PUBLIC_MAIN_TENANT_KEY`); the admin
+  route also needs `IBLAI_API_KEY` (server-only).
+
+## Step 1: Understand the store
+
+- **One object per user × org** at
+  `…/dm/api/core/users/platform-metadata/?platform_key={org}`. Auto-created on
+  first use (`{}`); keys and values are arbitrary JSON; the platform enforces
+  no schema.
+- **Verbs:** `PATCH` merges (`metadata` + `delete_keys`); `PUT` replaces; `DELETE`
+  resets to `{}`. The SDK hook does PATCH only — PUT/DELETE/`delete_keys` need
+  a direct call (the admin route shows how).
+- **Cross-user:** `&username=<other>` — org admins only (`403` otherwise,
+  `404` for an unknown user). Confirm with the user before writing to someone
+  else's record.
+- **Namespace:** this skill writes under `metadata.apps.<slug>` (slug from
+  `NEXT_PUBLIC_APP_NAME`, else `vibe-starter`) so other apps on the same org
+  keep their own keys. The same convention `vibe-agent` uses.
+
+## Step 2: Install
+
+Render the assets (strip `.j2`; no variables):
+
+| Asset | Destination |
+|---|---|
+| `assets/metadata-core.ts.j2` | `lib/iblai/metadata-core.ts` (pure helpers, no SDK) |
+| `assets/metadata.ts.j2` | `lib/iblai/metadata.ts` (the hooks; also exports `useOrgSettings`) |
+| `assets/app-preferences.tsx.j2` | `components/settings/app-preferences.tsx` |
+| `assets/admin-user-metadata-route.ts.j2` | `app/api/admin/user-metadata/route.ts` |
+| `assets/metadata.test.ts.j2` | `__tests__/metadata.test.ts` |
+
+`metadata.ts` imports `resolveAppTenant` from `lib/iblai/tenant.ts` and the
+route imports `lib/iblai/platform.ts` (from `/iblai-vibe-api`) — install that
+helper first on an app that lacks it. Needs shadcn `card` and `switch`:
+`pnpm dlx shadcn@latest add card switch` (fix `import { cn } from "cn"` to
+`@/lib/utils` if the generator writes it).
+
+## Step 3: Use it
+
+```tsx
+"use client";
+
+import { useUserSettings } from "@/lib/iblai/metadata";
+
+type MySettings = { favoriteTopic?: string; onboardingDone?: boolean };
+
+export function FavoriteTopic() {
+  const { settings, update, isLoading } = useUserSettings<MySettings>({ favoriteTopic: "", onboardingDone: false });
+  if (isLoading) return null;
+  return (
+    <select
+      value={settings.favoriteTopic}
+      onChange={(e) => void update({ favoriteTopic: e.target.value })}
+    >
+      <option value="">Pick a topic</option>
+      <option value="billing">Billing</option>
+      <option value="shipping">Shipping</option>
+    </select>
+  );
+}
+```
+
+`update` merges; `remove(["favoriteTopic"])` deletes; reads fall back to your
+defaults on error so the UI never breaks. Keep keys flat and named
+consistently; batch related changes into one `update`.
+
+Mount `<AppPreferences />` on `/profile` (vibe-starter does) for the two example toggles.
+
+## Step 4: Admin — another user's data
+
+The browser sends its session token; the route verifies the caller is an
+org admin, then acts with `IBLAI_API_KEY`:
+
+```ts
+import { adminFetch } from "@/lib/iblai/admin-client";
+
+await adminFetch("/api/admin/user-metadata", {
+  method: "PATCH",
+  json: { username: "jane", metadata: { role_label: "mentor" } },
+});
+const theirs = await adminFetch("/api/admin/user-metadata?username=jane");
+```
+
+Wire a UI for it only where it belongs (an admin page gated by `/iblai-vibe-admin`).
+
+## Verify
+
+1. `pnpm typecheck && pnpm test` — `__tests__/metadata.test.ts` proves the namespace never clobbers other keys.
+2. `pnpm dev`, sign in, flip a toggle on `/profile`, reload — it sticks. Open the same account in another browser — it is there too.
+3. Non-admin calls to `/api/admin/user-metadata` get `403`.
+4. `curl -s "https://api.$DOMAIN/dm/api/core/users/platform-metadata/?platform_key=$PLATFORM" -H "Authorization: Api-Token $TOKEN"` shows `apps.<slug>` and nothing else changed.
+
+## Platform data
+
+| Hook / call | Purpose |
+|---|---|
+| `useGetUserPlatformMetadataQuery({ tenantKey })` | the signed-in user's object |
+| `useUpdateUserPlatformMetadataMutation()` → `({ tenantKey, metadata })` | PATCH merge |
+| `PUT` / `DELETE` / `delete_keys` (REST only) | replace / reset / drop keys |
+| `&username=` (REST, org admin) | another user |
+
+REST reference: [iblai-api-profile-metadata](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+(concepts, best practices, and a migration strategy in its `references/guide.md`).
+
+## Related skills
+
+- `/iblai-vibe-org-metadata` — the org-wide twin (public read, PUT replaces)
+- `/iblai-vibe-profile` — identity fields
+- `/iblai-vibe-onboard` — an onboarding flow that would write `onboardingStep`
+- `/iblai-vibe-api` — the server-route pattern this skill's admin route follows

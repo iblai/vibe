@@ -23,7 +23,10 @@ import {
   initializeDataLayer,
   type TokenResponse,
 } from "@iblai/iblai-js/data-layer";
-import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
+import { AuthProvider, TenantProvider, ServiceWorkerProvider } from "@iblai/iblai-js/web-utils";
+import { Toaster } from "sonner";
+import { RadixPointerEventsGuard } from "@/components/radix-pointer-events-guard";
+import { LoadingScreen } from "@/components/loading-screen";
 
 import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
@@ -91,16 +94,31 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
 
   const isSsoRoute = pathname?.startsWith("/sso-login") ?? false;
 
-  const LOADING = (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-sm text-gray-400">Loading...</p>
-    </div>
-  );
+  const LOADING = <LoadingScreen />;
 
   if (!isInitialized || !mounted) return LOADING;
 
+  // No org means misconfiguration, not "pick one": say so instead of bouncing
+  // the user through the login page forever.
+  if (!tenantKey && !isSsoRoute) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p role="alert" className="max-w-md p-8 text-sm text-destructive">
+          NEXT_PUBLIC_MAIN_TENANT_KEY is not set, is still a placeholder, or is
+          the shared <code>main</code> org. Put your organization's key in
+          .env.local (it is listed on https://login.iblai.app/me) and restart.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <ReduxProvider store={iblaiStore}>
+      {/* Recovery for the SDK prompt-gallery teardown defect; see the file. */}
+      <RadixPointerEventsGuard />
+      <Toaster />
+      {/* The SDK <Chat> registers public/sw.js for offline caching in Tauri. */}
+      <ServiceWorkerProvider basePath="">
       <AuthProvider
         skip={isSsoRoute}
         redirectToAuthSpa={redirectToAuthSpa}
@@ -159,6 +177,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           {children}
         </TenantProvider>
       </AuthProvider>
+      </ServiceWorkerProvider>
     </ReduxProvider>
   );
 }

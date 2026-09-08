@@ -41,7 +41,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     fi
 
     # Extract frontmatter
-    frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill_file" | head -n -1 | tail -n +2)
+    frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill_file" | sed '1d;$d')
 
     # Validate frontmatter exists
     if [[ -z "$frontmatter" ]]; then

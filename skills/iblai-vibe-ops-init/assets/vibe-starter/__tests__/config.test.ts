@@ -92,3 +92,28 @@ describe("apiKey", () => {
     expect(config.apiKey()).toBe("");
   });
 });
+
+describe("app accessors", () => {
+  it("default to empty (agent, name) and support@ibl.ai (support email)", async () => {
+    delete process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID;
+    delete process.env.NEXT_PUBLIC_APP_NAME;
+    delete process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+    const config = await loadConfig();
+    expect(config.defaultAgentId()).toBe("");
+    expect(config.appName()).toBe("");
+    expect(config.supportEmail()).toBe("support@ibl.ai");
+  });
+
+  it("read the env when set", async () => {
+    process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID = "11111111-2222-3333-4444-555555555555";
+    process.env.NEXT_PUBLIC_APP_NAME = "Acme Support";
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL = "help@acme.test";
+    const config = await loadConfig();
+    expect(config.defaultAgentId()).toBe("11111111-2222-3333-4444-555555555555");
+    expect(config.appName()).toBe("Acme Support");
+    expect(config.supportEmail()).toBe("help@acme.test");
+    delete process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID;
+    delete process.env.NEXT_PUBLIC_APP_NAME;
+    delete process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+  });
+});

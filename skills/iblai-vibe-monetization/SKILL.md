@@ -15,22 +15,6 @@ RTK Query data layer, RBAC, and points at every workflow sub-skill.
 Start here for orientation, then jump to the sub-skill that matches the
 surface you are building.
 
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Authentication

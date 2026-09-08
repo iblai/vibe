@@ -106,14 +106,42 @@ the user is asked nothing:
    that saves `/iblai-vibe-ops-deploy` asking for it later.
 
 3. **Ask only for the values still missing** -- standalone opencode / Claude
-   Code users outside the desktop app:
+   Code users outside the desktop app. Say where each value comes from; never
+   ask for a password.
 
-   > What is your ibl.ai **PLATFORM** (tenant key)?
+   > What is your ibl.ai **PLATFORM** (organization key)? It is listed on
+   > https://login.iblai.app/me next to each organization you belong to, and
+   > it is the segment after `/platform/` in any os.ibl.ai URL. **Not `main`** --
+   > that is the shared org everyone is in; if you only see `main`, create your
+   > own at https://ibl.ai/join first.
 
-   > What is your ibl.ai **TOKEN** (platform API key)?
+   > What is your ibl.ai **TOKEN** (Platform API Token)? Create one in the OS:
+   > https://os.ibl.ai → switch the top-right toggle to **Admin** → settings →
+   > **Integrations** → **APIs** tab → **Add API** → name it after this app,
+   > leave the expiry empty, keep Owner permissions → Submit. The secret is
+   > shown once -- paste it here. (Alternatives: `/iblai-api-login` from
+   > `npx skills add iblai/api` mints it from your signed-in session; an org
+   > secret works too.)
 
    Never ask for `TOKEN` when `IBLAI_API_KEY` is exported -- the environment
-   already answered it.
+   already answered it. Refuse `main` and the placeholders (`your-platform`,
+   `your-tenant`, …) and ask again.
+
+4. **Verify both before writing anything** (values in shell variables, never
+   echoed):
+
+   ```bash
+   curl -fsS -o /dev/null "https://api.${DOMAIN:-iblai.app}/dm/api/core/orgs/$PLATFORM/metadata/" \
+     && echo "org key ok" || echo "org key not found (typo?)"
+   USERNAME_JSON=$(curl -fsS -H "Authorization: Api-Token $TOKEN" \
+     "https://api.${DOMAIN:-iblai.app}/dm/api/core/token/verify/") \
+     && echo "token ok" || echo "token refused -- ask for it again"
+   IBLAI_USERNAME="${IBLAI_USERNAME:-$(printf '%s' "$USERNAME_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("username",""))')}"
+   ```
+
+   A 404 on the first call means the org key is wrong; a 401 on the second
+   means the token is wrong. `token/verify/` also returns the `username` --
+   persist it as `IBLAI_USERNAME` so `/iblai-vibe-ops-deploy` never has to ask.
 
 Then write the values to both files:
 
@@ -157,7 +185,19 @@ Then write the values to both files:
    ```
 
 Do NOT print or echo the `TOKEN` / `IBLAI_API_KEY` value back to the user
-once captured.
+once captured -- confirm with a masked form only (`abc…z9`). Write
+`IBLAI_USERNAME=<username>` to `iblai.env` as well when known.
+
+Then tell the user the two things the platform must know about this app:
+
+- **Allowed redirect origins:** `http://localhost:3000` now, and the deployed
+  URL after `/iblai-vibe-ops-deploy`. If sign-in redirects to
+  `login.iblai.app` and never comes back, this is the cause -- ask the ibl.ai
+  operator to add the origin.
+- **The app's agent:** none is needed to start -- the first admin to sign in
+  lands on `/setup` to pick or create one. If the user already gave an
+  os.ibl.ai URL (`https://os.ibl.ai/platform/<org-key>/<agent-uuid>`), write
+  the UUID to `.env.local` as `NEXT_PUBLIC_DEFAULT_AGENT_ID` now.
 
 `IBLAI_API_KEY` also unlocks LLM features without any separate provider key:
 it is a standard OpenAI api key on the platform's OpenAI-compatible endpoint.
@@ -169,10 +209,18 @@ platform can actually serve). Server-side only, like every other use of the
 key — never in client code. Note the `Bearer` scheme applies to this `/v1`
 surface only; all other platform APIs keep `Authorization: Api-Token`.
 
-After the starter is in place, the user's project already has auth, navbar,
-profile, account, and notifications wired. They can skip the matching
-`/iblai-vibe-auth`, `/iblai-vibe-navbar`, `/iblai-vibe-profile`, `/iblai-vibe-account`, and
-`/iblai-vibe-notification` skills.
+After the starter is in place, the user's project already has sign-in, a
+home page that chats with the app's agent, an agents browser, profile with
+app preferences, User/Admin mode with an admin area (users, analytics,
+billing, memory, organization), per-user and per-org settings on the
+platform, a first-run `/setup`, and the server helper for REST calls. They
+can skip `/iblai-vibe-auth`, `/iblai-vibe-navbar`, `/iblai-vibe-profile`,
+`/iblai-vibe-account`, `/iblai-vibe-notification`, `/iblai-vibe-agent-search`,
+`/iblai-vibe-admin`, `/iblai-vibe-user-metadata`, `/iblai-vibe-org-metadata`,
+`/iblai-vibe-agent-create`, `/iblai-vibe-analytics`, and `/iblai-vibe-api` --
+those are wired. Next steps to offer: `pnpm dev` → sign in → `/setup`; then
+`/iblai-vibe-ops-deploy` for a URL and `/iblai-vibe-ops-build` for
+macOS/Windows/iOS/Android.
 
 **Skip the offer entirely if:**
 - `iblai.env` has `USE_VIBE_STARTER` set to a falsy value (see above)
@@ -196,144 +244,134 @@ that already has a top-level `#` heading).
 
 ### Content to write
 
+The generated file is the same `AGENTS.md` that ships in vibe-starter (kept
+in sync: `assets/vibe-starter/AGENTS.md` is the source of truth). For a
+project that did not come from the starter, keep the "Start here" table and
+the rules, and trim the "Map of this app" to the files that exist.
+
 ```markdown
 # CLAUDE.md
 
 This project is built on the ibl.ai platform using the `@iblai/iblai-js` SDK.
+It was scaffolded from **vibe-starter** and already has: SSO sign-in, a home
+page that chats with the app's agent, an agents browser, profile with app
+preferences, an admin area (users, analytics, billing, memory, organization)
+that only org admins see, typed per-user and per-org settings on the
+platform, and a first-run `/setup`.
 
-## Starter Template
+## Start here — what the user says → what to do
 
-When the user says "start a new project", "new app", "scaffold an app", or
-anything that creates a fresh codebase, run the `/iblai-vibe-ops-init` skill --
-it scaffolds from the bundled vibe-starter template (a pre-wired Next.js 16 +
-Tailwind v4 + shadcn/ui app with ibl.ai SSO auth, a responsive navbar, and
-profile/account/notifications pages already in place), skipping the manual
-`/iblai-vibe-auth`, `/iblai-vibe-navbar`, `/iblai-vibe-profile`, `/iblai-vibe-account`,
-and `/iblai-vibe-notification` skills. Only fall back to a vanilla Next.js app
-wired up via the individual `/iblai-vibe-*` skills if the user explicitly
-declines the starter or asks for a minimal/custom setup.
+| The user says… | Do this |
+|---|---|
+| "chat", "the agent", "assistant" | Already on `/`. No agent yet? An admin runs `/setup` (pick or create). Customize with `/iblai-vibe-agent-chat`. |
+| "create an agent", "another agent" | `/iblai-vibe-agent-create` → then `/iblai-vibe-agent-setting` and the tabs in `/iblai-vibe-agent` |
+| "users", "admins", "roles", "invite", "who can" | `/iblai-vibe-admin` (User/Admin mode, `/admin/users`), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |
+| "remember the user's…", "preferences", "onboarding progress", "custom user fields" | `/iblai-vibe-user-metadata` (`useUserSettings` in `lib/iblai/metadata.ts`) — never localStorage, never your own DB |
+| "organization setting", "white-label", "app-wide config" | `/iblai-vibe-org-metadata` (`useOrgSettings`, GET-merge-PUT) + `/iblai-vibe-account` |
+| "profile", "avatar", "résumé" | `/iblai-vibe-profile` (already on `/profile`) |
+| "remember", "memory", "personalize" | `/iblai-vibe-memory-guide` → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` |
+| "analytics", "usage", "costs", "transcripts", "audit" | `/iblai-vibe-analytics` (already on `/admin/analytics`), `/iblai-vibe-agent-audit` |
+| "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
+| "notifications" | `/iblai-vibe-notification` (already on `/notifications`) |
+| "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
+| "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
+| anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai/api` skill |
+| "tests", "before you show me" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, screenshot |
 
-For existing projects, ignore this and use the individual skills below.
+Rules that never change: SDK components → shadcn/ui → custom, in that order;
+`pnpm install --ignore-scripts`; lowercase project names; ask for a real
+agent UUID, never invent one; never print a token; run `/iblai-vibe-ops-test`
+before saying "done".
 
 ## Component Priority
 
-When adding UI features, follow this priority order:
+1. **ibl.ai components** (`@iblai/iblai-js`) — always first
+2. **shadcn/ui** (`pnpm dlx shadcn@latest add <name>`) — everything else
+3. **Custom/third-party** — only when neither exists
 
-1. **ibl.ai components** (`@iblai/iblai-js`) -- always use these first
-2. **shadcn/ui** (`npx shadcn@latest add`) -- for everything else
-3. **Custom/third-party** -- only when no ibl.ai or shadcn component exists
+Do NOT build custom components when an SDK component exists. Do NOT restyle
+SDK components — wrap the *container*, never the internals. ibl.ai and
+shadcn share one Tailwind theme and render in brand colors automatically.
 
-### When the user asks to add...
+## Map of this app
 
-| Feature | Use this | NOT this |
-|---------|----------|----------|
-| Profile page / dropdown | `/iblai-vibe-profile` skill + `Profile`, `UserProfileDropdown` from SDK | Custom profile form |
-| Account / org settings | `/iblai-vibe-account` skill + `Account` from SDK | Custom settings page |
-| Analytics dashboard | `/iblai-vibe-analytics` skill + `AnalyticsOverview`, `AnalyticsLayout` from SDK | Chart library from scratch |
-| Notifications | `/iblai-vibe-notification` skill + `NotificationDropdown` from SDK | Custom notification system |
-| Chat / AI assistant | `/iblai-vibe-agent-chat` skill + `Chat` from SDK | Custom chat UI |
-| Auth / login | `/iblai-vibe-auth` skill + `AuthProvider`, `SsoLogin` from SDK | Custom auth flow |
-| Invite users | `/iblai-vibe-invite` skill + `InviteUserDialog` from SDK | Custom invite form |
-| Workflow builder | `/iblai-vibe-workflow` skill + workflow components from SDK | Custom node editor |
-| Course content | `/iblai-vibe-course-access` skill + `CourseContentLayout`, `CourseContentTabPage` from SDK | Custom course player |
-| Create / publish courses | `/iblai-vibe-course-create` skill (Course Creation API) | Manually authoring OLX in edX Studio |
-| Onboarding flow | `/iblai-vibe-onboard` skill | Custom onboarding from scratch |
-| Buttons, forms, modals, tables | shadcn/ui (`npx shadcn@latest add button dialog table`) | Raw HTML or other UI libraries |
-| Page sections / blocks | shadcn/ui blocks (`npx shadcn@latest add @shadcn-space/hero-01`) | Custom layout from scratch |
+| Where | What |
+|---|---|
+| `app/(app)/page.tsx` | Home: SDK `<Chat>` with the app's agent (`?agent=` → env → org setting); `?session=` restores, `?new=` starts fresh; the `key` is the only legitimate remount. Empty state when no agent. |
+| `app/(app)/agents/page.tsx` | SDK `AgentSearch`; clicking a card opens it on `/` |
+| `app/(app)/profile/page.tsx` | SDK `Profile` + `AppPreferences` (per-user settings) |
+| `app/(app)/account/page.tsx`, `notifications/` | SDK `Account`, `NotificationDisplay` |
+| `app/(app)/admin/**` | Admin mode only: users (+ invites), analytics tabs, billing, memory, organization (+ `OrgSettingsForm`) |
+| `app/setup/` | First-run: name the app, pick/create the agent → org metadata. Admins only; no navbar. |
+| `app/api/admin/**` | Server routes: `requireAdmin` (forwarded session token → `token/verify/`) then `Api-Token` calls |
+| `lib/iblai/config.ts` | Env accessors; `apiKey()` is server-only |
+| `lib/iblai/tenant.ts` | `resolveAppTenant()`, `readTenants()`, `isTenantAdmin()` (not the SDK's `useIsAdmin`) |
+| `lib/iblai/admin-mode.tsx` | `AdminModeProvider` / `useAdminMode` — the User/Admin view |
+| `lib/iblai/metadata.ts` (+ `metadata-core.ts`) | `useUserSettings`, `useOrgSettings` — namespaced under `apps.<slug>`; org writes GET-merge-PUT |
+| `lib/iblai/platform.ts` | `platformFetch`, `verifyCaller`, `requireAdmin`, `platformFailure` |
+| `lib/iblai/admin-client.ts` | browser `adminFetch()` for `/api/admin/*` |
+| `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard); the store's slice keys are fixed by the SDK — keep them |
+| `e2e/` | Playwright: auth, member, admin journeys; `COVERAGE.md` + `coverage.json` |
 
-### Key rule
+## Invariants (and why)
 
-Do NOT build custom components when an ibl.ai SDK component exists.
-Do NOT use raw HTML or third-party UI libraries when shadcn/ui has an equivalent.
-ibl.ai and shadcn share the same Tailwind theme -- they render in brand colors automatically.
+- The org comes from `NEXT_PUBLIC_MAIN_TENANT_KEY` (`resolveAppTenant()`); a
+  placeholder or `main` renders an alert, never a login loop.
+- `IBLAI_API_KEY` is server-only: never `NEXT_PUBLIC_`, never read outside
+  `lib/iblai/platform.ts` / `app/api/**`. Every admin route calls
+  `requireAdmin` first.
+- `<Chat>` never remounts except through its `key`; `reactStrictMode` stays
+  `false` (SDK voice bug). Keep `public/sw.js` — `ServiceWorkerProvider` registers it.
+- Org metadata is a public read and PUT replaces it: write only through
+  `useOrgSettings` / `mergeAppNamespace`; never a secret.
+- Admin UI gates on `useAdminMode().adminMode`; admin *writes* gate on the server.
+- No `output: 'export'` — the admin routes need a server.
 
 ## SDK Imports
 
 ```typescript
-// Data layer
 import { initializeDataLayer, mentorReducer } from "@iblai/iblai-js/data-layer";
-
-// Auth & utilities
 import { AuthProvider, TenantProvider, useChatV2 } from "@iblai/iblai-js/web-utils";
-
-// Framework-agnostic components
 import { Profile, AnalyticsLayout, NotificationDropdown } from "@iblai/iblai-js/web-containers";
-
-// Next.js-specific components
-import { SsoLogin, UserProfileDropdown, Account } from "@iblai/iblai-js/web-containers/next";
+import { SsoLogin, UserProfileDropdown, Account, Chat, AgentSearch } from "@iblai/iblai-js/web-containers/next";
 ```
-
-## Adding Features
-
-Use skills to add features. Each skill creates the files and guides you
-through the wiring:
-
-```
-/iblai-vibe-auth          # SSO authentication (run first)
-/iblai-vibe-agent-chat    # In-process agent chat surface
-/iblai-vibe-profile       # Profile dropdown + settings page
-/iblai-vibe-account       # Account/org settings page
-/iblai-vibe-analytics     # Analytics dashboard
-/iblai-vibe-course-access # Course content pages (edX user UI)
-/iblai-vibe-course-create # Generate and publish courses via Course Creation API
-/iblai-vibe-notification  # Notification bell
-/iblai-vibe-invite        # User invitation dialogs
-/iblai-vibe-workflow      # Workflow builder
-/iblai-vibe-onboard       # Onboarding questionnaire flow
-/iblai-vibe-ops-build     # Desktop/mobile builds (Tauri v2)
-/iblai-vibe-ops-test      # Test before showing work
-/iblai-vibe-ops-upgrade   # Upgrade SDK and skills to latest
-/iblai-vibe-component     # Browse all available components
-```
-
-All features require auth first (`/iblai-vibe-auth`).
 
 ## Environment
 
-Platform configuration lives in `iblai.env` (`DOMAIN`, `PLATFORM`, `TOKEN`,
-and optionally `IBLAI_USERNAME` — your platform username; the
-`IBLAI_USERNAME` environment variable wins when the host exports it, and the
-deploy skill asks once and persists it otherwise). Map these into `.env.local`:
-`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`; the `NEXT_PUBLIC_*`
-API URLs default to `iblai.app`. When `DOMAIN` is anything else, also map
-`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN` ← `DOMAIN` and
-`NEXT_PUBLIC_API_BASE_URL` ← `https://api.<DOMAIN>` (plus the sign-in URL
-from the session guidance when given — the auth host is not derivable from
-the domain).
+`iblai.env` (gitignored) holds the platform shorthand: `DOMAIN`, `PLATFORM`,
+`TOKEN`, optional `IBLAI_USERNAME`. `.env.local` (gitignored) is what Next.js
+reads: `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`), `IBLAI_API_KEY`
+(= `TOKEN`), optional `NEXT_PUBLIC_DEFAULT_AGENT_ID`, `NEXT_PUBLIC_APP_NAME`,
+`NEXT_PUBLIC_SUPPORT_EMAIL`. The API/auth/websocket URLs default to hosted
+iblai.app in `lib/iblai/config.ts`; override only when self-hosting
+(`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN`, `NEXT_PUBLIC_API_BASE_URL`, the sign-in
+URL). When the host exports `IBLAI_API_KEY` / `IBLAI_PLATFORM_KEY` /
+`IBLAI_USERNAME` (the ibl.ai desktop app does), use those and never ask.
 
-When the host exports `IBLAI_API_KEY`, `IBLAI_PLATFORM_KEY`, or
-`IBLAI_USERNAME` (the ibl.ai desktop app does), use those values and never ask
-the user for a platform API key.
-
-`/iblai-vibe-ops-deploy` deploys through the ibl.ai platform's hosting API
-(Vercel-backed) using `TOKEN` — no Vercel account, token, or CLI. It zips
-the app, uploads it, polls until the build is READY, and updates `devUrl`
-in `tauri.conf.json`.
+Every origin the app runs on (localhost, the deployed URL, a Tauri scheme)
+must be in the org's allowed redirect origins or sign-in never returns.
 
 ## Brand
 
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Style**: shadcn/ui new-york variant, system sans-serif, Lucide icons
-- SDK components ship with their own styles -- do NOT override them
+- **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
+- shadcn/ui new-york variant, system sans-serif, Lucide icons; SDK components ship their own styles — do NOT override them
 
 ## Layout Patterns
 
-- **Page background**: `var(--sidebar-bg, #fafbfc)`
-- **SDK wrappers**: Wrap SDK components in `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`
-- **Responsive width**: `w-full px-4` mobile, `md:w-[75vw] md:px-0` desktop
-- **Mobile safe area**: `globals.css` must have `padding-top: env(safe-area-inset-top)` (and bottom/left/right) on body, and `app/layout.tsx` metadata must include `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"` -- prevents content from overlapping the iOS notch / Android status bar
-- **Package manager**: Use `pnpm` (fall back to `npm`)
-- **Project names**: Lowercase only — npm rejects capital letters in package names. Convert any name the user gives (e.g. `MyApp` → `my-app`) before passing to `create-next-app` or `vibe-starter`.
+- Page background `var(--sidebar-bg, #fafbfc)`; member pages wrap SDK components in `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`, `w-full px-4` / `md:w-[75vw] md:px-0`.
+- Admin pages host SDK panels the OS way: full width, `flex-1 min-h-0`, the component's own background.
+- Mobile safe area: `globals.css` `env(safe-area-inset-*)` on body; `viewport-fit=cover` in `app/layout.tsx`.
 
 ## Commands
 
 ```bash
-pnpm dev             # Dev server
+pnpm dev             # Dev server (localhost:3000)
 pnpm build           # Production build
 pnpm typecheck       # Type-check
+pnpm test            # Vitest
+pnpm test:e2e        # Playwright (needs e2e/.env.development)
 ```
-
-Add features with the `/iblai-vibe-*` skills (they create the files directly).
+```
 
 ---
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { Logo } from './logo';
 import { UserProfileButton } from './user-profile-button';
+import { AdminModeSwitch } from './admin-mode-switch';
 import {
   CreditBalance,
   NotificationDropdown,
@@ -108,6 +109,9 @@ export function NavBar({
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Org admins: view the app as a member (User) or manage it (Admin). */}
+          <AdminModeSwitch className="hidden md:flex" />
+
           {showCreditBalance &&
             currentTenant?.show_paywall &&
             tenantKey &&

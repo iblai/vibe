@@ -8,6 +8,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 | 1 | `node scripts/test-skills-render.mjs [--build]` | Skill **code** (assets + SKILL.md ts/tsx fences) typechecks against the currently-pinned SDK in vibe-starter |
 | 1.5 | `node scripts/check-sdk-pins.mjs [--fix]` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
 | 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
+| 1.5 | `node scripts/check-skill-tables.mjs` | Every `skills/<name>` is in CLAUDE.md's catalogue and README.md, and nothing named there is missing |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 
@@ -62,3 +63,16 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 1. If it ships assets, add `skills/<name>/test.json` mapping them to app paths.
 2. Keep prose fences compilable as written (imports included); purely illustrative fragments without imports are auto-skipped.
 3. Run `node scripts/test-skills-render.mjs --skills <name>` and `node scripts/build-adapters.mjs` before pushing; CI enforces both.
+
+## Screenshots
+
+`scripts/capture-screenshots.mjs` walks a running vibe-starter (real SSO via
+`e2e/auth.setup.ts`) and writes the journey set + per-skill PNGs listed in
+`docs/screenshots/README.md`. Sanitize and compress before committing.
+
+## The user test
+
+Before a Tier 0/1 change merges, someone runs the 20-minute test in
+`docs/user-first-plan.md` §6 (a bare `ibl.ai/join` account → a deployed app
+with users, admins, custom data, and a chat) or the agent tier with the
+persona prompt in `scripts/test-skills-agent.sh`, and attaches the screenshot.

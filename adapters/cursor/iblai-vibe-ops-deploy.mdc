@@ -39,6 +39,10 @@ controls:
 If the target is a compliance or data-residency decision — a school district, a
 health system, a government tenant — do not pick it for them. Ask.
 
+> **After the first deploy:** add the URL the API reports to the organization's
+> **allowed redirect origins** (ask your ibl.ai operator), or sign-in on the
+> deployed app will never return. Localhost needs it too.
+
 ## Step 1: Config
 
 Read `iblai.env` (values may contain spaces — do not `source` it). The

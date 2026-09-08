@@ -12,7 +12,8 @@
  * is updated to the new tenant key.
  */
 
-import config from "@/lib/iblai/config";
+// Relative import (not @/): vitest resolves no alias for lib files.
+import config from "./config";
 
 const PLACEHOLDER_PLATFORMS = new Set([
   "your-main-platform",
@@ -75,4 +76,27 @@ export function checkTenantMismatch(): boolean {
     return true;
   }
   return false;
+}
+
+export type TenantEntry = { key: string; is_admin?: boolean; [k: string]: unknown };
+
+/** The orgs the sign-in handed the browser (`tenants`), or [] when signed out. */
+export function readTenants(): TenantEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem("tenants") ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Whether the signed-in user is an admin of the app's org, read from the
+ * `tenants` list SsoLogin / TenantProvider persist. Deliberately NOT the SDK's
+ * `useIsAdmin()`: that answers for the SDK's *current* tenant, which can
+ * differ from the org this app is pinned to.
+ */
+export function isTenantAdmin(): boolean {
+  return !!readTenants().find((t) => t.key === resolveAppTenant())?.is_admin;
 }

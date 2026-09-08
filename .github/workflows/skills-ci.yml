@@ -50,6 +50,9 @@ jobs:
       - name: Cross-repo links resolve
         run: node scripts/check-links.mjs
 
+      - name: Skill catalogue matches skills/ (CLAUDE.md + README.md)
+        run: node scripts/check-skill-tables.mjs
+
       - name: Adapters are regenerated
         run: |
           node scripts/build-adapters.mjs

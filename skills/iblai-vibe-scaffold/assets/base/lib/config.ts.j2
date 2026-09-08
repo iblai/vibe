@@ -30,6 +30,8 @@ const env = {
   NEXT_PUBLIC_PLATFORM_BASE_DOMAIN:
     process.env.NEXT_PUBLIC_PLATFORM_BASE_DOMAIN,
   NEXT_PUBLIC_TAURI_CUSTOM_SCHEME: process.env.NEXT_PUBLIC_TAURI_CUSTOM_SCHEME,
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+  NEXT_PUBLIC_DEFAULT_AGENT_ID: process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID,
 };
 
 const runtimeEnv = () =>
@@ -95,6 +97,9 @@ export const config = {
   apiKey: () => process.env.IBLAI_API_KEY ?? "",
   mainTenantKey: () => getEnv("NEXT_PUBLIC_MAIN_TENANT_KEY", "{{ platform_key }}"),
   supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
+  // What the browser tab and the setup screen call the app (two or three Title Case words).
+  appName: () => getEnv("NEXT_PUBLIC_APP_NAME", ""),
+  defaultAgentId: () => getEnv("NEXT_PUBLIC_DEFAULT_AGENT_ID", ""),
   tauriCustomScheme: () => getEnv("NEXT_PUBLIC_TAURI_CUSTOM_SCHEME", ""),
   platformBaseDomain: () => domain(),
 } as const;

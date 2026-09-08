@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Profile } from "@iblai/iblai-js/web-containers";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
+import { AppPreferences } from "@/components/settings/app-preferences";
 
 export default function ProfilePage() {
   const [tenantKey, setTenantKey] = useState("");
@@ -59,6 +60,9 @@ export default function ProfilePage() {
           }}
           targetTab="basic"
         />
+      </div>
+      <div className="mt-6">
+        <AppPreferences />
       </div>
     </div>
   );

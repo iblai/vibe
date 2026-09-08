@@ -19,8 +19,13 @@ import {
   mentorMiddleware,
 } from "@iblai/iblai-js/data-layer";
 import {
+  hostChatReducer,
+  chatInputSliceReducer,
   chatSliceReducerShared,
   filesReducer,
+  rbacReducer,
+  subscriptionReducer,
+  topBannerReducer,
 } from "@iblai/iblai-js/web-utils";
 
 export const iblaiStore = configureStore({
@@ -31,11 +36,15 @@ export const iblaiStore = configureStore({
     // Mentor/chat API slices
     ...mentorReducer,
 
-    // Shared chat state (messages, streaming, sessions)
+    // The SDK <Chat> selectors hard-code these slice keys (`state.chat`,
+    // `state.rbac`, …) — do not rename them.
+    chat: hostChatReducer,
+    chatInput: chatInputSliceReducer,
     chatSliceShared: chatSliceReducerShared,
-
-    // File upload state
     files: filesReducer,
+    rbac: rbacReducer,
+    subscription: subscriptionReducer,
+    topBanner: topBannerReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })

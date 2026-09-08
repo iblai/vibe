@@ -1,4 +1,5 @@
 {% raw %}
+
 /**
  * ibl.ai runtime configuration.
  *
@@ -33,6 +34,9 @@ const env = {
     process.env.NEXT_PUBLIC_PLATFORM_BASE_DOMAIN,
   NEXT_PUBLIC_MAIN_TENANT_KEY: process.env.NEXT_PUBLIC_MAIN_TENANT_KEY,
   NEXT_PUBLIC_TAURI_CUSTOM_SCHEME: process.env.NEXT_PUBLIC_TAURI_CUSTOM_SCHEME,
+  NEXT_PUBLIC_DEFAULT_AGENT_ID: process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID,
+  NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+  NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
 };
 
 declare global {
@@ -100,6 +104,17 @@ const config = {
   mainTenantKey: () => getEnv("NEXT_PUBLIC_MAIN_TENANT_KEY", ""),
   tauriCustomScheme: () => getEnv("NEXT_PUBLIC_TAURI_CUSTOM_SCHEME", ""),
   platformBaseDomain: () => domain(),
+
+  // The agent the home page chats with: the last path segment of its
+  // os.ibl.ai URL (https://os.ibl.ai/platform/<org-key>/<agent-uuid>). Empty
+  // means "not chosen yet" — /setup lets an admin pick or create one and
+  // stores the choice in the org's metadata (lib/iblai/metadata.ts); env wins
+  // when both are set.
+  defaultAgentId: () => getEnv("NEXT_PUBLIC_DEFAULT_AGENT_ID", ""),
+  // What the browser tab and the setup screen call the app. Two or three
+  // Title Case words ("Acme Support"), never a slug.
+  appName: () => getEnv("NEXT_PUBLIC_APP_NAME", ""),
+  supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
 
   // Server-only: IBLAI_API_KEY is a secret and not NEXT_PUBLIC_*, so Next.js
   // never inlines it into the client bundle — in the browser this returns "".

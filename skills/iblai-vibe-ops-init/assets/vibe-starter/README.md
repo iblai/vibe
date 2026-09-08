@@ -4,7 +4,7 @@
 
 # Vibe Starter
 
-The starting point for any ibl.ai single-page app.
+The app you actually need on ibl.ai — sign-in, an agent to talk to, users and admins, custom user and org data, memory, analytics, billing — ready to make yours.
 
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -38,7 +38,7 @@ pnpm dev
 > Always run `pnpm install` with `--ignore-scripts` to skip package
 > lifecycle (postinstall) scripts.
 
-Open [http://localhost:3000](http://localhost:3000). Unauthenticated users are redirected to `https://login.iblai.app` and returned with a session.
+Open [http://localhost:3000](http://localhost:3000). Unauthenticated users are redirected to `https://login.iblai.app` and returned with a session. The first admin to sign in lands on `/setup` to name the app and pick or create its agent. Every origin the app runs on (localhost, the deployed URL) must be in the org's allowed redirect origins, or sign-in never comes back — see [platform-lifecycle.md](https://github.com/iblai/vibe/blob/main/docs/platform-lifecycle.md).
 
 ## What is Vibe Starter
 
@@ -57,75 +57,80 @@ A pre-wired Next.js 16 + Tailwind v4 + shadcn/ui project with the [`@iblai/iblai
 
 | Feature | Description |
 |---------|-------------|
-| **Next.js 16** | App Router, TypeScript, Tailwind v4 |
-| **shadcn/ui** | new-york variant, initialized and theme-mapped to ibl.ai brand colors |
-| **SSO Authentication** | `AuthProvider`, SSO callback page, storage service, Redux store, tenant resolution |
-| **Responsive Navbar** | Logo, page links, credit balance, notification bell, profile dropdown — collapses to a hamburger drawer on mobile |
-| **Profile Page** | `/profile` — SDK `<Profile>` with editable basic info, social links, education, experience |
-| **Account Page** | `/account` — SDK `<Account>` with Organization, Management, Integrations, Advanced, Billing tabs |
-| **Notifications** | `/notifications/[[...id]]` — SDK `<NotificationDisplay>` with Inbox/Alerts and admin send |
-| **Mobile Safe Areas** | `globals.css` insets and viewport metadata wired for iOS/Android (Tauri v2 ready) |
-| **Providers** | `IblaiProviders` with Redux + Auth + Tenant + data-layer initialization |
+| **Next.js 16** | App Router, TypeScript, Tailwind v4, shadcn/ui (new-york, theme-mapped to ibl.ai brand colors) |
+| **SSO sign-in** | `AuthProvider`, SSO callback, storage service, Redux store, org resolution; a placeholder or `main` org renders an alert instead of a login loop |
+| **Home = chat** | `/` — the SDK `<Chat>` with the app's agent (`?agent=` → `NEXT_PUBLIC_DEFAULT_AGENT_ID` → the org setting saved on `/setup`); honest "No agent yet" state otherwise |
+| **Agents** | `/agents` — SDK `AgentSearch` (favorites, featured, custom, all); a card opens the chat |
+| **First-run setup** | `/setup` — admins name the app and pick or create its agent (server route with the org's authority); saved to org metadata |
+| **User / Admin mode** | Org admins get a navbar switch to view the app exactly as a member; admin links and `/admin/*` exist only in Admin mode |
+| **Admin area** | `/admin/users` (Users · Groups · Roles · Policies · Teams · Alerts + invitations), `/admin/analytics/*` (SDK tabs), `/admin/billing`, `/admin/memory`, `/admin/organization` (+ app settings form) |
+| **Custom data on the platform** | `useUserSettings` (per user × org) and `useOrgSettings` (per org, GET-merge-PUT) in `lib/iblai/metadata.ts`; example cards on `/profile` and `/admin/organization`; an admin route for other users' data |
+| **Profile · Account · Notifications** | `/profile` (SDK `Profile` + app preferences), `/account` (SDK `Account`), `/notifications/[[...id]]` (SDK `NotificationDisplay`) |
+| **Server helper** | `lib/iblai/platform.ts` — `platformFetch` (Api-Token), `verifyCaller`, `requireAdmin` for any REST call without a component |
+| **Tests** | Vitest (config, tenant, metadata, platform helper) and Playwright journeys (auth, member, admin) with `e2e/COVERAGE.md` |
+| **Mobile safe areas** | `globals.css` insets and viewport metadata wired for iOS/Android (Tauri v2 ready) |
 
 ## Adding Features
 
-This starter is auth-ready, so any ibl.ai feature skill works out of the box. Use them directly in Claude Code with `/` commands:
+Any ibl.ai skill works out of the box. The ones this starter already uses are marked ✓:
 
 ```text
-/iblai-vibe-agent-chat      # In-process agent chat surface
-/iblai-vibe-analytics       # Analytics dashboard
-/iblai-vibe-credit          # Credit balance widget (already wired in the navbar)
-/iblai-vibe-invite          # User invitation dialogs
-/iblai-vibe-workflow        # Workflow builder
-/iblai-vibe-course-access   # edX course-content pages
-/iblai-vibe-course-create   # Generate, edit, and publish edX courses
-/iblai-vibe-onboard         # Onboarding questionnaire flow
-/iblai-vibe-component       # Browse all available components
-/iblai-vibe-ops-build       # Build and run on desktop and mobile
-/iblai-vibe-ops-deploy      # Deploy via ibl.ai hosting (Vercel)
-/iblai-vibe-ops-test        # Test before showing work
-/iblai-vibe-ops-upgrade     # Upgrade SDK and skills to latest
-/iblai-vibe-agent-search    # Agent search/browse page
-/iblai-vibe-agent-setting   # Agent Settings tab
-/iblai-vibe-agent-access    # Agent Access tab (RBAC)
-/iblai-vibe-agent-api       # Agent API tab
-/iblai-vibe-agent-dataset   # Agent Datasets tab
-/iblai-vibe-agent-disclaimer # Agent Disclaimers tab
-/iblai-vibe-agent-embed     # Agent Embed tab
-/iblai-vibe-agent-history   # Agent History tab
-/iblai-vibe-agent-llm       # Agent LLM tab
-/iblai-vibe-agent-memory    # Agent Memory tab
-/iblai-vibe-agent-prompt    # Agent Prompts tab
-/iblai-vibe-agent-safety    # Agent Safety tab
-/iblai-vibe-agent-tool      # Agent Tools tab
+/iblai-vibe-agent-chat      ✓ customize the chat on /
+/iblai-vibe-agent-search    ✓ /agents
+/iblai-vibe-agent-create    ✓ /setup + /api/admin/agents
+/iblai-vibe-agent           # configure an agent (24 tabs, one provider)
+/iblai-vibe-user-metadata   ✓ per-user settings
+/iblai-vibe-org-metadata    ✓ per-org settings
+/iblai-vibe-admin           ✓ User/Admin mode + admin area
+/iblai-vibe-invite          ✓ on /admin/users
+/iblai-vibe-analytics       ✓ /admin/analytics
+/iblai-vibe-billing         ✓ /admin/billing
+/iblai-vibe-memory          ✓ /admin/memory
+/iblai-vibe-memory-guide    # what memory means for your app
+/iblai-vibe-pricing         # how money works; charge your users
+/iblai-vibe-credit          ✓ credit widget in the navbar (paywall-enabled orgs)
+/iblai-vibe-api             ✓ lib/iblai/platform.ts — REST without a component
+/iblai-vibe-onboard         # onboarding questionnaire flow
+/iblai-vibe-ops-deploy      # ship to a URL
+/iblai-vibe-ops-build       # macOS, Windows, iOS, Android
+/iblai-vibe-ops-release     # App Store / Google Play
+/iblai-vibe-ops-test        # test before showing work
+/iblai-vibe-ops-upgrade     # upgrade SDK and skills
 ```
 
-Marketing skills (landing pages, screenshots, CRO, SEO, and more) live in
-the companion [iblai/vibe-marketing](https://github.com/iblai/vibe-marketing)
-repo: `npx skills add iblai/vibe-marketing`.
-
-See `CLAUDE.md` for the full component priority guide and the complete skill list.
+See `AGENTS.md` (also `CLAUDE.md`) for the "what the user says → which skill" table.
 
 ## Project Layout
 
 ```
 app/
-  (app)/                          # Authenticated pages (wrapped with navbar)
-    layout.tsx                    # Renders <NavBar> + <NavigationDrawer>
-    page.tsx                      # Home
-    profile/page.tsx              # SDK <Profile>
+  (app)/                          # Signed-in pages (navbar + drawer + User/Admin mode)
+    layout.tsx                    # Session, AdminModeProvider, member vs admin links, /admin gate
+    page.tsx                      # Home: SDK <Chat> with the app's agent (+ empty state)
+    agents/page.tsx               # SDK <AgentSearch>
+    profile/page.tsx              # SDK <Profile> + AppPreferences
     account/page.tsx              # SDK <Account>
     notifications/[[...id]]/      # SDK <NotificationDisplay>
-  sso-login-complete/             # SSO callback (outside route group)
-  layout.tsx                      # Root layout — wraps with <IblaiProviders>
+    admin/                        # Admin mode only
+      users/  analytics/  billing/  memory/  organization/
+  setup/page.tsx                  # First-run (admins): app name, pick/create agent
+  api/admin/                      # agents (list/create), user-metadata (other users)
+  sso-login-complete/             # SSO callback (outside the route group)
+  layout.tsx                      # Root layout — <IblaiProviders>
 components/
-  navbar/                         # nav-bar, navigation-drawer, logo, credit-balance-widget, user-profile-button
-  ui/                             # shadcn/ui components
-lib/iblai/                        # config, storage-service, auth-utils, tenant
-providers/iblai-providers.tsx     # Redux + Auth + Tenant providers
-store/iblai-store.ts              # RTK store
-.env.example                      # Copy to .env.local — tenant key + IBLAI_API_KEY (URLs default in code)
-iblai.env.example                 # Copy to iblai.env — platform shorthand (DOMAIN, PLATFORM, TOKEN)
+  navbar/                         # nav-bar, navigation-drawer, logo, user-profile-button, admin-mode-switch
+  admin/                          # account-panel (SDK Account by tab), analytics-page
+  settings/                       # app-preferences (user), org-settings (org)
+  setup/                          # setup-screen
+  ui/                             # shadcn/ui
+lib/iblai/                        # config, storage-service, auth-utils, tenant, admin-mode, metadata(-core), platform, admin-client
+providers/iblai-providers.tsx     # Redux + Auth + Tenant + service worker + toaster
+store/iblai-store.ts              # RTK store (slice keys fixed by the SDK)
+public/sw.js                      # Offline service worker the SDK <Chat> registers
+e2e/                              # Playwright journeys + COVERAGE.md
+.env.example                      # → .env.local: org key, IBLAI_API_KEY, optional agent/app name
+iblai.env.example                 # → iblai.env: DOMAIN, PLATFORM, TOKEN
+.mcp.json                         # @iblai/mcp for your AI assistant (pnpm dlx)
 ```
 
 ## AI-Assisted Development
@@ -153,6 +158,7 @@ create_page_template("Dashboard", "mentor")   # Generate a page following ibl.ai
 | Analytics Dashboard | Yes | Yes | Yes | Yes | Yes |
 | Notifications | Yes | Yes | Yes | Yes | Yes |
 | Credit Balance | Yes | Yes | Yes | Yes | Yes |
+| Admin area | Yes | Yes | Yes | Yes | Yes |
 
 > **iOS & Android SSO:** mobile WebViews are rejected by SSO providers, so the Tauri shell opens sign-in in the system browser (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android) and returns through a deep link. Set `TAURI_CUSTOM_SCHEME` in `iblai.env` — see [`/iblai-vibe-ops-build`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-build/SKILL.md) “Mobile SSO”.
 

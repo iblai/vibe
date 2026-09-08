@@ -44,7 +44,10 @@ const reactReduxDir = dedup("react-redux");
 if (reactReduxDir) resolveAliases["react-redux"] = reactReduxDir;
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The SDK's useVoiceChat never resets its isMounted ref after StrictMode's
+  // dev double-mount, wedging voice input at "Processing…". Host workaround
+  // (see /iblai-vibe-agent-chat "Known issues"); production runs effects once.
+  reactStrictMode: false,
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
