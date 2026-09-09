@@ -1,6 +1,6 @@
 # iblai-vibe-monetization
 
-> Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-monetization-app-paywall to charge for the whole app (pay-to-enter on the platform's own Stripe account, no Express Connect), /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
+> Reference and family index for ibl.ai's item-level monetization system — Stripe Connect Express, paywalls, per-item pricing tiers, checkout, subscriptions, and revenue analytics. Distinct from /iblai-vibe-credit (Platform-wide credit balances). Use when the user mentions monetization, paywalls, item sales, Stripe Connect, pricing, subscriptions, or asks where a monetization workflow lives. See /iblai-vibe-monetization-onboard for Connect onboarding, /iblai-vibe-monetization-configure for the admin MonetizationTab + wizard, /iblai-vibe-monetization-checkout for the PaywallModal + access-check + Stripe checkout (incl. guest/public buy), /iblai-vibe-monetization-subscription for the user PurchasesTab + cancel flow, /iblai-vibe-monetization-analytics for revenue and subscribers, /iblai-vibe-monetization-app-paywall to charge for the whole app (pay-to-enter on the organization's own Stripe account, no Express Connect), /iblai-vibe-credit for Platform-wide credits, /iblai-vibe-auth for token wiring.
 
 # /iblai-vibe-monetization
 
@@ -11,22 +11,6 @@ authentication, the live OpenAPI schema, the two Platform flags, the
 RTK Query data layer, RBAC, and points at every workflow sub-skill.
 Start here for orientation, then jump to the sub-skill that matches the
 surface you are building.
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -257,7 +241,7 @@ Two non-obvious rules:
 | `/iblai-vibe-monetization-checkout` | Build UI | `PaywallModal` + access-check (402-as-success) + Stripe checkout for authenticated buyers; public pricing + guest checkout for anonymous buy pages |
 | `/iblai-vibe-monetization-subscription` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
 | `/iblai-vibe-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
-| `/iblai-vibe-monetization-app-paywall` | Build app gate | Whole-app "pay to enter" gate on the platform's OWN Stripe account (a pasted restricted key, or Connect with Stripe — OAuth, no key typed) via the DM Stripe proxy paywall endpoints — server routes + `PaywallGate` + `/paywall` pricing page, or the member's browser on their own token. No Express Connect, no commission |
+| `/iblai-vibe-monetization-app-paywall` | Build app gate | Whole-app "pay to enter" gate on the organization's OWN Stripe account (a pasted restricted key, or Connect with Stripe — OAuth, no key typed) via the DM Stripe proxy paywall endpoints — server routes + `PaywallGate` + `/paywall` pricing page, or the member's browser on their own token. No Express Connect, no commission |
 
 When in doubt, the natural sequence is:
 1. **Onboard** — Platform owner connects Stripe Connect (`/iblai-vibe-monetization-onboard`)
@@ -266,7 +250,7 @@ When in doubt, the natural sequence is:
 4. **Subscriptions** — Subscriber views and cancels their purchases (`/iblai-vibe-monetization-subscription`)
 5. **Analytics** — Platform admin watches revenue and subscribers (`/iblai-vibe-monetization-analytics`)
 
-Selling access to the whole app rather than items sits outside this sequence — it runs on the platform's own Stripe account (a pasted key, or Connect with Stripe: OAuth, not the Express onboarding above). See `/iblai-vibe-monetization-app-paywall`.
+Selling access to the whole app rather than items sits outside this sequence — it runs on the organization's own Stripe account (a pasted key, or Connect with Stripe: OAuth, not the Express onboarding above). See `/iblai-vibe-monetization-app-paywall`.
 
 ## Important notes
 
@@ -400,7 +384,7 @@ ones relevant to its surface.
 - `/iblai-vibe-monetization-checkout` — `PaywallModal`, access check, Stripe checkout, guest buy
 - `/iblai-vibe-monetization-subscription` — user `PurchasesTab` and cancel flow
 - `/iblai-vibe-monetization-analytics` — revenue, subscribers, paywalls list
-- `/iblai-vibe-monetization-app-paywall` — whole-app pay-to-enter gate on the platform's own Stripe account (DM Stripe proxy; a pasted key or Connect with Stripe; no Express Connect, no commission)
+- `/iblai-vibe-monetization-app-paywall` — whole-app pay-to-enter gate on the organization's own Stripe account (DM Stripe proxy; a pasted key or Connect with Stripe; no Express Connect, no commission)
 - `/iblai-vibe-credit` — Platform-wide credits (different product — read the "vs credits" table above)
 - `/iblai-vibe-auth` — Token wiring; every monetization call uses `Authorization: Token <token>`
 - `/iblai-vibe-account` — Account page that hosts the admin `MonetizationTab`

@@ -35,7 +35,7 @@ is closed-source in the apps that have it today.
 
 ## Prerequisites
 
-1. Tauri shell wired up via [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md)
+1. Tauri shell wired up via [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
    (adds `src-tauri/` + `pnpm install`). The skill assumes
    `src-tauri/` already exists. **Heads-up:** on an app that already has
    a non-trivial `next.config.mjs`, adding the Tauri shell can mis-merge its
@@ -290,7 +290,7 @@ the Foundry-specific command names and lifecycle.
 
 ## Related skills
 
-- [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md) — adds the Tauri shell this skill depends on.
-- [`/iblai-vibe-account`](../iblai-vibe-account/SKILL.md) — Account / settings surface that consumes `localLLMProps`.
-- [`/iblai-vibe-agent-chat`](../iblai-vibe-agent-chat/SKILL.md) — chat surface that routes through the local model.
-- [`/iblai-vibe-agent-llm`](../iblai-vibe-agent-llm/SKILL.md) — the per-agent LLM-provider Settings tab.
+- [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md) — adds the Tauri shell this skill depends on.
+- [`/iblai-vibe-account`](../../organizations/iblai-vibe-account/SKILL.md) — Account / settings surface that consumes `localLLMProps`.
+- [`/iblai-vibe-agent-chat`](../../agents/iblai-vibe-agent-chat/SKILL.md) — chat surface that routes through the local model.
+- [`/iblai-vibe-agent-llm`](../../agents/iblai-vibe-agent-llm/SKILL.md) — the per-agent LLM-provider Settings tab.

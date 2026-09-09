@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  STARTER_DIR: skills/iblai-vibe-ops-init/assets/vibe-starter
+  STARTER_DIR: skills/start/iblai-vibe-ops-init/assets/vibe-starter
 
 jobs:
   # ---------------------------------------------------------------- tier 0/1/1.5
@@ -50,6 +50,12 @@ jobs:
       - name: Cross-repo links resolve
         run: node scripts/check-links.mjs
 
+      - name: Skill catalogue matches skills/ (CLAUDE.md + docs/catalogue.md)
+        run: node scripts/check-skill-tables.mjs
+
+      - name: Every skill declares a valid metadata.kind
+        run: node scripts/check-skill-kinds.mjs
+
       - name: Adapters are regenerated
         run: |
           node scripts/build-adapters.mjs
@@ -78,7 +84,7 @@ jobs:
         env:
           HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         run: |
-          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- skills/ | awk -F/ '{print $2}' | sort -u | tr '\n' ' ')
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- skills/ | awk -F/ '{print $3}' | sort -u | tr '\n' ' ')
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           echo "has_key=$HAS_KEY" >> "$GITHUB_OUTPUT"
           [ -z "$changed" ] && echo "No skills changed — agent tier skipped." || true

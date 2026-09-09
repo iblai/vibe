@@ -1,0 +1,181 @@
+---
+description: "When there is no SDK component or hook for what the user wants, the ibl.ai REST API is fair game — this skill is the bridge. It gives the one rule (browser → SDK hooks with the session token; server → Api-Token, never in client code), a 30-line server helper, the admin-verification pattern, three worked examples (admin writes another user's metadata, create an agent, send a notification), and the map from a need to the exact `iblai-api-*` skill that documents the endpoints. Use when the user says \"there's no component for\", \"call the API\", \"endpoint\", \"REST\", \"server route\", \"backend call\", or asks for a platform feature the vibe skills don't cover. The `iblai-api-*` skills (kind api) install with this repo."
+globs:
+alwaysApply: false
+---
+
+# /iblai-vibe-api
+
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
+Every `/iblai-vibe-*` skill mounts an SDK component. When none exists for
+what the user wants, do not build a workaround in the browser — call the
+platform's REST API from a Next.js route handler with the org's Platform API
+Token. Everything the platform can do is reachable that way; the
+`iblai-api-*` skills (kind `api`, same repo) document each endpoint
+(method, URL, body, errors).
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+> Terms: [docs/glossary.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/glossary.md).
+
+## The one rule
+
+| Where the code runs | Credential | Header | Use for |
+|---|---|---|---|
+| **Browser** (client components) | the signed-in user's session token, attached by the SDK automatically | `Authorization: Token <dm_token>` | everything an SDK hook or component offers; acts *as the user*, with the user's permissions |
+| **Server** (route handlers, server actions) | `IBLAI_API_KEY` (= `TOKEN` in `iblai.env`) via `config.apiKey()` | `Authorization: Api-Token <key>` | anything without a hook, and anything that needs the org's authority (admin writes, cross-user reads, creating agents, sending notifications) |
+| Server, OpenAI-compatible `/v1` only | the same key | `Authorization: Bearer <key>` | chat completions / model listing on `https://asgi.data.<domain>/api/ai-mentor/orgs/<org>/v1` |
+
+Never prefix the key with `NEXT_PUBLIC_`, never read it outside server files,
+never send it to the browser. `config.apiKey()` returns `""` in the browser
+by design.
+
+## Step 1: Install the helper
+
+Render [`assets/platform.ts.j2`](assets/platform.ts.j2) → `lib/iblai/platform.ts`.
+It exports:
+
+- `platformFetch(path, init?)` — server-only `fetch` against
+  `https://api.<DOMAIN>` with the `Api-Token` header, JSON in/out, and a
+  typed `PlatformError` carrying the platform's status and body.
+- `verifyCaller(req)` — reads the `Authorization: Token <dm_token>` the
+  browser forwards, calls `GET /dm/api/core/token/verify/`, and returns the
+  caller's `username`; `null` when the token is missing or rejected.
+- `requireAdmin(req)` — `verifyCaller` plus an org-membership check that the
+  caller is an **admin** of `NEXT_PUBLIC_MAIN_TENANT_KEY` (via
+  `GET /dm/api/core/platform/users/?platform_key=&query=<username>`), or a
+  `401`/`403` `NextResponse`.
+
+The browser side sends its token like this (already how vibe-starter's
+`lib/iblai/metadata.ts` does it):
+
+```ts
+const token = localStorage.getItem("dm_token") ?? "";
+await fetch("/api/admin/whatever", {
+  method: "POST",
+  headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+});
+```
+
+## Step 2: Write the route
+
+Render [`assets/route-example.ts.j2`](assets/route-example.ts.j2) →
+`app/api/admin/example/route.ts` as the pattern to copy: verify the caller,
+validate the body, call the platform, return its answer, map errors.
+
+Status mapping to keep: platform `401` → your `401`; `403` → `403` (not an
+admin / not allowed); `404` → `404`; `429` → `429` (spend cap hit — pass the
+body through, it names the interval); anything else → `502` with the
+platform's message.
+
+## Three worked examples
+
+### A · An admin writes another user's metadata
+
+Only org admins may target `&username=<other>`; the SDK hook has no such
+parameter, so it is a server call.
+
+```ts
+// inside a route handler, after requireAdmin(req)
+await platformFetch(
+  `/dm/api/core/users/platform-metadata/?platform_key=${org}&username=${encodeURIComponent(target)}`,
+  { method: "PATCH", body: { metadata: { role_label: "mentor" }, delete_keys: [] } },
+);
+```
+
+Reference: [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile-metadata/SKILL.md).
+
+### B · Create an agent
+
+```ts
+const agent = await platformFetch<{ unique_id: string }>(
+  `/dm/api/ai-mentor/orgs/${org}/users/${caller.username}/mentor-with-settings/`,
+  {
+    method: "POST",
+    body: {
+      template_name: "ai-mentor",
+      new_mentor_name: name,
+      display_name: name,
+      description,
+      system_prompt: systemPrompt,
+    },
+  },
+);
+// agent.unique_id is the UUID every other agent skill needs
+```
+
+Reference: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-create/SKILL.md); the full UI pattern is `/iblai-vibe-agent-create`.
+
+### C · Send a notification to a user
+
+```ts
+await platformFetch(`/dm/api/notifications/orgs/${org}/send/`, {
+  method: "POST",
+  body: { username: target, title: "Welcome", body: "Your account is ready." },
+});
+```
+
+Confirm the exact path and body in
+[notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-notification/SKILL.md)
+before shipping — notification sending is outward-facing; confirm the
+recipient list with the user first.
+
+## Which `iblai-api-*` skill documents what
+
+They install with the rest of this repo's skills (`npx skills add iblai/vibe --all`); raw links resolve without installing.
+The five families most apps read or write are marked ★.
+
+| Need | Skill |
+|---|---|
+| ★ Per-user custom data (preferences, flags, onboarding, app state) | [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile-metadata/SKILL.md) |
+| ★ The user's own profile (name, bio, image, education, résumé) | [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile/SKILL.md) |
+| ★ Agent identity, visibility, capability flags; fork; delete | [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md) |
+| ★ Memory: global, per-agent, agent knowledge, toggles | [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md) |
+| ★ Analytics: usage, users, topics, transcripts, costs, per-user, audit, reports | [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md) |
+| Org settings (default agent, help URL, toggles, your keys) | [org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-org/SKILL.md) |
+| Users, groups, roles, policies, teams, alerts | [management](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-management/SKILL.md), [rbac](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-rbac/SKILL.md) |
+| Invitations (single, CSV) | [invite](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-invite/SKILL.md) |
+| Directory sync (SCIM 2.0) | [scim](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-scim/SKILL.md) |
+| Create an agent; chat over REST/SSE/WebSocket; sessions | [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-create/SKILL.md), [agent-session](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-session/SKILL.md), [agent-chat](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-chat/SKILL.md) |
+| Agent tabs: prompts, LLM, datasets, tools, access, embed, MCP, safety, privacy, evals, audit, history, sandbox, skills, support, disclaimers | `iblai-api-agent-<tab>` — see `/iblai-vibe-agent` for the map |
+| LLM inference with the platform key (OpenAI-compatible) | [inference](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-inference/SKILL.md) |
+| Search agents and content; recommendations | [search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-search/SKILL.md) |
+| Notifications: counts, inbox, mark read, send | [notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-notification/SKILL.md) |
+| Credits, paywalls, checkout, subscriptions, revenue | [billing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-api-billing/SKILL.md) |
+| Spend caps (org / agent / user) | [spend-caps](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-api-spend-caps/SKILL.md) |
+| Per-user feature config, app onboarding flags, trials | [feature](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-feature/SKILL.md) |
+| API tokens; LLM / data-source credentials | [token](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-token/SKILL.md), [integration](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-integration/SKILL.md) |
+| Courses, programs, catalog, milestones, credentials, media, applications | [catalog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-api-catalog/SKILL.md), [course-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-api-course-create/SKILL.md), [milestone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-api-milestone/SKILL.md), [credential](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-api-credential/SKILL.md), [apply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-api-apply/SKILL.md) |
+| CRM (people, deals, pipelines) | [crm](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-crm/SKILL.md) |
+| Third-party AI services through the platform (ElevenLabs, HeyGen) | [external-service-proxy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-external-service-proxy/SKILL.md) |
+| Self-hosting the backend | [infrastructure](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-api-infrastructure/SKILL.md) |
+
+## The schema is the contract
+
+Before constructing any URL not copied from a skill, confirm it exists in the
+live OpenAPI schema:
+
+```bash
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-); DOMAIN=${DOMAIN:-iblai.app}
+curl -sS -o /tmp/iblai_schema.yaml "https://api.$DOMAIN/dm/api/docs/schema/"
+grep -nE "^  /api/core/users/platform-metadata" /tmp/iblai_schema.yaml
+```
+
+Browsable at `https://api.iblai.app/dm/api/docs/`. Gateway rule: DM routes
+are called with the `/dm` prefix (`/api/core/…` → `/dm/api/core/…`); edX
+routes with `/lms`.
+
+## Verify
+
+1. `pnpm typecheck` and `pnpm test` (the helper ships with a unit test in
+   `assets/platform.test.ts.j2` → `__tests__/platform.test.ts`).
+2. Exercise the route with a signed-in browser (the token header) — expect
+   `401` without it, `403` as a non-admin, `200` as an admin.
+3. Nothing prints the key: `grep -rn "IBLAI_API_KEY" app components lib | grep -v "config.apiKey\|process.env.IBLAI_API_KEY"` returns nothing.
+
+## Related skills
+
+- `/iblai-vibe-user-metadata`, `/iblai-vibe-org-metadata`, `/iblai-vibe-agent-create` — the three common cases, done end to end
+- `/iblai-vibe-admin` — gating admin-only routes and pages
+- `/iblai-vibe-ops-deploy` — the server env (`IBLAI_API_KEY`) on the hosting platform

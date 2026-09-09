@@ -23,7 +23,7 @@ Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
 is not installed. The generated app should live in the current directory,
 not in a subdirectory.
 
-When building a navbar or header, do NOT display the tenant/platform name.
+When building a navbar or header, do NOT display the organization/platform name.
 Use the ibl.ai logo instead.
 
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
@@ -86,7 +86,7 @@ When the project has its own design system:
 If you find none of the signals above, the project has no design
 system yet — use the patterns in **Layout & Page Patterns** as the
 starting point. Those defaults are derived from
-[vibe-starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) and the
+[vibe-starter](https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) and the
 reference apps in [`iblai/vibe`](https://github.com/iblai/vibe).
 
 ### Tell the user what you detected
@@ -116,7 +116,7 @@ if those assets are not installed (tell the user which path you took):
 ```bash
 cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
 # or, without local assets:
-git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 
 pnpm install --ignore-scripts
 ```
@@ -127,10 +127,10 @@ Fill `iblai.env` with `PLATFORM`/`TOKEN`, then map them into `.env.local`
 (`NEXT_PUBLIC_MAIN_TENANT_KEY` ← `PLATFORM`, `IBLAI_API_KEY` ← `TOKEN`).
 
 To build up from a bare Next.js app instead, start with
-`npx create-next-app@latest`, run the [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md)
+`npx create-next-app@latest`, run the [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md)
 skill (it creates the auth files), then add features with the skills below.
 The whole-app scaffold (base/agent project templates) lives in
-[`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md).
+[`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md).
 
 ## Available Components
 

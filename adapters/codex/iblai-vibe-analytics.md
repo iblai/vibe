@@ -4,15 +4,17 @@
 
 # /iblai-vibe-analytics
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add an analytics dashboard with a tabbed layout (`AnalyticsLayout`):
 Overview, Courses, Programs, Users, Topics, Financial, Transcripts,
 Reports. Each tab is a Next.js route under `/analytics/`.
 
-![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-analytics/analytics-page.png)
+![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/analytics-page.png)
 
 > **Template:** the page this skill creates is bundled as
 > [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
 mode unless asked. Follow the component hierarchy: ibl.ai SDK
@@ -24,7 +26,7 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
-- **API companion (recommended):** `npx skills add iblai/api`. Installs
+- **API companion (recommended):** `npx skills add iblai/vibe --all`. Installs
   the `/iblai-api-analytics` REST reference and a filtered snapshot of the
   live OpenAPI schema. This skill (frontend wiring) and that one (API
   contract) stay in lockstep.
@@ -122,22 +124,22 @@ npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
 
 ---
 
-# Analytics REST API — see `/iblai-api-analytics` in `iblai/api`
+# Analytics REST API — see `/iblai-api-analytics` (headless twin)
 
 Every analytics endpoint and Data Report — URLs, required params, RBAC
 role names, response shapes — lives in the companion skill
-[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
-in the [`iblai/api`](https://github.com/iblai/api) repo. Install once
+[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
+in this repo (kind `api`). Installed with the rest of the skills
 and it stays in sync with the backend:
 
 ```bash
-npx skills add iblai/api
+npx skills add iblai/vibe --all
 ```
 
 Then `/iblai-api-analytics` covers auth, the schema-first workflow, the
 analyst-shaped endpoint groupings (Overview / Costs / Users & engagement
 / Topics & conversations / Transcripts / Sessions & ratings / Course /
-Program / Pathway & skill / Per-learner / Time-on-platform), the async
+Program / Pathway & skill / Per-user / Time-on-platform), the async
 Data Reports lifecycle, and a local snapshot of the live OpenAPI schema
 at `references/analytics-schema.json`.
 
@@ -145,7 +147,7 @@ at `references/analytics-schema.json`.
 > `{dm_url}/api/docs/schema/?format=json` (browsable at `{dm_url}/api/docs/`;
 > `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default
 > `iblai.app`). Consult it before writing any
-> analytics request. The `iblai/api` skill's `references/schema.md`
+> analytics request. The `/iblai-api-analytics` skill's `references/schema.md`
 > gives the fetch + drift-check routine.
 
 ## In this app (frontend wiring)

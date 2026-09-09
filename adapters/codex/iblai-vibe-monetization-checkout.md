@@ -8,10 +8,6 @@ Build the buyer surface: gate a page with `useCheckAccessQuery`, render
 `PaywallModal` when locked, redirect to Stripe Checkout on tier select,
 and ship a public/guest buy page for anonymous landing-page traffic.
 
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
 When building custom UI around SDK components, use the ibl.ai brand
 (primary `#0058cc`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`,
 shadcn/ui new-york variant). Component hierarchy: ibl.ai SDK
@@ -19,22 +15,9 @@ shadcn/ui new-york variant). Component hierarchy: ibl.ai SDK
 do NOT write custom components when an SDK or shadcn equivalent exists.
 Full brand reference: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md).
 
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
 
 > **`{dm_url}` + DM token.** Every checkout endpoint lives under the **DM
 > base** — `{dm_url}` resolves to your data-manager host (e.g.
@@ -51,7 +34,7 @@ not in a subdirectory.
 > — buyer routes also short-circuit cleanly on disabled paywalls in the
 > canonical form** (see "Canonical buyer 404" below). The shipped SDK
 > hooks still build composite URLs; that is documented in each step. Full
-> mapping in [`/iblai-vibe-monetization → references/api-overview.md`](../iblai-vibe-monetization/references/api-overview.md).
+> mapping in [`/iblai-vibe-monetization → references/api-overview.md`](../../billing/iblai-vibe-monetization/references/api-overview.md).
 
 > **Canonical buyer 404.** Canonical buyer routes (`checkout`,
 > `checkout-guest`, `items/prices/{price_unique_id}/checkout/`,
@@ -106,7 +89,7 @@ this skill live in:
   the two public-pricing endpoints (by `(type, id)` and by config uuid).
 
 When this skill and the live schema disagree, the schema wins. See
-[`/iblai-vibe-monetization → references/schema-validation.md`](../iblai-vibe-monetization/references/schema-validation.md).
+[`/iblai-vibe-monetization → references/schema-validation.md`](../../billing/iblai-vibe-monetization/references/schema-validation.md).
 
 ## Step 2: Check access on page load
 
@@ -281,123 +264,7 @@ point `success_url` at the buy page.
 
 ## Step 5: Public / guest buy page
 
-For logged-out landing pages and shareable buy links, build a standalone
-page that pulls public pricing and creates a guest checkout. Both calls
-are `AllowAny` on the server — no Authorization header is sent.
-
-### 5.1 Fetch public pricing
-
-There are three public-pricing endpoints — all `AllowAny`. Prefer the
-canonical (`item_unique_id`-keyed) forms for new client code; the
-composite form remains valid:
-
-| URL | Form | Hook | Used when |
-|---|---|---|---|
-| `GET {dm_url}/api/billing/items/{item_unique_id}/pricing/` | **Canonical (recommended)** | direct fetch (no slice hook) | You have the paywall config's `unique_id`. New buy pages should prefer this URL. |
-| `GET {dm_url}/api/billing/items/{item_unique_id}/public-pricing/` | **Canonical (legacy alias)** | direct fetch (no slice hook) | Same response; kept for buy links of the form `${authURL}/buy/{paywallUniqueId}`. |
-| `GET {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/pricing/` | Composite (legacy) | `useGetPublicPricingQuery({ platform_key, item_type, item_id })` | You already resolved `(platform_key, item_type, item_id)`. The SDK hook still builds this URL. |
-
-```tsx
-'use client';
-
-import { useGetPublicPricingQuery } from '@iblai/iblai-js/data-layer';
-
-export function GuestBuyPage({ itemType, itemId }: { itemType: string; itemId: string }) {
-  const platformKey = process.env.NEXT_PUBLIC_PLATFORM_KEY!;
-  const { data, isLoading } = useGetPublicPricingQuery({
-    platform_key: platformKey,
-    item_type: itemType,
-    item_id: itemId,
-  });
-
-  if (isLoading || !data) return <PageSkeleton />;
-  if (!data.is_paywalled || data.prices.length === 0) return <FreeItem />;
-
-  return <GuestPricingGrid pricing={data} platformKey={platformKey} itemType={itemType} itemId={itemId} />;
-}
-```
-
-Response shape from `useGetPublicPricingQuery`:
-
-```json
-{
-  "item_type": "mentor", "item_id": "my-mentor-slug",
-  "item_name": "Pro Mentor", "is_paywalled": true,
-  "allow_free_tier": false, "trial_period_days": 7,
-  "prices": [
-    { "unique_id": "<price-uuid>", "name": "Monthly", "amount": "15.00",
-      "currency": "usd", "interval": "month", "is_active": true,
-      "features": ["Unlimited chat"] }
-  ]
-}
-```
-
-### 5.2 Create the guest checkout session
-
-The guest can pay via two backend entry points. The slice exposes only
-`useCreateGuestCheckoutMutation` (URL-pinned to the by-item endpoint).
-For the by-price URL (`POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/`),
-call `fetch` directly — there is no hook (`useCreateGuestCheckoutByPriceMutation`
-has never existed, this is not version drift).
-
-| Server URL | Form | Hook (in slice) | Use when |
-|---|---|---|---|
-| `POST {dm_url}/api/billing/items/{item_unique_id}/checkout-guest/` | **Canonical (recommended)** | direct fetch | You have the paywall config's `unique_id` — preferred for new buy pages. |
-| `POST {dm_url}/api/billing/prices/{price_unique_id}/checkout-guest/` | **Canonical (recommended)** | direct fetch | You only have the price uuid (e.g. a one-click Buy link). The backend derives Platform/item from the price. |
-| `POST {dm_url}/api/billing/platforms/{platform_key}/items/{item_type}/{item_id}/checkout-guest/` | Composite (legacy) | `useCreateGuestCheckoutMutation` | You already resolved `(platform_key, item_type, item_id)`. The SDK hook still builds this URL. |
-
-```tsx
-import { useCreateGuestCheckoutMutation } from '@iblai/iblai-js/data-layer';
-
-const [createGuestCheckout, { isLoading }] = useCreateGuestCheckoutMutation();
-
-async function handleGuestBuy(priceId: string, email: string) {
-  const result = await createGuestCheckout({
-    platform_key: platformKey,
-    item_type: itemType,
-    item_id: itemId,
-    price_id: priceId,
-    email,
-    success_url: 'https://example.com/welcome',
-    cancel_url: 'https://example.com/pricing',
-  }).unwrap();
-  window.location.href = result.checkout_url;
-}
-```
-
-Wrap `handleGuestBuy` in a `<form>` with `<input type="email" required>`
-so the browser handles validation before calling the mutation. The
-server creates the Stripe customer behind the scenes; the buyer never
-logs in. After a successful charge the webhook materializes the
-`ItemSubscription` and email is the identity used to look up the row.
-
-For the by-price entry point, when no hook exists, fetch directly.
-Compose the **DM base** explicitly — the checkout endpoints live on DM,
-not the AXD edge:
-
-```ts
-async function buyByPriceUuid(priceUuid: string, email: string) {
-  // DM base — never hit ${NEXT_PUBLIC_API_BASE_URL}/api/... directly.
-  const dmBase = `${process.env.NEXT_PUBLIC_API_BASE_URL}/dm`;
-  const res = await fetch(
-    `${dmBase}/api/billing/prices/${priceUuid}/checkout-guest/`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        success_url: 'https://example.com/welcome',
-        cancel_url: 'https://example.com/pricing',
-      }),
-    },
-  );
-  const { checkout_url } = await res.json();
-  window.location.href = checkout_url;
-}
-```
-
-No auth header; the server resolves the Platform + item from the price
-uuid and delegates internally to the standard guest checkout.
+A logged-out visitor can buy a single item: fetch public pricing (`…/pricing/`, no auth), create a guest checkout session (`…/checkout-guest/`), hand off to Stripe, return through the callback. Both calls, the page code, and the error table are in [`references/guest-buy.md`](references/guest-buy.md).
 
 ## Step 6: Unscoped access check (for cross-Platform embeds)
 

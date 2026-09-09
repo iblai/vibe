@@ -9,7 +9,7 @@ widget shows the user's remaining credits, current plan, and exposes the
 upgrade / add-credits / manage-billing flows. It uses Stripe under the
 hood and is rendered by the SDK — do not build a custom version.
 
-![Credit Balance](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-credit/credit-balance.png)
+![Credit Balance](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-credit/credit-balance.png)
 
 Do NOT add custom styles, colors, or CSS overrides to the
 `<CreditBalance>` component. It ships with its own styling, including
@@ -49,8 +49,8 @@ The widget MUST follow the canonical integration:
 - `@iblai/iblai-js` SDK installed
 - Tailwind v4 with the SDK `@source` directives configured (see
   Step 1 below)
-- The tenant must have paywall enabled (`currentTenant.show_paywall === true`).
-  The widget is a no-op for tenants that don't sell credits.
+- The organization must have paywall enabled (`currentTenant.show_paywall === true`).
+  The widget is a no-op for organizations that don't sell credits.
 
 ## What this skill creates
 
@@ -62,7 +62,7 @@ This skill does not generate any new files — it wires
   generates the SDK's internal classes (the trigger icon depends on
   this — without it, the icon may render at the wrong size)
 - The visibility gate so the widget only renders for users who can act
-  on it (admins or trial users, on a paywall-enabled tenant)
+  on it (admins or trial users, on a paywall-enabled organization)
 
 ---
 
@@ -161,7 +161,7 @@ the notification bell:
 
 | Prop | Source | Notes |
 |---|---|---|
-| `tenant` | Resolved tenant key (e.g. from `resolveAppTenant()`) | The tenant the user is acting under — billing is per-tenant |
+| `tenant` | Resolved org key (e.g. from `resolveAppTenant()`) | The organization the user is acting under — billing is per-organization |
 | `enabled` | Always `true` | The component itself returns `null` if `enabled` is false; pass `true` so it renders when the gating below passes |
 | `redirectUrl` | `window.location.origin` | Stripe checkout returns to this URL after success/cancel. Always use `origin` (not `href` or a path) so refreshes from Stripe land on a stable route |
 | `mainPlatformKey` | `config.mainTenantKey()` | The platform key from `NEXT_PUBLIC_MAIN_TENANT_KEY` — used by the upgrade flow to attribute revenue to the correct platform |
@@ -182,7 +182,7 @@ the notification bell:
 The widget MUST only render when ALL of the following are true:
 
 1. **The tenant sells credits** — `currentTenant?.show_paywall === true`.
-   Tenants without paywall enabled return no billing info; rendering the
+   Organizations without paywall enabled return no billing info; rendering the
    widget there shows a permanent error state.
 2. **The user can act on credits** — typically `isAdmin || userOnFreeTrial`.
    Regular users on a paid plan generally cannot top up the
@@ -206,7 +206,7 @@ is required.
 Start the dev server, log in, and confirm:
 
 1. The credit-card trigger icon appears between the navigation links
-   and the notification bell on a paywall-enabled tenant.
+   and the notification bell on a paywall-enabled organization.
 2. Clicking the trigger opens the dropdown panel showing remaining
    credits, consumed credits, reset date (if applicable), and a
    billing pill.

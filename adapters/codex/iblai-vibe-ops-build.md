@@ -46,7 +46,7 @@ runs the frontend build (via `beforeBuildCommand`) before starting the dev
 server -- the WebView loads the static files from `../out` on all platforms.
 
 For dev builds, you can optionally deploy the frontend via ibl.ai hosting
-(Vercel) with the [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) skill.
+(Vercel) with the [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) skill.
 That deploys the app and updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
@@ -76,56 +76,9 @@ This configures:
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
 
-## Build-Time Flags (Tenant Lock & In-App Purchase)
+## Build-Time Flags (Organization Lock & In-App Purchase)
 
-The Tauri shell exposes two build-time flags so a **single codebase can
-produce differently-configured builds** — e.g. one desktop/mobile build
-locked to tenant A and another locked to tenant B, both served from the same
-app URL. The values are baked in at `cargo build` time via Rust's
-`option_env!`, so they are set as **environment variables in the build shell**
-(not `iblai.env`, which holds the platform shorthand) before running the build:
-
-| Env var | Command exposed to JS | Default | Effect |
-|---|---|---|---|
-| `IBL_TENANT` | `get_locked_tenant` → `string` | `""` (unlocked) | Locks the build to one tenant: the frontend forces login to it and hides tenant switching. |
-| `IBL_ALLOW_IN_APP_PURCHASE` | `allow_in_app_purchase` → `bool` | `false` | Enables in-app purchase UI. Truthy values: `1`/`true`/`yes`/`on` (case-insensitive). |
-
-Set them before the build (they are read at compile time, so they must be in
-the environment when cargo compiles `src-tauri`):
-
-```bash
-# tenant-locked build with in-app purchase enabled
-IBL_TENANT=acme IBL_ALLOW_IN_APP_PURCHASE=true pnpm exec tauri build
-```
-
-In CI, set them as env on the build step:
-
-```yaml
-- name: Build
-  env:
-    IBL_TENANT: acme
-    IBL_ALLOW_IN_APP_PURCHASE: "true"
-  run: pnpm exec tauri build
-```
-
-`src-tauri/build.rs` declares `cargo:rerun-if-env-changed` for both, so cargo
-recompiles when a value changes between builds. Unset → the "off" default, so
-a normal build is unaffected.
-
-**Frontend consumption** (app code, outside this template) invokes the
-commands and reacts to them:
-
-```ts
-import { invoke } from '@tauri-apps/api/core';
-
-const lockedTenant = await invoke<string>('get_locked_tenant'); // '' = unlocked
-const iap = await invoke<boolean>('allow_in_app_purchase');
-```
-
-When `get_locked_tenant` returns a non-empty key, force the user onto that
-tenant (logging out of any other) and hide the tenant switcher. The commands
-are registered in `src-tauri/src/lib.rs` (`generate_handler!`); no extra ACL
-entry is needed since they are application commands.
+`IBL_TENANT=<key>` locks a binary to one org and `IBL_IAP=1` enables the in-app-purchase path; both are Rust `option_env!` values set in the build shell. Full semantics, examples per platform, and the runtime behavior: [`references/build-time-flags.md`](references/build-time-flags.md).
 
 ## App Icons
 
@@ -147,7 +100,7 @@ pnpm exec tauri device
 
 ## iOS
 
-![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
 
 Build and run on iOS Simulator and real devices.
 
@@ -271,7 +224,7 @@ base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ## Android
 
-![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
+![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
 
 Build and run on Android emulators and real devices.
 
@@ -342,7 +295,7 @@ pnpm tauri:build:android
 
 ## macOS (Desktop)
 
-![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
+![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
 
 ### macOS Prerequisites
 
@@ -427,7 +380,7 @@ Requires `bundle.windows.certificateThumbprint: null` in `tauri.conf.json` (the
 template already has it). To build **locally** instead, run
 `make -f desktop-release.mk windows-nsis` on a Windows machine. For a Store /
 sideload **MSIX** package instead, see
-[`/iblai-vibe-windows-msix`](../iblai-vibe-windows-msix/SKILL.md).
+[`/iblai-vibe-windows-msix`](../../ship/iblai-vibe-windows-msix/SKILL.md).
 
 ---
 
@@ -460,50 +413,19 @@ pnpm exec tauri build
 
 ---
 
-## All Platforms CI
+## CI and the command summary
 
-Generate CI workflows for all platforms at once:
-
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
-
-## Summary of Commands
-
-| Task | Command |
-|------|---------|
-| Add Tauri support | the Tauri shell (copy `assets/tauri/` into `src-tauri/`) |
-| Generate app icons | `pnpm exec tauri icon logo.png` |
-| List available devices | `xcrun simctl list devices` (iOS) / `adb devices` (Android) |
-| **iOS** | |
-| Initialize iOS project | `pnpm exec tauri ios init` |
-| Run on iOS Simulator | `pnpm exec tauri ios dev "iPhone 16 Pro Max"` |
-| Run on physical iPhone | `pnpm exec tauri ios dev --device` |
-| Build release .ipa | `pnpm exec tauri ios build` |
-| iOS CI workflow | the templates in `assets/tauri/workflows/` |
-| **Android** | |
-| Initialize Android project | `pnpm exec tauri android init` |
-| Run on Android emulator | `pnpm exec tauri android dev "Pixel_9"` |
-| Run on physical Android | `pnpm exec tauri android dev --device` |
-| Build release APK | `pnpm exec tauri android build` |
-| Android CI workflow | the templates in `assets/tauri/workflows/` |
-| **Desktop** | |
-| Run desktop dev mode | `pnpm exec tauri dev` |
-| Build desktop release | `pnpm exec tauri build` |
-| macOS signed + notarized DMG (CI) | `tauri-release-macos-dmg.yml` — push an `app-v*` tag |
-| Windows signed NSIS x64 + arm64 (CI) | `tauri-release-windows.yml` — push an `app-v*` tag |
-| macOS signed DMG (local, no CI) | `make -f desktop-release.mk macos-dmg` |
-| Windows signed NSIS (local, no CI) | `make -f desktop-release.mk windows-nsis` |
-| macOS CI workflow | the templates in `assets/tauri/workflows/` |
-| Surface CI workflow | the templates in `assets/tauri/workflows/` |
-| Linux CI workflow | the templates in `assets/tauri/workflows/` |
-| All CI workflows | the templates in `assets/tauri/workflows/` |
-| **Deploy** | |
-| Deploy frontend via ibl.ai hosting (Vercel) | the `/iblai-vibe-ops-deploy` skill |
-| Remove hosted dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
+The GitHub Actions workflows for every platform and the one-table summary of every `tauri` command used above are in [`references/ci-and-commands.md`](references/ci-and-commands.md).
 
 ## Reference
 
-- [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
+- [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
 - [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
 - [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes
+
+## Redirect origins for native shells
+
+Mobile sign-in returns through the custom scheme (`TAURI_CUSTOM_SCHEME`, e.g.
+`my-app://`); desktop returns to the deployed origin the shell loads. Both must
+be in the organization's **allowed redirect origins** — ask your ibl.ai
+operator — or sign-in never completes in the app.

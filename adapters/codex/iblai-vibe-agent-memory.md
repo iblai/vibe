@@ -9,35 +9,7 @@ memory and a managed memories section with add, edit, bulk delete, and
 individual delete actions. This is one tab in the wider agent-settings
 family. All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Memory Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Memory Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -134,15 +106,15 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 ## Memory REST API
 
-Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/api/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
-in [`iblai/api`](https://github.com/iblai/api) (`npx skills add iblai/api`).
+Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md)
+(headless twin, installed with the rest of this repo's skills).
 The tables below are the frontend-relevant summary.
 
 For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`
-and `{org}` is the platform/tenant key.
+and `{org}` is the org key (`platform_key`).
 
-The system has three control levels: **Platform** (admin enables for tenant),
+The system has three control levels: **Platform** (admin enables for organization),
 **Agent** (admin/owner enables per agent), **User** (user opts in/out of
 capture and use).
 
@@ -155,13 +127,13 @@ capture and use).
 
 Defaults are `false` if no settings row exists.
 
-### Platform config (tenant admin)
+### Platform config (organization admin)
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `users/{user_id}/memsearch-config/` | Read `enable_memsearch` |
 | POST | `users/{user_id}/memsearch-config/` | Set `enable_memsearch` |
-| GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the tenant |
+| GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the organization |
 
 ### Agent toggle
 

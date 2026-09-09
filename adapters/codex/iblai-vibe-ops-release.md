@@ -8,7 +8,7 @@ Generate a `Makefile` and a `fastlane/` config so a single command builds
 your Tauri app and submits it to the **Apple App Store** (App Store Connect
 / TestFlight) and **Google Play**. Fastlane handles app-record / bundle-id
 creation and the upload; Tauri (from
-[`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md)) still produces the
+[`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)) still produces the
 `.ipa` / `.aab`.
 
 ```
@@ -20,7 +20,7 @@ make release-all        # both
 ## Prerequisites
 
 1. **Tauri shell already added** and the mobile projects initialized —
-   [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md)
+   [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
    (`pnpm exec tauri ios init`, `pnpm exec tauri android init`). This skill
    assumes `src-tauri/gen/apple` and `src-tauri/gen/android` exist.
 2. **Fastlane** installed: `brew install fastlane` (macOS) or
@@ -152,6 +152,6 @@ left to the consoles (or extend the Fastfile with `deliver` /
 - [`references/credentials.md`](references/credentials.md) — how to obtain and
   place every credential (App Store Connect API key, Play service account,
   Android keystore) and the required roles.
-- [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md) — the Tauri shell
+- [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md) — the Tauri shell
   and per-platform build commands this skill wraps.
-- [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) — web/Vercel deploy.
+- [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) — web/Vercel deploy.

@@ -11,35 +11,7 @@ model, ... on Settings for E2E Agent"), filterable by actor email,
 date range, and action type. Renders an empty state, an error state,
 and a 403 state for users without audit-read permission.
 
-![Audit Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-audit/iblai-vibe-agent-audit.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Audit Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-audit/iblai-vibe-agent-audit.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -49,7 +21,7 @@ is not installed.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 - The current user must have `Ibl.Analytics/Core/read` (viewer) or
-  `Ibl.*` (tenant admin) permission. Without it the component renders
+  `Ibl.*` (organization admin) permission. Without it the component renders
   the 403 state — no `tenantKey` mismatch, just RBAC.
 
 ## Step 1: Check Environment
@@ -250,7 +222,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `AgentLLMTab` / `McpTab`, this component takes raw props. If your
   app already mounts `AgentSettingsProvider`, you can read its values
   via `useAgentSettings()` in the page wrapper and forward them.
-- **RBAC**: `Ibl.Analytics/Core/read` (viewer) or `Ibl.*` (tenant
+- **RBAC**: `Ibl.Analytics/Core/read` (viewer) or `Ibl.*` (organization
   admin). The 403 state already covers users without permission — do
   not gate the route at the layout level; let the component render
   the explanatory message.

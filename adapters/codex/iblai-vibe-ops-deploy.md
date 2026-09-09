@@ -4,8 +4,10 @@
 
 # /iblai-vibe-ops-deploy
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Deploy your app's frontend through the ibl.ai platform's hosting API. The
-platform holds the Vercel credential for your tenant — you need only the
+platform holds the Vercel credential for your organization — you need only the
 `DOMAIN` / `PLATFORM` / `TOKEN` already in `iblai.env`. No Vercel account,
 no Vercel token, no `vercel` CLI.
 
@@ -35,7 +37,11 @@ controls:
   rewrites and runtime config a bare static host cannot do.
 
 If the target is a compliance or data-residency decision — a school district, a
-health system, a government tenant — do not pick it for them. Ask.
+health system, a government organization — do not pick it for them. Ask.
+
+> **After the first deploy:** add the URL the API reports to the organization's
+> **allowed redirect origins** (ask your ibl.ai operator), or sign-in on the
+> deployed app will never return. Localhost needs it too.
 
 ## Step 1: Config
 
@@ -250,11 +256,11 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 | Status | Meaning | Fix |
 |---|---|---|
 | — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
-| 400 | No Vercel credential stored for this tenant, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
+| 400 | No Vercel credential stored for this organization, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
-| 502 | Vercel rejected the tenant's stored credential | Admin re-saves a valid credential in the credentials UI |
+| 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
 
 ## Custom Domain (optional)
 
@@ -285,7 +291,7 @@ docker run -d -p 8080:8080 \
 Two rules decide whether the deploy survives contact with a second
 environment:
 
-- **One image, every environment.** No tenant, no backend, no customer baked
+- **One image, every environment.** No organization, no backend, no customer baked
   in. The digest that passed staging is the digest that runs production, and
   repointing is a restart. See *Runtime configuration* below — do that part
   before containerizing, not after.
@@ -319,11 +325,11 @@ become different builds, and repointing means a rebuild. Rendering them at
 process start from the environment is what every ibl.ai app that ships to a
 server already does (`window.__ENV__` in skillsai/mentorai).
 
-## Every target: the tenant has to know the origin
+## Every target: the organization has to know the origin
 
-Add the deployment's origin to the tenant's **allowed redirect origins**.
+Add the deployment's origin to the organization's **allowed redirect origins**.
 Sign-in leaves for the login SPA and returns to `<origin>/sso-login-complete`;
-an origin the tenant does not know is a login that never comes back — and the
+an origin the organization does not know is a login that never comes back — and the
 symptom looks like a broken app, not a missing setting.
 
 ## When to Deploy

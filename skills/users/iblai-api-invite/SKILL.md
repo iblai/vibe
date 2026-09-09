@@ -1,0 +1,71 @@
+---
+name: iblai-api-invite
+description: Manage ibl.ai organization user invitations via the platform API — list invites (accepted/pending) and send invites individually or in bulk (CSV rows), with optional group assignment. Use when inviting users into an organization.
+metadata:
+  kind: api
+---
+
+# iblai-api-invite
+
+Manage an organization's user invitations via the API: list invites (accepted or
+pending) and send invitations one at a time or in bulk from CSV rows, with
+optional user-group assignment. Use when inviting users into an organization.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`.
+- The host is **DM** under `/api/catalog/invitations/…`.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `…/invitations/platform/?platform_key={org}&page={n}&page_size=5&sort=-id` — list invites (accepted / pending).
+
+## Writes
+
+- **POST** `…/invitations/platform/` — send an invite (call once per CSV row for bulk):
+  ```json
+  {
+    "email": "string",
+    "platform_key": "string (required)",
+    "redirect_to": "uri",
+    "source": "username",
+    "active": true,
+    "company_name": "string (CSV)",
+    "first_name": "string (CSV)",
+    "last_name": "string (CSV)",
+    "user_group": "string (CSV)",
+    "user_group_owner_email": "email (CSV)"
+  }
+  ```
+
+## Example
+
+Send a single invite to a new user, redirecting them to the organization after they accept:
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/catalog/invitations/platform/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "newuser@example.com",
+    "platform_key": "'"$IBLAI_ORG"'",
+    "redirect_to": "https://login.iblai.app/me",
+    "source": "'"$IBLAI_USERNAME"'",
+    "active": true
+  }'
+```
+
+## Notes
+
+- Sending invites emails real people — confirm the recipient list with the user
+  before posting, especially on bulk runs that POST once per row.
+- The CSV-only fields (`company_name`, `first_name`, `last_name`, `user_group`,
+  `user_group_owner_email`) come from the bulk CSV columns; set
+  `user_group` / `user_group_owner_email` to assign the invitee to a group.
+- The list is paginated — page through with `page` / `page_size` and
+  `sort=-id` to see the newest invites first.

@@ -13,8 +13,8 @@ items (top of sidebar) and footer items (bottom). The sidebar is fully
 host-themable through shadcn's `SidebarProvider` and works on top of the
 `/iblai-vibe-agent-chat` route wiring.
 
-![Sidebar overview](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat-sidebar/iblai-vibe-agent-chat-sidebar-1-overview.png)
-![Project active](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat-sidebar/iblai-vibe-agent-chat-sidebar-2-project-active.png)
+![Sidebar overview](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat-sidebar/iblai-vibe-agent-chat-sidebar-1-overview.png)
+![Project active](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat-sidebar/iblai-vibe-agent-chat-sidebar-2-project-active.png)
 
 > **Builds on top of `/iblai-vibe-agent-chat`.** This skill assumes the host
 > already has `<Chat>` rendering correctly — same providers, same store
@@ -238,7 +238,7 @@ function AgentChatProjectsPage() {
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `tenantKey` | `string` | yes | Active tenant — used for project list query + mutations |
+| `tenantKey` | `string` | yes | Active organization — used for project list query + mutations |
 | `username` | `string` | yes | Authenticated username |
 | `isLoggedIn` | `boolean` | yes | Toggles authenticated vs anonymous trigger |
 | `activeProjectId` | `string` | no | Currently active project — highlight + expand |

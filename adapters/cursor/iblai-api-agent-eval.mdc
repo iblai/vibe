@@ -1,0 +1,185 @@
+---
+description: "Measure and improve agent quality via the platform API — evaluation datasets, dataset items (JSON, CSV upload, or from chat traces), experiment runs, LLM-as-Judge and human-annotation scoring, score configs, and CSV export. Use to test an agent against a dataset and grade the results."
+globs:
+alwaysApply: false
+---
+
+# iblai-api-agent-eval
+
+Measure and improve an agent's quality from the API: build evaluation
+datasets, run experiments that send each question to the agent, then grade the
+results with LLM-as-Judge and/or human scores and export to CSV. Use to test an
+agent against a dataset and grade the results.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+  (The dev docs phrase this as `Authorization: Token <key>` — it is the same
+  platform key; use **Api-Token**.)
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`.
+- **Host root:** `…/dm/api/ai-mentor/orgs/{org}/users/{username}/evaluations/`.
+  Below, `…/evals` = that root. (`ai-mentor` is the canonical mount; the `ai-agent`
+  spelling is an accept-only alias for the same routes.)
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Concepts
+
+- **These eval datasets are not the agent's RAG datasets.** `evaluations/datasets/`
+  hold graded test cases (input + expected output) for measuring agent quality.
+  They are unrelated to an agent's knowledge/training datasets in
+  **`/iblai-api-agent-dataset`** (RAG documents) — do not cross-wire the two.
+- **Eval data is org-scoped and isolated.** Datasets, items, runs, scores, and
+  score configs belong to `$IBLAI_ORG` alone — no other org can read them or
+  grade against them.
+- **Runs and judges are async task records.** Starting a run (`POST …/runs/`) or
+  an LLM-as-Judge (`POST …/evaluate/`) dispatches a background task and returns
+  **202** immediately with a task record that moves `pending → in_progress →
+  completed` (or `failed`). Poll for status; a run must reach `completed` before
+  you judge or export it.
+- **Three grading paths.** *LLM-as-Judge* (`…/evaluate/`) scores every item in a
+  run automatically from a free-text `criteria` rubric. *Scores* (`…/scores/`)
+  are individual human/numeric/boolean/categorical annotations on a trace.
+  *Score configs* (`…/score-configs/`) are reusable rubrics a score references
+  via `config_id`.
+- **Pagination.** List endpoints take `?page=` (1-indexed) and `?limit=`
+  (default 50, max 200) and return `{count, next, previous, results}`.
+- On the wire the path segment is `users/{user_id}`; its value is
+  `$IBLAI_USERNAME`.
+
+## Reads
+
+### Datasets
+
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/evaluations/datasets/` — list. Filters: `?name=` (substring), `?user_email=` (creator, exact).
+- **GET** `…/evaluations/datasets/{dataset_name}/` — get one.
+
+### Dataset items
+
+- **GET** `…/datasets/{dataset_name}/items/` — list items. Filters: `?status=ACTIVE|ARCHIVED`, `?include_trace=true` (attach `trace_input`/`trace_output` for items linked to a source trace).
+- **GET** `…/datasets/{dataset_name}/items/{item_id}/` — get one item (includes `trace_input`/`trace_output` when it has a `source_trace_id`).
+
+### Experiments (runs)
+
+- **GET** `…/datasets/{dataset_name}/runs/` — list runs (merges completed runs with in-flight pending records). Filters: `?name=` (substring), `?user_email=`.
+- **GET** `…/datasets/{dataset_name}/runs/{run_name}/` — run details: header + `dataset_run_items` (each with `input`, `expected_output`, `actual_output`, `error`, `scores[]`) + `pending_judges[]`.
+- **GET** `…/datasets/{dataset_name}/runs/{run_name}/export/` — export results as CSV (columns: `item_id`, `input`, `expected_output`, `actual_output`, `trace_id`, plus one `score_<name>` column per score).
+
+### LLM-as-Judge
+
+- **GET** `…/datasets/{dataset_name}/runs/{run_name}/evaluate/` — list judge task records for this run (all statuses). Filters: `?status=pending|in_progress|completed|failed`, `?user_email=`.
+- **GET** `…/evaluations/judges/` — list judge task records across every dataset/run in the org. Filters: `?status=`, `?user_email=`, `?dataset_name=`.
+
+### Scores
+
+- **GET** `…/evaluations/scores/` — list scores (human annotations + LLM-judge results). Filters: `?dataset_run_id=` (scope to a run), `?trace_id=` (scope to one turn), `?name=` (exact), `?user_email=`.
+
+### Score configs
+
+- **GET** `…/evaluations/score-configs/` — list reusable scoring rubrics.
+
+## Writes
+
+### Datasets
+
+- **POST** `…/evaluations/datasets/` — create.
+
+### Dataset items
+
+- **POST** `…/datasets/{dataset_name}/items/` — add items. Provide **either** an
+  `items` array (`{input, expected_output}`) **or** a `trace_ids` array (seeds
+  items from existing chat traces — input + agent response copied from each
+  trace). Exactly one of the two.
+- **POST** `…/datasets/{dataset_name}/items/upload/` — bulk-create from a CSV (multipart `file` field).
+- **PUT** `…/datasets/{dataset_name}/items/{item_id}/` — update an item (`input`, `expected_output`, `metadata`, `status`).
+- **DELETE** `…/datasets/{dataset_name}/items/{item_id}/` — delete an item (async, returns `202` queued). Destructive — confirm with the user first.
+
+### Experiments (runs)
+
+- **POST** `…/datasets/{dataset_name}/runs/` — start an experiment (async; runs the agent — `mentor_unique_id` — against every dataset item, records responses). Returns `202` with a task record.
+- **DELETE** `…/datasets/{dataset_name}/runs/{run_name}/` — delete a run (async, `202` queued). Destructive — confirm with the user first.
+
+### LLM-as-Judge
+
+- **POST** `…/datasets/{dataset_name}/runs/{run_name}/evaluate/` — start an LLM-as-Judge pass (async; a separate LLM scores each item's actual output against its input + expected output using your `criteria`). Writes one score per item named `score_name`, with the judge's reasoning in each score's `comment`. Run must be `completed` first. Returns `202` with a judge task record.
+
+### Scores
+
+- **POST** `…/evaluations/scores/` — create a score (human/numeric/boolean/categorical annotation on a trace).
+- **DELETE** `…/evaluations/scores/{score_id}/` — delete a score (async, `202` queued). Destructive — confirm with the user first.
+
+### Score configs
+
+- **POST** `…/evaluations/score-configs/` — create a reusable scoring rubric.
+
+## Example
+
+Start an experiment run against a dataset (runs async in the background):
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/evaluations/datasets/support-qa/runs/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"run_name": "baseline-2026-06", "mentor_unique_id": "d17dc729-60fd-4363-81a0-f67d9318b03e"}'
+```
+
+## Notes
+
+- Typical pipeline: **create dataset → add items → start run (async) → poll
+  until `completed` → grade (LLM-as-Judge and/or human scores) → export CSV**.
+- Runs and judges are background tasks — POST returns `202` before results
+  exist; poll the run-list or run-details endpoint until `status` is
+  `completed` before calling `evaluate/` or `export/`.
+- LLM-as-Judge grades a completed run from a free-text `criteria` rubric,
+  writing one score per item (`score_name`) plus reasoning in each score's
+  `comment`. Per-item human scores go through `…/evaluations/scores/` and can
+  reference a reusable rubric from `…/evaluations/score-configs/` via
+  `config_id`.
+- Dataset items can come from direct JSON (`items`), a CSV upload, or existing
+  chat traces (`trace_ids` — input + agent response pulled from each trace).
+- Deletes (item, run, score) are **queued** (`202`), not immediate. A dataset
+  itself has no update or delete endpoint.
+
+## Schema
+
+Request bodies, verified against `evaluation_serializers.py`. All JSON except the
+CSV upload (multipart). Fields are optional unless marked **required**.
+
+**Create dataset** — `POST …/datasets/`
+- `name` **required** (≤255) · `description` · `metadata` (object)
+
+**Add items** — `POST …/datasets/{dataset_name}/items/` (exactly one of)
+- `items`: array of `{input` **required**`, expected_output}`
+- `trace_ids`: array of strings (seed from existing traces)
+
+**Update item** — `PUT …/items/{item_id}/`
+- `input` · `expected_output` · `metadata` (object) · `status` (`ACTIVE`|`ARCHIVED`)
+
+**CSV upload** — `POST …/items/upload/` (multipart form)
+- `file` **required** — CSV with an `input` column and optional `expected_output`; empty-`input` rows are skipped
+
+**Start run** — `POST …/runs/`
+- `mentor_unique_id` **required** — the agent's unique id
+- `run_name` (≤255; auto `run-<hex>` if omitted) · `metadata` (object)
+
+**LLM-as-Judge** — `POST …/runs/{run_name}/evaluate/`
+- `criteria` **required** — the rubric the judge grades against
+- `score_name` **required** (≤255) — name given to the judge's score
+- `llm_provider` (default `openai`) · `llm_name` (default `gpt-4o-mini`)
+- `max_concurrency` (int, default 4, range 1–20)
+
+**Create score** — `POST …/scores/`
+- `trace_id` **required** · `name` **required** (≤255) · `value` **required** (number)
+- `data_type` (`NUMERIC`|`BOOLEAN`|`CATEGORICAL`, default `NUMERIC`)
+- `comment` · `observation_id` · `config_id` (score-config to validate against) · `dataset_run_id`
+
+**Create score config** — `POST …/score-configs/`
+- `name` **required** (≤255) · `data_type` (`NUMERIC`|`BOOLEAN`|`CATEGORICAL`) **required**
+- `categories`: array of `{value` (number)`, label` (string)`}` — for CATEGORICAL
+- `min_value` / `max_value` (numbers — for NUMERIC) · `description`
+
+## Reference material
+
+- [`references/guide.md`](references/guide.md) — the eval pipeline as ordered steps, judge-rubric guidance, and CSV upload/export limits and columns.

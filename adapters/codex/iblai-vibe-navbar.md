@@ -4,6 +4,8 @@
 
 # /iblai-vibe-navbar
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add a responsive top navigation bar with:
 - **Left:** Logo + page links
 - **Right:** Notification bell + user profile dropdown
@@ -61,7 +63,7 @@ The navbar MUST follow BRAND.md colors:
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) already ships this navbar
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) already ships this navbar
 > wired up (logo, nav links, notification bell, profile dropdown, mobile
 > drawer) along with auth and profile/account/notifications pages. Want to
 > use that instead of building the navbar from scratch?
@@ -73,7 +75,7 @@ not installed -- tell the user which path you took -- then skip this skill:
 
     cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
     # or, without local assets:
-    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 
     pnpm install --ignore-scripts
 
@@ -161,143 +163,14 @@ export function Logo() {
 }
 ```
 
-Use the ibl.ai logo. Do NOT use the tenant/platform logo. Always serve
+Use the ibl.ai logo. Do NOT use the organization/platform logo. Always serve
 it locally from `public/images/`, never from an external URL.
 
 ---
 
-## Step 2 — Credit balance widget
+## Step 2 — Credit balance widget and Step 3 — Profile button
 
-Create `components/navbar/credit-balance-widget.tsx`. This wraps the SDK's
-`CreditBalance` (from `@iblai/iblai-js` >= 1.6.0). It is gated by the
-active tenant's `show_paywall` flag — when that flag is falsy, the widget
-renders nothing.
-
-```tsx
-'use client';
-
-import { useEffect, useState } from 'react';
-import { CreditBalance } from '@iblai/iblai-js/web-containers';
-import config from '@/lib/iblai/config';
-import { resolveAppTenant } from '@/lib/iblai/tenant';
-
-export function CreditBalanceWidget() {
-  const [tenant, setTenant] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [enabled, setEnabled] = useState(false);
-  const [redirectUrl, setRedirectUrl] = useState('');
-
-  useEffect(() => {
-    setTenant(resolveAppTenant());
-
-    try {
-      const raw = localStorage.getItem('userData');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? '');
-        setEmail(parsed.email ?? parsed.user_email ?? '');
-      }
-    } catch {}
-
-    try {
-      const raw = localStorage.getItem('current_tenant');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setEnabled(Boolean(parsed?.show_paywall));
-      }
-    } catch {}
-
-    setRedirectUrl(window.location.href);
-  }, []);
-
-  if (!tenant || !username) return null;
-
-  return (
-    <CreditBalance
-      tenant={tenant}
-      username={username}
-      mainPlatformKey={config.mainTenantKey()}
-      currentUserEmail={email}
-      redirectUrl={redirectUrl}
-      enabled={enabled}
-    />
-  );
-}
-```
-
-For the full props reference, panel behavior, and Playwright helpers,
-see `/iblai-vibe-credit`.
-
----
-
-## Step 3 — User profile button
-
-Create `components/navbar/user-profile-button.tsx`. This wraps the SDK's
-`UserProfileDropdown`:
-
-```tsx
-'use client';
-
-import { UserProfileDropdown } from '@iblai/iblai-js/web-containers/next';
-
-interface UserProfileButtonProps {
-  username: string;
-  email: string;
-  mainPlatformKey: string;
-  isAdmin: boolean;
-  tenantKey: string;
-  currentTenant?: any;
-  userTenants?: any[];
-  authURL: string;
-  onLogout: () => void;
-  onTenantChange: (newTenantKey: string) => void;
-  onTenantUpdate?: (tenant: any) => void;
-  onAccountDeleted?: () => void;
-}
-
-export function UserProfileButton({
-  username,
-  email,
-  mainPlatformKey,
-  isAdmin,
-  tenantKey,
-  currentTenant,
-  userTenants = [],
-  authURL,
-  onLogout,
-  onTenantChange,
-  onTenantUpdate,
-  onAccountDeleted,
-}: UserProfileButtonProps) {
-  return (
-    <UserProfileDropdown
-      email={email}
-      mainPlatformKey={mainPlatformKey}
-      username={username}
-      userIsAdmin={isAdmin}
-      userIsStudent={false}
-      tenantKey={tenantKey}
-      currentTenant={currentTenant}
-      userTenants={userTenants}
-      showProfileTab={true}
-      showAccountTab={false}
-      showTenantSwitcher={isAdmin}
-      showHelpLink={false}
-      showLogoutButton={true}
-      showLearnerModeSwitch={false}
-      currentPlan=""
-      authURL={authURL}
-      onLogout={onLogout}
-      onTenantChange={onTenantChange ?? (() => {})}
-      onTenantUpdate={onTenantUpdate ?? (() => {})}
-      onAccountDeleted={onAccountDeleted}
-    />
-  );
-}
-```
-
----
+Both are documented in full in [`references/credit-and-profile-button.md`](references/credit-and-profile-button.md) (the credit widget is also `/iblai-vibe-credit`). vibe-starter ships both (`components/navbar/nav-bar.tsx`, `user-profile-button.tsx`).
 
 ## Step 4 — Navigation drawer (mobile)
 
@@ -527,256 +400,9 @@ export function NavBar({
 
 ---
 
-## Step 6 — Profile page
+## Steps 6–8 — Profile, Account, and Notifications pages
 
-Create `app/(app)/profile/page.tsx`.
-
-Import `Profile` from `@iblai/iblai-js/web-containers` (the framework-agnostic
-bundle, NOT the `/next` bundle). This renders an inline, full-page profile
-editor with sidebar navigation on desktop and tabbed navigation on mobile.
-
-```tsx
-// app/(app)/profile/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { Profile } from "@iblai/iblai-js/web-containers";
-import { resolveAppTenant } from "@/lib/iblai/tenant";
-
-export default function ProfilePage() {
-  const [tenantKey, setTenantKey] = useState("");
-  const [username, setUsername] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? "");
-      }
-    } catch {}
-
-    const resolved = resolveAppTenant();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const parsed = JSON.parse(tenantsRaw);
-        const match = parsed.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !tenantKey) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-400">Loading profile...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
-      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
-        <Profile
-          tenant={tenantKey}
-          tenants={tenants}
-          username={username}
-          isAdmin={isAdmin}
-          onClose={() => {}}
-          customization={{
-            showPlatformName: true,
-            useGravatarPicFallback: true,
-          }}
-          targetTab="basic"
-        />
-      </div>
-    </div>
-  );
-}
-```
-
-**Key patterns:**
-- Wrap in `bg-white rounded-lg border` — the SDK Profile has no outer background
-- Import from `@iblai/iblai-js/web-containers` (NOT `/next`)
-- `Profile` renders inline (full page). `UserProfileModal` renders as a dialog.
-
----
-
-## Step 7 — Account page
-
-Create `app/(app)/account/page.tsx`.
-
-Import `Account` from `@iblai/iblai-js/web-containers/next` (this one
-DOES use the `/next` bundle because it uses `next/image` internally).
-
-```tsx
-// app/(app)/account/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Account } from "@iblai/iblai-js/web-containers/next";
-import config from "@/lib/iblai/config";
-import { resolveAppTenant } from "@/lib/iblai/tenant";
-
-export default function AccountPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [tenantKey, setTenantKey] = useState("");
-  const [tenants, setTenants] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? "");
-      }
-    } catch {}
-
-    const resolved = resolveAppTenant();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const parsed = JSON.parse(tenantsRaw);
-        setTenants(parsed);
-        const match = parsed.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !tenantKey) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-400">Loading account settings...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
-      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
-        <Account
-          tenant={tenantKey}
-          tenants={tenants}
-          username={username}
-          email={email}
-          mainPlatformKey={config.mainTenantKey()}
-          isAdmin={isAdmin}
-          authURL={config.authUrl()}
-          currentPlatformBaseDomain={config.platformBaseDomain()}
-          currentSPA="agent"
-          onInviteClick={() => {}}
-          onClose={() => router.push("/")}
-          targetTab="organization"
-          showPlatformName={true}
-          useGravatarPicFallback={true}
-        />
-      </div>
-    </div>
-  );
-}
-```
-
-**Key patterns:**
-- Wrap in `bg-white rounded-lg border` — same as Profile
-- Import from `@iblai/iblai-js/web-containers/next` (uses `next/image`)
-- Most tabs require `isAdmin === true` to be visible
-
----
-
-## Step 8 — Notifications page
-
-Create `app/(app)/notifications/[[...id]]/page.tsx`.
-
-The `[[...id]]` catch-all route handles both `/notifications` (inbox) and
-`/notifications/{id}` (specific notification). Import `NotificationDisplay`
-from `@iblai/iblai-js/web-containers`.
-
-```tsx
-// app/(app)/notifications/[[...id]]/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { NotificationDisplay } from "@iblai/iblai-js/web-containers";
-import { resolveAppTenant } from "@/lib/iblai/tenant";
-
-export default function NotificationsPage() {
-  const params = useParams();
-  const notificationId = params?.id?.[0] ?? undefined;
-  const [tenantKey, setTenantKey] = useState("");
-  const [username, setUsername] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userData");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUsername(parsed.user_nicename ?? parsed.username ?? "");
-      }
-    } catch {}
-
-    const resolved = resolveAppTenant();
-    setTenantKey(resolved);
-
-    try {
-      const tenantsRaw = localStorage.getItem("tenants");
-      if (tenantsRaw) {
-        const parsed = JSON.parse(tenantsRaw);
-        const match = parsed.find((t: any) => t.key === resolved);
-        if (match) setIsAdmin(!!match.is_admin);
-      }
-    } catch {}
-
-    setReady(true);
-  }, []);
-
-  if (!ready || !tenantKey) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-gray-400">Loading notifications...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
-      <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
-        <NotificationDisplay
-          org={tenantKey}
-          userId={username}
-          isAdmin={isAdmin}
-          selectedNotificationId={notificationId}
-        />
-      </div>
-    </div>
-  );
-}
-```
-
-**Key patterns:**
-- `[[...id]]` catch-all so `/notifications` and `/notifications/abc123` both work
-- Admin users see the Alerts tab and Send button
-- Import from `@iblai/iblai-js/web-containers` (NOT `/next`)
-
----
+The three pages the navbar links to are each their own skill (`/iblai-vibe-profile`, `/iblai-vibe-account`, `/iblai-vibe-notification`) and ship in vibe-starter. The full code from this skill's original Steps 6–8 is preserved in [`references/pages.md`](references/pages.md).
 
 ## Step 9 — Wire into app layout
 
@@ -838,63 +464,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 ---
 
-## Step 10 — CSS variables
+## Step 10 — CSS variables, behavior, more links, SDK reference
 
-The navbar uses CSS custom properties for theming. Add these to your
-`globals.css` (or they'll fall back to defaults):
-
-```css
-:root {
-  --navbar-bg: #ffffff;
-  --navbar-text: #374151;
-  --navbar-hover-text: #1f2937;
-  --navbar-hover-bg: #f3f4f6;
-  --navbar-active-text: #0058cc;
-  --navbar-active-border: #0058cc;
-  --border-color: #d1d5db;
-  --primary-color: #0058cc;
-  --text-primary: #1f2937;
-  --text-secondary: #374151;
-  --accent-color: #eff6ff;
-  --hover-bg: #f3f4f6;
-}
-```
-
----
-
-## Desktop vs Mobile behavior
-
-| Breakpoint | Navbar Height | Links | Drawer |
-|---|---|---|---|
-| < 768px (mobile) | h-16 (64px) | Hidden | Hamburger opens Sheet drawer |
-| >= 768px (desktop) | h-20 (80px) | Inline text links, `space-x-6` | Hidden |
-
----
-
-## Adding more links
-
-To add a new page link, add an entry to `NAV_LINKS`:
-
-```tsx
-// Add to NAV_LINKS array:
-{ name: 'Analytics', href: '/analytics', segment: 'analytics' }
-// (Analytics is not included by default — add it only if needed)
-```
-
-Links are text-only — do NOT add icons next to link labels in the navbar
-or drawer.
-
----
-
-## SDK component reference
-
-For detailed props and customization of the SDK components used in
-these pages, see:
-
-- `/iblai-vibe-profile` — `Profile`, `UserProfileDropdown`, `UserProfileModal` props,
-  profile content APIs, career API slice, media uploads
-- `/iblai-vibe-account` — `Account` props, tab visibility, billing integration
-- `/iblai-vibe-notification` — `NotificationDisplay`, `NotificationDropdown` props,
-  admin vs user roles
-- `/iblai-vibe-credit` — `CreditBalance` props, plan-aware action buttons,
-  paywall gating, Playwright helpers
+The navbar's CSS variables (`--navbar-bg`, `--navbar-text`, `--navbar-active-*`, …), the desktop/mobile behavior table, how to add links, and the SDK component reference are in [`references/css-variables-and-reference.md`](references/css-variables-and-reference.md).

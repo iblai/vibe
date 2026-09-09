@@ -1,0 +1,7 @@
+{
+  "overlay": {
+    "assets/platform.ts.j2": "lib/iblai/platform.ts",
+    "assets/route-example.ts.j2": "app/api/admin/example/route.ts",
+    "assets/platform.test.ts.j2": "__tests__/platform.test.ts"
+  }
+}

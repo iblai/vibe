@@ -18,7 +18,7 @@ Prompt injection is LLM01 in the OWASP Top 10 for LLMs — the #1 vulnerability 
 - **Indirect injection:** attacker plants instructions in data the LLM later consumes (web pages, emails, documents, database records, tool outputs, RAG chunks)
 - **Cross-privilege injection:** a lower-privileged user plants injection in shared data; a higher-privileged user's AI session consumes it and escalates through the AI layer
 
-Multi-tenant ibl.ai-style platforms are especially exposed to cross-privilege and tenant-leakage variants — audit those paths first.
+Multi-organization ibl.ai-style platforms are especially exposed to cross-privilege and cross-organization leakage variants — audit those paths first.
 
 ## Step 1: Map the AI Attack Surface
 
@@ -180,7 +180,7 @@ Check if the application:
 
 ## Step 6: Audit AI Permission Boundaries
 
-Critical for role-based access, multi-tenant data, or tiered
+Critical for role-based access, multi-organization data, or tiered
 permissions — i.e., every ibl.ai-style B2B platform.
 
 **Confused deputy — does the AI inherit the right permissions?**
@@ -205,9 +205,9 @@ results = db.query(ai_generated_sql, user_context=request.user)
 
 **Multi-tenant data leakage:**
 
-- Does the AI's RAG retrieval filter by tenant? If all tenants' data is in one vector store without tenant filtering, the AI can surface another tenant's data.
-- Are AI-generated queries tenant-scoped? Check that WHERE clauses or filter conditions enforce tenant isolation.
-- In shared AI features (e.g., AI-powered search), can one tenant's data appear in another tenant's results?
+- Does the AI's RAG retrieval filter by organization? If all organizations' data is in one vector store without organization filtering, the AI can surface another organization's data.
+- Are AI-generated queries organization-scoped? Check that WHERE clauses or filter conditions enforce organization isolation.
+- In shared AI features (e.g., AI-powered search), can one organization's data appear in another organization's results?
 
 **Cross-privilege injection:**
 
@@ -220,7 +220,7 @@ results = db.query(ai_generated_sql, user_context=request.user)
 |-------|--------|-------|
 | AI tool calls go through the same auth middleware as user actions | | |
 | AI database queries are scoped to the requesting user's permissions | | |
-| RAG retrieval is filtered by tenant/user access level | | |
+| RAG retrieval is filtered by organization/user access level | | |
 | AI cannot access admin APIs on behalf of non-admin users | | |
 | Shared data consumed by AI is treated as untrusted input | | |
 | AI feature access itself is gated by user role where appropriate | | |
@@ -236,7 +236,7 @@ Check what defenses are in place and whether they're enough:
 | Output validation | | Check LLM output before rendering/executing/storing |
 | Tool call validation | | Allowlist tools, validate arguments, gate destructive actions |
 | Privilege separation | | LLM operates with minimum necessary permissions |
-| User-scoped AI queries | | AI data access filtered by requesting user's role/tenant |
+| User-scoped AI queries | | AI data access filtered by the requesting user's role and organization |
 | Agent loop limits | | Max iterations, token budgets, timeouts for autonomous agents |
 | Agent memory isolation | | Untrusted data cannot poison agent memory/state |
 | MCP server auth | | MCP tools authenticated and scoped per user |

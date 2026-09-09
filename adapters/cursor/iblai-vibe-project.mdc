@@ -14,8 +14,8 @@ welcome/explore surface for `ProjectLandingPage`. The same `<Chat>` you
 already mounted for `/iblai-vibe-agent-chat` does both modes; this skill
 just adds the routing + URL plumbing.
 
-![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-project/iblai-vibe-project-1-landing.png)
-![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-project/iblai-vibe-project-2-files-modal.png)
+![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-project/iblai-vibe-project-1-landing.png)
+![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-project/iblai-vibe-project-2-files-modal.png)
 
 > **What you get:** a route at `/agents/[mentorId]/projects/[projectId]`
 > that reads both IDs from the URL, hands them to `<Chat>`, and the SDK
@@ -42,7 +42,7 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
   registered, service worker shipped, peer deps installed). The project
   surface uses the **same** `<Chat>` component, so the same wiring
   applies.
-- An agent/mentor ID — same as `/iblai-vibe-agent-chat`.
+- An agent ID — same as `/iblai-vibe-agent-chat`.
 - A **real `projectId`** to test against. Either:
   - Create one in the admin UI, or
   - List the user's projects:
@@ -81,7 +81,7 @@ Don't proceed until you confirm:
 | Check | Command / file |
 |---|---|
 | Auth providers tree wrapped in `<ServiceWorkerProvider>` | `providers/index.tsx` |
-| `skip={isSsoLoginRoute}` on Auth + Tenant providers | `providers/index.tsx` |
+| `skip={isSsoLoginRoute}` on `AuthProvider` + `TenantProvider` | `providers/index.tsx` |
 | `chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner` reducers registered | `store/index.ts` |
 | `public/sw.js` present | `ls public/sw.js` |
 | `@iblai/agent-ai` installed | `cat node_modules/@iblai/agent-ai/package.json \| grep version` |
@@ -203,7 +203,7 @@ function AgentProjectPage() {
 | Item | Why |
 |------|-----|
 | Same wrapper / Suspense / `dynamic` / `chatConfig` / hooks as `/iblai-vibe-agent-chat` | The SDK component is the same; only the `projectId` prop differs. |
-| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are agent-scoped — the WebSocket session still needs a agent. |
+| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are agent-scoped — the WebSocket session still needs an agent. |
 | `projectId` from `useParams<...>()` | Triggers the SDK to render `ProjectLandingPage` instead of the default welcome surface. |
 | `if (!tenantKey \|\| !mentorId \|\| !projectId) return null` | All three are required; render only when all are resolved. |
 | `tenantKey` from `localStorage` (`appTenant` / `current_tenant` / `tenant` / `config.mainTenantKey()`) | Matches `/iblai-vibe-agent-chat`'s pattern. |
@@ -222,7 +222,7 @@ truthy, the bundled `WelcomeChatNew` slot switches its render branch:
 - If the project 404s, the surface renders empty — you'll see a clean
   body and a `[data-layer] API error` in the console. Don't treat that
   as a bug in this skill; verify the `projectId` exists for the
-  authenticated user/tenant.
+  authenticated user/organization.
 
 The chat input you see in the project surface is the same chat input
 as the regular `<Chat>` flow — sending a message creates a session

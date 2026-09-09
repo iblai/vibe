@@ -4,6 +4,8 @@
 
 # /iblai-vibe-agent-chat
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add the full ibl.ai agent chat surface — message stream, conversation
 starters, canvas, file attach, voice input, voice call, screen sharing,
 prompt gallery — to your Next.js app. Uses the `Chat` React component
@@ -11,15 +13,15 @@ from `@iblai/iblai-js/web-containers/next`, which renders **in-process**
 (not in an iframe) and shares the host app's Redux store, providers, and
 auth session.
 
-![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
-![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
+![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
+![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
 
 > **Template (legacy `<mentor-ai>` widget):** a full-screen `<mentor-ai>`
 > web-component ChatWidget (distinct from the in-process `Chat` component
 > this skill documents) — bundled as
 > [`assets/chat-widget.tsx.j2`](assets/chat-widget.tsx.j2) +
 > [`assets/iblai-web-mentor.d.ts`](assets/iblai-web-mentor.d.ts). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 > **What you get:** the SDK's `Chat` component wired directly into your
 > app (in-process, not an iframe). Full feature surface, intercept
@@ -43,13 +45,13 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — the `Chat` component reads
-  the axd token, username, and tenants from the providers tree.
+  the axd token, username, and organizations from the providers tree.
 - A working store, providers, and SSO callback route — i.e. an app that
   already passes `/iblai-vibe-auth` verification.
-- An agent/mentor ID (a UUID) — the last path segment of an
+- An agent ID (a UUID) — the last path segment of an
   `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` URL the user gave, or
   create an agent on [os.ibl.ai](https://os.ibl.ai) (or with
-  `/iblai-api-agent-create` from `iblai/api`).
+  `/iblai-api-agent-create`).
 - **Minimum SDK versions.** The `Chat` component and its required hooks
   are only present in recent SDKs. Older-but-recent installs silently
   lack them. Require at least:
@@ -87,7 +89,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 | File | Change |
 |------|--------|
 | `package.json` | Adds SDK packages + peers (Step 3) |
-| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; `skip={isSsoLoginRoute}` on Auth/Tenant providers (Step 4) |
+| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; `skip={isSsoLoginRoute}` on `AuthProvider` / `TenantProvider` (Step 4) |
 | `public/sw.js` | The SDK offline service worker — required by `ServiceWorkerProvider` (Step 4) |
 | `next.config.*` | `Service-Worker-Allowed` header for sub-path mounts; `reactStrictMode:false` (Step 4, Known issues) |
 | `store/index.ts` | Registers `chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner` reducers (Step 5) |
@@ -113,7 +115,7 @@ yours doesn't, read `process.env.NEXT_PUBLIC_SUPPORT_EMAIL` directly in
 If the user already gave an os.ibl.ai URL
 (`https://os.ibl.ai/platform/<tenant>/<agent-uuid>`), the UUID is its last
 path segment — use it, don’t ask. Otherwise ask the user for their
-agent/mentor UUID. Write it directly to `.env.local` using the Edit tool —
+agent UUID. Write it directly to `.env.local` using the Edit tool —
 do NOT echo it back in shell commands:
 
 ```
@@ -121,7 +123,7 @@ NEXT_PUBLIC_DEFAULT_AGENT_ID=<the-uuid>
 ```
 
 If the user doesn't have one, direct them to create an agent on
-https://os.ibl.ai (or run `/iblai-api-agent-create` from `iblai/api`).
+https://os.ibl.ai (or run `/iblai-api-agent-create`).
 
 ## Step 3: Install Dependencies
 
@@ -433,46 +435,21 @@ destructive (loses session, wedges voice). Rules:
 
 ## Resuming / starting sessions
 
-`<Chat>` has **no `sessionId` prop** and does **not** read a `session`
-URL param. Sessions live in `localStorage` via `useCachedSessionId()`
-→ `{ [mentorId]: sessionId }`, read once at mount.
-
-- **Resume** (e.g. host history link → `?session=<id>`): seed
-  `cachedSessionId[mentorId] = id` before mount, gate render, key
-  `<Chat>` on the id (Step 6).
-- **New chat:** `delete cachedSessionId[mentorId]` + remount via a
-  changing key nonce (`?new=<ts>`). Just navigating does **not** start a
-  new chat — the SDK resumes the persisted session.
-- **There is no host-readable "conversation loaded" signal.**
-  `isLoadingChats` is internal to `useAdvancedChat`; `chatSliceShared`
-  is not reset between sessions, so `selectSessionId` /
-  `selectNumberOfActiveChatMessages` read **stale** on first render.
-  For a "loading" overlay during resume, use a guaranteed-minimum +
-  hard-capped **timer**, not a slice-derived condition.
-
-### Host history list (`getChatHistory`)
-
-Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
-- `userId` → **URL path** `{user_id}` (required to form the URL; absent
-  from the d.ts arg type but real).
-- `filterUserId` → **`filter_user_id` query** — what actually restricts
-  results. For an **org admin** the path alone returns org-wide; pass
-  **both** `userId` and `filterUserId` (= signed-in username) to scope
-  to the current user.
+`<Chat>` has no `sessionId` prop and reads no URL param: sessions live in `localStorage` via `useCachedSessionId()` and are read once at mount — seed (resume) or clear (new) before mounting and key `<Chat>` on it, exactly as Step 6 does. Details, the missing "conversation loaded" signal, and the `getChatHistory` host list: [`references/sessions.md`](references/sessions.md).
 
 ## Props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `mentorId` | `string` | yes | Agent/mentor UUID |
-| `tenantKey` | `string` | yes | Platform/tenant key |
+| `mentorId` | `string` | yes | Agent UUID |
+| `tenantKey` | `string` | yes | Organization (platform) key |
 | `config` | `ChatConfig` | yes | URLs + navigation callbacks |
 | `redirectToAuthSpa` | `(redirectTo?, platformKey?, logout?) => void` | yes | Host-owned auth redirect (wrap async helpers to `=> void`) |
 | `username` | `string \| null` | yes | Current user; `null` for anonymous |
 | `userTenants` | `Tenant[]` | yes | From `useUserTenants` |
 | `axdToken` | `string` | yes | AXD auth token |
 | `userIsStudent` | `boolean` | yes | RBAC role hint |
-| `visitingTenant` | `Tenant \| undefined` | no | Viewing another tenant's agent |
+| `visitingTenant` | `Tenant \| undefined` | no | Viewing another organization's agent |
 | `isPreviewMode` | `boolean` | yes | `true` for admin preview |
 | `mode` | `"default" \| "advanced"` | no | `"advanced"` enables builder UI |
 | `isPublicRoute` | `boolean` | no | Unauthenticated share links |
@@ -486,7 +463,7 @@ Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
 | `baseWsUrl` | `() => string` | WebSocket origin |
 | `supportEmail` | `() => string` | Footer / error-toast email (env fallback if host config lacks it) |
 | `authUrl` | `() => string` | Auth SPA origin |
-| `mainTenantKey` | `string` | Default tenant key |
+| `mainTenantKey` | `string` | Default organization key |
 | `navigateToAdminBilling` | `() => void` | Open the billing tab |
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
 | `navigateToMentor` | `(id: string) => void` | Open an individual agent |
@@ -494,68 +471,7 @@ Endpoint: `/api/ai-analytics/orgs/{org}/users/{user_id}/chat-history/`.
 
 ## Known issues & host workarounds
 
-These are SDK-side defects/limitations confirmed against
-`web-containers@1.6.14` / `web-utils@1.6.9`. Fix upstream if you can;
-otherwise apply the host workaround.
-
-### Voice "Processing…" hangs forever (React StrictMode / remounts)
-
-`useVoiceChat`'s `isMounted` ref is only ever reset to `false` (effect
-cleanup), never back to `true` on setup. React StrictMode (Next default)
-double-invokes effects in dev (mount→cleanup→remount) → the ref stays
-`false` → audio-to-text resolves but the `isMounted`-guarded
-`setProcessing(false)` is skipped → stuck "Processing…". Any `<Chat>`
-remount reproduces it.
-
-- **Workaround:** `reactStrictMode: false` in `next.config` (dev-only
-  behavior; prod runs effects once) **and** follow "Mounting
-  discipline" so `<Chat>` doesn't remount.
-- **Real fix (upstream):** add `isMounted.current = true;` to the
-  effect setup in `useVoiceChat`.
-
-### Prompt-gallery dialog wedges the whole app
-
-The bundled `PromptGalleryModal` is a Radix dialog whose teardown leaves
-`document.body { pointer-events: none }` and sibling
-`inert`/`aria-hidden` after close → the entire app becomes unclickable.
-The `promptGalleryModal` slot override **does not exist** in this SDK
-(see Props), so it can't be replaced via API.
-
-- **Workaround:** mount a global recovery component at the app root that
-  clears the stuck lock **only when no Radix dialog is open** (no-op
-  while a modal is legitimately open):
-
-```tsx
-"use client";
-import { useEffect } from "react";
-const OPEN = '[role="dialog"][data-state="open"],[role="alertdialog"][data-state="open"],[data-radix-popper-content-wrapper]';
-function recover() {
-  if (document.querySelector(OPEN)) return;
-  if (document.body.style.pointerEvents === "none") document.body.style.pointerEvents = "";
-  for (const el of Array.from(document.body.children)) {
-    if (el.hasAttribute("inert")) el.removeAttribute("inert");
-    if (el.getAttribute("aria-hidden") === "true") el.removeAttribute("aria-hidden");
-  }
-}
-export function RadixPointerEventsGuard() {
-  useEffect(() => {
-    recover();
-    const mo = new MutationObserver(recover);
-    mo.observe(document.body, { attributes: true, attributeFilter: ["style","inert","aria-hidden"], childList: true, subtree: true });
-    const onDown = () => recover();
-    document.addEventListener("pointerdown", onDown, true);
-    return () => { mo.disconnect(); document.removeEventListener("pointerdown", onDown, true); };
-  }, []);
-  return null;
-}
-```
-
-  Mount it once next to your store/providers. This is recovery, not a
-  root-cause fix — the gallery still tears down wrong, but the app stays
-  usable.
-- **Real fix (upstream):** correct the dialog teardown, or actually
-  implement the `promptGalleryModal` slot so hosts can supply a
-  cleanly-unmounting modal.
+Two SDK defects need host workarounds: voice "Processing…" hangs after any remount (set `reactStrictMode: false`, never remount `<Chat>` except through its key) and the prompt-gallery dialog can leave the app unclickable (mount `RadixPointerEventsGuard` once at the root — vibe-starter ships it as `components/radix-pointer-events-guard.tsx`). Full analysis and the guard's source: [`references/known-issues.md`](references/known-issues.md).
 
 ## Step 7: Verify
 

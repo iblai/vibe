@@ -50,7 +50,7 @@ echo "Running validation..."
 echo ""
 
 # Validate each skill
-for skill_dir in "$SKILLS_DIR"/*/; do
+for skill_dir in "$SKILLS_DIR"/*/*/; do
     skill_name=$(basename "$skill_dir")
     printf "  %-30s" "$skill_name"
 

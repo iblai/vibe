@@ -28,53 +28,25 @@ Agent Skills are managed independently of the sandbox — see
 `/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
 per-agent assignment, skill resources, and the chat `/` picker).
 
-![Sandbox — Claw selected, instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
+![Sandbox — Claw selected, instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
 
-![Sandbox Type — Computing Runtime selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-computing.png)
+![Sandbox Type — Computing Runtime selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-computing.png)
 
-![Sandbox Type — Virtual Machine Shell selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-vm.png)
+![Sandbox Type — Virtual Machine Shell selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-vm.png)
 
-![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
+![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
 
-![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
+![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
 
-![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
+![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
 
-![Sandbox — Connected Instance, Auto Push, Push](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
+![Sandbox — Connected Instance, Auto Push, Push](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
 
-![Sandbox — Connected Instance with Push Configuration and Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected-model.png)
+![Sandbox — Connected Instance with Push Configuration and Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected-model.png)
 
-![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
+![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
 
-![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -183,7 +155,7 @@ to avoid the extra read.
 
 The **Sandbox Type** card at the top of `SandboxConfig` selects how
 the agent runs code. Three boolean flags back it, all read from the
-agent's settings and written through the standard mentor-settings
+agent's settings and written through the standard agent-settings
 update endpoint:
 
 | Kind | Flag | What it gives the agent |
@@ -242,7 +214,7 @@ Both components import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 | `username` | `string \| null` | No | Current user. Falls back to `getUserName()` from `localStorage` when omitted |
 
@@ -250,7 +222,7 @@ Both components import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 
 ## What each section renders
@@ -387,7 +359,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Flag homes**: `enable_claw` and `enable_virtual_machine` live on
   `MentorSettings`; `enable_computational_runtime` lives on `Mentor` —
   all three are readable from the settings response and writable
-  through the same mentor-settings update (`useEditMentorMutation`).
+  through the same agent-settings update (`useEditMentorMutation`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 
 ## Sandbox REST API
@@ -407,7 +379,7 @@ The kinds are mutually exclusive by convention, enforced client-side:
 when enabling one flag, send the other two as `false` in the same
 request. Only `enable_claw` unlocks the OpenClaw endpoints below.
 
-### Instances (tenant-scoped)
+### Instances (organization-scoped)
 
 | Method | Path | Purpose |
 |---|---|---|

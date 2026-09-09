@@ -1,10 +1,10 @@
 # iblai-vibe-billing
 
-> Add the tenant Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide Spend Limit; and the Agent Limits table managing every agent's spend cap in one place) to your Next.js app
+> Add the organization-wide Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide Spend Limit; and the Agent Limits table managing every agent's spend cap in one place) to your Next.js app
 
 # /iblai-vibe-billing
 
-Add the tenant **Billing** surface -- "Manage your billing and
+Add the organization-wide **Billing** surface -- "Manage your billing and
 subscription" for the whole workspace, in three tabs: **Plan &
 Credits** (current plan with Stripe upgrade, credit balance with its
 USD equivalent, Add Credits, and Auto Recharge with threshold /
@@ -14,52 +14,24 @@ users spend), and **Agent Limits** (every agent spend cap in the
 workspace in one searchable table — each row opens the same per-agent
 Billing editor documented in `/iblai-vibe-agent-billing`).
 
-This is the tenant-level counterpart of the per-agent Billing tab:
+This is the org-wide counterpart of the per-agent Billing tab:
 per-agent and per-user limits live in each agent's settings
 (`/iblai-vibe-agent-billing`); this surface holds the plan/credits
 management, the workspace-wide cap, and the cross-agent overview.
 
-![Billing — Plan & Credits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing.png)
+![Billing — Plan & Credits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing.png)
 
-![Add Credits Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-add-credits.png)
+![Add Credits Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-add-credits.png)
 
-![Manage Usage (Auto Recharge) Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-manage-usage.png)
+![Manage Usage (Auto Recharge) Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-manage-usage.png)
 
-![Billing — Spend Limits (workspace-wide)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-spend-limits.png)
+![Billing — Spend Limits (workspace-wide)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-spend-limits.png)
 
-![Billing — Agent Limits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-agent-limits.png)
+![Billing — Agent Limits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits.png)
 
-![Agent Limits — Manage popup (This Agent)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-agent-limits-manage.png)
+![Agent Limits — Manage popup (This Agent)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits-manage.png)
 
-![Agent Limits — Manage popup (Per User)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-billing/iblai-vibe-billing-agent-limits-per-user.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Agent Limits — Manage popup (Per User)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits-per-user.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -98,7 +70,7 @@ template and fill in your values:
 ## Step 2: Mount `BillingTab`
 
 `BillingTab` imports from `@iblai/iblai-js/web-containers` (the base
-bundle, not `/next`). It takes the tenant key plus the acting user's
+bundle, not `/next`). It takes the org key plus the acting user's
 identity — the agent search and the Stripe flows need them.
 
 ```tsx
@@ -157,9 +129,9 @@ Import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `tenant` | `string` | Yes | Tenant / org key this Billing page manages |
+| `tenant` | `string` | Yes | Org key this Billing page manages |
 | `username` | `string` | Yes | Acting admin's username (Stripe portal + agent search) |
-| `mainPlatformKey` | `string` | Yes | The main tenant key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) — used to classify Free/Trial/Premium |
+| `mainPlatformKey` | `string` | Yes | The main org key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) — used to classify Free/Trial/Premium |
 | `currentUserEmail` | `string` | Yes | Acting user's email, passed to the Stripe upgrade flow |
 | `userActiveApp` | `UserApp \| null` | No | Active subscription record (from `@iblai/iblai-api`) — enables renewal-date / trial-days copy on the Plan card |
 | `redirectUrl` | `string` | No | Stripe checkout return URL; defaults to the current page |
@@ -190,7 +162,7 @@ Import from `@iblai/iblai-js/web-containers`.
 ### Spend Limits (workspace-wide)
 
 One limit covering everything all agents and users spend in this
-workspace — the tenant scope of the same spend-cap editor documented
+workspace — the org-wide scope of the same spend-cap editor documented
 in `/iblai-vibe-agent-billing` (enable toggle, usage bar, Spend Limit,
 Resets Every, Block Requests / Alert Only, Alert At thresholds,
 Delete Limit / Save). Before a cap exists, the section shows the
@@ -199,7 +171,7 @@ financial analytics endpoint) so an admin can pick a sensible number.
 
 ### Agent Limits
 
-Every configured agent spend cap in the tenant, from the tenant-wide
+Every configured agent spend cap in the org, from the org-wide
 list endpoint (no per-agent fan-out):
 
 - **Search Agents** — debounced autocomplete filter (min 2 chars);
@@ -277,9 +249,9 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   first-run GET 404s until a cap is saved, the PUT is an upsert,
   counters are read-only, and a hard-block cap refuses requests with
   the `spend_cap_exceeded` 429. Full spend-caps REST tables live in
-  `/iblai-vibe-agent-billing`; the tenant endpoints are
+  `/iblai-vibe-agent-billing`; the org-scoped endpoints are
   `spend-caps/tenant/` (GET/PUT/DELETE) and `spend-caps/agents/`
-  (tenant-wide list, `?mentor=<uuid>` filter).
+  (org-wide list, `?mentor=<uuid>` filter).
 - **Per-scope RBAC**: each section 403s independently — Spend Limits
   and Agent Limits render their own denied panels without hiding the
   Plan & Credits tab.

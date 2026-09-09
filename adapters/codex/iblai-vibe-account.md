@@ -4,43 +4,16 @@
 
 # /iblai-vibe-account
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add an account/organization settings page with tabs for Organization info,
 User Management, Integrations, Advanced settings, and Billing.
 
-![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-account/account-page.png)
+![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-page.png)
 
 > **Template:** the page this skill creates is bundled as
 > [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 > **Navbar:** If the user wants a navbar with links to the account page,
 > guide them to `/iblai-vibe-navbar` first. That skill creates the full navbar
@@ -53,18 +26,20 @@ not in a subdirectory.
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) already ships the /account
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) already ships the /account
 > page wired up, alongside auth, navbar, and profile/notifications. Want to
 > use that instead?
 
 If yes, copy the bundled starter template from the installed
-`iblai-vibe-ops-init` skill's `assets/vibe-starter/` directory (a sibling of
-this skill's directory), or fetch it from the vibe repo if those assets are
-not installed -- tell the user which path you took -- then skip this skill:
+`iblai-vibe-ops-init` skill's `assets/vibe-starter/` directory (it sits
+alongside this skill in your skills directory; in the vibe repo it lives
+under `skills/start/`), or fetch it from the vibe repo if those assets
+are not installed -- tell the user which path you took -- then skip this
+skill:
 
     cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
     # or, without local assets:
-    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 
     pnpm install --ignore-scripts
 
@@ -214,7 +189,7 @@ get_component_info("Account")
 | `tenants` | `Tenant[]` | Full list of user platforms from localStorage |
 | `username` | `string` | Username |
 | `email` | `string` | User email (from `userData` in localStorage) |
-| `mainPlatformKey` | `string` | Main tenant key — `config.mainTenantKey()` |
+| `mainPlatformKey` | `string` | Main org key — `config.mainTenantKey()` |
 | `onInviteClick` | `() => void` | Called when "Invite user" is clicked |
 | `onClose` | `() => void` | Cancel/close callback |
 | `authURL` | `string` | Auth service URL |
@@ -224,7 +199,7 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing`, `memory` (the tenant Memory surface — see `/iblai-vibe-memory`) |
+| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing`, `memory` (the org-wide Memory surface — see `/iblai-vibe-memory`) |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |

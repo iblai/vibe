@@ -9,12 +9,12 @@
 // (429/5xx/network) is retried once, then warned but passed, so nightly CI
 // doesn't go red on GitHub flakiness.
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const CHECKED_EXTENSIONS = /\.(md|j2|json|ts|tsx|mjs|js|sh|yaml|yml)$/;
-const SKIP_DIRS = new Set(["node_modules", "adapters"]); // adapters mirror skills/ — same URLs
+const SKIP_DIRS = new Set(["node_modules", "adapters", "templates"]); // adapters mirror skills/; templates hold placeholder URLs
 const SKIP_FILES = new Set(["CHANGELOG.md", "pnpm-lock.yaml"]);
 const URL_PATTERN = /https:\/\/(?:raw\.githubusercontent\.com|github\.com)\/iblai\/[^\s)"'`<>\]*]+/g;
 
@@ -40,7 +40,17 @@ for (const file of walk(ROOT)) {
   });
 }
 
+// A link into THIS repo's main branch is satisfied by the file existing in the
+// working tree: new skills reference their own screenshots/assets before the
+// branch is merged, and those paths will resolve on main once it is.
+const SELF = /^https:\/\/(?:raw\.githubusercontent\.com\/iblai\/vibe\/refs\/heads\/main|github\.com\/iblai\/vibe\/(?:blob|tree)\/main)\/(.+)$/;
+function existsLocally(url) {
+  const m = SELF.exec(url);
+  return !!m && existsSync(join(ROOT, decodeURIComponent(m[1])));
+}
+
 async function status(url) {
+  if (existsLocally(url)) return 200;
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await fetch(url, { redirect: "follow" });

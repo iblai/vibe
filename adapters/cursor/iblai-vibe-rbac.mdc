@@ -7,8 +7,8 @@ alwaysApply: false
 # /iblai-vibe-rbac
 
 Reference skill for the ibl.ai role-based access control system. Lists
-the default RBAC roles the platform seeds (Tenant Admin, Students,
-Mentor Editor / Viewer, Analytics Viewer, Notification Manager,
+the default RBAC roles the platform seeds (`Tenant Admin`, `Students`,
+`Mentor Editor` / `Mentor Viewer`, `Analytics Viewer`, `Notification Manager`,
 Enrollment Manager, CRM roles, etc.) and points to the live endpoint
 that returns every action definition. Use this when you need to
 build, audit, or extend RBAC behavior — most apps only need the SDK's
@@ -16,23 +16,7 @@ drop-in management UI (`<Admin>` → Roles + Policies tabs) plus
 per-resource gating via `checkRbacPermission`. Mention or open this
 skill before writing custom RBAC UI from scratch.
 
-![Account Management — Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-rbac/account-management-policies.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
+![Account Management — Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-rbac/account-management-policies.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -45,7 +29,7 @@ above is the Policies tab inside `<Admin>`):
 | Component | Description |
 |-----------|-------------|
 | `<Admin>` | Full management surface — Users, Groups, **Roles**, **Policies**, Teams, Alerts. Tabs are permission-gated via the `has*TabPermission` props (e.g. `hasRolesTabPermission`, `hasPoliciesTabPermission`). Pass `enableRbac` + `rbacPermissions` to drive those flags from `checkRbacPermission` results. Already mounted inside the SDK `<Account>` modal — most apps reach it via `/iblai-vibe-account`. |
-| `<RolesTab tenant={key} />` | Standalone Roles tab — table of roles for the tenant + create/edit/delete dialogs. The "actions" / "data_actions" pickers list every action definition from the endpoint below. |
+| `<RolesTab tenant={key} />` | Standalone Roles tab — table of roles for the organization + create/edit/delete dialogs. The "actions" / "data_actions" pickers list every action definition from the endpoint below. |
 | `<PoliciesTab tenant={key} />` | Standalone Policies tab — bind a role to a set of resources for users/groups. Resources are hierarchical (`/platforms/<pk>/mentors/<pk>/`) and the picker handles that. |
 
 All three live in `@iblai/iblai-js/web-containers`. For agent-scoped
@@ -79,12 +63,12 @@ when authoring new roles via `<RolesTab>` or `POST rbac/roles/` (see
 
 Full Python definitions of every default role (with their `actions` and
 `data_actions` arrays) live in
-[`references/default-roles.py`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-rbac/references/default-roles.py).
+[`references/default-roles.py`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-rbac/references/default-roles.py).
 Open or copy that file when you need the exact action strings.
 
 | Role | Summary |
 |------|---------|
-| `TENANT_ADMIN` | `Ibl.*` everywhere — full tenant control. |
+| `TENANT_ADMIN` | `Ibl.*` everywhere — full organization control. |
 | `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for agents granted to them; reads field-level agent + settings data. |
 | `STUDENT_MENTOR_VIEWERS` | List agents (filtered to what they have access to). |
 | `MENTOR_VIEWER` | Read-only agent + settings + prompts + documents + reports + chat. Apply to `/platforms/{pk}/mentors/{pk}/`. |

@@ -13,13 +13,13 @@ Follow the project's [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/ref
 
 This is a multi-phase process. Follow each phase in order — but ALWAYS check memory first.
 
-![Welcome](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-1.png)
-![Goal Question](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-2.png)
-![Pain Points](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-3.png)
-![Pain Amplification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-4.png)
-![App Demo](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-5.png)
-![Value Delivery](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-6.png)
-![Paywall](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-onboard/iblai-vibe-onboard-7.png)
+![Welcome](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-1.png)
+![Goal Question](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-2.png)
+![Pain Points](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-3.png)
+![Pain Amplification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-4.png)
+![App Demo](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-5.png)
+![Value Delivery](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-6.png)
+![Paywall](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-7.png)
 
 ---
 

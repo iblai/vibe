@@ -7,46 +7,18 @@
 Add the agent **MCP tab** -- Model Context Protocol connector management
 with a Featured Connectors gallery, a custom Connectors section with
 add/edit/delete, OAuth connection flow, token-based auth, per-connector
-scope (tenant or this-mentor), transport selection (SSE / WebSocket /
+scope (organization or this-agent), transport selection (SSE / WebSocket /
 Streamable HTTP), and search/date/transport filters. This is one tab in
 the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![MCP Tab — Featured Connectors](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-featured.png)
+![MCP Tab — Featured Connectors](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-featured.png)
 
-![MCP Tab — Custom Connectors](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-connectors.png)
+![MCP Tab — Custom Connectors](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-connectors.png)
 
-![Add MCP Connector Dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-add.png)
+![Add MCP Connector Dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-add.png)
 
-![Edit MCP Connector Dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-edit.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Edit MCP Connector Dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-mcp/iblai-vibe-agent-mcp-edit.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -129,7 +101,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
   the logo, name, connection state, auth-type chip (`OAuth` / `Token`),
   scope chip (`User` / `Mentor` / `Tenant`), provider tag, and a
   **Connect** / **Disconnect** button.
-- **Connectors** — custom servers registered by the tenant. Each card
+- **Connectors** — custom servers registered by the organization. Each card
   has a Connect/Disconnect button (when OAuth) plus **Edit** and
   **Delete**. The **Add Connector** button opens the add dialog.
 - **Pagination** — separate pagers for Featured and Connectors when
@@ -145,7 +117,7 @@ Opened from the **Add Connector** button. Collects:
 | Connector Name | Required. |
 | Connector Server | Required. Must be a valid URL. |
 | Description | Optional. |
-| Connector Scope | `All Agents` (tenant) or `This Agent` (agent-bound). |
+| Connector Scope | `All Agents` (organization) or `This Agent` (agent-bound). |
 | Transport | `SSE` / `WebSocket` / `Streamable Http` (default). |
 | Authentication Method | `No Authentication` / `API Key` / `OAuth`. |
 | Authentication Scope | OAuth-only: `Tenant` / `Mentor` / `User`. |
@@ -236,7 +208,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 For custom UI beyond `<McpTab>` — register external MCP servers and bind
 them to agents. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
+`NEXT_PUBLIC_API_BASE_URL`. Organization admins only.
 
 ### Workflow
 
@@ -256,7 +228,7 @@ them to agents. All endpoints are prefixed with
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `mcp-servers/` | List tenant + featured servers (filters: `is_featured`, `transport`, `search`, `mentor_unique_id`, `include_global`) |
+| GET | `mcp-servers/` | List organization + featured servers (filters: `is_featured`, `transport`, `search`, `mentor_unique_id`, `include_global`) |
 | POST | `mcp-servers/` | Register a new server (multipart for image upload) |
 | PATCH/PUT | `mcp-servers/{id}/` | Update |
 | DELETE | `mcp-servers/{id}/` | Delete |
@@ -279,7 +251,7 @@ them to agents. All endpoints are prefixed with
 - `transport`: `sse` | `websocket` | `streamable_http`
 - `auth_type`: `none` | `token` | `oauth2`
 - `auth_scope` (oauth only): `tenant` | `mentor` | `user`
-- `mentor`: `null` for tenant-wide, agent UUID for agent-bound
+- `mentor`: `null` for organization-wide, agent UUID for agent-bound
 - For `auth_type=token`, set `credentials` to the full header value
   (e.g. `"Bearer abc123"`).
 
@@ -320,7 +292,7 @@ the server reusable:
 Returned credentials are **masked**; only send a new value when the
 user intentionally rotates the secret.
 
-### 4. Assign servers to a agent
+### 4. Assign servers to an agent
 
 | Method | Path | Body |
 |---|---|---|
@@ -332,7 +304,7 @@ The `mcp_servers` array replaces the agent's current list.
 
 1. User-scoped connection (matching invoking user)
 2. Agent-scoped connection (matching active agent)
-3. Tenant-scoped connection
+3. Organization-scoped connection
 4. Featured server fallback (`is_featured=true` global)
 
 ## OAuth Connectors REST API
@@ -357,4 +329,4 @@ provider/service before a `MCPServerConnection` can reference a
   OAuth handshake first and pass `connected_service` when creating the
   `MCPServerConnection`.
 - `400 Selected MCP server is not available to the current tenant.` —
-  the server belongs to another tenant and is not `is_featured=true`.
+  the server belongs to another organization and is not `is_featured=true`.
