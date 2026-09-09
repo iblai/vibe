@@ -3,6 +3,18 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.0] - 2026-09-09
+
+### Added
+
+- the first conversation, the three architectures, the domain model, and a Claude Code plugin
+- merge iblai/api into iblai/vibe — two skill families, one install, every skill tagged by kind
+- user-first revamp — journey-led docs, the core app in vibe-starter, eight new skills
+
+### Documentation
+
+- make the entry path unmissable in every agent; add the OpenAI Codex and Cursor labels
+
 ## [1.26.2] - 2026-09-09
 
 ### Documentation
