@@ -1,0 +1,191 @@
+---
+name: iblai-api-external-service-proxy
+description: Call third-party AI services through ibl.ai's External Service Proxy — a platform-admin gateway that fronts ElevenLabs (TTS, voice management, dubbing, sound generation, audio isolation, history/quota) and HeyGen (avatar & template video, translation, photo avatars, assets, voices, quota, webhooks). Discover the available services and their endpoints, then POST a request envelope (body/query/headers/path_params, plus multipart files) to invoke one action — the provider API key is stored server-side per org, so clients never hold it. Covers the full action catalog, request/response modes (json/passthrough/stream), credential_policy resolution, async polling, and the 400/401/403/404/502 error surface.
+metadata:
+  kind: api
+---
+
+# iblai-api-external-service-proxy
+
+A service-agnostic **gateway** for calling third-party AI providers (ElevenLabs,
+HeyGen, …) *through* ibl.ai instead of hitting them directly. One request shape
+fronts every provider; the provider's API key is stored server-side per org and
+injected upstream, so the client never holds it. Work in two phases: **discover**
+a service's endpoints, then **invoke** one. Configure the provider keys with
+`/iblai-api-integration`; get `IBLAI_ORG`/`IBLAI_API_KEY` from `/iblai-api-login`.
+
+## Auth & conventions
+
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request. The
+  token must belong to a **platform admin** — all three endpoints are
+  platform-admin gated (a non-admin token → `403`; no token → `401`).
+- **Base:** `https://api.iblai.app/dm/api/ai-proxy/orgs/{org}` — `{org}` = `$IBLAI_ORG`
+  (a.k.a. `platform_key`). App segment is `ai-proxy`; backend routes are bare
+  `/api/...`, the gateway prepends `/dm`.
+- Run `/iblai-api-login` first to populate `$IBLAI_ORG` / `$IBLAI_API_KEY`.
+- Provider **credentials are configured out-of-band** by a platform admin (see
+  Notes), not through this API. Resolution follows each service's
+  `credential_policy`.
+- **Confirm with the user first** for any billable or destructive action —
+  invoking a `tts`, `generate-*`, `translate-*`, dubbing, or delete action hits
+  a paid third-party API or removes provider-side data.
+
+## Concepts
+
+Everything here is read off **service discovery** (below) — the proxy resolves
+`{action}` against a per-service endpoint registry, it is not a separate route.
+
+- **The invoke envelope** — the JSON body you POST to invoke an action. All keys
+  are optional and forwarded upstream:
+  ```json
+  {
+    "body": {},         // JSON payload sent as the provider's request body (its own schema)
+    "query": {},        // upstream query-string params
+    "headers": {},      // extra upstream headers
+    "path_params": {}   // fills {placeholders} in the endpoint's path_template
+  }
+  ```
+  There is **no `files` key.** For `multipart`/`binary` endpoints, send a real
+  multipart request instead: put `body`/`query`/`path_params` as JSON-string
+  form fields and attach the file(s) as their own form fields — the server reads
+  `request.FILES` and forwards them upstream.
+- **`request_mode`** (per endpoint): `raw` (no body — GET/DELETE), `json` (JSON
+  body), `multipart` (file upload + fields), `binary` (raw file bytes as the body,
+  e.g. HeyGen `upload-asset`).
+- **`response_mode`** (per endpoint): `json` (parse JSON), `passthrough` (raw
+  upstream bytes forwarded verbatim with the upstream `Content-Type` — audio/video;
+  **write to a file, don't JSON-parse**), `stream` (chunked/SSE). There is **no
+  separate `binary` response mode** — binary payloads come back as `passthrough`.
+- **`path_template`** — the upstream path with `{placeholders}`; every placeholder
+  must be supplied in `path_params` (e.g. `/v1/text-to-speech/{voice_id}` needs
+  `path_params.voice_id`). Omit one → `400`.
+- **`callback_mode: poll`** — async actions (HeyGen `generate-*`, `translate-video`;
+  ElevenLabs `create-dubbing`) return a job/video id; poll the matching status
+  action until it completes.
+
+## Reads (discover)
+
+- **GET** `…/orgs/{org}/services/` — list enabled services. Each:
+  `slug`, `display_name`, `service_type` (`http` | `streaming` | `async`),
+  `is_enabled`, `supports_async_jobs`, `supports_streaming`, `credential_name`,
+  `endpoint_count`.
+- **GET** `…/orgs/{org}/services/{service}/` — service detail: `slug`,
+  `display_name`, `base_url`, `service_type`, `auth_mode`, `is_enabled`,
+  `supports_async_jobs`, `supports_streaming`, `default_timeout_seconds`,
+  `credential_name`, plus:
+  - `credential_policy`: `{allow_tenant_key, allow_platform_key, default_source,
+    fallback_to_platform_key}`.
+  - `credential_schema`: always `{"key": "string"}` (the provider API key shape).
+  - `endpoints[]`: each `{slug, path_template, http_method, request_mode,
+    response_mode, supports_streaming, callback_mode, is_enabled}` (only enabled
+    endpoints are returned).
+
+## Writes (invoke)
+
+- **POST** `…/orgs/{org}/services/{service}/{action}/` — invoke one action with the
+  envelope above. `{service}` = provider slug, `{action}` = endpoint slug.
+  **Every invoke is an HTTP `POST` to the gateway regardless of the upstream
+  method** shown in the catalog (the `method + path_template` column is the
+  *upstream* call the proxy makes). `resp` is the endpoint's `response_mode`.
+
+### ElevenLabs (`service: elevenlabs`)
+
+Base `https://api.elevenlabs.io`, key injected as header `xi-api-key`. **23 actions** —
+voices CRUD, `list-models`, TTS (`tts` / `tts-stream` / `tts-timestamps`),
+`sound-generation`, audio isolation, dubbing (`create-dubbing` → poll `get-dubbing`),
+history, and `get-user` / `get-subscription`. **Confirm with the user first** — billable:
+`tts*`, `sound-generation`, `audio-isolation*`, `create-dubbing`; destructive:
+`delete-voice` / `delete-dubbing` / `delete-history-item`.
+
+→ **Full action catalog** (upstream method + `path_template`, request/response modes,
+`path_params`) and the `tts` body: [`references/elevenlabs.md`](references/elevenlabs.md).
+
+### HeyGen (`service: heygen`)
+
+Base `https://api.heygen.com`, key injected as header `X-API-KEY`, `service_type: async`
+(120 s). **21 actions** — templates, avatars/voices, `generate-video` /
+`generate-template-video` / `generate-talking-photo` (→ poll `video-status`),
+`translate-video` (→ poll `translation-status`), assets (`upload-asset` is `binary`),
+photo avatars, `get-remaining-quota`, and webhooks. **Confirm with the user first** —
+billable: `generate-*`, `translate-video`, `create-photo-avatar`; destructive:
+`delete-video` / `delete-webhook`.
+
+→ **Full action catalog** and the `generate-video` / `generate-template-video` bodies plus
+the `video-status` shape: [`references/heygen.md`](references/heygen.md).
+
+## Example
+
+```bash
+# discover
+curl "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY"
+curl "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/elevenlabs/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY"
+
+# ElevenLabs TTS -> MP3 (passthrough; raw bytes, write to file)
+curl -X POST "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/elevenlabs/tts/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" -H "Content-Type: application/json" \
+  -d '{"path_params":{"voice_id":"21m00Tcm4TlvDq8ikWAM"},"body":{"text":"Hello, this is a test.","model_id":"eleven_multilingual_v2","voice_settings":{"stability":0.5,"similarity_boost":0.5}}}' \
+  --output speech.mp3
+
+# HeyGen: generate avatar video (test:true = no credits) -> video_id, then poll
+curl -X POST "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/heygen/generate-video/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" -H "Content-Type: application/json" \
+  -d '{"body":{"test":true,"video_inputs":[{"character":{"type":"avatar","avatar_id":"Abigail_expressive_2024112501","avatar_style":"normal"},"voice":{"type":"text","input_text":"Hello.","voice_id":"f38a635bee7a4d1f9b0a654a31d050d2"}}],"dimension":{"width":1280,"height":720}}}'
+
+curl -X POST "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/heygen/video-status/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" -H "Content-Type: application/json" \
+  -d '{"query":{"video_id":"video_123abc"}}'
+```
+
+## Notes
+
+- **`body`/`query`/`headers` are forwarded verbatim** to the provider — their
+  schema is the provider's own (ElevenLabs / HeyGen API docs), the proxy doesn't
+  reshape them. Use the `list-*` reads to fetch valid ids (`voice_id`, `model_id`,
+  `avatar_id`, `template_id`) before a write.
+- **Passthrough responses** (`tts`, `sound-generation`, `*-audio`, `audio-isolation`)
+  are raw bytes with the upstream `Content-Type` — save to a file, don't parse as
+  JSON. **Stream** endpoints return chunked/SSE.
+- **Async actions poll:** `generate-*` / `translate-video` / `create-dubbing`
+  return a job/video id; poll the matching status action (`video-status`,
+  `translation-status`, `get-dubbing`, `photo-avatar-train-status`) until
+  `completed`. Use `test:true` on HeyGen `generate-*` to avoid spending credits;
+  check remaining credits with HeyGen `get-remaining-quota` / ElevenLabs
+  `get-subscription`.
+- **Errors** — body is keyed by `detail` (DRF) *or* `error` (credential-policy);
+  read `detail || error`:
+
+  | status | when | example body |
+  |--------|------|--------------|
+  | 400 | malformed envelope, missing required `path_params`, or the credential policy allows no source | `{"error": "Credential policy does not allow any credential source."}` |
+  | 401 | missing / invalid platform token | `{"detail": "Authentication credentials were not provided."}` |
+  | 403 | token is not a platform admin, or the service isn't enabled for the org | `{"detail": "You do not have permission to perform this action."}` |
+  | 404 | unknown/disabled `{service}` or `{action}` slug, **or no provider credential configured** for this org | `{"detail": "No credentials found for external proxy service 'elevenlabs'."}` |
+  | 502 | upstream provider failed — bad provider key, quota/rate-limit, or outage | `{"detail": "The upstream external service request failed."}` |
+  | 429 | provider rate limit hit (surfaced from upstream) | retry with exponential backoff |
+
+- **Credentials (config, not an endpoint):** a platform admin sets each provider
+  key out-of-band (via `/iblai-api-integration` / admin) under the service's
+  `credential_name` (`elevenlabs`, `heygen`) with schema `{"key": "<provider-api-key>"}`;
+  the proxy injects it as that provider's auth header. Resolution follows
+  `credential_policy` (from service detail): `default_source` (`tenant` = this org's
+  key vs `platform` = platform-wide key) is tried first, and if
+  `fallback_to_platform_key` is set the other source is tried; `allow_tenant_key` /
+  `allow_platform_key` gate each. **Seeded default for both services is
+  `tenant`-key-only** (`allow_platform_key=false`, no fallback) — the org must hold
+  its own provider key. No allowed source → `400`; source allowed but key absent →
+  `404 …No credentials found…`.
+- The Authorization token is always the ibl **platform token** (Api-Token, platform
+  admin) — **never** the provider key, which lives server-side.
+
+## Reference material
+
+The endpoints and per-action bodies above are the primary; these bundled references
+carry the exhaustive lookup material and the doc-sourced developer guides.
+
+- [`references/elevenlabs.md`](references/elevenlabs.md) — full ElevenLabs action catalog (upstream method + `path_template`, request/response modes, `path_params`) and the `tts` body.
+- [`references/heygen.md`](references/heygen.md) — full HeyGen action catalog plus the `generate-video` / `generate-template-video` bodies and the `video-status` shape.
+- [`references/overview.md`](references/overview.md) — proxy concept, service-discovery response shapes, the invoke request format, quick-reference table, and a client discovery example.
+- [`references/integration-guide.md`](references/integration-guide.md) — building dynamic integrations: parsing `path_template`, handling each `response_mode`, the reusable `ExternalProxyClient` class, and worked end-to-end examples.
+- [`references/errors.md`](references/errors.md) — the full error surface (every status with causes + solutions), credential setup, `credential_policy` resolution, troubleshooting, and best-practice client code.

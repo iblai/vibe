@@ -1,7 +1,7 @@
 # AGENTS.md
 
 **First message from a user about building on or operating ibl.ai → run the four
-questions in [`skills/iblai-vibe-start/SKILL.md`](skills/iblai-vibe-start/SKILL.md)
+questions in [`skills/start/iblai-vibe-start/SKILL.md`](skills/start/iblai-vibe-start/SKILL.md)
 before touching any file**, unless `iblai.env` already records `ARCHITECTURE=`.
 This file is read by OpenAI Codex, Claude Code (via `CLAUDE.md`), and any
 agent that honors `AGENTS.md`; the same rule is in every skill's common setup.
@@ -20,9 +20,9 @@ install (`npx skills add iblai/vibe --all`), two skill families:
 - **The first conversation is `/iblai-vibe-start`** — new or existing project;
   single-org, multi-org, or headless; who signs in; users / memories / agents /
   organizations. Recorded in `iblai.env`; every later skill reads it.
-  How sign-in and tenancy work: [docs/auth-model.md](docs/auth-model.md).
-- **Start at [`skills/iblai-vibe/SKILL.md`](skills/iblai-vibe/SKILL.md)** — what
-  you want → which skill. Headless: [`skills/iblai-api-login/SKILL.md`](skills/iblai-api-login/SKILL.md).
+  How sign-in and organizations work: [docs/auth-model.md](docs/auth-model.md).
+- **Start at [`skills/start/iblai-vibe/SKILL.md`](skills/start/iblai-vibe/SKILL.md)** — what
+  you want → which skill. Headless: [`skills/start/iblai-api-login/SKILL.md`](skills/start/iblai-api-login/SKILL.md).
 - The families and kinds: [docs/skill-kinds.md](docs/skill-kinds.md). Sibling
   repos: [`iblai/os`](https://github.com/iblai/os) (reference app),
   [`iblai/vibe-agent`](https://github.com/iblai/vibe-agent),

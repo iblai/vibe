@@ -86,7 +86,11 @@ Map to `DOMAIN_FOCUS=…`. Most apps say "users and agents"; that is fine.
    - Focus: users, memories, agents, organizations
    ```
 
-3. Route — say which skill you are opening and why:
+3. Credentials: run `/iblai-vibe-connect` (browser round trip; falls back to
+   manual questions). Skip it when `iblai.env` already holds a real `PLATFORM`
+   and `TOKEN`, or the host exports `IBLAI_API_KEY`.
+
+4. Route — say which skill you are opening and why:
 
 | Answers | Next |
 |---|---|
@@ -97,7 +101,7 @@ Map to `DOMAIN_FOCUS=…`. Most apps say "users and agents"; that is fine.
 | `headless` | `/iblai-api-login`, then the `iblai-api-*` skill per family; `tutorials/` for end-to-end recipes |
 | `ACCESS=public` (any) | after the above: `/iblai-vibe-agent-setting` (`allow_anonymous`) and `docs/auth-model.md` §4 |
 
-4. Then by focus:
+5. Then by focus:
 
 | Focus | Open |
 |---|---|

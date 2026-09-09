@@ -12,7 +12,7 @@ tab in the wider agent-settings family (`access`, `api`, `datasets`,
 `settings`, `tools`). All tabs share the same `AgentSettingsProvider`
 wrapper.
 
-![Access Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-access/iblai-vibe-agent-access.png)
+![Access Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-access/iblai-vibe-agent-access.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -264,7 +264,8 @@ Unreadable fields are masked (`""`, `[]`, or `{}`) and `read: false`.
 
 ### Built-in roles
 
-Tenant Admin · Students · Mentor Viewer · Mentor Editor · Mentor Chat ·
-Student Mentor Creators · Analytics Viewer · Notification Manager ·
-Enrollment Manager · LLM Users · LLM Model Access · List Users · List Teams ·
-Create Teams · Read Team · Edit Team · Billing Manager.
+Role names are the platform's seeded display strings, quoted verbatim:
+`Tenant Admin` · `Students` · `Mentor Viewer` · `Mentor Editor` · `Mentor Chat` ·
+`Student Mentor Creators` · `Analytics Viewer` · `Notification Manager` ·
+`Enrollment Manager` · `LLM Users` · `LLM Model Access` · `List Users` · `List Teams` ·
+`Create Teams` · `Read Team` · `Edit Team` · `Billing Manager`.

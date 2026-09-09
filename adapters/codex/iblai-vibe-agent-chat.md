@@ -13,15 +13,15 @@ from `@iblai/iblai-js/web-containers/next`, which renders **in-process**
 (not in an iframe) and shares the host app's Redux store, providers, and
 auth session.
 
-![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
-![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
+![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
+![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
 
 > **Template (legacy `<mentor-ai>` widget):** a full-screen `<mentor-ai>`
 > web-component ChatWidget (distinct from the in-process `Chat` component
 > this skill documents) — bundled as
 > [`assets/chat-widget.tsx.j2`](assets/chat-widget.tsx.j2) +
 > [`assets/iblai-web-mentor.d.ts`](assets/iblai-web-mentor.d.ts). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 > **What you get:** the SDK's `Chat` component wired directly into your
 > app (in-process, not an iframe). Full feature surface, intercept
@@ -45,10 +45,10 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — the `Chat` component reads
-  the axd token, username, and tenants from the providers tree.
+  the axd token, username, and organizations from the providers tree.
 - A working store, providers, and SSO callback route — i.e. an app that
   already passes `/iblai-vibe-auth` verification.
-- An agent/mentor ID (a UUID) — the last path segment of an
+- An agent ID (a UUID) — the last path segment of an
   `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` URL the user gave, or
   create an agent on [os.ibl.ai](https://os.ibl.ai) (or with
   `/iblai-api-agent-create`).
@@ -89,7 +89,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 | File | Change |
 |------|--------|
 | `package.json` | Adds SDK packages + peers (Step 3) |
-| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; `skip={isSsoLoginRoute}` on Auth/Tenant providers (Step 4) |
+| `providers/index.tsx` | Wraps tree in `<ServiceWorkerProvider>`; `skip={isSsoLoginRoute}` on `AuthProvider` / `TenantProvider` (Step 4) |
 | `public/sw.js` | The SDK offline service worker — required by `ServiceWorkerProvider` (Step 4) |
 | `next.config.*` | `Service-Worker-Allowed` header for sub-path mounts; `reactStrictMode:false` (Step 4, Known issues) |
 | `store/index.ts` | Registers `chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner` reducers (Step 5) |
@@ -115,7 +115,7 @@ yours doesn't, read `process.env.NEXT_PUBLIC_SUPPORT_EMAIL` directly in
 If the user already gave an os.ibl.ai URL
 (`https://os.ibl.ai/platform/<tenant>/<agent-uuid>`), the UUID is its last
 path segment — use it, don’t ask. Otherwise ask the user for their
-agent/mentor UUID. Write it directly to `.env.local` using the Edit tool —
+agent UUID. Write it directly to `.env.local` using the Edit tool —
 do NOT echo it back in shell commands:
 
 ```
@@ -441,15 +441,15 @@ destructive (loses session, wedges voice). Rules:
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `mentorId` | `string` | yes | Agent/mentor UUID |
-| `tenantKey` | `string` | yes | Platform/tenant key |
+| `mentorId` | `string` | yes | Agent UUID |
+| `tenantKey` | `string` | yes | Organization (platform) key |
 | `config` | `ChatConfig` | yes | URLs + navigation callbacks |
 | `redirectToAuthSpa` | `(redirectTo?, platformKey?, logout?) => void` | yes | Host-owned auth redirect (wrap async helpers to `=> void`) |
 | `username` | `string \| null` | yes | Current user; `null` for anonymous |
 | `userTenants` | `Tenant[]` | yes | From `useUserTenants` |
 | `axdToken` | `string` | yes | AXD auth token |
 | `userIsStudent` | `boolean` | yes | RBAC role hint |
-| `visitingTenant` | `Tenant \| undefined` | no | Viewing another tenant's agent |
+| `visitingTenant` | `Tenant \| undefined` | no | Viewing another organization's agent |
 | `isPreviewMode` | `boolean` | yes | `true` for admin preview |
 | `mode` | `"default" \| "advanced"` | no | `"advanced"` enables builder UI |
 | `isPublicRoute` | `boolean` | no | Unauthenticated share links |
@@ -463,7 +463,7 @@ destructive (loses session, wedges voice). Rules:
 | `baseWsUrl` | `() => string` | WebSocket origin |
 | `supportEmail` | `() => string` | Footer / error-toast email (env fallback if host config lacks it) |
 | `authUrl` | `() => string` | Auth SPA origin |
-| `mainTenantKey` | `string` | Default tenant key |
+| `mainTenantKey` | `string` | Default organization key |
 | `navigateToAdminBilling` | `() => void` | Open the billing tab |
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
 | `navigateToMentor` | `(id: string) => void` | Open an individual agent |

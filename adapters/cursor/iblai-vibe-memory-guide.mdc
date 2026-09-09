@@ -12,9 +12,9 @@ Memory is the platform's answer to "make the app remember me". It is one data
 model with three stores, three gates, and three ready-made surfaces. This page
 tells you which to use; the linked skills mount them.
 
-![Member view — Profile › Memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory-user-memories.png)
-![Admin view — org Memory tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory.png)
-![Agent view — Agent › Memory tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
+![Member view — Profile › Memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory-user-memories.png)
+![Admin view — org Memory tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory.png)
+![Agent view — Agent › Memory tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -107,7 +107,7 @@ Prefix `https://api.$DOMAIN/dm/api/ai-mentor/orgs/{org}/`:
 | Settings | `GET users/{username}/memsearch-settings/` · `GET …/memsearch-status/` | `PUT users/{username}/memsearch-settings/` (admins may target another username) |
 
 Errors: `400` content too short · `403` another user's memories without admin · `404` · `409` duplicate.
-Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md).
+Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md).
 
 ## 5. Privacy notes to tell the user
 

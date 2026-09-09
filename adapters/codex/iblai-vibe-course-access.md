@@ -1,17 +1,17 @@
 # iblai-vibe-course-access
 
-> Add course-content pages (edX user UI) to your Next.js app
+> Add course-content pages (the edX course-viewing UI) to your Next.js app
 
 # /iblai-vibe-course-access
 
-![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-access/course-content-page.png)
+![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/course-content-page.png)
 
 Add a full edX course-content experience -- hierarchical course outline
 sidebar, collapsible modules/lessons/sublessons with progress indicators,
 top tab strip (Course, Progress, Dates, Discussion, Instructor), breadcrumb
 + progress bar header, embedded learning MFE / LMS iframe with JWT
 postMessage handshake, previous / next unit navigation, timed-exam guard,
-and tenant-based access control. Pulls course metadata, outline,
+and organization-based access control. Pulls course metadata, outline,
 completion, and grading data via the data-layer RTK Query hooks.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
@@ -21,7 +21,7 @@ completion, and grading data via the data-layer RTK Query hooks.
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - A valid edX course id (e.g. `course-v1:org+course+run`). The user must
-  already have a course published on their tenant. If not, direct them to
+  already have a course published in their organization. If not, direct them to
   their LMS Studio to create one.
 
 ## Step 1: Check Environment
@@ -329,7 +329,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 5. **`platform_key: "main"` exception**: `CourseAccessGuard` always allows
    courses whose `platform_key === "main"`. This is intentional — global
-   catalog courses bypass the tenant check.
+   catalog courses bypass the organization check.
 
 6. **iframe JWT postMessage**: `EdxIframe` listens for `auth.jwt.ready` from
    the MFE and replies with the JWT stored at `edxTokenKey`

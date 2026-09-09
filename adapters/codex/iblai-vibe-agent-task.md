@@ -15,10 +15,10 @@ family (`access`, `api`, `datasets`, `disclaimers`, `embed`, `history`,
 tab is a separate skill. All tabs share the same `AgentSettingsProvider`
 wrapper -- set it up once and mount as many tabs as you need.
 
-![Task list with metric cards and run-logs panel](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-1-list.png)
-![Schedule Task dialog (calendar, name, prompt, time, repeat, email)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-2-create.png)
-![Task list with run statuses and the logs panel](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-3-logs.png)
-![Log Details modal (status, timing, output)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-4-log-details.png)
+![Task list with metric cards and run-logs panel](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-1-list.png)
+![Schedule Task dialog (calendar, name, prompt, time, repeat, email)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-2-create.png)
+![Task list with run statuses and the logs panel](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-3-logs.png)
+![Log Details modal (status, timing, output)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-4-log-details.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -126,10 +126,10 @@ mounted separately.
 
 | Surface | Screenshot | Source component | What it shows |
 |---------|-----------|------------------|---------------|
-| **Task list** | [list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-1-list.png) | `tasks-tab-content` / `task-list` / `task-metrics-cards` / `tasks-tab-toolbar` | Search + date filter + Schedule Task button, metric cards (Total / Completed / Failed), and a list of tasks with time, repeat cadence, and a status badge (Scheduled / Running / Completed / Failed / Disabled) |
-| **Schedule Task dialog** | [create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-2-create.png) | `schedule-task-dialog` | Calendar date picker plus Task Name, Task Prompt, Time, Repeat (Don't repeat / Daily / Weekly / Monthly), and a "Notify me by email" toggle |
-| **Run-logs panel** | [logs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-3-logs.png) | `task-logs-panel` | Per-task run logs; click a task on the left to load its logs, click a log row to open its details |
-| **Log Details modal** | [log details](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-task/iblai-vibe-agent-task-4-log-details.png) | `task-log-details` | A single run's status, Created / Started / Ended timestamps, and full output |
+| **Task list** | [list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-1-list.png) | `tasks-tab-content` / `task-list` / `task-metrics-cards` / `tasks-tab-toolbar` | Search + date filter + Schedule Task button, metric cards (Total / Completed / Failed), and a list of tasks with time, repeat cadence, and a status badge (Scheduled / Running / Completed / Failed / Disabled) |
+| **Schedule Task dialog** | [create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-2-create.png) | `schedule-task-dialog` | Calendar date picker plus Task Name, Task Prompt, Time, Repeat (Don't repeat / Daily / Weekly / Monthly), and a "Notify me by email" toggle |
+| **Run-logs panel** | [logs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-3-logs.png) | `task-logs-panel` | Per-task run logs; click a task on the left to load its logs, click a log row to open its details |
+| **Log Details modal** | [log details](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-4-log-details.png) | `task-log-details` | A single run's status, Created / Started / Ended timestamps, and full output |
 
 Repeat cadence maps to a cron schedule: "Don't repeat" creates a `one_off`
 task pinned to the chosen date; Daily / Weekly / Monthly create a recurring

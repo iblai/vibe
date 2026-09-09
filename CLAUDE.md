@@ -36,7 +36,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
 | "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, screenshot |
 
-**Freshness rule:** skills are a copy. If `.claude/skills/iblai-vibe/SKILL.md`
+**Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
 (`curl -s https://api.github.com/repos/iblai/vibe/releases/latest | grep published_at`),
 suggest `/iblai-vibe-ops-upgrade` (re-runs `npx skills add iblai/vibe --all`
@@ -59,7 +59,7 @@ current directory. Terms: *organization (org)*, *org key*, *agent*, *member*,
 
 Sign-in mechanics (the `app` / `redirect-to` / `tenant` / `logout` parameters,
 `data=` on return, `AuthProvider` middleware for public routes,
-`TenantProvider` re-auth and `saveUserTokens`, visiting tenants, tenant lock,
+`TenantProvider` re-auth and `saveUserTokens`, visiting organizations, organization lock,
 native return schemes): [docs/auth-model.md](docs/auth-model.md). The entities
 apps are built on — users (profile, metadata, memories), agents (settings and
 tabs), organizations (metadata, people, billing) — hook by hook:
@@ -91,6 +91,7 @@ Both families use the same three values. `ui`/`ops` skills read `iblai.env`
 `TOKEN`. `/iblai-api-login` writes both files; the shell snippet in
 [docs/api-skills.md](docs/api-skills.md) loads either.
 
+0. `/iblai-vibe-connect` — the browser round trip (`login.iblai.app/connect` → loopback callback → files written, token never shown); falls back to the rungs below when the hosted page is unavailable ([docs/connect-flow.md](docs/connect-flow.md)).
 1. `iblai.env` already has real `PLATFORM` and `TOKEN` → use them.
 2. The host exports `IBLAI_PLATFORM_KEY`, `IBLAI_API_KEY`, `IBLAI_USERNAME` (the ibl.ai desktop app does) → use them, never ask.
 3. Otherwise ask for what is missing, saying where it comes from (lifecycle steps 3–4). Verify both with the two curls before writing. Refuse `main` and placeholders.
@@ -107,7 +108,7 @@ on `https://asgi.data.<domain>/api/ai-mentor/orgs/<org>/v1` (`Bearer`).
 
 ## The core app — what vibe-starter already is
 
-`/iblai-vibe-ops-init` copies `skills/iblai-vibe-ops-init/assets/vibe-starter`:
+`/iblai-vibe-ops-init` copies `skills/start/iblai-vibe-ops-init/assets/vibe-starter`:
 Next.js 16 + Tailwind v4 + shadcn/ui with SSO; **home = chat with the app's
 agent**; `/agents`; `/profile` + per-user app preferences; **User/Admin mode**
 with an admin area (`/admin/users` + invites, `/admin/analytics/*`,
@@ -158,7 +159,7 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   saves its answers here under `onboarding`; os.ibl.ai keeps its per-user
   coding-mode preference here. No `/iblai-vibe-*` skill wraps this family —
   call the hooks.
-  REST: [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md)
+  REST: [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile-metadata/SKILL.md)
 - **Agent settings** — one agent’s identity (name, description, categories,
   image), visibility, and capability flags (anonymous, featured, LTI,
   attachments, voice, memory, multi-query RAG, forkable). Everything saves
@@ -169,7 +170,7 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   `useGetMentorCategoriesQuery`. UI: `AgentSettingsProvider` +
   `AgentSettingsTab` (`/web-containers/next`) — the provider is the context
   every `/iblai-vibe-agent-*` tab skill mounts.
-  Skill: `/iblai-vibe-agent-setting`. REST: [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md)
+  Skill: `/iblai-vibe-agent-setting`. REST: [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md)
 - **Agent memory** — three stores: global memories (per user, every agent),
   agent memories (per user × agent, filed under categories with extraction
   prompts), and agent knowledge (per agent, no user, curated, injected into
@@ -183,7 +184,7 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   knowledge is REST-only today. UI: `AgentMemoryTab` (`/next`), the
   `Profile` Memory tab, `Account targetTab="memory"`.
   Skills: `/iblai-vibe-agent-memory` (one agent), `/iblai-vibe-memory`
-  (whole org). REST: [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
+  (whole org). REST: [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md)
 - **Analytics** — one `/dm/api/analytics/` family; `mentor_unique_id`
   present = one agent, absent = the whole org. Usage and engagement KPIs,
   transcripts, catalog engagement, costs (already marked-up USD), per-user
@@ -200,7 +201,7 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   `AnalyticsReports`, `AnalyticsAuditLogStats`, `AgentAnalyticsTab`.
   Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`. The live
   schema is the contract: `https://api.iblai.app/dm/api/docs/schema/`.
-  REST: [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
+  REST: [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
 - **Profile** — the signed-in user’s own record: account fields (name, bio,
   language, social links, image) on the LMS host via `merge-patch+json`,
   career records (education, experience, résumé) under
@@ -214,7 +215,7 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   UI: `Profile` (+ `EducationTab` / `ExperienceTab` / `ResumeTab`),
   `UserProfileDropdown`, `UserProfileModal`, `Account` (`/next`).
   Skills: `/iblai-vibe-profile`, `/iblai-vibe-account`, `/iblai-vibe-history`.
-  REST: [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md)
+  REST: [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile/SKILL.md)
 
 **Auth on the wire.** In the browser the SDK sends `Authorization: Token
 <dm_token>` (session tokens in localStorage `dm_token` / `axd_token`), so
@@ -227,7 +228,11 @@ a Platform API Token (`TOKEN` in `iblai.env`, `IBLAI_API_KEY` in
 
 ## Skill catalogue by tier
 
-Skills live in `skills/<name>/SKILL.md`; invoke with `/` in Claude Code.
+Skills live in `skills/<folder>/<name>/SKILL.md` — nine folders by what a
+builder is doing (`start`, `agents`, `users`, `organizations`, `billing`,
+`analytics`, `content`, `ship`, `security`; `scripts/skill-categories.json`
+is the list). The generated, complete catalogue with one line per skill is
+[docs/catalogue.md](docs/catalogue.md); invoke any skill with `/` in Claude Code.
 Tier decides position and depth: Tier 0/1 skills get screenshots, the
 feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 
@@ -396,7 +401,12 @@ Platform config lives in `iblai.env`; map it into `.env.local` (see
 
 ## Skills
 
-Skills live in `skills/` — one directory per skill, `SKILL.md` canonical.
+Skills live in `skills/<folder>/<name>/` — one directory per skill,
+`SKILL.md` canonical, the folder chosen by what a builder is doing
+([CONTRIBUTING.md](CONTRIBUTING.md) has the placement table). Local Claude Code
+sessions see them flat through the per-skill links in `.claude/skills/`;
+`npx skills add` and the plugin manifest discover the nested layout natively.
+`node scripts/build-catalogue.mjs` regenerates [docs/catalogue.md](docs/catalogue.md).
 
 **Cursor / Codex adapters** are generated from the canonical SKILL.md
 files. To regenerate after editing skills:
@@ -425,13 +435,19 @@ scripts/test-skills-agent.sh --changed    # headless-agent execution of changed 
 bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)
 ```
 
-Every skill declares `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`),
+Prose vocabulary everywhere: **organization / org key**, **agent**, **user** —
+`tenant`, `mentor`, `learner` appear only as verbatim wire names in backticks
+(`scripts/sweep-terms.py` enforces the sweep; `docs/glossary.md` explains the
+mapping). Every skill declares `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`),
 checked by `node scripts/check-skill-kinds.mjs`; `ui` skills follow
 `templates/skill-template-feature.md`, `api` skills follow the contract in
 [docs/api-skills.md](docs/api-skills.md) (Reads/Writes, verified endpoints,
 no UI language). Asset-bearing skills map their templates to app paths in `skills/<name>/test.json`; justified typecheck skips live in `scripts/skill-render-skips.json`.
 
-Every skill declares `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`),
+Prose vocabulary everywhere: **organization / org key**, **agent**, **user** —
+`tenant`, `mentor`, `learner` appear only as verbatim wire names in backticks
+(`scripts/sweep-terms.py` enforces the sweep; `docs/glossary.md` explains the
+mapping). Every skill declares `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`),
 checked by `node scripts/check-skill-kinds.mjs`; `ui` skills follow
 `templates/skill-template-feature.md`, `api` skills follow the contract in
 [docs/api-skills.md](docs/api-skills.md) (Reads/Writes, verified endpoints,
@@ -446,7 +462,7 @@ this catalogue or vice versa.
 ### ibl.ai hosting (Vercel)
 
 Deploy through the platform's hosting API — see
-[`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md). It zips
+[`/iblai-vibe-ops-deploy`](skills/ship/iblai-vibe-ops-deploy/SKILL.md). It zips
 the app (project source; for static `output: 'export'` builds, `out/`),
 uploads it with the platform API key, polls until READY, and updates
 `devUrl`. No Vercel token or CLI.
@@ -459,7 +475,7 @@ docker run -p 3000:3000 my-app
 
 ### Desktop/Mobile (Tauri v2)
 
-Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md)),
+Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/ship/iblai-vibe-ops-build/SKILL.md)),
 then run Tauri directly:
 ```bash
 pnpm exec tauri dev          # Dev mode
@@ -471,13 +487,13 @@ pnpm exec tauri ios init     # iOS project setup
 
 Generate a `Makefile` + Fastlane config that builds and submits to the Apple
 App Store and Google Play — see
-[`/iblai-vibe-ops-release`](skills/iblai-vibe-ops-release/SKILL.md)
+[`/iblai-vibe-ops-release`](skills/ship/iblai-vibe-ops-release/SKILL.md)
 (`make ios-release`, `make android-release`; handles App Store Connect API key
 and Play service-account credentials).
 
 THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 
-### Learn from a live tenant
+### Learn from a live organization
 
 > **AI Assistant:** When the user says something like “You’re also logged
 > into `https://os.ibl.ai/platform/<tenant>/<agent-uuid>` as `<email>`”,
@@ -486,7 +502,7 @@ THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 >
 > 1. **Decode the URL.** In `iblai/os` the route is
 >    `app/platform/[tenantKey]/[mentorId]` — “chat with this agent in this
->    tenant”; the agent-scoped pages (analytics, notifications, …) nest under
+>    organization”; the agent-scoped pages (analytics, notifications, …) nest under
 >    it. So `<tenant>` → `PLATFORM` / `NEXT_PUBLIC_MAIN_TENANT_KEY`,
 >    `<agent-uuid>` → `NEXT_PUBLIC_DEFAULT_AGENT_ID`, and `os.ibl.ai` runs on
 >    the hosted platform → `DOMAIN=iblai.app` (`api.iblai.app`,
@@ -506,7 +522,7 @@ THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 >    `Authorization: Api-Token …` → 200. No browser tool? Ask the user to
 >    paste a Platform API Token instead.
 > 3. **Learn shapes from live data.** Call the families in *Platform data
->    most apps lean on* (below) against that tenant and copy field names from
+>    most apps lean on* (below) against that organization and copy field names from
 >    real responses instead of guessing. For the surface you are building,
 >    watch the OS page’s network calls to see which endpoints and params the
 >    production app actually uses.
@@ -517,7 +533,7 @@ THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 >    `…/[mentorId]/analytics/page.tsx` renders `AnalyticsOverview`. Read it
 >    before inventing props.
 > 5. **Keep it out of git.** The token (and `dm_token`) live only in
->    gitignored env files; keep the tenant key and email out of docs,
+>    gitignored env files; keep the organization key and email out of docs,
 >    screenshots, and commit messages. No new env key is needed for the
 >    reference URL — rebuild it from `PLATFORM` and
 >    `NEXT_PUBLIC_DEFAULT_AGENT_ID`.

@@ -12,11 +12,11 @@ Add an analytics dashboard with a tabbed layout (`AnalyticsLayout`):
 Overview, Courses, Programs, Users, Topics, Financial, Transcripts,
 Reports. Each tab is a Next.js route under `/analytics/`.
 
-![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-analytics/analytics-page.png)
+![Analytics Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/analytics-page.png)
 
 > **Template:** the page this skill creates is bundled as
 > [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
 mode unless asked. Follow the component hierarchy: ibl.ai SDK
@@ -130,7 +130,7 @@ npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
 
 Every analytics endpoint and Data Report — URLs, required params, RBAC
 role names, response shapes — lives in the companion skill
-[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md)
+[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
 in this repo (kind `api`). Installed with the rest of the skills
 and it stays in sync with the backend:
 
@@ -141,7 +141,7 @@ npx skills add iblai/vibe --all
 Then `/iblai-api-analytics` covers auth, the schema-first workflow, the
 analyst-shaped endpoint groupings (Overview / Costs / Users & engagement
 / Topics & conversations / Transcripts / Sessions & ratings / Course /
-Program / Pathway & skill / Per-learner / Time-on-platform), the async
+Program / Pathway & skill / Per-user / Time-on-platform), the async
 Data Reports lifecycle, and a local snapshot of the live OpenAPI schema
 at `references/analytics-schema.json`.
 

@@ -28,7 +28,7 @@ The only authored work is the skill and the identity — both plain text. Everyt
 
 ## Prerequisites
 
-- An ibl.ai account and an organization — see [`/iblai-api-login`](../../skills/iblai-api-login/SKILL.md). You need your **org key**, an **admin username**, and a **Platform API Token**.
+- An ibl.ai account and an organization — see [`/iblai-api-login`](../../skills/start/iblai-api-login/SKILL.md). You need your **org key**, an **admin username**, and a **Platform API Token**.
 - A **Debian/Ubuntu VPS**, minimum 2 vCPU / 4 GB RAM, with **ports 80 and 443 open inbound**.
 - A **domain or subdomain** with a DNS A record pointing at the server's real IP.
 - An **LLM provider key** (OpenAI, Anthropic, OpenRouter, …).
@@ -257,7 +257,7 @@ curl -sS "$IBLAI_HOST/api/core/platform/users/?platform_key=$IBLAI_ORG&platform_
   | python3 -c "import sys,json;[print(u['username'], u.get('is_admin')) for u in json.load(sys.stdin)['results']]"
 ```
 
-Pick an `is_admin: true` username. See [`/iblai-api-login`](../../skills/iblai-api-login/SKILL.md).
+Pick an `is_admin: true` username. See [`/iblai-api-login`](../../skills/start/iblai-api-login/SKILL.md).
 
 ### 4.2 Register the sandbox instance
 
@@ -324,7 +324,7 @@ The same state is visible on the agent — connected instance, health, the `auto
 > [!WARNING]
 > **Unrecognized `agent-config` keys are silently ignored.** `PATCH`ing `user` instead of `user_context` returns `200 OK` while dropping the value. With `auto_push` enabled, that pushes an *empty* USER.md and **blanks the file on your server**. Always re-`GET` the config and confirm every field is non-empty before pushing — and back the workspace files up first.
 
-Full endpoint reference: [`/iblai-api-agent-sandbox`](../../skills/iblai-api-agent-sandbox/SKILL.md).
+Full endpoint reference: [`/iblai-api-agent-sandbox`](../../skills/agents/iblai-api-agent-sandbox/SKILL.md).
 
 ---
 
@@ -385,7 +385,7 @@ Base-URL mismatch. Two hosted forms work and return identical responses, but the
 
 ### An HTML 404 instead of a JSON one
 
-Useful diagnostic: a **JSON** 404 (`{"detail":"Claw config not found"}`) means the URL routed and the handler ran — the resource just doesn't exist yet. A generic **HTML** 404 means there is no such route, i.e. your path is wrong. The claw endpoints are mentor-scoped: `mentors/<uuid>/claw-config/`, not a numeric-id collection.
+Useful diagnostic: a **JSON** 404 (`{"detail":"Claw config not found"}`) means the URL routed and the handler ran — the resource just doesn't exist yet. A generic **HTML** 404 means there is no such route, i.e. your path is wrong. The claw endpoints are agent-scoped: `mentors/<uuid>/claw-config/`, not a numeric-id collection.
 
 ### `missing scope: operator.read`
 
@@ -409,9 +409,9 @@ Worth reading before pointing this at anything real.
 
 | Want to… | Use |
 |---|---|
-| Create the agent itself | [`/iblai-api-agent-create`](../../skills/iblai-api-agent-create/SKILL.md) |
-| Manage sandbox instances and config pushes | [`/iblai-api-agent-sandbox`](../../skills/iblai-api-agent-sandbox/SKILL.md) |
-| Chat with the agent from your assistant | [`/iblai-api-agent-chat`](../../skills/iblai-api-agent-chat/SKILL.md) |
-| Ground the agent in your own documents | [`/iblai-api-agent-dataset`](../../skills/iblai-api-agent-dataset/SKILL.md) |
-| Score its responses against a rubric | [`/iblai-api-agent-eval`](../../skills/iblai-api-agent-eval/SKILL.md) |
+| Create the agent itself | [`/iblai-api-agent-create`](../../skills/agents/iblai-api-agent-create/SKILL.md) |
+| Manage sandbox instances and config pushes | [`/iblai-api-agent-sandbox`](../../skills/agents/iblai-api-agent-sandbox/SKILL.md) |
+| Chat with the agent from your assistant | [`/iblai-api-agent-chat`](../../skills/agents/iblai-api-agent-chat/SKILL.md) |
+| Ground the agent in your own documents | [`/iblai-api-agent-dataset`](../../skills/agents/iblai-api-agent-dataset/SKILL.md) |
+| Score its responses against a rubric | [`/iblai-api-agent-eval`](../../skills/agents/iblai-api-agent-eval/SKILL.md) |
 | Build the server by hand instead | [claw-setup](https://github.com/iblai/claw-setup) |

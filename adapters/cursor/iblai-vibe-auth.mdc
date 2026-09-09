@@ -13,7 +13,7 @@ a session -- no API tokens to manage.
 > **Templates:** the auth files this skill creates (providers, store, SSO
 > callback, `lib/iblai/*`) are bundled here as Jinja2 assets —
 > [`assets/`](assets/). You render them into the project in Step 3. See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` variable
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` variable
 > contract and the shared patch mechanics.
 
 If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
@@ -36,7 +36,7 @@ if it is missing, ask one question before writing files:
 | `multi-org` | users who belong to many organizations (the os.ibl.ai model) | from the URL (`/platform/[org]/…`) plus a switcher; `NEXT_PUBLIC_MAIN_TENANT_KEY=main` is the community org | everything below, then **Going multi-org** at the end |
 | `headless` | nobody signs in — scripts, CI, a backend | `IBLAI_ORG` per call | not this skill: `/iblai-api-login` and the `iblai-api-*` family |
 
-The parameters, tokens, anonymous access, tenant switching, native shells,
+The parameters, tokens, anonymous access, organization switching, native shells,
 and the OS's implementation are in
 [docs/auth-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/auth-model.md).
 
@@ -45,7 +45,7 @@ and the OS's implementation are in
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? If so, vibe-starter
-> (https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) is a pre-wired Next.js 16 +
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) is a pre-wired Next.js 16 +
 > Tailwind v4 + shadcn/ui template with ibl.ai SSO auth, a responsive navbar,
 > and profile/account/notifications pages already in place. Want to use that
 > instead?
@@ -57,7 +57,7 @@ not installed -- tell the user which path you took:
 
     cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
     # or, without local assets:
-    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 
     pnpm install --ignore-scripts
 
@@ -70,7 +70,7 @@ If they prefer to wire auth into an existing app, continue below.
  **Want a complete app from scratch?** Use **vibe-starter** (Step 0 above) —
  it ships with auth, a navbar, and profile/account/notifications already
  wired, so you can skip this skill. For the underlying whole-app scaffold and
- its templates, see [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md).
+ its templates, see [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md).
 
  **This skill** adds auth to a vanilla Next.js app or an existing project by
  creating the auth files directly (Step 3).
@@ -121,7 +121,7 @@ key. For a `src/` layout, place files under `src/lib`, `src/store`,
 
 Then apply the project patches (each is idempotent — check for a marker
 before editing; full mechanics in
-[`/iblai-vibe-scaffold` → add-command](../iblai-vibe-scaffold/references/add-command.md)):
+[`/iblai-vibe-scaffold` → add-command](../../start/iblai-vibe-scaffold/references/add-command.md)):
 
 - **`next.config`** — add the `@reduxjs/toolkit` webpack `resolve.alias` that
   deduplicates RTK. Without it the SDK binds a different `ReactReduxContext`
@@ -234,7 +234,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 `IblaiProviders` must be the **outermost** provider -- it contains Redux, Auth,
-and Tenant providers that other components depend on. Place your own providers
+and Organization providers that other components depend on. Place your own providers
 inside it.
 
 ## Step 6: Configure Environment
@@ -330,7 +330,7 @@ before tokens are stored. Step 3 places the callback at
 `app/sso-login-complete/` (flat, no route group) which works for simple apps.
 
 For the route group pattern, see the **vibe-starter** reference app:
-  https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter
+  https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter
 
 ## Troubleshooting
 
@@ -389,7 +389,7 @@ After auth is set up, add more features using skills -- ask your AI assistant to
 | `/iblai-vibe-notification` | Notification bell + center page |
 
 For a complete reference app with auth, navbar, and pages already wired:
-  https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter
+  https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 

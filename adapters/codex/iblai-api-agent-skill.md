@@ -59,7 +59,7 @@ which skills an agent has assigned, and manage the catalog itself (create / edit
 - **PATCH** `…/orgs/{org}/agent-skills/{id}/` — update the catalog skill (partial).
 - **DELETE** `…/orgs/{org}/agent-skills/{id}/` — delete the catalog skill (no body). Destructive — confirm with the user first.
 - **POST** `…/orgs/{org}/agent-skill-resources/` — attach a resource/file to a catalog skill: `{ "skill": id, "file_type": "string", "filename": "string", "content": "string" }`.
-- **POST** `…/orgs/{org}/agent-skill-assignments/` — assign a catalog skill to an agent (org-level twin of the mentor-nested `skills/` assignment above): `{ "agent": id, "skill": id, "enabled": bool }`.
+- **POST** `…/orgs/{org}/agent-skill-assignments/` — assign a catalog skill to an agent (org-level twin of the `mentors/`-nested `skills/` assignment above): `{ "agent": id, "skill": id, "enabled": bool }`.
 
 ## Example
 

@@ -19,11 +19,11 @@ This is the user-facing counterpart of `/iblai-vibe-agent-history`
 (the admin History tab in agent settings, which shows *every* user's
 conversations for one agent).
 
-![History — Conversations tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-history/iblai-vibe-history.png)
+![History — Conversations tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history.png)
 
-![Conversations — transcript preview with per-conversation Download](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-history/iblai-vibe-history-conversation.png)
+![Conversations — transcript preview with per-conversation Download](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history-conversation.png)
 
-![History — Exports tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-history/iblai-vibe-history-exports.png)
+![History — Exports tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history-exports.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -74,7 +74,7 @@ export default function ProfileHistoryPage() {
 ```
 
 See `/iblai-vibe-profile` Step 3 for the full `<Profile>` prop wiring
-(tenant, username, etc.) — this skill only adds the
+(`tenant`, `username`, etc.) — this skill only adds the
 `targetTab="chatHistory"` entry point. The tab is hidden automatically
 when the profile is rendered read-only for another user (the endpoints
 would refuse it anyway). If you need the surface standalone, build it

@@ -21,12 +21,12 @@ once and mount as many tabs as you need.
 > the agent's **Settings** tab -> **Capabilities** (under "Voice & calls")
 > before configuring this tab. See `/iblai-agent-setting`.
 
-![Enable voice calls in Settings -> Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-1-capabilities.png)
-![Voice sub-tab: choose a voice source and pick a voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png)
-![Voice picker: search, browse, and preview a sample](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png)
-![Voice instructions: style prompt card with Edit / Copy, character counter, and example presets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png)
-![Edit Voice Instructions modal (rich-text editor)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png)
-![Voice call sub-tab: call style, language, provider, and call voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png)
+![Enable voice calls in Settings -> Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-1-capabilities.png)
+![Voice sub-tab: choose a voice source and pick a voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png)
+![Voice picker: search, browse, and preview a sample](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png)
+![Voice instructions: style prompt card with Edit / Copy, character counter, and example presets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png)
+![Edit Voice Instructions modal (rich-text editor)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png)
+![Voice call sub-tab: call style, language, provider, and call voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png)
 
 You MUST run `/iblai-ops-test` before telling the user the work is ready.
 
@@ -142,10 +142,10 @@ mounted separately.
 
 | Surface | Screenshot | Source component | What it shows |
 |---------|-----------|------------------|---------------|
-| **Voice sub-tab** | [voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png) | `voice-tab` (Voice sub-tab) | Voice source cards -- **Browser** (the listener's own device, no setup), **OpenAI**, and **Google** -- plus a "Select a voice" trigger when OpenAI or Google is chosen, and a **Save voice** button |
-| **Voice picker** | [picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png) | `voice-picker-modal` / `voice-picker` | A searchable list of the provider's voices (e.g. OpenAI: Alloy, Ash, Coral, Echo, Fable, Nova, Onyx, Sage, Shimmer) with a play button to preview a sample before picking |
-| **Voice instructions** | [instructions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png) / [edit modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png) | `voice-tab` (Voice sub-tab) | A free-form style prompt for how the voice delivers replies (e.g. "Speak slowly in a warm, encouraging tone, like a patient tutor."): a prompt card with **Edit** (rich-text modal) and **Copy**, an info tooltip, a `0/1000` character counter, and one-click example presets (Warm and encouraging / Calm and measured / Energetic and upbeat) |
-| **Voice call sub-tab** | [voice call](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png) | `call-config-section` | Call style (Live conversation / Step-by-step), spoken language, AI provider, and the voice used on calls, with **Reset** and **Save changes** |
+| **Voice sub-tab** | [voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png) | `voice-tab` (Voice sub-tab) | Voice source cards -- **Browser** (the listener's own device, no setup), **OpenAI**, and **Google** -- plus a "Select a voice" trigger when OpenAI or Google is chosen, and a **Save voice** button |
+| **Voice picker** | [picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png) | `voice-picker-modal` / `voice-picker` | A searchable list of the provider's voices (e.g. OpenAI: Alloy, Ash, Coral, Echo, Fable, Nova, Onyx, Sage, Shimmer) with a play button to preview a sample before picking |
+| **Voice instructions** | [instructions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png) / [edit modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png) | `voice-tab` (Voice sub-tab) | A free-form style prompt for how the voice delivers replies (e.g. "Speak slowly in a warm, encouraging tone, like a patient tutor."): a prompt card with **Edit** (rich-text modal) and **Copy**, an info tooltip, a `0/1000` character counter, and one-click example presets (Warm and encouraging / Calm and measured / Energetic and upbeat) |
+| **Voice call sub-tab** | [voice call](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png) | `call-config-section` | Call style (Live conversation / Step-by-step), spoken language, AI provider, and the voice used on calls, with **Reset** and **Save changes** |
 
 The **Browser** source speaks through the user's own device (no API voice).
 **OpenAI** and **Google** use a custom voice you pick from the voice picker.

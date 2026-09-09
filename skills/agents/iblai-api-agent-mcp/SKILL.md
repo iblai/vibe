@@ -1,0 +1,375 @@
+---
+name: iblai-api-agent-mcp
+description: MCP connectors for ibl.ai agents, end to end — register MCP servers (featured cross-organization sharing, enable/disable, OAuth service linkage), manage credential connections with the auth_type × scope matrix (org / agent / per-user), wire servers onto an agent, run the OAuth connected-service lifecycle, handle per-user in-chat OAuth (the oauth_required / oauth_connection_resolved chat events), and debug MCP auth failures (401s, missing OAuth prompts, agents ignoring servers). Use when wiring an agent to external MCP servers and tools, or designing/troubleshooting MCP auth.
+metadata:
+  kind: api
+---
+
+# iblai-api-agent-mcp
+
+Configure external MCP tool access for agents. The platform models MCP with
+three objects, and a working integration always requires all three:
+
+1. **MCP server** — metadata for the external MCP endpoint (name, URL,
+   transport, `auth_type`, `auth_scope`).
+2. **MCP server connection** — the credential binding (a static token, or a
+   reference to an OAuth connected service), at `platform`, `mentor` (agent),
+   or `user` scope.
+3. **Agent wiring** — the agent's settings must have the `mcp-tool` slug in
+   `tool_slugs` AND the server id in `mcp_servers`.
+
+A missing step 3 is the most common failure mode: server and connection exist
+but the agent never calls them. Always finish by re-reading the agent's
+settings.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app/dm` — the **`/dm` prefix is
+  required**. MCP endpoints live under
+  `/api/ai-mentor/orgs/{org}/users/{username}/...` and OAuth connector
+  endpoints under `/api/ai-account/...`, appended to it. (`…` in the endpoint
+  lists below abbreviates `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}`.)
+- The backend also accepts an `agent`-spelled twin of every agent route
+  (`/api/ai-agent/...`, `agents/` for `mentors/`); the `mentor` spelling is
+  canonical and used here, matching the other skills.
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (UUID, e.g.
+  `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+- **On the wire the agent noun is `mentor`**: body fields (`mentor`,
+  `mentor_unique_id`) and the scope enum value `mentor` refer to an agent.
+- DELETE / destructive calls: confirm with the user first. Never echo
+  credentials or tokens back into chat, and never commit them to files.
+- Not connected yet? Run **`/iblai-api-login`** first to populate
+  `IBLAI_ORG`, `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Choosing the auth pattern
+
+The `auth_type` × `auth_scope` decision on the **server** drives everything
+downstream. `auth_type` = *how* credentials go on the wire (`none | token |
+oauth2`). `auth_scope` = *whose* credentials are used (`platform | mentor |
+user`). They are orthogonal.
+
+| Pattern | Server fields | Connection setup | End user prompted? |
+|---|---|---|---|
+| No auth | `auth_type=none` | connection with no credentials | No |
+| Shared key for the whole org | `auth_type=token`, `auth_scope=platform` | one platform-scoped connection holding the key | No |
+| Per-agent key | `auth_type=token`, `auth_scope=mentor` | one `mentor`-scoped connection per agent | No |
+| Pre-provisioned per-user | `auth_scope=user` | admin creates user-scoped connections up front | No |
+| **In-chat OAuth** (each user connects their own account) | `auth_type=oauth2` **and** `auth_scope=user` | none up front — created automatically when the user completes OAuth mid-chat | **Yes** |
+
+Facts to keep straight:
+
+- `auth_type="oauth2"` + `auth_scope="user"` is the **only** combination that
+  triggers the in-chat OAuth prompt; `oauth2` alone is not enough.
+- Any `oauth2` connection (at any scope) **requires** a `connected_service`
+  id — an existing OAuth grant (see the connected-service lifecycle below).
+- In-chat OAuth servers must also link an `oauth_service` (an OAuth service
+  record id) on the server.
+
+## Runtime credential resolution
+
+When an agent invokes an MCP server, credentials resolve in this order —
+first match wins:
+
+1. User-scoped connection for (server, user)
+2. Agent-scoped (`mentor`) connection for (server, agent)
+3. Platform-scoped connection for (server, org)
+4. Featured-server global fallback
+5. No connection → the call fails 401 — **or** the in-chat OAuth prompt
+   fires if the server is `auth_scope="user"` + `auth_type="oauth2"`
+
+OAuth-backed connections auto-refresh access tokens near expiry server-side;
+no client action is needed.
+
+## OAuth connected services (lifecycle)
+
+Terminology: an **OAuth provider** is the vendor (`google`, `dropbox`); an
+**OAuth service** is one surface of it (`drive`, `calendar`); a **connected
+service** is a user's persisted token grant for one service — unique on
+(user, provider, org, service).
+
+Prerequisite: the org must have a credential named `auth_{provider}`
+(containing `client_id`, `client_secret`, `redirect_uri`) in the credential
+store before any flow can start — `400 "No credentials found"` on the start
+call means it is missing (install it via the integration-credential
+endpoints, see `/iblai-api-integration`).
+
+Flow: **discover** enabled services → **start** (returns an `auth_url`; open
+it in a new tab — providers block iframes; the flow's state entry expires
+after **1 hour**) → the vendor redirects the user's browser to the
+**callback**, which exchanges the code and returns the connected service →
+use its `id` as `connected_service` on an MCP connection. If a grant already
+existed for the same (user, provider, org, service), it is updated in place.
+
+## Reads
+
+- **GET** `…/users/{username}/mcp-servers/?include_global=true&mentor_unique_id={mentor}&is_featured={true|false}&search={q}&transport={…}&page={n}&page_size=12`
+  — list MCP servers (paged; `include_global=true` surfaces org-wide
+  connectors; `search` and `transport` narrow results).
+- **GET** `…/users/{username}/mcp-server-connections/` — list connections:
+  scope, `is_active`, `server_name`, `platform_key`, masked `credentials`
+  (e.g. `sup****key`), masked `extra_headers`, `connected_service_summary`
+  (`{id, provider, service, user, platform_key}`).
+- **GET** `…/users/{username}/mentors/{mentor}/settings/` — the agent's
+  active `tool_slugs`, `mcp_servers` (serialized server objects), and
+  `can_use_tools`.
+- **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/oauth-services/`
+  — enabled OAuth services: `id`, `oauth_provider`, `name`, `display_name`,
+  `description`, `scope`, `image`, `created_at`, `updated_at`.
+- **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/oauth-services/{service_name}/scopes/`
+  — the scopes a service requests.
+- **GET** `https://api.iblai.app/dm/api/ai-account/connected-services/orgs/{org}/users/{username}/`
+  — the user's connected services (token grants).
+- **GET** `https://api.iblai.app/dm/api/ai-account/connected-services/orgs/{org}/users/{username}/{provider}/{service}/`
+  — start an OAuth flow; returns `{ "auth_url": "..." }`. The state entry it
+  primes expires after 1 hour.
+- **GET** `https://api.iblai.app/dm/api/ai-account/connected-services/callback/?code=...&state=...`
+  — the OAuth callback. Hit by the user's browser after provider consent —
+  relay the vendor's query params unmodified (never decode or alter `state`);
+  do not call it directly with fabricated values. Success returns the
+  connected service (`id`, `provider`, `service`, `expires_at`, `scope`
+  (raw scope string), `scope_names` (canonical ids, e.g. `["drive"]`),
+  `scopes` (full scope strings), `token_type`, `service_info`
+  (`{id, name, display_name, logo}`), `username`) — the same
+  `ConnectedServiceSerializer` the
+  connected-services list read returns.
+
+## Writes
+
+### MCP servers
+
+- **POST** `…/users/{username}/mcp-servers/` — register a server (JSON, or
+  `multipart/form-data` with `image`):
+  ```json
+  {
+    "name": "Google Drive MCP",
+    "url": "https://drive-mcp.example.com",
+    "transport": "sse|websocket|streamable_http",
+    "auth_type": "none|token|oauth2",
+    "auth_scope": "platform|mentor|user",
+    "description": "string",
+    "mentor": "uuid|null",
+    "credentials": "string",
+    "extra_headers": { "x-custom": "value" },
+    "oauth_service": "number|null",
+    "is_enabled": true,
+    "is_featured": false,
+    "clean_output": true,
+    "image": "File"
+  }
+  ```
+  - `name`, `url`, `transport`, `auth_type` are required; `auth_scope`
+    defaults to `platform`.
+  - Server-level `credentials` must be the **full authorization value**
+    (`<scheme> <credentials>`); it takes priority over `extra_headers`.
+  - `is_featured=true` makes the server available to **other orgs** to
+    create their own connections against (multi-organization sharing); the owning
+    org keeps control of the metadata.
+  - `is_enabled=false` is a hard off-switch — disabled servers are skipped
+    at runtime.
+  - `oauth_service` links the OAuth service and is required for in-chat
+    OAuth servers.
+  - `clean_output` (default true) strips HTML from server responses;
+    disable it for documentation servers whose formatting must survive.
+  - Capture the returned `id` — the connection and the agent wiring both
+    need it.
+- **PATCH | PUT** `…/users/{username}/mcp-servers/{id}/` — edit a server (e.g. flip an
+  existing server to in-chat OAuth with
+  `{"auth_scope": "user", "auth_type": "oauth2", "oauth_service": 12}`).
+- **DELETE** `…/users/{username}/mcp-servers/{id}/` — delete a server. Destructive — confirm
+  with the user first.
+
+### MCP server connections
+
+- **POST** `…/users/{username}/mcp-server-connections/` — create a
+  connection. Common fields: `server` (id, required), `scope`
+  (`platform|mentor|user`, default `user`), `auth_type` (`none|token|oauth2`),
+  `credentials`, `authorization_scheme`, `extra_headers`,
+  `connected_service` (id), `mentor` (agent unique id).
+
+  **Platform scope (token):**
+  ```json
+  { "server": 9, "scope": "platform", "auth_type": "token",
+    "credentials": "super-secret-api-key", "authorization_scheme": "Bearer",
+    "extra_headers": { "x-mcp-client": "agent-ui" } }
+  ```
+  **Mentor (agent) scope (token):** add `"mentor": "<agent unique id>"` and
+  `"scope": "mentor"` — different agents can present different credentials
+  to the same server (e.g. read/write vs read-only keys).
+
+  **User scope (OAuth2)** — finalizes an OAuth connection after the
+  connected-service flow:
+  ```json
+  { "server": 9, "scope": "user", "auth_type": "oauth2", "connected_service": 77 }
+  ```
+
+  Validation rules the API enforces (per-field error messages):
+  - `platform` and `user` are **read-only**: the org comes from the request
+    context (`"Connections must be created for the current platform
+    context."` when they clash) and the user from the caller — do not send
+    them in the body.
+  - `scope=platform` — `mentor` is forbidden; the connection's org must
+    match the server's org **unless the server is featured**.
+  - `scope=mentor` — `mentor` is required and must belong to the same org
+    as the connection.
+  - `scope=user` — `mentor` is forbidden; requires the calling user or a
+    `connected_service`.
+  - `auth_type=oauth2` — always requires `connected_service`
+    (`"OAuth2 connections require a connected service."`), at every scope,
+    and the connected service must belong to the same org.
+  - `auth_type=token` — requires `credentials`
+    (`"Token based connections must include credentials."`).
+
+  Credential handling:
+  - `authorization_scheme` becomes the header prefix
+    (`Authorization: Bearer <credentials>`); omit it to send the raw value.
+  - `extra_headers` is merged into every outbound request; explicit
+    credentials override clashing headers.
+  - `credentials` and `extra_headers` are **masked on read** — when
+    PATCHing, only send `credentials` if actually rotating the secret;
+    never send a masked value back.
+- **PATCH** `…/users/{username}/mcp-server-connections/{id}/` — update; prefer
+  `{"is_active": false}` over DELETE if the credential may return.
+- **DELETE** `…/users/{username}/mcp-server-connections/{id}/` — delete a connection.
+  Destructive — confirm with the user first.
+
+### Agent wiring
+
+- **PATCH | PUT** `…/users/{username}/mentors/{mentor}/settings/` — enable /
+  disable connectors on the agent:
+  ```json
+  { "tool_slugs": ["ai-index", "mcp-tool"], "mcp_servers": [3, 9],
+    "can_use_tools": true }
+  ```
+  **Critical semantics — these lists are replaced, not merged.** `[]` clears
+  everything; omitting a field leaves it untouched. Blindly sending
+  `{"tool_slugs": ["mcp-tool"]}` silently strips every other tool the agent
+  had. Safe procedure: **GET** the current settings, merge locally (keep
+  existing `tool_slugs`, ensure `mcp-tool` is present; keep existing
+  `mcp_servers`, append the new server id), then write back the full lists.
+
+### OAuth connected services
+
+- **DELETE** `https://api.iblai.app/dm/api/ai-account/connected-services/orgs/{org}/users/{username}/{id}/`
+  — revoke a user's OAuth grant / disconnect the service (`204`).
+  Destructive — confirm with the user first.
+
+## In-chat OAuth (per-user consent at chat time)
+
+For servers with `auth_type="oauth2"` + `auth_scope="user"`, the platform
+prompts each user inside the chat stream the first time the agent needs the
+tool. Events arrive as JSON on the **existing** chat WebSocket/SSE
+connection — parse and switch on `type`; never close or refresh the
+connection while waiting, resolution arrives on the same socket.
+
+**Trigger conditions** (all must hold): server `auth_type="oauth2"`, server
+`auth_scope="user"`, no valid connection for the current user + server, and
+the chat user is authenticated (non-anonymous).
+
+**Admin setup checklist** (before any prompt can fire): the OAuth provider
+and OAuth service records exist, the `auth_{provider}` credential is in the
+org's credential store, the MCP server is registered with
+`auth_type="oauth2"`, `auth_scope="user"`, `is_enabled=true`, and a linked
+`oauth_service`, and the server is attached to the agent (`tool_slugs` +
+`mcp_servers`).
+
+**Handshake:** the user sends a message → the backend fails to resolve a
+user connection → it emits `oauth_required` (with `auth_url`) and polls
+every 10s → the client opens `auth_url`; the user consents; the **backend**
+callback creates the connected service + connection automatically (the
+client does not process the callback) → the backend emits
+`oauth_connection_resolved` and resumes the turn. On timeout (default 300s)
+an `error` (status 400) terminates the turn — on WebSocket transports the
+connection then closes. A user who finishes OAuth *after* the timeout
+succeeds automatically on their **next message**, so offer a retry.
+
+**Event reference:**
+
+| Event `type` | Key fields | Client action |
+|---|---|---|
+| `oauth_required` | `server_name`, `server_id`, `auth_url`, `message` | show a prompt naming the server; open `auth_url` in a new tab; show a waiting indicator |
+| `oauth_connection_resolved` | `server_name`, `server_id`, `message` | dismiss the prompt; the chat resumes automatically |
+| `mcp_tools_retrieved` | `session_id`, `mentor_id` | informational: tool fetch succeeded on retry (3 attempts, backoff 1s/2s/4s) — log or ignore |
+| `warning` | `message`, `developer_error`, `code: 503` | non-OAuth tool failure; the chat continues **without** MCP tools — surface `message`, log `developer_error`, never show it to end users |
+| `error` | `error`, `status_code: 400` (**no `type` field** — detect by the top-level `error` key) | OAuth timeout / URL build failure / missing connected service; the turn terminates — offer retry |
+
+Constants: max wait 300s (`MCP_OAUTH_MAX_WAIT_SECONDS`), poll interval 10s
+(`MCP_OAUTH_POLL_INTERVAL_SECONDS`). Each poll checks for a connection with a
+valid connected service for user + server (or a connected service matching
+provider + user + org) — first match resolves.
+
+## Example
+
+Register a platform-token server, bind the shared key, and enable it on an
+agent (settings read-merge-write elided):
+
+```bash
+BASE="https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME"
+AUTH="Authorization: Api-Token $IBLAI_API_KEY"
+
+curl -s -X POST "$BASE/mcp-servers/" -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"name":"Workflow MCP","url":"https://wf.example.com/mcp","transport":"streamable_http",
+       "auth_type":"token","auth_scope":"platform","is_enabled":true}'
+# → capture "id": 9
+
+curl -s -X POST "$BASE/mcp-server-connections/" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"server\":9,\"scope\":\"platform\",\"auth_type\":\"token\",
+       \"credentials\":\"$MCP_KEY\",\"authorization_scheme\":\"Bearer\"}"
+```
+
+## Notes
+
+- **Troubleshooting quick map:**
+  - `400 OAuth2 connections require a connected service.` — complete the
+    connected-service flow first; pass the resulting id.
+  - `400` cross-org server on a platform connection — use a server owned by
+    this org, or mark the source server `is_featured=true`.
+  - `400 No credentials found` on OAuth start — install the
+    `auth_{provider}` credential (client_id, client_secret, redirect_uri).
+  - Agent never calls the server — `mcp-tool` missing from `tool_slugs` or
+    the server id missing from `mcp_servers`; these lists are replaced, not
+    merged, so a careless settings write may have stripped them.
+  - No OAuth prompt on a per-user server — needs **both**
+    `auth_scope="user"` and `auth_type="oauth2"`, plus a linked
+    `oauth_service`, plus an authenticated (non-anonymous) chat session.
+  - Prompt fires every message even after auth — the connected service
+    belongs to a different user or org than the chat user.
+  - Connection unexpectedly falls back to platform creds — check the user
+    connection's `is_active` and that the connected service's user matches
+    the chat user.
+  - `oauth-services` returns `[]` — no enabled OAuth service records; seed
+    the provider + service.
+  - Callback `Invalid state` — the start/callback round-trip spanned browser
+    contexts or exceeded the 1-hour window; redo the flow in one session.
+  - Callback `Could not exchange auth token` — the provider rejected the
+    code; verify the redirect URI matches the provider console and restart.
+  - Tool call fails silently — a `warning` (503) event was ignored; surface
+    it and verify the MCP server is reachable from the platform.
+- **Scope enum is `platform | mentor | user`** on both `MCPServer.auth_scope`
+  and connection `scope` — `mentor` means agent-wide, `platform` means
+  org-wide. (There is no `agent` or `tenant` value on the wire.)
+- The chat events above ride the runtime chat connection (see
+  `/iblai-api-agent-chat` for wiring live chat); everything else in this
+  skill is plain REST.
+
+## Reference material
+
+`references/` carries the additive material that doesn't fit the endpoint
+sections above — the endpoint/method/body and event facts stay above:
+
+- [`references/concepts.md`](references/concepts.md) — backend model and the
+  design "why": the five Django models behind the wire objects, the module map,
+  runtime-resolution internals, the OAuth state/token design, and the
+  validation, access-control, and extensibility rules.
+- [`references/integration.md`](references/integration.md) — client / front-end
+  notes for the REST setup screens: driving the connection form off `auth_type`,
+  scope-aware fields, sourcing the OAuth2 connected-service picker, rendering
+  inline per-field validation errors, and the browser OAuth start/callback
+  strategy.
+- [`references/in-chat-events.md`](references/in-chat-events.md) — the fuller
+  per-frame event reference: field types, the three `error` variants with their
+  exact messages, and the client-handling gotchas.
+- [`references/mcp-servers-catalog.md`](references/mcp-servers-catalog.md) — the
+  open-source `iblai-mcp` repo of ready-made MCP servers. This skill wires
+  *external* MCP servers onto agents; that repo is a source of servers to wire.

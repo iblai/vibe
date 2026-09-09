@@ -40,7 +40,7 @@ Every Tier 0/1 skill has at least one; the journey set below illustrates
 | `10-user-mode.png` | the same app in User mode (no admin links) | script |
 | `11-login-custom.png` | the customized `login.iblai.app` page | manual |
 | `12-deploy-ready.png` | terminal: READY + URL (masked) | manual |
-| `13-macos.png`, `13-ios.png`, `13-android.png`, `13-windows.png` | native shells | reuse `skills/iblai-vibe-ops-build/*.png`; capture Windows |
+| `13-macos.png`, `13-ios.png`, `13-android.png`, `13-windows.png` | native shells | reuse `skills/ship/iblai-vibe-ops-build/*.png`; capture Windows |
 
 Per-skill screenshots for the new skills: `iblai-vibe-user-metadata-1-preferences.png`,
 `iblai-vibe-user-metadata-2-admin.png`, `iblai-vibe-org-metadata-1-settings.png`,
@@ -50,13 +50,13 @@ Per-skill screenshots for the new skills: `iblai-vibe-user-metadata-1-preference
 ## Capturing the starter set
 
 Needs a running starter (`pnpm dev` in a scaffolded app or in
-`skills/iblai-vibe-ops-init/assets/vibe-starter` with a real `.env.local`) and
+`skills/start/iblai-vibe-ops-init/assets/vibe-starter` with a real `.env.local`) and
 the Playwright credentials in `e2e/.env.development` (an **admin** of the demo
 org). From the repo root:
 
 ```bash
 node scripts/capture-screenshots.mjs --app http://localhost:3000 \
-  --starter skills/iblai-vibe-ops-init/assets/vibe-starter
+  --starter skills/start/iblai-vibe-ops-init/assets/vibe-starter
 ```
 
 It reuses `e2e/auth.setup.ts` for the sign-in, walks the routes in both view

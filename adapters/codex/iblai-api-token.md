@@ -15,8 +15,8 @@ A token's RBAC authority is controlled by its **`mode`**:
   permissions. Simplest option; the token acts with the owner's authority.
 - **`token_policies`** — the token carries its **own** fine-grained RBAC, independent
   of the owner. You attach specific RBAC policies/groups to the token, and only those
-  determine what it can do. Use this to issue narrowly-scoped service tokens for a
-  tenant.
+  determine what it can do. Use this to issue narrowly-scoped service tokens for an
+  organization.
 
 ## Auth & conventions
 
@@ -71,7 +71,7 @@ create/update access. Constraints the server enforces:
 
 - Policies/groups can only be set when `mode` is `token_policies`; sending them with
   `owner` mode is rejected.
-- Referenced policies/groups must belong to the token's platform (the tenant),
+- Referenced policies/groups must belong to the token's platform (the organization),
   otherwise the request is rejected.
 - **No escalation:** you cannot grant a token more authority than you hold yourself —
   each candidate policy (including those reached via `groups_to_add`) must be a subset
@@ -99,7 +99,7 @@ curl -X POST \
   }'
 ```
 
-Create an RBAC-scoped token for the tenant — its own policies/groups decide what it
+Create an RBAC-scoped token for the organization — its own policies/groups decide what it
 can do, independent of the creator:
 
 ```bash

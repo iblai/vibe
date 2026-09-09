@@ -93,9 +93,9 @@ org-wide scope on every endpoint here.
 ### Transcripts
 
 - **GET** `{dm_url}/api/analytics/messages/?platform_key={platform}&search={q}&topic={topic}&sentiment={s}&min_messages=&max_messages=&page=1&limit=20[&mentor_unique_id={mentor}][&start_date=&end_date=]`
-  — transcript list (one row per session). `search` matches the learner's
+  — transcript list (one row per session). `search` matches the user's
   **email** or username and the session's first user message. Each row carries
-  the learner's `email`.
+  the user's `email`.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended
@@ -155,11 +155,11 @@ serves three resources via the `resource` param; every `measures`, `aggregation`
   — per-user / per-session trace listing (the drill-down the Metrics API can't
   group by). `order_by` ∈ `timestamp` (default) | `name` | `username` |
   `session_id`; `direction` ∈ `asc` | `desc`. `&trace_id={id}` fetches one trace.
-  Unlike observations, traces **are** mentor-scopable via `mentor_unique_id`.
+  Unlike observations, traces **are** agent-scopable via `mentor_unique_id`.
 
 All three return the same envelope: `{ "resource": "…", "data": [...], "meta": {...} }`.
 `limit` caps at `1000`. A get-by-id (`trace_id` on traces, `observation_id` on
-observations) whose record belongs to another tenant returns **`404`** — existence
+observations) whose record belongs to another organization returns **`404`** — existence
 is never leaked. An unreachable/erroring tracing backend returns **`502`** (distinct
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
@@ -182,10 +182,10 @@ grant.
   `course_id`, `include_edx_progress=true` folds in live edX progress
   (completion, grade).
 - **GET** `{dm_url}/api/analytics/learners/?platform_key={platform}&username={username}&date_filter=30d&page=1&limit=20[&overtime=false][&granularity=day][&mentor_unique_id={mentor}]`
-  — unified learner analytics: cross-platform summary (username only) or
+  — unified user analytics: cross-platform summary (username only) or
   platform-specific detail (username + `platform_key`).
 - **GET** `{dm_url}/api/analytics/learners/list/?platform_key={platform}&search=&sort_by=&sort_order=&page=1&limit=20&date_filter=30d[&mentor_unique_id={mentor}]`
-  — paginated learner roster with per-user metrics (**platform admins only**;
+  — paginated user roster with per-user metrics (**platform admins only**;
   `platform_key` **required**).
 - **GET** `{dm_url}/api/analytics/time-spent/user/?platform_key={platform}&start_date=&end_date=[&course_id=][&mentor_uuid=][&session_uuid=][&url=][&username=][&include_main_platform=]`
   — total time spent (seconds) for the current authenticated user.
@@ -200,7 +200,7 @@ grant.
 ### Data Reports
 
 Data Reports are async: **POST** to kick one off (see Writes), then poll and
-download. Mentor/course scoping is optional — it only applies to agent reports
+download. Agent/course scoping is optional — it only applies to agent reports
 (`mentor`) or course reports (`course_id`); org-wide reports need neither.
 
 - **GET** `{dm_url}/api/reports/platforms/{platform}/[?mentor_id={mentorDbId}]`
@@ -282,7 +282,8 @@ curl -s "$dm_url/api/analytics/content/?platform_key=$IBLAI_ORG&metric=courses&d
 - **Time is in seconds** on `time-spent/user/` and content time-spent fields.
 - **Per-user RBAC:** self-access (own username, or no username on `/analytics/user`)
   needs no grant; reading another user requires an analytics grant, and
-  `learners/list/` requires platform admin. Say **"user"**, not "learner".
+  `learners/list/` requires platform admin. In prose say **"user"**, not
+  "learner" — `learner` survives only in wire names like `learners/list/`.
 - **External content:** content used by your users but owned elsewhere is marked
   `external` with limited metadata.
 - For *finding* agents/content and recommendations, use `/iblai-api-search`.

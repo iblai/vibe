@@ -1,6 +1,6 @@
 # iblai-api-spend-caps
 
-> Manage an ibl.ai organization's LLM spend caps via the platform API — admin-imposed maximum LLM cost at three scopes (tenant-wide, one agent, or one user on one agent), each with a rolling interval (day/week/month/year), a hard-block or alert-only enforcement mode, and near-limit alert thresholds. Read the current fill/zone for a user's applicable caps (learner-safe, dollars hidden). Use when setting a budget ceiling on an org/agent/user, listing configured caps, checking how close a user is to their limit, or removing a cap. Spend counters are reconciled from ClickHouse and are read-only.
+> Manage an ibl.ai organization's LLM spend caps via the platform API — admin-imposed maximum LLM cost at three scopes (organization-wide, one agent, or one user on one agent), each with a rolling interval (day/week/month/year), a hard-block or alert-only enforcement mode, and near-limit alert thresholds. Read the current fill/zone for a user's applicable caps (safe to show end users, dollars hidden). Use when setting a budget ceiling on an org/agent/user, listing configured caps, checking how close a user is to their limit, or removing a cap. Spend counters are reconciled from ClickHouse and are read-only.
 
 # iblai-api-spend-caps
 
@@ -8,7 +8,7 @@ Configure and read **LLM spend caps** for an organization. A spend cap is an
 admin-imposed maximum LLM cost enforced at one of three scopes:
 
 - **tenant** — the whole org (one cap per platform).
-- **agent** — one agent/mentor (one cap per agent).
+- **agent** — one agent (one cap per agent).
 - **user_agent** — one user on one agent (an explicit per-user cap).
 
 Each cap has a rolling **interval** (`day`/`week`/`month`/`year`, calendar
@@ -29,12 +29,12 @@ can render a progress bar.
   Omitting `/dm` will not resolve.
 - **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
 - **Path vars:** `{org}` = `$IBLAI_ORG` (the org key). `{mentor}` = an agent's
-  `unique_id` (a UUID). `{user_id}` / `{username}` = the target learner.
+  `unique_id` (a UUID). `{user_id}` / `{username}` = the target user.
 - **Endpoint prefix twin:** every path under `api/ai-mentor/` also resolves
   under `api/ai-agent/` (alias); either works, pick one and be consistent.
-- **Permission tiers:** all cap **configuration** endpoints (tenant / agent /
+- **Permission tiers:** all cap **configuration** endpoints (organization / agent /
   user-agent read+write) require a **platform admin** (RBAC action prefix
-  `Ibl.Mentor/SpendCaps/*`). The **status** endpoint is learner-safe: any
+  `Ibl.Mentor/SpendCaps/*`). The **status** endpoint is safe to show end users: any
   authenticated member may read **their own** status, and admins may read any
   user's — it returns only a coarse zone + percent, never raw dollars.
 - **PUT is upsert:** writing a cap that doesn't exist yet returns **201
@@ -59,14 +59,14 @@ can render a progress bar.
 - **Read-only counters** — `current_spend_usd`, `remaining_usd`, `is_exceeded`,
   `period_started_at`, `last_reconciled_at` are reconciled from ClickHouse and
   ignored if sent in a write body.
-- **Applicability** — for a given chat, the tenant cap always applies; the agent
-  cap applies when a mentor is in play; the user's own per-agent cap applies when
-  both mentor and user are known. When several hard-block caps are exceeded, the
-  **most specific** one (user > agent > tenant) is reported.
+- **Applicability** — for a given chat, the organization cap always applies; the agent
+  cap applies when an agent is in play; the user's own per-agent cap applies when
+  both agent and user are known. When several hard-block caps are exceeded, the
+  **most specific** one (user > agent > organization) is reported.
 
 ## Reads
 
-### Tenant cap
+### Organization cap
 
 - **GET** `/api/ai-mentor/orgs/{org}/spend-caps/tenant/` — the org-wide cap, or
   `404` if none is set. Returns the full cap object (see Schema).
@@ -77,7 +77,7 @@ can render a progress bar.
   agent-scoped caps for the org; pass `mentor` to filter to one agent. Returns a
   list of cap objects.
 - **GET** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-cap/` — the single
-  cap for one agent, or `404` if none. The mentor is resolved tenant-scoped, so
+  cap for one agent, or `404` if none. The agent is resolved org-scoped, so
   an agent from another org returns `404`.
 
 ### User-per-agent caps
@@ -88,14 +88,14 @@ can render a progress bar.
 - **GET** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-caps/users/{username}/`
   — the one cap for a specific user on that agent, or `404`.
 
-### User spend status (learner-safe)
+### User spend status (safe to show end users)
 
 - **GET** `/api/ai-mentor/orgs/{org}/spend-caps/status/{user_id}/[?mentor={mentor}]`
-  — the coarse status across every cap that applies to `{user_id}` (tenant cap
+  — the coarse status across every cap that applies to `{user_id}` (organization cap
   always; agent + that user's own per-agent cap when `mentor` is given). Any
   member may read their own; admins may read anyone's. Returns **only** a zone
   and percentage — never raw spend/limit dollars — so it is safe to surface to
-  learners. Returns `400` if `mentor` is not a valid UUID.
+  end users. Returns `400` if `mentor` is not a valid UUID.
 
   ```json
   {
@@ -125,10 +125,10 @@ can render a progress bar.
 All writes accept the same body fields: `max_cost_usd` (**required** on create,
 > 0), `interval_type` (**required**), `enforcement` (default `block`),
 `alert_thresholds` (default `[0.8, 0.95]`), `enabled` (default `true`). `scope`,
-the mentor, and the user are inferred from the URL — never the body. Counter
+the agent, and the user are inferred from the URL — never the body. Counter
 fields sent in the body are ignored.
 
-### Tenant cap
+### Organization cap
 
 - **PUT** `/api/ai-mentor/orgs/{org}/spend-caps/tenant/` — create (201) or update
   (200) the org-wide cap.
@@ -184,9 +184,9 @@ curl -X DELETE "$dm/api/ai-mentor/orgs/$IBLAI_ORG/spend-caps/tenant/" -H "$auth"
   scheduled reconcile task from ClickHouse, so it can lag real-time spend
   slightly. Enforcement reads the cached value to stay off the hot path.
 - **Status hides dollars by design.** The status endpoint only exposes
-  `percent_used` and a zone so a non-admin cannot read tenant/agent-wide spend
+  `percent_used` and a zone so a non-admin cannot read org- or agent-wide spend
   totals; use the admin read endpoints for the dollar figures.
-- **One cap per (scope, agent, user).** Unique constraints allow a single tenant
+- **One cap per (scope, agent, user).** Unique constraints allow a single organization
   cap, one cap per agent, and one cap per (agent, user); PUT upserts that single
   row.
 - **Disable vs delete.** Set `enabled: false` to pause a cap without losing its

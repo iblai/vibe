@@ -20,15 +20,14 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 
-const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
-const SKILLS_DIR = join(ROOT, "skills");
-const STARTER_SRC = join(SKILLS_DIR, "iblai-vibe-ops-init", "assets", "vibe-starter");
+import { ROOT, SKILLS_DIR, STARTER_DIR as STARTER_SRC, listSkills, skillDir } from "./lib/skills.mjs";
 const WORK = join(ROOT, ".skill-tests");
 const SCRATCH = join(WORK, "starter");
 const SKIPS = existsSync(join(ROOT, "scripts", "skill-render-skips.json"))
   ? JSON.parse(readFileSync(join(ROOT, "scripts", "skill-render-skips.json"), "utf8"))
   : {};
 
+const skillDir_ = (name) => skillDir(name) ?? join(SKILLS_DIR, name);
 const args = process.argv.slice(2);
 const RUN_BUILD = args.includes("--build");
 const onlyArg = args.find((a) => a.startsWith("--skills"));
@@ -116,7 +115,7 @@ function run(cmd, cmdArgs, cwd) {
 
 // ---------- source 1: assets via test.json ----------
 function testAssetSkill(name, manifest) {
-  const skillDir = join(SKILLS_DIR, name);
+  const skillDir = skillDir_(name);
   const vars = manifest.vars ?? {};
   const renderFile = (rel) => {
     const raw = readFileSync(join(skillDir, rel), "utf8");
@@ -169,7 +168,7 @@ function testAssetSkill(name, manifest) {
 
 // ---------- source 2: SKILL.md ts/tsx fences ----------
 function extractFences(name) {
-  const text = readFileSync(join(SKILLS_DIR, name, "SKILL.md"), "utf8");
+  const text = readFileSync(join(skillDir_(name), "SKILL.md"), "utf8");
   const lines = text.split("\n");
   const fences = [];
   let open = null;
@@ -320,10 +319,9 @@ function collectFenceOverlays() {
 // ---------- helpers ----------
 const indent = (s) => s.split("\n").slice(0, 60).map((l) => `    ${l}`).join("\n");
 const skillNames = () =>
-  readdirSync(SKILLS_DIR).filter((n) => {
-    if (!statSync(join(SKILLS_DIR, n)).isDirectory()) return false;
+  listSkills().map((s) => s.name).filter((n) => {
     if (ONLY && !ONLY.includes(n)) return false;
-    return existsSync(join(SKILLS_DIR, n, "SKILL.md"));
+    return true;
   });
 
 // ---------- main ----------
@@ -350,7 +348,7 @@ if (!ONLY || ONLY.includes("iblai-vibe-ops-init")) {
 
 log("• asset skills (test.json manifests)");
 for (const name of skillNames()) {
-  const manifestPath = join(SKILLS_DIR, name, "test.json");
+  const manifestPath = join(skillDir_(name), "test.json");
   if (!existsSync(manifestPath)) continue;
   testAssetSkill(name, JSON.parse(readFileSync(manifestPath, "utf8")));
 }

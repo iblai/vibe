@@ -9,7 +9,7 @@ memory and a managed memories section with add, edit, bulk delete, and
 individual delete actions. This is one tab in the wider agent-settings
 family. All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Memory Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
+![Memory Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-memory/iblai-vibe-agent-memory.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -106,15 +106,15 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 ## Memory REST API
 
-Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md)
+Full REST reference: [`/iblai-api-agent-memory`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md)
 (headless twin, installed with the rest of this repo's skills).
 The tables below are the frontend-relevant summary.
 
 For custom UI beyond `<AgentMemoryTab>`. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`
-and `{org}` is the platform/tenant key.
+and `{org}` is the org key (`platform_key`).
 
-The system has three control levels: **Platform** (admin enables for tenant),
+The system has three control levels: **Platform** (admin enables for organization),
 **Agent** (admin/owner enables per agent), **User** (user opts in/out of
 capture and use).
 
@@ -127,13 +127,13 @@ capture and use).
 
 Defaults are `false` if no settings row exists.
 
-### Platform config (tenant admin)
+### Platform config (organization admin)
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `users/{user_id}/memsearch-config/` | Read `enable_memsearch` |
 | POST | `users/{user_id}/memsearch-config/` | Set `enable_memsearch` |
-| GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the tenant |
+| GET | `users/{user_id}/memsearch-status/` | Read-only enabled status for the organization |
 
 ### Agent toggle
 

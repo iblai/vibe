@@ -18,15 +18,15 @@ is server-side — a blocked request is refused with a `429` /
 in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![Billing Tab — This Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-billing/iblai-vibe-agent-billing.png)
+![Billing Tab — This Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing.png)
 
-![Billing Tab — Per User](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-billing/iblai-vibe-agent-billing-per-user.png)
+![Billing Tab — Per User](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-per-user.png)
 
-![Per User — Row Actions (Edit / Delete)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-billing/iblai-vibe-agent-billing-actions.png)
+![Per User — Row Actions (Edit / Delete)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-actions.png)
 
-![New User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-billing/iblai-vibe-agent-billing-new-user-limit.png)
+![New User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-new-user-limit.png)
 
-![Edit User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-billing/iblai-vibe-agent-billing-edit-user-limit.png)
+![Edit User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-edit-user-limit.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -184,12 +184,12 @@ tab uses, for custom UI built on the same endpoints:
 - Per-user caps: `useListAgentUserSpendCapsQuery`,
   `useGetUserSpendCapQuery`, `useUpsertUserSpendCapMutation`,
   `useDeleteUserSpendCapMutation`
-- Tenant cap (workspace-wide singleton):
+- Organization cap (workspace-wide singleton):
   `useGetTenantSpendCapQuery`, `useUpsertTenantSpendCapMutation`,
   `useDeleteTenantSpendCapMutation`
-- Tenant-wide agent-cap list: `useListAgentSpendCapsQuery`
+- Organization-wide agent-cap list: `useListAgentSpendCapsQuery`
   (optional `mentor` filter)
-- Learner-safe status: `useGetSpendCapStatusQuery`
+- User-safe status: `useGetSpendCapStatusQuery`
 - Types: `SpendCap`, `SpendCapUpsertRequest`, `SpendCapIntervalType`,
   `SpendCapEnforcement`, `SpendCapScope`, `SpendCapStatusSummary`,
   `SpendCapStatusItem`, `SpendCapStatusZone`,
@@ -237,10 +237,10 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   frame) whose body carries `error_code: "spend_cap_exceeded"`.
   Handle it in custom chat UI, or mount `SpendCapUsage` to warn users
   before they hit it.
-- **Three scopes**: tenant (workspace-wide), agent, and per-user-per-
+- **Three scopes**: organization (workspace-wide), agent, and per-user-per-
   agent — the tightest applicable cap governs. This tab manages the
   two agent-level scopes; the workspace-wide limit belongs to the
-  tenant settings Billing surface (`/iblai-vibe-billing`, which also
+  organization settings Billing surface (`/iblai-vibe-billing`, which also
   lists every agent's cap in one place).
 - **RBAC**: each scope's endpoints are gated separately; a 403 renders
   the denied panel for that sub-tab only.
@@ -292,14 +292,14 @@ string. Responses add the read-only counters (`current_spend_usd`,
 The list may come back as a bare array or a DRF limit/offset
 envelope depending on deployment — the SDK slice normalizes both.
 
-### Tenant scope + tenant-wide listing
+### Organization scope + organization-wide listing
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET/PUT/DELETE | `spend-caps/tenant/` | Workspace-wide singleton cap |
-| GET | `spend-caps/agents/` | Every configured agent cap in the tenant (`?mentor=<uuid>` filter) |
+| GET | `spend-caps/agents/` | Every configured agent cap in the organization (`?mentor=<uuid>` filter) |
 
-### Learner-safe status
+### User-safe status
 
 | Method | Path | Purpose |
 |---|---|---|

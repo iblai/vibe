@@ -25,7 +25,7 @@ the agent.
   capital letters. Convert names like `MyApp` to `my-app` before passing
   to `create-next-app` or `--app-name`. Allowed
   characters: lowercase letters, digits, `-`, `_`.
-- When building a navbar or header, do NOT display the platform/tenant
+- When building a navbar or header, do NOT display the platform/organization
   name. Use the ibl.ai logo instead.
 
 ## Brand
@@ -60,7 +60,7 @@ Full brand guidelines:
   The sign-in (auth SPA) host is the one exception: it is not derivable from
   the domain, so use it only when the guidance or the user supplies it.
 - The skills read `iblai.env` and derive the `NEXT_PUBLIC_*` values into
-  `.env.local`. vibe-starter apps need only the tenant key and
+  `.env.local`. vibe-starter apps need only the organization key and
   `IBLAI_API_KEY` — URL defaults live in `lib/iblai/config.ts`.
 
 ## Two skill families, one set of credentials

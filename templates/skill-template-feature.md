@@ -9,7 +9,7 @@ alwaysApply: false
 
 <Two or three sentences: what this adds to the app and for whom (member / admin / builder).>
 
-![<What the screenshot shows>](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-<feature>/iblai-vibe-<feature>-1-<slug>.png)
+![<What the screenshot shows>](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/<category>/iblai-vibe-<feature>/iblai-vibe-<feature>-1-<slug>.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -63,10 +63,12 @@ get_component_info("<Component>")
 | `use<…>Query` | <…> |
 | `POST …/dm/api/<…>/` (REST only) | <…> |
 
-REST reference: [<family>](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-<family>/SKILL.md).
+REST reference: [<family>](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/<category>/iblai-api-<family>/SKILL.md).
 
 ## Related skills
 
 - `/iblai-vibe-<sibling>` — <why>
+
+<!-- Save this as `skills/<category>/iblai-vibe-<feature>/SKILL.md` — every skill lives under one of the nine category directories listed in `scripts/skill-categories.json` (start, agents, users, organizations, billing, analytics, content, ship, security). Installed skills are flattened to `.claude/skills/<name>/`, so never write the category into a `.claude/skills/…` path. -->
 
 <!-- Budget: ≤ 400 lines (★ core families ≤ 500). Move long tables, troubleshooting, and brownfield notes to references/. Keep every code fence compilable — the render gate typechecks it. -->

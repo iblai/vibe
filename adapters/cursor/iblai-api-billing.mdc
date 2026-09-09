@@ -27,7 +27,7 @@ checking whether a user has access, or pulling subscriber/revenue reports.
 - **Path vars:** `{platform_key}` = `$IBLAI_ORG` (the org key; also called
   `org` / `platform_org` elsewhere on the wire). `{item_type}` = the item kind
   (`mentor`, `course`, `program`, `pathway`, or a custom type — see Notes).
-  `{item_id}` = the item's identifier (e.g. a agent slug, course id, or
+  `{item_id}` = the item's identifier (e.g. an agent slug, course id, or
   `config`/`price` UUID for the by-id variants).
 - DELETE / destructive / outward-facing calls (paywall writes, price create/
   update/delete, checkout, subscribe, cancel) say "Confirm with the user

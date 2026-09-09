@@ -1,12 +1,12 @@
 ---
-description: "Put a Stripe \"pay to enter\" gate on a whole vibe-starter app using the tenant's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (probe the tenant's stored Stripe credential — never collect a key in chat — then create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring."
+description: "Put a Stripe \"pay to enter\" gate on a whole vibe-starter app using the organization's OWN Stripe key via the DM Stripe proxy paywall endpoints — no Stripe Connect, no commission, no webhooks. Admin setup (probe the organization's stored Stripe credential — never collect a key in chat — then create app-tagged product + prices), two server routes + lib/paywall.ts, the client PaywallGate, and the /paywall pricing + return pages. Use when the user mentions charging for the whole app, pay to enter, app paywall, subscribe to use the app, gate the app behind payment, or selling access with their own Stripe account. See /iblai-vibe-monetization for the item-level Stripe Connect family index, /iblai-vibe-monetization-checkout for selling individual items in-platform, /iblai-vibe-ops-deploy for shipping the server env, /iblai-vibe-auth for token wiring."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-vibe-monetization-app-paywall
 
-Gate a whole app behind a one-time or subscription payment on the **tenant's
+Gate a whole app behind a one-time or subscription payment on the **organization's
 own Stripe account**. The ibl.ai platform (DM) owns entitlement end to end:
 it mints the Stripe Checkout session, verifies the buyer's return
 read-after-write, records payments durably, caches answers (grants 60s,
@@ -28,7 +28,7 @@ Checkout → `/paywall/return?session_id=…` → access confirmed → app.
 | | This skill (direct rail) | `/iblai-vibe-monetization-checkout` (Connect rail) |
 |---|---|---|
 | Sells | Entry to the **whole app** | Individual items (agents, courses…) in-platform |
-| Stripe account | Tenant's **own** key (`rk_…`) via the DM Stripe proxy | Stripe Connect Express, ibl.ai-managed |
+| Stripe account | Organization's **own** key (`rk_…`) via the DM Stripe proxy | Stripe Connect Express, ibl.ai-managed |
 | Commission | None | ibl.ai commission on each sale |
 | Reconciliation | DM records + live checks, no webhooks | Webhook-reconciled subscriptions |
 | Platform flag | None required | `enable_monetization` |
@@ -43,7 +43,7 @@ Selling items *inside* the app instead? Use the Connect family — start at
   `iblai.env`; if neither has it, ask the user once and persist it (same
   Step 1 as `/iblai-vibe-ops-deploy`).
 - A scaffolded vibe-starter app with working SSO auth.
-- The tenant has **Stripe connected on the platform**: an integration
+- The organization has **Stripe connected on the platform**: an integration
   credential named `stripe` holding the account's secret key. The agent
   **never asks for or accepts a Stripe key in chat** — Step 1 probes for the
   credential and hands off to a platform admin when it is missing.
@@ -198,10 +198,10 @@ deploy first, or attach the domain.
 
 ## Related skills
 
-- [`/iblai-vibe-monetization`](../iblai-vibe-monetization/SKILL.md) — family index; item-level Connect rail overview
-- [`/iblai-vibe-monetization-checkout`](../iblai-vibe-monetization-checkout/SKILL.md) — sell individual items in-platform (Connect)
-- [`/iblai-vibe-monetization-onboard`](../iblai-vibe-monetization-onboard/SKILL.md) — Stripe Connect Express onboarding (Connect rail only)
-- [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) — ships the app + `.env.production` via ibl.ai hosting
-- [`/iblai-vibe-ops-test`](../iblai-vibe-ops-test/SKILL.md) — validate before showing work
-- [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md) — SSO token wiring the gate depends on
+- [`/iblai-vibe-monetization`](../../billing/iblai-vibe-monetization/SKILL.md) — family index; item-level Connect rail overview
+- [`/iblai-vibe-monetization-checkout`](../../billing/iblai-vibe-monetization-checkout/SKILL.md) — sell individual items in-platform (Connect)
+- [`/iblai-vibe-monetization-onboard`](../../billing/iblai-vibe-monetization-onboard/SKILL.md) — Stripe Connect Express onboarding (Connect rail only)
+- [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) — ships the app + `.env.production` via ibl.ai hosting
+- [`/iblai-vibe-ops-test`](../../ship/iblai-vibe-ops-test/SKILL.md) — validate before showing work
+- [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md) — SSO token wiring the gate depends on
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — visual language for the pricing page

@@ -178,10 +178,10 @@ export default function ApplicationPage() {
 ### Provider requirements for the applicant routes
 
 - The wizard needs the **data-layer store + `initializeDataLayer`** only.
-- Do **not** wrap these routes in `TenantProvider` — it blocks on tenant
+- Do **not** wrap these routes in `TenantProvider` — it blocks on organization
   membership, and applicants are usually not members. In a vibe-starter app
   the provider chain lives in `providers/iblai-providers.tsx`; skip the
-  tenant layer on these routes the same way it already skips SSO routes:
+  organization layer on these routes the same way it already skips SSO routes:
 
   ```tsx
   const isApplyRoute = pathname?.startsWith("/applications") ?? false;
@@ -309,7 +309,7 @@ Import from `@iblai/iblai-js/web-containers` (framework-agnostic bundle).
 |------|------|----------|-------------|
 | `platformKey` | `string` | Yes | Platform whose gate/form is fetched |
 | `formId` | `number \| string` | No | Specific form; omit to resolve the platform default |
-| `token` | `string` | No | Explicit DM token overriding the stored one on every gate call — use the main tenant's token when the wizard runs outside the target tenant's app |
+| `token` | `string` | No | Explicit DM token overriding the stored one on every gate call — use the main organization's token when the wizard runs outside the target organization's app |
 | `dmUrl` | `string` | No | DM base URL; the top bar then shows `<dmUrl>/api/core/orgs/<platformKey>/logo/` |
 | `logoUrl` | `string` | No | Explicit logo URL; wins over `dmUrl` |
 | `brandName` | `string` | No | Top-bar name. Defaults to the form title |
@@ -396,9 +396,9 @@ then decide it from the pipeline.
 - **`@reduxjs/toolkit`**: deduplicated via webpack aliases in `next.config.ts`.
 - **Peer dep**: `sonner` — the admin surfaces toast on save/decide.
 - **Token nuance**: the wizard's `token` is held in memory and never written
-  to storage, so the selected tenant's `dm_token` stays intact. Skip it and
-  the wizard uses the current tenant's stored token — correct only when the
-  applicant is already a member of that tenant.
+  to storage, so the selected organization's `dm_token` stays intact. Skip it and
+  the wizard uses the current organization's stored token — correct only when the
+  applicant is already a member of that organization.
 - **Application rules are per form.** A family may hold applications on two
   forms of one platform; a submission on a sibling form does not block a
   fresh apply on this one.

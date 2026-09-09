@@ -5,10 +5,8 @@
 // docs/skill-setup.md, which says all of it once. Idempotent; prints a report.
 //
 //   node scripts/dedupe-boilerplate.mjs [--dry]
-import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
-const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+import { readFileSync, writeFileSync } from "node:fs";
+import { listSkills } from "./lib/skills.mjs";
 const DRY = process.argv.includes("--dry");
 const POINTER = "Common setup (brand, conventions, env files, verification)";
 
@@ -31,9 +29,7 @@ const PREFIXES = [
 const KEEP_IF_CONTAINS = ["MUST follow BRAND.md colors", "Do NOT add Lucide icons"];
 
 let touched = 0, removed = 0;
-for (const name of readdirSync(join(ROOT, "skills")).sort()) {
-  const file = join(ROOT, "skills", name, "SKILL.md");
-  if (!statSync(join(ROOT, "skills", name)).isDirectory()) continue;
+for (const { name, file } of listSkills()) {
   const src = readFileSync(file, "utf8");
   if (!src.includes(POINTER)) continue;
   // Only operate on the prose ABOVE the first "## " heading (where the block lives).

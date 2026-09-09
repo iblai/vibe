@@ -67,8 +67,8 @@ curl -X PUT \
 
 - The PUT replaces the metadata object — always GET first, merge your one key,
   and resend the full object so existing settings survive.
-- `overall_default_mentor` takes a agent `unique_id` from the mentor-source
-  endpoint, or the literal string `"none"` to clear it.
+- `overall_default_mentor` takes an agent `unique_id` from the `…/mentors/`
+  source endpoint above, or the literal string `"none"` to clear it.
 - The toggle keys (Help Menu, Accessibility Menu, Persistent Chat Input Label,
   Community Agents, Report Inappropriate Content) are slugs assigned by the
   metadata catalog at runtime — read them off the GET response rather than

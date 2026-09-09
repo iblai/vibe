@@ -48,7 +48,7 @@ runs the frontend build (via `beforeBuildCommand`) before starting the dev
 server -- the WebView loads the static files from `../out` on all platforms.
 
 For dev builds, you can optionally deploy the frontend via ibl.ai hosting
-(Vercel) with the [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) skill.
+(Vercel) with the [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) skill.
 That deploys the app and updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
@@ -78,7 +78,7 @@ This configures:
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
 
-## Build-Time Flags (Tenant Lock & In-App Purchase)
+## Build-Time Flags (Organization Lock & In-App Purchase)
 
 `IBL_TENANT=<key>` locks a binary to one org and `IBL_IAP=1` enables the in-app-purchase path; both are Rust `option_env!` values set in the build shell. Full semantics, examples per platform, and the runtime behavior: [`references/build-time-flags.md`](references/build-time-flags.md).
 
@@ -102,7 +102,7 @@ pnpm exec tauri device
 
 ## iOS
 
-![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
 
 Build and run on iOS Simulator and real devices.
 
@@ -226,7 +226,7 @@ base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ## Android
 
-![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
+![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
 
 Build and run on Android emulators and real devices.
 
@@ -297,7 +297,7 @@ pnpm tauri:build:android
 
 ## macOS (Desktop)
 
-![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
+![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
 
 ### macOS Prerequisites
 
@@ -382,7 +382,7 @@ Requires `bundle.windows.certificateThumbprint: null` in `tauri.conf.json` (the
 template already has it). To build **locally** instead, run
 `make -f desktop-release.mk windows-nsis` on a Windows machine. For a Store /
 sideload **MSIX** package instead, see
-[`/iblai-vibe-windows-msix`](../iblai-vibe-windows-msix/SKILL.md).
+[`/iblai-vibe-windows-msix`](../../ship/iblai-vibe-windows-msix/SKILL.md).
 
 ---
 
@@ -421,7 +421,7 @@ The GitHub Actions workflows for every platform and the one-table summary of eve
 
 ## Reference
 
-- [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
+- [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
 - [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
 - [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes
 

@@ -24,7 +24,7 @@ helper that cancels the **caller's own** subscription on a given
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md).
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ helper that cancels the **caller's own** subscription on a given
   the flag is off) — this applies equally to the per-item subscribers
   endpoint, not just the Platform-wide ones. The flag ships in the SDK's
   `tenants` array.
-  See [/iblai-vibe-monetization → references/platform-flags.md](../iblai-vibe-monetization/references/platform-flags.md).
+  See [/iblai-vibe-monetization → references/platform-flags.md](../../billing/iblai-vibe-monetization/references/platform-flags.md).
 - **Stripe Connect onboarded** with `is_ready_for_payments === true`.
   Without it, revenue is empty and subscribers contains only free /
   grandfathered rows. Wire `/iblai-vibe-monetization-onboard` first.
@@ -189,7 +189,7 @@ The backend reads each percentage from per-Platform `Config` keys
 `_PATHWAY`), so at runtime you may see up to four keys; never assume
 exactly four are present. Render `mentor` as **"Agent"** to stay aligned
 with the SDK's `displayItemType` helper —
-see [/iblai-vibe-monetization → references/item-types.md](../iblai-vibe-monetization/references/item-types.md).
+see [/iblai-vibe-monetization → references/item-types.md](../../billing/iblai-vibe-monetization/references/item-types.md).
 
 **Display informationally only.** Commission flows back to ibl.ai
 automatically via Stripe Connect destination charges; do NOT subtract

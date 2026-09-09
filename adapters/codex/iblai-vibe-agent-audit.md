@@ -11,7 +11,7 @@ model, ... on Settings for E2E Agent"), filterable by actor email,
 date range, and action type. Renders an empty state, an error state,
 and a 403 state for users without audit-read permission.
 
-![Audit Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-audit/iblai-vibe-agent-audit.png)
+![Audit Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-audit/iblai-vibe-agent-audit.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -21,7 +21,7 @@ and a 403 state for users without audit-read permission.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 - The current user must have `Ibl.Analytics/Core/read` (viewer) or
-  `Ibl.*` (tenant admin) permission. Without it the component renders
+  `Ibl.*` (organization admin) permission. Without it the component renders
   the 403 state — no `tenantKey` mismatch, just RBAC.
 
 ## Step 1: Check Environment
@@ -222,7 +222,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `AgentLLMTab` / `McpTab`, this component takes raw props. If your
   app already mounts `AgentSettingsProvider`, you can read its values
   via `useAgentSettings()` in the page wrapper and forward them.
-- **RBAC**: `Ibl.Analytics/Core/read` (viewer) or `Ibl.*` (tenant
+- **RBAC**: `Ibl.Analytics/Core/read` (viewer) or `Ibl.*` (organization
   admin). The 403 state already covers users without permission — do
   not gate the route at the layout level; let the component render
   the explanatory message.

@@ -13,7 +13,7 @@ This document is written to be executed by another agent (a weaker model is fine
 3. **Hard repo rules that apply to every task** (they are enforced by CI on PRs labeled `run-tests`, and by the nightly SDK job):
    - A skill is `skills/<name>/SKILL.md` with YAML frontmatter (`name` must equal the directory; `description` 1–1024 chars with trigger phrases). Keep SKILL.md **≤ 500 lines**; move bulk to `references/`.
    - After editing any SKILL.md run `node scripts/build-adapters.mjs` and commit `adapters/` (CI fails if it is stale).
-   - Never mention an `@iblai/*` version that differs from `skills/iblai-vibe-ops-init/assets/vibe-starter/package.json` (`node scripts/check-sdk-pins.mjs --fix` rewrites drift).
+   - Never mention an `@iblai/*` version that differs from `skills/start/iblai-vibe-ops-init/assets/vibe-starter/package.json` (`node scripts/check-sdk-pins.mjs --fix` rewrites drift).
    - Any `github.com/iblai/...` link must resolve (`node scripts/check-links.mjs`).
    - Skill code (assets + ` ```tsx ` fences in prose) must typecheck against the pinned SDK: `node scripts/test-skills-render.mjs --skills <name>`.
    - Never write a real `TOKEN` / `IBLAI_API_KEY` / `dm_token` into a tracked file, a screenshot, a commit message, or a log. Tenant keys and emails stay out of screenshots and docs (use a sanitized demo org — see §7.3).
@@ -163,7 +163,7 @@ Files: `README.md`
 
 Steps:
 1. Keep the header block (logo, badges, hosted note). Replace everything below with this outline, in this order (draft copy for the first two sections is in Appendix D.1):
-   1. **What you can build in 20 minutes** — 4 sentences + **one hero screenshot** of vibe-starter after E2 (`docs/screenshots/journey/03-starter-home-chat.png`) and a 4-image strip (mac, iOS, Android, Windows shells — reuse `skills/iblai-vibe-ops-build/iblai-vibe-ops-build-{osx,ios,android}.png`; capture Windows per §7).
+   1. **What you can build in 20 minutes** — 4 sentences + **one hero screenshot** of vibe-starter after E2 (`docs/screenshots/journey/03-starter-home-chat.png`) and a 4-image strip (mac, iOS, Android, Windows shells — reuse `skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-{osx,ios,android}.png`; capture Windows per §7).
    2. **The journey** — J0…J6 as a numbered list, one line each, each linking to the skill or doc that does it. J0 and J1 link to `docs/platform-lifecycle.md` (T1.5).
    3. **Quick start** — the exact 6 commands/prompts: `npx skills add iblai/vibe --all` → `/iblai-vibe-ops-init` → answer 2 questions (org key, token — with "where they come from" in one line each) → `pnpm dev` → sign in → `/iblai-vibe-ops-deploy`. Nothing else.
    4. **The core app (Tier 0 + 1)** — one table, journey order, columns: *You get* (a screenshot thumbnail link) · *Skill* · *Reads/writes on the platform* (link to the `iblai/api` family raw SKILL.md). Mark ★ on the five families.
@@ -181,7 +181,7 @@ Verify: `node scripts/check-links.mjs`; `wc -l README.md`; `grep -c "iblai-vibe-
 
 #### T1.2 — Restructure `CLAUDE.md` (the repo's own) and the CLAUDE.md that `ops-init` writes into apps
 
-Files: `CLAUDE.md`, `skills/iblai-vibe-ops-init/SKILL.md` (Step 2 "Content to write"), `skills/iblai-vibe-scaffold/assets/shared/CLAUDE.md.j2`, `skills/iblai-vibe-ops-init/assets/vibe-starter/AGENTS.md`
+Files: `CLAUDE.md`, `skills/start/iblai-vibe-ops-init/SKILL.md` (Step 2 "Content to write"), `skills/start/iblai-vibe-scaffold/assets/shared/CLAUDE.md.j2`, `skills/start/iblai-vibe-ops-init/assets/vibe-starter/AGENTS.md`
 
 Steps:
 1. Repo `CLAUDE.md` new order (draft in Appendix D.2):
@@ -202,7 +202,7 @@ Verify: `node scripts/test-skills-render.mjs --skills iblai-vibe-ops-init` (star
 
 #### T1.3 — Rewrite the `/iblai-vibe` index skill as a job-to-be-done router
 
-Files: `skills/iblai-vibe/SKILL.md`
+Files: `skills/start/iblai-vibe/SKILL.md`
 
 Steps: keep the repo map table (it is good), then add **"What do you want to do?"** — the same 12-intent table as CLAUDE.md §2 but each row says which skill to open *and* which `iblai/api` skill covers the same data (★ rows first). Add a "Not sure? run `/iblai-vibe-ops-init`" line. Description in frontmatter must mention: users, admins, organizations, custom metadata, agents, memories, analytics, charge, iOS, Android.
 
@@ -232,7 +232,7 @@ Acceptance: every step has either a screenshot or a curl; no real org key, email
 
 **Why:** P3, P4. The starter is what `/iblai-vibe-ops-init` copies; it is the product. Today it stops at "your app is ready". After E2 it *is* the Core Twelve app: sign in → chat with the app's agent; agents page; profile; admin area (users, invites, roles, analytics, billing, memory) visible only in Admin mode; per-user and org metadata helpers; a first-run `/setup` that picks or creates the default agent. Port patterns from `iblai/vibe-agent` (admin mode, setup, invariants) and `iblai/os` (routes, sidebar) rather than inventing.
 
-All tasks in E2 edit under `skills/iblai-vibe-ops-init/assets/vibe-starter/` (called `starter/` below). The starter is special-cased by the render gate: `node scripts/test-skills-render.mjs --skills iblai-vibe-ops-init --build` runs `typecheck` + `test` + `build` on it. Run that after every task.
+All tasks in E2 edit under `skills/start/iblai-vibe-ops-init/assets/vibe-starter/` (called `starter/` below). The starter is special-cased by the render gate: `node scripts/test-skills-render.mjs --skills iblai-vibe-ops-init --build` runs `typecheck` + `test` + `build` on it. Run that after every task.
 
 #### T2.1 — Home = chat with the app's default agent, with an honest empty state
 
@@ -349,7 +349,7 @@ Each new skill follows the Tier-1 template (E6, T6.1). Each ships: frontmatter w
 
 #### T3.1 — `/iblai-vibe-user-metadata` ★ (per-user custom data)
 
-Files: `skills/iblai-vibe-user-metadata/{SKILL.md,test.json,assets/metadata.ts.j2,assets/app-preferences.tsx.j2,assets/admin-user-metadata-route.ts.j2,iblai-vibe-user-metadata-1-preferences.png,iblai-vibe-user-metadata-2-admin.png}`
+Files: `skills/users/iblai-vibe-user-metadata/{SKILL.md,test.json,assets/metadata.ts.j2,assets/app-preferences.tsx.j2,assets/admin-user-metadata-route.ts.j2,iblai-vibe-user-metadata-1-preferences.png,iblai-vibe-user-metadata-2-admin.png}`
 
 Content: what the store is (one JSON object per user × org, auto-created, schemaless); the hook pair; PATCH vs PUT vs DELETE vs `delete_keys` (only PATCH is a hook — the rest is the server route); admin cross-user (`&username=`, 403 for non-admins, 404 unknown user); namespacing/allowlist/no-secrets rules; the two examples (preferences; onboarding progress resume); RTK cache invalidation note; the REST table from `iblai-api-profile-metadata`. Assets are the T2.5 files, templated. Trigger phrases: "custom user fields", "user preferences", "remember the user's", "onboarding progress", "feature flag per user", "store data per user".
 
@@ -357,43 +357,43 @@ Acceptance: `node scripts/test-skills-render.mjs --skills iblai-vibe-user-metada
 
 #### T3.2 — `/iblai-vibe-org-metadata` (org custom data + branding)
 
-Files: `skills/iblai-vibe-org-metadata/{SKILL.md,test.json,assets/org-settings.tsx.j2,iblai-vibe-org-metadata-1-settings.png}`
+Files: `skills/organizations/iblai-vibe-org-metadata/{SKILL.md,test.json,assets/org-settings.tsx.j2,iblai-vibe-org-metadata-1-settings.png}`
 
 Content: the org metadata object (`GET/PUT …/orgs/{org}/metadata/`) holds *the OS's own settings* (`overall_default_mentor`, `help_center_url`, `chat_area_size`, runtime toggle slugs, the auth SPA branding `auth_web_*`) **and** your keys; **PUT replaces — always GET, merge, PUT** (show the helper; show the bug it prevents); it is a **public read** (never put secrets there — vibe-agent stores only ids and amounts); namespace under `apps.<slug>`; hooks `useGetTenantMetadataQuery` / `useUpdateTenantMetadataMutation` / `useTenantMetadata`; where branding lives instead (`OrganizationTab`: name, light/dark logo, support email, help center; auth page branding via `/iblai-vibe-auth` Step 2). Trigger phrases: "organization settings", "org-level config", "per-tenant setting", "white-label", "app settings for the whole org".
 
 #### T3.3 — `/iblai-vibe-admin` (family index: users vs admins)
 
-Files: `skills/iblai-vibe-admin/{SKILL.md,assets/admin-mode.tsx.j2,assets/admin-mode-switch.tsx.j2,test.json,iblai-vibe-admin-1-user-mode.png,iblai-vibe-admin-2-admin-mode.png,iblai-vibe-admin-3-users.png}`
+Files: `skills/users/iblai-vibe-admin/{SKILL.md,assets/admin-mode.tsx.j2,assets/admin-mode-switch.tsx.j2,test.json,iblai-vibe-admin-1-user-mode.png,iblai-vibe-admin-2-admin-mode.png,iblai-vibe-admin-3-users.png}`
 
 Content: the two audiences; `isTenantAdmin()` vs `useIsAdmin()` (and why); User/Admin mode (assets from T2.3); the admin cluster routes; what each admin page mounts (Account `targetTab` map: `management`, `organization`, `integrations`, `advanced`, `billing`, `memory`, `monetization`); the platform's two predefined roles (Admin / User) + policies for finer grants (link `/iblai-vibe-rbac`); invites (single + CSV columns `email, first_name, last_name, platform_key, company_name, user_group`) via `/iblai-vibe-invite`; activate/deactivate; SCIM for directories (`iblai-api-scim`); "until you build an admin area, os.ibl.ai *is* your admin console" with the click paths. Trigger phrases: "admin", "administrators", "user management", "roles", "invite users", "admin dashboard", "who can".
 
 #### T3.4 — `/iblai-vibe-agent-create` ★ (create an agent from your app)
 
-Files: `skills/iblai-vibe-agent-create/{SKILL.md,test.json,assets/create-agent-route.ts.j2,assets/create-agent-dialog.tsx.j2,iblai-vibe-agent-create-1-dialog.png}`
+Files: `skills/agents/iblai-vibe-agent-create/{SKILL.md,test.json,assets/create-agent-route.ts.j2,assets/create-agent-dialog.tsx.j2,iblai-vibe-agent-create-1-dialog.png}`
 
 Content: there is no SDK component for creation (verified — Appendix B), so the pattern is a server route (`Api-Token`, admin-verified) that calls `POST …/orgs/{org}/users/{username}/mentor-with-settings/` (`template_name: "ai-mentor"`, `new_mentor_name`, `display_name`, `description`, `system_prompt`, `llm_provider`) and returns `unique_id`; a shadcn dialog (name + purpose) that calls it; then hand-off to `/iblai-vibe-agent-setting` (★ `iblai-api-agent-setting`: settings GET, multipart PUT of changed fields, fork, delete) and the Tier-2 tabs via `/iblai-vibe-agent`; the "who may create" gate (`rbac/student-agent-creation/status/` toggle; `MENTOR_CREATORS` role). Trigger phrases: "create an agent", "new agent", "let users create agents", "agent from a template".
 
 #### T3.5 — `/iblai-vibe-pricing` (decision page: how money works, which rail)
 
-Files: `skills/iblai-vibe-pricing/SKILL.md`, `references/rails.md`
+Files: `skills/billing/iblai-vibe-pricing/SKILL.md`, `references/rails.md`
 
 Content (≤ 200 lines): (1) how *you* are charged — credits ceiling, plan tiers, auto-recharge, BYO LLM keys, spend caps at three scopes with block/alert, the learner-safe status endpoint; (2) how to charge *your users* — a decision table over three rails (credits widget for orgs that resell ibl.ai credits; **app paywall** on your own Stripe key — whole app, no commission, no webhooks, the `vibe-agent` model; **Connect monetization** — per item, ibl.ai commission, subscriptions, revenue analytics) with "choose this when" rows; (3) the flags an ibl.ai operator must set (`show_paywall`, `enable_monetization`) and how to check them (`tenants[].show_paywall`); (4) hand-offs to `/iblai-vibe-credit`, `/iblai-vibe-billing`, `/iblai-vibe-agent-billing`, `/iblai-vibe-monetization-app-paywall`, `/iblai-vibe-monetization`. Trigger phrases: "charge", "pricing", "subscription", "paywall", "credits", "how do I get paid", "Stripe", "spend limit", "cost".
 
 #### T3.6 — `/iblai-vibe-agent` (family index for the 24 agent tabs)
 
-Files: `skills/iblai-vibe-agent/SKILL.md`
+Files: `skills/agents/iblai-vibe-agent/SKILL.md`
 
 Content: the `AgentSettingsProvider` layout once (from `/iblai-vibe-agent-setting` Step 2); a table of all 24 tabs with one line each + screenshot thumbnail + the matching `iblai/api` skill; a suggested route layout `app/(app)/agents/[mentorId]/<tab>/page.tsx`; "most apps need only settings, prompts, llm, datasets, memory, tools, access — add the rest when asked". This is the only Tier-2 entry that appears in README/CLAUDE.md tables.
 
 #### T3.7 — `/iblai-vibe-api` (the bridge: when there is no component, the REST API is fair game)
 
-Files: `skills/iblai-vibe-api/{SKILL.md,assets/platform-fetch.ts.j2,assets/route-example.ts.j2,test.json}`
+Files: `skills/start/iblai-vibe-api/{SKILL.md,assets/platform-fetch.ts.j2,assets/route-example.ts.j2,test.json}`
 
 Content: the rule (browser → SDK hooks with the session token; server → `Api-Token $IBLAI_API_KEY`, never in client code; `/v1` uses `Bearer`); a 20-line `lib/iblai/platform.ts` helper (`platformFetch(path, init)` that adds the header, the `/dm` prefix, and maps 401/403/404/429); the admin-verification pattern (`token/verify/` on the forwarded `dm_token`); three worked examples end to end — (a) admin writes another user's metadata, (b) create an agent, (c) send a notification (`iblai-api-notification`); a pointer table: for family X read `iblai/api` skill Y (raw URL) — all 50, grouped, ★ first; the live OpenAPI schema URL (`https://api.iblai.app/dm/api/docs/schema/`) and the grep recipe from `/iblai-vibe-monetization`. Trigger phrases: "no component for", "call the API", "endpoint", "REST", "server route", "backend call".
 
 #### T3.8 — `/iblai-vibe-memory-guide` ★ (one page: what memory means for your app)
 
-Files: `skills/iblai-vibe-memory-guide/SKILL.md` (≤ 250 lines), screenshots reused from `memory`, `agent-memory`, and the profile Memory tab
+Files: `skills/users/iblai-vibe-memory-guide/SKILL.md` (≤ 250 lines), screenshots reused from `memory`, `agent-memory`, and the profile Memory tab
 
 Content: the three stores (user-global; per-agent by category with extraction prompts and the five default categories; agent knowledge — shared, curated, injected as `## Agent Knowledge`, REST-only); the three control levels (org `enable_memsearch`, agent `enable_memory_component`, user capture/recall toggles) and the **visibility rule** (hide memory UI unless org status and agent flag are on; always show the user toggles); which surface to mount for which audience (member → `Profile` Memory tab; admin of an agent → `AgentMemoryTab`; org admin → `Account targetTab="memory"`); the ★ `iblai-api-agent-memory` endpoint table (list/grouped/across-agents; categories; agent knowledge; global; settings) for anything custom (e.g., "show what the app remembers on the home page"). Trigger phrases: "remember", "memory", "personalize", "what the agent knows about the user", "forget".
 
@@ -427,7 +427,7 @@ Acceptance: every Tier 0/1 skill has ≥ 1 screenshot; README and `docs/platform
 
 #### T5.1 — The credentials ladder, complete (ops-init)
 
-Files: `skills/iblai-vibe-ops-init/SKILL.md`
+Files: `skills/start/iblai-vibe-ops-init/SKILL.md`
 
 Steps: after "Resolve platform credentials", add the **no-token path** with the exact os.ibl.ai click path from `vibe-agent` (Admin mode → Integrations → APIs → Add API → name `<app>`, expiry empty, Owner → Submit; secret shown once) and the `/iblai-api-login` alternative (needs a browser tool; org secret for CI). Add the two verifications **before** writing files: `curl -fsS https://api.$DOMAIN/dm/api/core/orgs/$PLATFORM/metadata/` → 200 (public; `platform_name`), and `curl -fsS -H "Authorization: Api-Token $TOKEN" https://api.$DOMAIN/dm/api/core/token/verify/` → 200 (`username` in the body → persist as `IBLAI_USERNAME`, which `/iblai-vibe-ops-deploy` needs). Refuse `main` with the sentence from vibe-agent. Reuse vibe-agent's masked-confirmation write script (Python heredoc) so the token is never echoed. Add the "allowed redirect origins" line with where to set it.
 
@@ -435,7 +435,7 @@ Acceptance: a Builder with only a `/join` account completes ops-init without rea
 
 #### T5.2 — Redirect origins + `main` documented everywhere they bite
 
-Files: `skills/iblai-vibe-auth/SKILL.md` (Troubleshooting), `skills/iblai-vibe-ops-deploy/SKILL.md` (post-deploy checklist), `skills/iblai-vibe-ops-build/SKILL.md` (mobile scheme), `docs/platform-lifecycle.md`
+Files: `skills/start/iblai-vibe-auth/SKILL.md` (Troubleshooting), `skills/ship/iblai-vibe-ops-deploy/SKILL.md` (post-deploy checklist), `skills/ship/iblai-vibe-ops-build/SKILL.md` (mobile scheme), `docs/platform-lifecycle.md`
 
 #### T5.3 — Portable validator
 
@@ -602,7 +602,7 @@ Verified by grepping the packages' `dist/**/*.d.ts` on 2026-09-08. Re-verify wit
 
 ### 7.4 Appendix C — REST endpoints for the common stuff (from `iblai/api`, verified against its `main` on 2026-09-08)
 
-All under `https://api.iblai.app`, header `Authorization: Api-Token $IBLAI_API_KEY` (server-side), `{org}` = org key. Raw skill URL pattern: the `iblai/api` raw base plus `skills/<skill>/SKILL.md` — e.g. [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile-metadata/SKILL.md), [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md), [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-memory/SKILL.md), [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-analytics/SKILL.md), [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-profile/SKILL.md).
+All under `https://api.iblai.app`, header `Authorization: Api-Token $IBLAI_API_KEY` (server-side), `{org}` = org key. Raw skill URL pattern: the `iblai/api` raw base plus `skills/<skill>/SKILL.md` — e.g. [profile-metadata](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile-metadata/SKILL.md), [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md), [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md), [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md), [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile/SKILL.md).
 
 | Need | Method + path | Skill |
 |---|---|---|
@@ -747,7 +747,22 @@ References in this plan to "`iblai/api`" as a separate repo are historical.
   and the `api` skill for each, and maps them onto vibe-starter's routes.
 - **Claude Code plugin**: `.claude-plugin/plugin.json` + `marketplace.json`
   (`/plugin marketplace add iblai/vibe`, `/plugin install iblai-vibe@iblai`)
-  — all 136 skills plus the `@iblai/mcp` server; `claude plugin validate .` passes.
+  — all 137 skills plus the `@iblai/mcp` server; `claude plugin validate .` passes.
 - vibe-starter: the e2e sign-in setup no longer assumes `app=agent`;
   `PUBLIC_ROUTES` and `tenant.ts` document the single-org architecture and how
   to open a public agent; `iblai.env.example` carries the decision keys.
+
+## 11. Addendum — folders, vocabulary, a short README, and the connect flow (2026-09-09)
+
+- Skills now live in nine folders by what a builder is doing (`start`, `agents`,
+  `users`, `organizations`, `billing`, `analytics`, `content`, `ship`,
+  `security`); `scripts/lib/skills.mjs` is the single discovery helper,
+  `docs/catalogue.md` is generated, `.claude/skills/` holds per-skill links.
+- Vocabulary: organization / agent / user in prose everywhere
+  (`scripts/sweep-terms.py`); wire names stay verbatim in backticks.
+- README is short (three steps, what you get, folders, keep current); the
+  detail moved to `docs/getting-started.md`, `ship.md`, `keep-current.md`,
+  `mcp-servers.md`; `CONTRIBUTING.md` tells a contributor where a skill goes
+  and how it is catalogued.
+- `docs/connect-flow.md` specifies the hosted `login.iblai.app/connect` page
+  and `/iblai-vibe-connect` implements the client half with a manual fallback.

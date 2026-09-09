@@ -1,30 +1,30 @@
 # iblai-vibe-memory
 
-> Add the tenant Memory settings surface (manage every user's global memories and every agent's memories from one place — Global and Agent tabs with per-user memory toggles and the full per-agent memory manager) to your Next.js app
+> Add the organization-wide Memory settings surface (manage every user's global memories and every agent's memories from one place — Global and Agent tabs with per-user memory toggles and the full per-agent memory manager) to your Next.js app
 
 # /iblai-vibe-memory
 
-Add the tenant **Memory** settings surface -- "Manage user global
+Add the organization-wide **Memory** settings surface -- "Manage user global
 memories and agent memories" for the whole workspace, in two tabs:
-**Global** (a searchable tenant-users table; opening a row manages
+**Global** (a searchable org-users table; opening a row manages
 that user's global memories, including their capture/personalization
 toggles) and **Agent** (a searchable agents table; opening a row
 hosts the same full memory manager the agent settings Memory tab
-uses — learner, category, and date filters with full CRUD). Admins
+uses — user, category, and date filters with full CRUD). Admins
 and RBAC-granted users manage other people's memories directly from
-tenant settings.
+organization settings.
 
-This is the tenant-level counterpart of two existing surfaces: the
+This is the org-wide counterpart of two existing surfaces: the
 per-agent Memory tab (`/iblai-vibe-agent-memory`) and the user's own
 profile Memory tab. Same data, admin-scoped.
 
-![Memory — Global tab (tenant users)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory.png)
+![Memory — Global tab (organization users)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory.png)
 
-![Global Memories popup — one user's memories + toggles](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory-user-memories.png)
+![Global Memories popup — one user's memories + toggles](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory-user-memories.png)
 
-![Memory — Agent tab (agents table)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory-agents.png)
+![Memory — Agent tab (agents table)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory-agents.png)
 
-![Agent Memories popup — full memory manager for one agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-memory/iblai-vibe-memory-agent-memories.png)
+![Agent Memories popup — full memory manager for one agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-memory/iblai-vibe-memory-agent-memories.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -33,7 +33,7 @@ profile Memory tab. Same data, admin-scoped.
 - **`/iblai-vibe-agent-memory`** — the per-agent Memory tab in agent
   settings (enable/disable memory + manage that one agent's memories).
   The Agent tab here opens the **same manager** for any agent, without
-  leaving tenant settings.
+  leaving organization settings.
 - **Profile Memory tab** — a user managing their *own* global memories
   (part of the profile surface). The Global tab here is the admin view
   of the same data for *any* user.
@@ -62,7 +62,7 @@ template and fill in your values:
 
 ## Step 2: Mount it (via the Account page's Memory tab)
 
-The tenant Memory surface (`MemoryAdminTab`) is **not exported as a
+The org-wide Memory surface (`MemoryAdminTab`) is **not exported as a
 standalone component** — unlike `BillingTab`, it currently ships only
 as the **Memory** tab inside `<Account>`. Mount the Account page and
 deep-link to the tab:
@@ -83,7 +83,7 @@ export default function TenantMemoryPage() {
 ```
 
 See `/iblai-vibe-account` Step 2 for the full `<Account>` prop wiring
-(tenant, username, RBAC, etc.) — this skill only adds the
+(`tenant`, `username`, RBAC, etc.) — this skill only adds the
 `targetTab="memory"` entry point. If you need the surface standalone
 (without the Account shell), build it from the data-layer hooks listed
 below; the SDK source paths in the next section are the reference
@@ -106,7 +106,7 @@ the reference for custom builds:
 | Component | Path | Role |
 |---|---|---|
 | `MemoryAdminTab` | `profile/memory-admin/index.tsx` | The surface: memsearch gate + **Global** / **Agent** sub-tabs |
-| `GlobalMemoriesSection` | `profile/memory-admin/global-memories-section.tsx` | Tenant users table (server-side search, 10/page) with an eye action per row |
+| `GlobalMemoriesSection` | `profile/memory-admin/global-memories-section.tsx` | Org users table (server-side search, 10/page) with an eye action per row |
 | `UserMemoriesModal` | `profile/memory-admin/user-memories-modal.tsx` | "Global Memories — {email}" popup: the user's two memory toggles, Add Memory, and the memories list (25/page) |
 | `AgentMemoriesSection` | `profile/memory-admin/agent-memories-section.tsx` | Agents table (10/page) with an agent autocomplete filter (same `SearchSelect` as the Billing tab's Agent Limits) |
 | `AgentMemoriesModal` | `profile/memory-admin/agent-memories-modal.tsx` | Popup titled with the agent's name, hosting `ManageMemories` |
@@ -137,7 +137,7 @@ the reference for custom builds:
 ### Agent tab
 
 - **Agent filter** — debounced autocomplete (min 2 characters) over
-  the tenant's agents; picking one narrows the table to it.
+  the organization's agents; picking one narrows the table to it.
 - **Table** — Agent / Description with an **eye** action per row,
   10 per page.
 - **Agent memories popup** (eye) — the same manager the agent
@@ -158,10 +158,10 @@ From `@iblai/iblai-js/web-containers/next`:
 From `@iblai/iblai-js/data-layer` — the RTK Query hooks the surface
 uses, for custom UI on the same endpoints:
 
-- Gate: `useGetMemsearchStatusQuery` (tenant memsearch on/off);
+- Gate: `useGetMemsearchStatusQuery` (organization memsearch on/off);
   admins can flip it via `useGetMemsearchConfigQuery` /
   `useUpdateMemsearchConfigMutation`
-- Tables: `usePlatformUsersQuery` (tenant users),
+- Tables: `usePlatformUsersQuery` (organization users),
   `useGetMentorsQuery` (agents)
 - Global memories: `useGetGlobalMemoriesQuery`,
   `useCreateGlobalMemoryMutation`, `useUpdateGlobalMemoryMutation`,
@@ -199,7 +199,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   through `<Account targetTab="memory">`; for a bare-bones custom
   page, rebuild from the data-layer hooks using the component map
   above as the reference.
-- **Memsearch gate**: with memsearch disabled for the tenant, the tab
+- **Memsearch gate**: with memsearch disabled for the organization, the tab
   renders a "feature disabled" notice — same gate the profile Memory
   tab applies. There is nothing to manage until it is on.
 - **Admin call shape**: reads are made with the **admin as the caller**

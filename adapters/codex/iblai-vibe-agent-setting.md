@@ -4,16 +4,16 @@
 
 # /iblai-vibe-agent-setting
 
-Add the agent **Settings tab** -- the core edit-mentor form with name,
+Add the agent **Settings tab** -- the core agent-edit form with name,
 description, avatar, visibility (administrators / students / anyone),
-category, plus a Copy-to-tenant action and a Delete action. This is one
+category, plus a Copy-to-organization action and a Delete action. This is one
 tab in the wider agent-settings family (`access`, `api`, `datasets`,
 `disclaimers`, `embed`, `history`, `llm`, `memory`, `prompts`, `safety`,
 `settings`, `tasks`, `tools`). Each tab is a separate skill. All tabs share the
 same `AgentSettingsProvider` wrapper -- set it up once and mount as many
 tabs as you need.
 
-![Settings Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
+![Settings Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -196,8 +196,8 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `tenants` | `CopyMentorTenant[]` | Yes | Tenants the agent can be copied into (forwarded to `CopyMentorModal`) |
-| `isLoadingTenants` | `boolean` | No | Loading state for the tenant list |
+| `tenants` | `CopyMentorTenant[]` | Yes | Organizations the agent can be copied into (forwarded to `CopyMentorModal`) |
+| `isLoadingTenants` | `boolean` | No | Loading state for the organization list |
 | `onSuccessfulSave` | `(mentor: MentorSettings) => void` | No | Fired after a successful save |
 | `onSuccessfulDelete` | `(deletedMentorId: string) => void` | No | Fired after a successful delete |
 | `onSuccessfulCopy` | `(params: { forkedMentorId, destinationTenantKey, isCrossTenantCopy }) => void` | No | Fired after a successful copy |
@@ -249,11 +249,11 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   multiple tabs (`settings`, `llm`, `prompts`, ...) share one wrapper.
   Do NOT wrap each tab page individually.
 - **Tenants list**: The `tenants` prop drives the **Copy to tenant** flow.
-  If the user should not be able to copy cross-tenant, pass an empty array.
+  If the user should not be able to copy cross-organization, pass an empty array.
 - **Labels ownership**: Consumer-specific bundles (agent, tutor, coach)
   live in the consuming app, not in `@iblai/iblai-js`. The package only
   ships `AGENT_SETTINGS_TAB_LABELS` as a neutral default.
-- **REST reference**: [`/iblai-api-agent-setting`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md)
+- **REST reference**: [`/iblai-api-agent-setting`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md)
   — the agent-settings API (headless twin, same repo)
   behind this tab (name, visibility, feature flags, fork). Install:
   `npx skills add iblai/vibe --all`

@@ -68,7 +68,7 @@ older than two weeks or older than the
 - [CLAUDE.md](https://github.com/iblai/vibe/blob/main/CLAUDE.md) — agent guidance, the tiered skill catalogue
 - [docs/platform-lifecycle.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/platform-lifecycle.md) — join → org → credentials → credits → ship
 - [docs/security-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/security-model.md) — where each credential lives and why
-- [docs/auth-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/auth-model.md) — sign-in, tenancy, single-org / multi-org / headless · [docs/domain-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/domain-model.md) — users, agents, organizations
+- [docs/auth-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/auth-model.md) — sign-in, organizations, single-org / multi-org / headless · [docs/domain-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/domain-model.md) — users, agents, organizations
 - [docs/skill-kinds.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-kinds.md) — the two families and five kinds · [docs/api-skills.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/api-skills.md) — the headless contract
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — brand guidelines
 - [ibl.ai/docs](https://ibl.ai/docs) — every screen of the OS, documented

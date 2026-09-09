@@ -9,7 +9,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 | 1.5 | `node scripts/check-sdk-pins.mjs [--fix]` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
 | 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
 | 1.5 | `node scripts/check-skill-kinds.mjs` | Every skill declares `metadata.kind` (`ui`/`api`/`guide`/`ops`/`security`) and it agrees with its name prefix |
-| 1.5 | `node scripts/check-skill-tables.mjs` | Every `skills/<name>` is in CLAUDE.md's catalogue and README.md, and nothing named there is missing |
+| 1.5 | `node scripts/build-catalogue.mjs` + `node scripts/check-skill-tables.mjs` | `docs/catalogue.md` is regenerated from frontmatter; every skill is in CLAUDE.md's tier table and the catalogue, and nothing named there is missing |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 
@@ -59,9 +59,13 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 - No artifact uploads from the live job (storage state under `e2e/.auth/` holds session cookies).
 - No `set -x` in any harness script.
 
+## Layout
+
+`skills/<folder>/<name>/SKILL.md` — nine folders (`scripts/skill-categories.json`). `scripts/lib/skills.mjs` is the one discovery helper every script uses; `.claude/skills/` holds per-skill symlinks so local Claude Code sessions see the flat names.
+
 ## Adding a new skill
 
-1. If it ships assets, add `skills/<name>/test.json` mapping them to app paths.
+1. Put it in the right folder and in `scripts/skill-categories.json` (see CONTRIBUTING.md). If it ships assets, add `skills/<folder>/<name>/test.json` mapping them to app paths.
 2. Keep prose fences compilable as written (imports included); purely illustrative fragments without imports are auto-skipped.
 3. Run `node scripts/test-skills-render.mjs --skills <name>` and `node scripts/build-adapters.mjs` before pushing; CI enforces both.
 

@@ -1,6 +1,6 @@
 # iblai-api-agent-mcp
 
-> MCP connectors for ibl.ai agents, end to end — register MCP servers (featured multi-tenant sharing, enable/disable, OAuth service linkage), manage credential connections with the auth_type × scope matrix (org / agent / per-user), wire servers onto an agent, run the OAuth connected-service lifecycle, handle per-user in-chat OAuth (the oauth_required / oauth_connection_resolved chat events), and debug MCP auth failures (401s, missing OAuth prompts, agents ignoring servers). Use when wiring an agent to external MCP servers and tools, or designing/troubleshooting MCP auth.
+> MCP connectors for ibl.ai agents, end to end — register MCP servers (featured cross-organization sharing, enable/disable, OAuth service linkage), manage credential connections with the auth_type × scope matrix (org / agent / per-user), wire servers onto an agent, run the OAuth connected-service lifecycle, handle per-user in-chat OAuth (the oauth_required / oauth_connection_resolved chat events), and debug MCP auth failures (401s, missing OAuth prompts, agents ignoring servers). Use when wiring an agent to external MCP servers and tools, or designing/troubleshooting MCP auth.
 
 # iblai-api-agent-mcp
 
@@ -26,7 +26,7 @@ settings.
   `/api/ai-mentor/orgs/{org}/users/{username}/...` and OAuth connector
   endpoints under `/api/ai-account/...`, appended to it. (`…` in the endpoint
   lists below abbreviates `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}`.)
-- The backend also accepts an `agent`-spelled twin of every mentor route
+- The backend also accepts an `agent`-spelled twin of every agent route
   (`/api/ai-agent/...`, `agents/` for `mentors/`); the `mentor` spelling is
   canonical and used here, matching the other skills.
 - **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
@@ -51,7 +51,7 @@ user`). They are orthogonal.
 |---|---|---|---|
 | No auth | `auth_type=none` | connection with no credentials | No |
 | Shared key for the whole org | `auth_type=token`, `auth_scope=platform` | one platform-scoped connection holding the key | No |
-| Per-agent key | `auth_type=token`, `auth_scope=mentor` | one mentor-scoped connection per agent | No |
+| Per-agent key | `auth_type=token`, `auth_scope=mentor` | one `mentor`-scoped connection per agent | No |
 | Pre-provisioned per-user | `auth_scope=user` | admin creates user-scoped connections up front | No |
 | **In-chat OAuth** (each user connects their own account) | `auth_type=oauth2` **and** `auth_scope=user` | none up front — created automatically when the user completes OAuth mid-chat | **Yes** |
 
@@ -70,7 +70,7 @@ When an agent invokes an MCP server, credentials resolve in this order —
 first match wins:
 
 1. User-scoped connection for (server, user)
-2. Mentor-scoped connection for (server, agent)
+2. Agent-scoped (`mentor`) connection for (server, agent)
 3. Platform-scoped connection for (server, org)
 4. Featured-server global fallback
 5. No connection → the call fails 401 — **or** the in-chat OAuth prompt
@@ -161,7 +161,7 @@ existed for the same (user, provider, org, service), it is updated in place.
   - Server-level `credentials` must be the **full authorization value**
     (`<scheme> <credentials>`); it takes priority over `extra_headers`.
   - `is_featured=true` makes the server available to **other orgs** to
-    create their own connections against (multi-tenant sharing); the owning
+    create their own connections against (multi-organization sharing); the owning
     org keeps control of the metadata.
   - `is_enabled=false` is a hard off-switch — disabled servers are skipped
     at runtime.

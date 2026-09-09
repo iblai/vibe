@@ -28,25 +28,25 @@ Agent Skills are managed independently of the sandbox — see
 `/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
 per-agent assignment, skill resources, and the chat `/` picker).
 
-![Sandbox — Claw selected, instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
+![Sandbox — Claw selected, instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
 
-![Sandbox Type — Computing Runtime selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-computing.png)
+![Sandbox Type — Computing Runtime selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-computing.png)
 
-![Sandbox Type — Virtual Machine Shell selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-vm.png)
+![Sandbox Type — Virtual Machine Shell selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-vm.png)
 
-![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
+![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
 
-![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
+![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
 
-![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
+![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
 
-![Sandbox — Connected Instance, Auto Push, Push](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
+![Sandbox — Connected Instance, Auto Push, Push](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
 
-![Sandbox — Connected Instance with Push Configuration and Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected-model.png)
+![Sandbox — Connected Instance with Push Configuration and Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected-model.png)
 
-![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
+![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
 
-![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
+![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -155,7 +155,7 @@ to avoid the extra read.
 
 The **Sandbox Type** card at the top of `SandboxConfig` selects how
 the agent runs code. Three boolean flags back it, all read from the
-agent's settings and written through the standard mentor-settings
+agent's settings and written through the standard agent-settings
 update endpoint:
 
 | Kind | Flag | What it gives the agent |
@@ -214,7 +214,7 @@ Both components import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 | `username` | `string \| null` | No | Current user. Falls back to `getUserName()` from `localStorage` when omitted |
 
@@ -222,7 +222,7 @@ Both components import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 
 ## What each section renders
@@ -359,7 +359,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Flag homes**: `enable_claw` and `enable_virtual_machine` live on
   `MentorSettings`; `enable_computational_runtime` lives on `Mentor` —
   all three are readable from the settings response and writable
-  through the same mentor-settings update (`useEditMentorMutation`).
+  through the same agent-settings update (`useEditMentorMutation`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 
 ## Sandbox REST API
@@ -379,7 +379,7 @@ The kinds are mutually exclusive by convention, enforced client-side:
 when enabling one flag, send the other two as `false` in the same
 request. Only `enable_claw` unlocks the OpenClaw endpoints below.
 
-### Instances (tenant-scoped)
+### Instances (organization-scoped)
 
 | Method | Path | Purpose |
 |---|---|---|

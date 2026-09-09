@@ -11,7 +11,7 @@ UUID every other agent skill needs. The SDK has no creation component
 (verified against `@iblai/web-containers` 1.16–1.19), so the pattern is a
 **server route** plus a small form. vibe-starter's `/setup` is that form.
 
-![/setup — pick or create the app's agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-create/iblai-vibe-agent-create-1-dialog.png)
+![/setup — pick or create the app's agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-create/iblai-vibe-agent-create-1-dialog.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -98,8 +98,8 @@ To copy an existing agent instead, use **fork** in `/iblai-vibe-agent-setting`.
 | `GET …/orgs/{org}/users/{username}/mentor/categories/` | categories to assign afterwards |
 | `POST …/users/{username}/mentors/{mentor}/fork/` | copy an agent |
 
-REST references: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-create/SKILL.md),
-[agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-agent-setting/SKILL.md).
+REST references: [agent-create](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-create/SKILL.md),
+[agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md).
 
 ## Related skills
 

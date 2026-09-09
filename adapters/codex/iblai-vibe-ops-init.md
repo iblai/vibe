@@ -84,7 +84,7 @@ instead -- tell the user that is the path you are taking:
 
 ```bash
 git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp
-cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 pnpm install --ignore-scripts
 git init   # only if the project is not already a git repo
 ```
@@ -111,7 +111,21 @@ the user is asked nothing:
    When `IBLAI_USERNAME` is exported, persist it to `iblai.env` as well --
    that saves `/iblai-vibe-ops-deploy` asking for it later.
 
-3. **Ask only for the values still missing** -- standalone opencode / Claude
+3. **Try `/iblai-vibe-connect` first** -- one browser round trip that returns
+   the organization key and a freshly minted token and writes the env files
+   itself, so nothing is typed into the chat:
+
+   ```bash
+   node "<skills-dir>/iblai-vibe-connect/scripts/connect.mjs"
+   ```
+
+   On success it prints one line (`connected: <org name> (<org key>) as
+   <username> · token ****abcd`) and this ladder is finished -- skip to the
+   verification below. If it prints `HOSTED_PAGE_UNAVAILABLE` (exit code 3),
+   the hosted page is not deployed yet: say so in one line and continue to the
+   next rung.
+
+4. **Ask only for the values still missing** -- standalone opencode / Claude
    Code users outside the desktop app. Say where each value comes from; never
    ask for a password.
 
@@ -133,8 +147,8 @@ the user is asked nothing:
    already answered it. Refuse `main` and the placeholders (`your-platform`,
    `your-tenant`, …) and ask again.
 
-4. **Verify both before writing anything** (values in shell variables, never
-   echoed):
+5. **Verify both before writing anything** (values in shell variables, never
+   echoed). `/iblai-vibe-connect` already did this -- skip it when rung 3 won:
 
    ```bash
    curl -fsS -o /dev/null "https://api.${DOMAIN:-iblai.app}/dm/api/core/orgs/$PLATFORM/metadata/" \
@@ -149,7 +163,8 @@ the user is asked nothing:
    means the token is wrong. `token/verify/` also returns the `username` --
    persist it as `IBLAI_USERNAME` so `/iblai-vibe-ops-deploy` never has to ask.
 
-Then write the values to both files:
+Then write the values to both files (rung 3 already wrote them -- skip ahead
+when `/iblai-vibe-connect` printed its success line):
 
 1. **`iblai.env`** -- create if missing, or update the `PLATFORM` and `TOKEN`
    lines in place. `DOMAIN` is the platform's **base domain**: inside the

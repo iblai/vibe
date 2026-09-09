@@ -13,9 +13,9 @@ use the app) and **org admins** (they manage users, agents, spend, memory,
 and branding). This skill is the pattern vibe-starter uses for both, and the
 map of every admin surface the SDK already ships.
 
-![Admin mode — the admin cluster in the navbar](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-admin/iblai-vibe-admin-2-admin-mode.png)
-![User mode — the same app as a member sees it](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-admin/iblai-vibe-admin-1-user-mode.png)
-![/admin/users — Management + invitations](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-admin/iblai-vibe-admin-3-users.png)
+![Admin mode — the admin cluster in the navbar](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-admin/iblai-vibe-admin-2-admin-mode.png)
+![User mode — the same app as a member sees it](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-admin/iblai-vibe-admin-1-user-mode.png)
+![/admin/users — Management + invitations](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-admin/iblai-vibe-admin-3-users.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -27,7 +27,7 @@ map of every admin surface the SDK already ships.
 - An app learns who is an admin from the `tenants` list the sign-in stored:
   `isTenantAdmin()` = the `is_admin` flag on the entry whose `key` is the
   org the app is pinned to. **Not** the SDK's `useIsAdmin()`, which answers
-  for the SDK's *current* tenant — they can differ.
+  for the SDK's *current* organization — they can differ.
 - Admins get a **User / Admin switch**; in User mode they see exactly what a
   member sees. Admin-only UI gates on `adminMode` (admin *and* switched on);
   anything that must stay admin-only regardless of the view gates on
@@ -85,7 +85,7 @@ menu on narrow screens if you have one).
 
 | Admin need | Tab / component | Skill |
 |---|---|---|
-| Users: role Admin/User, policies, activate/deactivate, search | `management` → Users | this skill; REST [management](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-management/SKILL.md) |
+| Users: role Admin/User, policies, activate/deactivate, search | `management` → Users | this skill; REST [management](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-management/SKILL.md) |
 | Invite (single, CSV: `email, first_name, last_name, platform_key, company_name, user_group`) | `InviteUserDialog`, `InvitedUsersDialog` | `/iblai-vibe-invite` |
 | Roles and policies (custom grants) | `management` → Roles / Policies (`RolesTab`, `PoliciesTab`) | `/iblai-vibe-rbac` |
 | Groups, teams, alerts | `management` | `/iblai-vibe-account` |
@@ -96,7 +96,7 @@ menu on narrow screens if you have one).
 | Name, logos, support email + your app's org settings | `organization` + `OrgSettingsForm` | `/iblai-vibe-org-metadata` |
 | Sell items | `monetization` | `/iblai-vibe-monetization` |
 | Org-wide analytics, per-agent with `?agent=` | `AnalyticsLayout` + tabs | `/iblai-vibe-analytics` |
-| Directory sync | — (REST only) | [scim](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-api-scim/SKILL.md) |
+| Directory sync | — (REST only) | [scim](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-scim/SKILL.md) |
 
 For sharing **one agent** with editors/chat users, use the agent's Access tab
 (`/iblai-vibe-agent-access`), not org roles.

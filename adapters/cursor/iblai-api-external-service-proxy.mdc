@@ -172,7 +172,7 @@ curl -X POST "https://api.iblai.app/dm/api/ai-proxy/orgs/$IBLAI_ORG/services/hey
   key vs `platform` = platform-wide key) is tried first, and if
   `fallback_to_platform_key` is set the other source is tried; `allow_tenant_key` /
   `allow_platform_key` gate each. **Seeded default for both services is
-  tenant-key-only** (`allow_platform_key=false`, no fallback) — the org must hold
+  `tenant`-key-only** (`allow_platform_key=false`, no fallback) — the org must hold
   its own provider key. No allowed source → `400`; source allowed but key absent →
   `404 …No credentials found…`.
 - The Authorization token is always the ibl **platform token** (Api-Token, platform

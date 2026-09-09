@@ -8,7 +8,7 @@ Generate all required icon sizes for Tauri desktop, iOS, Windows MSIX,
 and macOS builds from a single source image.
 
 > The default ibl.ai icon set (every size below) is bundled at
-> [`iblai-vibe-ops-build/assets/icons/`](../iblai-vibe-ops-build/assets/icons/) —
+> [`iblai-vibe-ops-build/assets/icons/`](../../ship/iblai-vibe-ops-build/assets/icons/) —
 > copy it into `src-tauri/icons/` as a starting point, or regenerate from
 > your own logo with the commands here.
 
@@ -30,7 +30,7 @@ for s in 32x32 128x128 256x256; do \
 
 Both write to `src-tauri/icons/`, overwriting existing files. For the complete
 MSIX size list plus the multi-resolution `.ico` / `.icns` recipe, see
-[`/iblai-vibe-ops-build` → tauri-commands](../iblai-vibe-ops-build/references/tauri-commands.md).
+[`/iblai-vibe-ops-build` → tauri-commands](../../ship/iblai-vibe-ops-build/references/tauri-commands.md).
 
 ---
 

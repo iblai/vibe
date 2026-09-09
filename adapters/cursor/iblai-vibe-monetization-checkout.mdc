@@ -19,7 +19,7 @@ Full brand reference: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/re
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
 
 > **`{dm_url}` + DM token.** Every checkout endpoint lives under the **DM
 > base** — `{dm_url}` resolves to your data-manager host (e.g.
@@ -36,7 +36,7 @@ Full brand reference: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/re
 > — buyer routes also short-circuit cleanly on disabled paywalls in the
 > canonical form** (see "Canonical buyer 404" below). The shipped SDK
 > hooks still build composite URLs; that is documented in each step. Full
-> mapping in [`/iblai-vibe-monetization → references/api-overview.md`](../iblai-vibe-monetization/references/api-overview.md).
+> mapping in [`/iblai-vibe-monetization → references/api-overview.md`](../../billing/iblai-vibe-monetization/references/api-overview.md).
 
 > **Canonical buyer 404.** Canonical buyer routes (`checkout`,
 > `checkout-guest`, `items/prices/{price_unique_id}/checkout/`,
@@ -91,7 +91,7 @@ this skill live in:
   the two public-pricing endpoints (by `(type, id)` and by config uuid).
 
 When this skill and the live schema disagree, the schema wins. See
-[`/iblai-vibe-monetization → references/schema-validation.md`](../iblai-vibe-monetization/references/schema-validation.md).
+[`/iblai-vibe-monetization → references/schema-validation.md`](../../billing/iblai-vibe-monetization/references/schema-validation.md).
 
 ## Step 2: Check access on page load
 

@@ -23,8 +23,8 @@ assembly steps so the skills can perform them directly — render the
 
 | Path | How | Result |
 |---|---|---|
-| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../iblai-vibe-ops-init/SKILL.md)), or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
-| **Existing app** | [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
+| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md)), or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
+| **Existing app** | [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
 
 Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 `NEXT_PUBLIC_*` vars in `.env.local` (see
@@ -40,7 +40,7 @@ Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 A vibe app (scaffolded from **vibe-starter** or rendered from these templates)
 reads its config from `.env.local`. **Always ensure one exists before
 `pnpm build`** — a missing file is the usual cause of a mis-tenanted build.
-(vibe-starter apps carry the URL defaults in code, so only the tenant key
+(vibe-starter apps carry the URL defaults in code, so only the organization key
 and `IBLAI_API_KEY` are at stake; template-rendered apps need the full set):
 
 ```bash
@@ -77,13 +77,13 @@ variable contract.
 
 The Tauri desktop/mobile shell templates (`src-tauri/`, CI workflows)
 that the build skill renders live with it:
-[`iblai-vibe-ops-build/assets/tauri/`](../iblai-vibe-ops-build/assets/tauri/).
+[`iblai-vibe-ops-build/assets/tauri/`](../../ship/iblai-vibe-ops-build/assets/tauri/).
 
 Per-feature templates (auth, account, analytics, chat, notification,
 profile) live with **their** skill's assets, not here — e.g.
-[`iblai-vibe-auth/assets/`](../iblai-vibe-auth/assets/),
-[`iblai-vibe-account/assets/`](../iblai-vibe-account/assets/). Icons live in
-[`iblai-vibe-ops-build/assets/icons/`](../iblai-vibe-ops-build/assets/icons/).
+[`iblai-vibe-auth/assets/`](../../start/iblai-vibe-auth/assets/),
+[`iblai-vibe-account/assets/`](../../organizations/iblai-vibe-account/assets/). Icons live in
+[`iblai-vibe-ops-build/assets/icons/`](../../ship/iblai-vibe-ops-build/assets/icons/).
 
 ## Feature skills
 
@@ -114,7 +114,7 @@ scaffolding by hand.
 
 ## Related skills
 
-- [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md) — SSO auth, store, providers (run first).
-- [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md) — Tauri desktop/mobile shell.
-- [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) — deploy to Vercel.
-- [`/iblai-vibe-ops-init`](../iblai-vibe-ops-init/SKILL.md) — update a project's CLAUDE.md with platform guidance.
+- [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md) — SSO auth, store, providers (run first).
+- [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md) — Tauri desktop/mobile shell.
+- [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) — deploy to Vercel.
+- [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md) — update a project's CLAUDE.md with platform guidance.

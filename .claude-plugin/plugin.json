@@ -2,14 +2,42 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "iblai-vibe",
   "displayName": "ibl.ai vibe",
-  "description": "Build apps on the ibl.ai platform (sign-in, agents, users with memories and custom data, organizations with metadata, analytics, billing) and operate the platform headlessly — every iblai-vibe-* and iblai-api-* skill, the first-conversation intake, and the SDK-docs MCP server.",
-  "author": { "name": "ibl.ai", "url": "https://ibl.ai" },
+  "description": "Build apps on the ibl.ai platform (sign-in, agents, users with memories and custom data, organizations with metadata, analytics, billing) and operate the platform headlessly \u2014 every iblai-vibe-* and iblai-api-* skill, the first-conversation intake, and the SDK-docs MCP server.",
+  "author": {
+    "name": "ibl.ai",
+    "url": "https://ibl.ai"
+  },
   "homepage": "https://github.com/iblai/vibe",
   "repository": "https://github.com/iblai/vibe",
   "license": "MIT",
-  "keywords": ["ibl.ai", "iblai", "agents", "sso", "nextjs", "skills", "rest-api", "multi-tenant"],
-  "skills": "./skills/",
+  "keywords": [
+    "ibl.ai",
+    "iblai",
+    "agents",
+    "sso",
+    "nextjs",
+    "skills",
+    "rest-api",
+    "multi-organization"
+  ],
+  "skills": [
+    "./skills/start/",
+    "./skills/agents/",
+    "./skills/users/",
+    "./skills/organizations/",
+    "./skills/billing/",
+    "./skills/analytics/",
+    "./skills/content/",
+    "./skills/ship/",
+    "./skills/security/"
+  ],
   "mcpServers": {
-    "iblai": { "command": "npx", "args": ["-y", "@iblai/mcp"] }
+    "iblai": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@iblai/mcp"
+      ]
+    }
   }
 }

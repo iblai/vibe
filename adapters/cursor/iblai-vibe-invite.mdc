@@ -9,7 +9,7 @@ alwaysApply: false
 Add user invitation features -- a dialog to invite new users to a platform by
 email/username and a dialog showing pending invitations with status tracking.
 
-![Invite Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-invite/iblai-vibe-invite.png)
+![Invite Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-invite/iblai-vibe-invite.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

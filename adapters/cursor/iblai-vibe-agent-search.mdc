@@ -13,7 +13,7 @@ with four sections: starred agents, featured agents, custom agents, and
 all agents. Includes search input, category/subject/LLM/type filters,
 star/favorite toggle, and "Create Agent" action.
 
-![Agent Search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-search/iblai-vibe-agent-search.png)
+![Agent Search](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-search/iblai-vibe-agent-search.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -143,7 +143,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | `rbacPermissions` | `object` | No | RBAC permissions object |
 | `executeGatedAction` | `(fn: () => unknown) => unknown` | No | Gate callback when `enableRBAC` is true |
 | `createAgentRbacResource` | `string` | No | RBAC resource for create (default: `/mentors/#create`) |
-| `mainTenantKey` | `string` | No | Main tenant key (default: `"main"`) |
+| `mainTenantKey` | `string` | No | Main organization key (default: `"main"`) |
 | `labels` | `DeepPartial<AgentSearchLabels>` | No | Override user-visible strings |
 | `include` | `AgentSearchSection[]` | No | Sections to show (default: all) |
 | `getLLMProviderName` | `(providerKey: string) => string` | No | Map provider key to display name in filters |

@@ -1,18 +1,14 @@
 #!/usr/bin/env node
 // Every skill declares `metadata.kind` ∈ {ui, api, guide, ops, security}, and
 // the kind agrees with the name prefix (docs/skill-kinds.md). Prints counts.
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
-const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+import { readFileSync } from "node:fs";
+import { listSkills } from "./lib/skills.mjs";
 const KINDS = new Set(["ui", "api", "guide", "ops", "security"]);
 const counts = {};
 let failed = false;
 
-for (const name of readdirSync(join(ROOT, "skills")).sort()) {
-  const dir = join(ROOT, "skills", name);
-  if (!statSync(dir).isDirectory()) continue;
-  const src = readFileSync(join(dir, "SKILL.md"), "utf8");
+for (const { name, file } of listSkills()) {
+  const src = readFileSync(file, "utf8");
   const fm = /^---\n([\s\S]*?)\n---\n/.exec(src)?.[1] ?? "";
   const kind = /^metadata:\n(?:[ \t]+[^\n]*\n)*?[ \t]+kind:\s*([a-z]+)/m.exec(fm)?.[1];
   const fail = (msg) => { failed = true; console.error(`${name}: ${msg}`); };

@@ -6,7 +6,7 @@ alwaysApply: false
 
 # /iblai-vibe-course-create
 
-![Course Content in User SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-create/skills-spa-course-content.png)
+![Course Content in User SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-create/skills-spa-course-content.png)
 
 ## Overview
 
@@ -30,7 +30,7 @@ All endpoints are rooted at:
 | Variable    | Purpose                                            | Env var           |
 | ----------- | -------------------------------------------------- | ----------------- |
 | `base_url`  | Server URL (default `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`) | `IBLAI_BASE_URL`  |
-| `org`       | Platform / tenant key                              | `IBLAI_ORG`       |
+| `org`       | Platform / organization key                              | `IBLAI_ORG`       |
 | `user_id`   | Authenticated user's username                      | `IBLAI_USER_ID`   |
 | `api_key`   | Platform API key used as `Authorization: Api-Token <api_key>` | `IBLAI_API_KEY`   |
 | `mentor_id` | (Optional) Agent UUID for memory-aware generation | `IBLAI_MENTOR_ID` |
@@ -75,9 +75,9 @@ Violating hierarchy returns `400`.
 
 What the generated course looks like in edX Studio (course outline and a single unit with components):
 
-![Studio Course Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-create/studio-course-page.png)
+![Studio Course Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-create/studio-course-page.png)
 
-![Studio Unit Content](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-course-create/studio-unit-content.png)
+![Studio Unit Content](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-create/studio-unit-content.png)
 
 ## Task Lifecycle
 
@@ -374,7 +374,7 @@ curl -s -X POST "$BASE/course-creation/course/$COURSE_ID/sync-to-edx/" -H "$AUTH
 - **Never publish without review.** Always fetch `/full-structure/?include_content=true` and confirm with the user before calling `sync-to-edx` — published EdX courses are visible to enrolled students and costly to retract.
 - **Don't mass-delete.** `delete-xblock` on a section is irreversible and cascades. Confirm target before calling.
 - **Respect file limits.** Max 4 files per task, 20 MB each. Over-limit uploads are rejected with 400.
-- **Tenant isolation.** `org` and `user_id` must match the authenticated user's platform and username — cross-tenant requests return 403. Do not attempt to create courses in a tenant different from the caller's.
+- **Tenant isolation.** `org` and `user_id` must match the authenticated user's platform and username — cross-organization requests return 403. Do not attempt to create courses in an organization different from the caller's.
 - **Do not leak the API key.** Treat `api_key` as a bearer secret; never echo it in responses, logs, or committed files.
 - **Background tasks can fail silently to the caller.** After `/start/` or `/draft-content-for-all-units/`, always verify downstream (status polling, full-structure fetch) rather than trusting the 202/200 response.
 - **Ask before picking a larger/more expensive model.** `gpt-4o`/`gpt-4.1` cost materially more than `gpt-4o-mini`. Confirm with the user when complexity warrants it; otherwise default to `gpt-4o-mini`.

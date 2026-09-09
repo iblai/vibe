@@ -22,7 +22,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-STARTER="$ROOT/skills/iblai-vibe-ops-init/assets/vibe-starter"
+STARTER="$ROOT/skills/start/iblai-vibe-ops-init/assets/vibe-starter"
+skill_path() { ls -d "$ROOT"/skills/*/"$1" 2>/dev/null | head -1; }
 WORK="$ROOT/.skill-tests/agent"
 MAX_TURNS="${MAX_TURNS:-40}"
 AGENT_TIMEOUT="${AGENT_TIMEOUT:-900}"
@@ -38,8 +39,8 @@ if [[ "${1:-}" == "--changed" ]]; then
   base="${BASE_REF:-origin/main}"
   git -C "$ROOT" rev-parse --verify -q "$base" >/dev/null || base="main"
   while IFS= read -r dir; do
-    [[ -f "$ROOT/skills/$dir/SKILL.md" ]] && skills+=("$dir")
-  done < <(git -C "$ROOT" diff --name-only "$base"...HEAD -- skills/ | awk -F/ '{print $2}' | sort -u)
+    [[ -f "$(skill_path "$dir")/SKILL.md" ]] && skills+=("$dir")
+  done < <(git -C "$ROOT" diff --name-only "$base"...HEAD -- skills/ | awk -F/ '{print $3}' | sort -u)
   if [[ ${#skills[@]} -eq 0 ]]; then
     echo "test-skills-agent: no skills changed vs $base — nothing to do."
     exit 0
@@ -70,7 +71,7 @@ make_scratch() {
   printf 'DOMAIN=iblai.app\nPLATFORM=testtenant\nTOKEN=dummy-not-a-real-key\n' > "$dest/iblai.env"
   # Make every skill discoverable in the scratch project.
   mkdir -p "$dest/.claude"
-  cp -a "$ROOT/skills" "$dest/.claude/skills"
+  mkdir -p "$dest/.claude/skills"; for d in "$ROOT"/skills/*/*/; do cp -a "$d" "$dest/.claude/skills/"; done
 }
 
 json_field() { # json_field <file> <expr>  (node-evaluated, prints value or empty)
@@ -80,7 +81,7 @@ json_field() { # json_field <file> <expr>  (node-evaluated, prints value or empt
 # ---- per-skill run -------------------------------------------------------
 overall=0
 for skill in "${skills[@]}"; do
-  [[ -f "$ROOT/skills/$skill/SKILL.md" ]] || { echo "✗ $skill: no such skill"; overall=1; continue; }
+  [[ -f "$(skill_path "$skill")/SKILL.md" ]] || { echo "✗ $skill: no such skill"; overall=1; continue; }
   scratch="$WORK/$skill"
   note "$skill → scratch $scratch"
   make_scratch "$scratch"
@@ -112,7 +113,7 @@ for skill in "${skills[@]}"; do
   fi
 
   # Optional assertions from skills/<skill>/test.json
-  manifest="$ROOT/skills/$skill/test.json"
+  manifest="$(skill_path "$skill")/test.json"
   if [[ -f "$manifest" ]]; then
     while IFS= read -r f; do
       [[ -z "$f" ]] && continue

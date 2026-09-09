@@ -14,7 +14,7 @@ The iblai-agent-chat server provides a bridge between MCP-compatible AI assistan
 
 ### Authentication
 
-The server uses Api-Token authentication via the `Authorization` header, plus a agent identifier. You need:
+The server uses Api-Token authentication via the `Authorization` header, plus an agent identifier. You need:
 1. A Platform API Key from your ibl.ai admin panel
 2. The agent's unique ID via the `X-Mentor-Unique-Id` header
 
@@ -113,7 +113,7 @@ Interact with specialized agents:
 
 > "What are the compliance requirements for GDPR?"
 
-### Multi-Mentor Workflows
+### Multi-Agent Workflows
 
 Configure multiple agent connections for different tasks:
 
@@ -142,7 +142,7 @@ Configure multiple agent connections for different tasks:
 
 ## Finding Your Agent ID
 
-To find a agent's unique ID:
+To find an agent's unique ID:
 
 1. **Via ibl.ai Dashboard**: Navigate to Agents → Select Agent → Copy the Unique ID from settings
 2. **Via API**: Use the agent list endpoint: `GET /api/ai-mentor/orgs/{org}/users/{user_id}/mentors/`
@@ -173,13 +173,16 @@ The agent chat service may be subject to rate limiting based on:
 
 Check with your ibl.ai administrator for specific limits.
 
-## Related MCP Servers
+## Related skills
 
-| Server | Description |
+`iblai-agent-chat` is the only MCP server in this repo. For the rest of the
+platform, use the `iblai-api-*` skills, which call the same REST API directly:
+
+| Skill | Description |
 |--------|-------------|
-| [iblai-analytics](../iblai-analytics) | Monitor agent usage and costs |
-| [iblai-search](../iblai-search) | Discover available agents |
-| [iblai-agent-create](../iblai-agent-create) | Create and manage AI agents |
+| [`/iblai-api-analytics`](../../skills/analytics/iblai-api-analytics/SKILL.md) | Monitor agent usage and costs |
+| [`/iblai-api-search`](../../skills/agents/iblai-api-search/SKILL.md) | Discover available agents |
+| [`/iblai-api-agent-create`](../../skills/agents/iblai-api-agent-create/SKILL.md) | Create and manage AI agents |
 
 ## License
 

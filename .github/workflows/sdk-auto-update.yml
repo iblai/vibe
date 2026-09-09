@@ -1,7 +1,7 @@
 name: SDK auto-update
 
 # Daily check for new @iblai SDK releases (published from iblai/iblai-web-frontend)
-# against the bundled vibe-starter template (skills/iblai-vibe-ops-init/assets/vibe-starter).
+# against the bundled vibe-starter template (skills/start/iblai-vibe-ops-init/assets/vibe-starter).
 # If a newer version exists, bump it and validate (typecheck + lint + build + unit tests).
 # Every run (bump or not) then re-syncs the @iblai pins in the other skill templates
 # and SKILL.md docs to the starter via check-sdk-pins --fix, regenerates adapters/,
@@ -27,7 +27,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: skills/iblai-vibe-ops-init/assets/vibe-starter
+    working-directory: skills/start/iblai-vibe-ops-init/assets/vibe-starter
 
 jobs:
   check-and-update:
@@ -41,7 +41,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4 # reads version from the packageManager field
         with:
-          package_json_file: skills/iblai-vibe-ops-init/assets/vibe-starter/package.json
+          package_json_file: skills/start/iblai-vibe-ops-init/assets/vibe-starter/package.json
 
       # No pnpm store cache: most daily runs skip every pnpm step (SDK already
       # current), and setup-node's post-job cache save hard-fails when the
@@ -188,6 +188,6 @@ jobs:
 
             Logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Fix the bundled starter (skills/iblai-vibe-ops-init/assets/vibe-starter)
+            Fix the bundled starter (skills/start/iblai-vibe-ops-init/assets/vibe-starter)
             or the flagged template pins, then either push manually or let
             tomorrow's run retry.

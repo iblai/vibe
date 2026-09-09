@@ -24,6 +24,17 @@ Every API call needs three things — your **org key**, your **username**, and a
 The base URL is fixed: `https://api.iblai.app`. Auth header on every request is
 `Authorization: Api-Token <IBLAI_API_KEY>`.
 
+## Fastest path — the connect flow
+
+Try `/iblai-vibe-connect` first. It opens `login.iblai.app/connect` in the
+browser, the user picks their organization and clicks **Connect**, and the
+script mints the Platform API Token and writes all three values into `.env`
+(and `iblai.env`, and `.env.local` when a `package.json` is present) — nothing
+is typed into the chat and the token is never printed. It ends with one line:
+`connected: <org name> (<org key>) as <username> · token ****abcd`, and this
+skill is done. If it prints `HOSTED_PAGE_UNAVAILABLE` (exit code 3), the hosted
+page is not deployed yet — continue with the paths below.
+
 ## Fastest path — org credentials (key + secret)
 
 If you already hold **organization credentials** — an **org key** and an **org
@@ -116,8 +127,8 @@ read the values off the page.
 
      > **Which org the token targets.** The **`platform_key` in the request body**
      > scopes the resulting token — an admin's `dm_token` can mint a token for any
-     > org they administer. The `dm_token` itself is tenant-scoped, though, so if
-     > minting fails with `401`/`403`, switch the active tenant and re-read it:
+     > org they administer. The `dm_token` itself is organization-scoped, though, so if
+     > minting fails with `401`/`403`, switch the active organization and re-read it:
      > open **os.ibl.ai**, use the **org dropdown (top-right)**, select the target
      > org (URL becomes `os.ibl.ai/platform/<org>/…`), then read the refreshed
      > `dm_token` from that page's `localStorage`.

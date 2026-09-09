@@ -11,7 +11,7 @@ browser sidebar, node configuration panels, connector management, and
 create/delete workflow modals. Includes a custom canvas with drag-and-drop,
 bezier curve edges, pan/zoom, undo/redo, and auto-save.
 
-![Workflow Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-workflow/iblai-vibe-workflow.png)
+![Workflow Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

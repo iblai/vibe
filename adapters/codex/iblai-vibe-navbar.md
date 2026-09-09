@@ -63,7 +63,7 @@ The navbar MUST follow BRAND.md colors:
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) already ships this navbar
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) already ships this navbar
 > wired up (logo, nav links, notification bell, profile dropdown, mobile
 > drawer) along with auth and profile/account/notifications pages. Want to
 > use that instead of building the navbar from scratch?
@@ -75,7 +75,7 @@ not installed -- tell the user which path you took -- then skip this skill:
 
     cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
     # or, without local assets:
-    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
 
     pnpm install --ignore-scripts
 
@@ -163,7 +163,7 @@ export function Logo() {
 }
 ```
 
-Use the ibl.ai logo. Do NOT use the tenant/platform logo. Always serve
+Use the ibl.ai logo. Do NOT use the organization/platform logo. Always serve
 it locally from `public/images/`, never from an external URL.
 
 ---

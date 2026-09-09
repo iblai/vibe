@@ -13,17 +13,17 @@ external LTI platforms), and **Tool Endpoints** (the fixed URLs to share
 with the LMS). This is one tab in the wider agent-settings family. All
 tabs share the same `AgentSettingsProvider` wrapper.
 
-![LTI Tab — Links (async build status + Refresh)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-links.png)
+![LTI Tab — Links (async build status + Refresh)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-links.png)
 
-![LTI Tab — Keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-keys.png)
+![LTI Tab — Keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-keys.png)
 
-![LTI Key Detail Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-key-detail.png)
+![LTI Key Detail Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-key-detail.png)
 
-![LTI Tab — Tools](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tools.png)
+![LTI Tab — Tools](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tools.png)
 
-![Create LTI Tool Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-create.png)
+![Create LTI Tool Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-create.png)
 
-![LTI Tab — Tool Endpoints](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-endpoints.png)
+![LTI Tab — Tool Endpoints](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-endpoints.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -97,7 +97,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 |------|------|----------|-------------|
 | `labels` | `DeepPartial<LtiTabLabels>` | No | Override user-visible strings |
 | `lmsDomain` | `string` | Recommended | LMS domain used to build the fixed Tool Endpoints URLs (e.g. `https://learn.example.org`). Deployment-specific — supplied by the host. |
-| `orgShortName` | `string` | No | Org short name for the JWKS endpoint. Defaults to the org resolved from the platform info query, falling back to the tenant key. |
+| `orgShortName` | `string` | No | Org short name for the JWKS endpoint. Defaults to the org resolved from the platform info query, falling back to the organization key. |
 | `tenantKey` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
 | `mentorId` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
 | `username` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
@@ -118,7 +118,7 @@ The LTI link that lets this agent be launched from an LMS. Table shows
 per-row action. Create/Edit modal collects a single required **Name**,
 displayed when selecting this agent during deep linking content
 selection. The link is created with the agent's stable id
-(`mentor_config.mentor`) and the tenant's `platform_key`. Creating a
+(`mentor_config.mentor`) and the organization's `platform_key`. Creating a
 link while the LTI toggle is off enables `is_lti_accessible`
 automatically.
 
@@ -174,7 +174,7 @@ with an edit action. Create/Edit modal collects:
 ### Tool Endpoints sub-tab
 
 Read-only endpoints to share with the LTI platform when registering the
-deployment. They are fixed for the tenant and built from `lmsDomain`:
+deployment. They are fixed for the organization and built from `lmsDomain`:
 
 | Endpoint | URL |
 |---|---|
@@ -233,7 +233,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **`lmsDomain` is host-supplied**: Without it the Tool Endpoints
   sub-tab cannot build its URLs. Ask the user for their LMS domain.
 - **Keys and Tools are platform-wide**: They are shared across the whole
-  tenant, not scoped to this agent. Only the Links sub-tab is
+  organization, not scoped to this agent. Only the Links sub-tab is
   agent-specific.
 - **Delete order**: A key associated with an LTI tool cannot be deleted
   -- remove or re-key the tool first.

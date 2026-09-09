@@ -665,10 +665,10 @@ Both live on the reviewer surface and only apply to **accepted** students.
 
   Per item: `candidate_id` (required; candidate id from the application
   detail), `mentor_unique_id` (required; the placement agent's unique id
-  from the mentor APIs — staff pick which agent runs the test, there is no
+  from the agent APIs — staff pick which agent runs the test, there is no
   automatic routing), `label` (optional; what the placement covers, e.g.
   "Math" vs "Language Arts"), `mentor_label` (optional display name for the
-  agent), `session_id` (optional; the mentor conversation id of the test),
+  agent), `session_id` (optional; the agent conversation id of the test),
   `note` (optional free text). Returns `200` with per-item `results`: each
   item is either the created placement object or
   `{ "candidate_id", "error": "candidate_not_found" | "candidate_not_accepted" }`

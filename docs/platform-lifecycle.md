@@ -6,7 +6,7 @@ every app needs, how the organization is billed, and the settings that only
 exist in the ibl.ai OS. Ten steps; most take a minute.
 
 > Words: **organization (org)** is your workspace; its **org key** is its id;
-> an **agent** is what the API calls a *mentor*. Full list in
+> an **agent** is what the API calls a `mentor`. Full list in
 > [glossary.md](glossary.md).
 
 ## 1. Get an organization — `ibl.ai/join`

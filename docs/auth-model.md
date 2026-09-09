@@ -1,4 +1,4 @@
-# How sign-in and tenancy work — and which architecture your app is
+# How sign-in and organizations work — and which architecture your app is
 
 Every ibl.ai front end (the OS at os.ibl.ai, the LMS, vibe-starter, the
 embeddable chat) signs users in the same way. Understanding the handful of
@@ -46,13 +46,13 @@ What the SDK does with it afterwards:
 | Where the org key lives | `NEXT_PUBLIC_MAIN_TENANT_KEY` (`iblai.env` → `PLATFORM`), pinned; `main` refused | `NEXT_PUBLIC_MAIN_TENANT_KEY=main` (the community org) + the route param; `tenants[]` decides membership | `IBLAI_ORG` / `PLATFORM` per call |
 | Anonymous / public | Optional: a public agent route left out of `AuthProvider`'s protection (`allow_anonymous`) | Same, per agent; the OS's `/platform/<org>/<agent>` rule | n/a (or a public agent hit over REST as `anonymous`) |
 | Admin surfaces | The app's admin area (`/iblai-vibe-admin`) for that org's admins | Per org; the OS's Admin mode is the reference | The `iblai-api-*` skills |
-| Credentials on the server | `IBLAI_API_KEY` for **that** org — the "server-to-server token a tenant has" | One key per org you serve (a table of keys, or the caller's own token forwarded) | `IBLAI_API_KEY` (+ `IBLAI_ORG`) |
+| Credentials on the server | `IBLAI_API_KEY` for **that** org — the "server-to-server token an organization has" | One key per org you serve (a table of keys, or the caller's own token forwarded) | `IBLAI_API_KEY` (+ `IBLAI_ORG`) |
 | What vibe gives you | **vibe-starter as shipped** (`resolveAppTenant()` pins the org; `/setup`, admin area, metadata helpers) | The OS pattern (§3); the same SDK providers with `requestedTenant` from the route and `TenantSwitcher`/`UserProfileDropdown showTenantSwitcher` | `/iblai-api-login` + the `api` family; `/iblai-vibe-api` when the server is inside a Next.js app |
 | Redirect origins to register | localhost, the deployed URL, the mobile scheme | same | none |
 | Pick it when | "An app for my organization / for each customer I deploy it to" — the common case | "One deployment, many organizations, users move between them" — you are building a platform like the OS | "No UI at all", or "my backend talks to ibl.ai on behalf of my users" |
 
 Most custom apps are **A**. Ship **A** first even if **B** is the goal — every
-piece carries over; only tenant resolution changes.
+piece carries over; only organization resolution changes.
 
 ## 3. Going multi-org — the OS pattern in five moves
 

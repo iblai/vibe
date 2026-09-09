@@ -10,7 +10,7 @@ controls, shareable links, and an embedded agent preview iframe. This is
 one tab in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![Embed Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-embed/iblai-vibe-agent-embed.png)
+![Embed Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-embed/iblai-vibe-agent-embed.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

@@ -11,7 +11,7 @@ display names, descriptions in tooltips, and switches for enabling or
 disabling each tool. This is one tab in the wider agent-settings family.
 All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-tool/iblai-vibe-agent-tool.png)
+![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-tool/iblai-vibe-agent-tool.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -111,7 +111,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 For custom UI beyond `<AgentToolsTab>` — register external MCP servers and
 bind them to agents. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
+`NEXT_PUBLIC_API_BASE_URL`. Organization admins only.
 
 ### Workflow
 
@@ -134,7 +134,7 @@ unchanged; `[]` clears all tools.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `mcp-servers/` | List tenant servers |
+| GET | `mcp-servers/` | List organization servers |
 | POST | `mcp-servers/` | Register a new server |
 | PATCH/PUT | `mcp-servers/{id}/` | Update |
 | DELETE | `mcp-servers/{id}/` | Delete |
@@ -214,7 +214,7 @@ server reusable:
 Returned credentials are **masked** (e.g. `"******90"`); only send a new
 value when the user intentionally rotates the secret.
 
-### 4. Assign servers to a agent
+### 4. Assign servers to an agent
 
 | Method | Path | Body |
 |---|---|---|
@@ -233,7 +233,7 @@ leave unchanged; `[]` clears all servers.
 ### Common errors
 
 - `400 Selected MCP server is not available to the current tenant.` — the
-  server belongs to another tenant and is not `is_featured=true`.
+  server belongs to another organization and is not `is_featured=true`.
 - `400 OAuth2 connections require a connected service.` — create the OAuth
   connector first and pass `connected_service`.
 
@@ -275,7 +275,7 @@ permission once per provider/service before a connection can reference a
 
 ### Prereqs (admin)
 
-Tenant admin must store `auth_{provider}` credentials with `client_id`,
+Organization admin must store `auth_{provider}` credentials with `client_id`,
 `client_secret`, and `redirect_uri` in the credential store. A start
 endpoint returning `400 "No credentials found"` means this is missing.
 

@@ -1,5 +1,5 @@
 ---
-description: "Manage an ibl.ai agent's memories via the platform API — list and filter agent (mentor) memories (by category, user, email, date), curate global (cross-agent) memories, curate shared agent knowledge injected into every user's chat, add/edit/delete memories, manage memory categories, and toggle capture/recall settings. Use when inspecting or curating what an agent remembers."
+description: "Manage an ibl.ai agent's memories via the platform API — list and filter agent memories (by category, user, email, date), curate global (cross-agent) memories, curate shared agent knowledge injected into every user's chat, add/edit/delete memories, manage memory categories, and toggle capture/recall settings. Use when inspecting or curating what an agent remembers."
 globs:
 alwaysApply: false
 ---
@@ -33,9 +33,9 @@ Two PGVector-backed memory stores ("memsearch") sit behind these endpoints:
 
 - **Global memories** (`UserGlobalMemory`) — scoped to a user + org, shared across every
   agent; facts any agent should know about the user.
-- **Agent (mentor) memories** (`UserMentorMemory`) — scoped to a user + one agent + a
+- **Agent memories** (`UserMentorMemory`) — scoped to a user + one agent + a
   **category**; what a single agent remembers about the user.
-- **Agent knowledge** (`MentorMemory`) — scoped to one agent (org + mentor), **not** any
+- **Agent knowledge** (`MentorMemory`) — scoped to one agent (org + agent), **not** any
   user and **not** categorized. Manually curated (never auto-extracted), it is injected into
   **every** user's chat with that agent as an `## Agent Knowledge` block, gated by the agent's
   `enable_memory_component` and each user's `use_memory_in_responses`. This is shared "how the
@@ -55,7 +55,7 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 
 ## Reads
 
-### Agent (mentor) memories
+### Agent memories
 
 - **GET** `…/users/{username}/mentors/{mentor}/mentor-memories-list/?page={n}&page_size={n}&category={slug}&my_memory={bool}&user_id={id}&email={e}&start_date={yyyy-MM-dd}&end_date={yyyy-MM-dd}` — paged flat list for one agent.
 - **GET** `…/users/{username}/mentors/{mentor}/mentor-memories/?my_memory={bool}&user_id={id}&email={e}&start_date=&end_date=` — the same memories grouped by category.
@@ -75,12 +75,12 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 
 ### Settings
 
-- **GET** `{u}/memsearch-settings/` — the user's capture / recall settings. Tenant admins may read another user's settings by putting that user's username in the `{username}` path segment; non-admins are restricted to their own (any other `{username}` resolves back to the caller).
+- **GET** `{u}/memsearch-settings/` — the user's capture / recall settings. Organization admins may read another user's settings by putting that user's username in the `{username}` path segment; non-admins are restricted to their own (any other `{username}` resolves back to the caller).
 - **GET** `{u}/memsearch-status/` — whether memsearch (`enable_memsearch`) is enabled for the org.
 
 ## Writes
 
-### Agent (mentor) memories
+### Agent memories
 
 - **POST** `…/users/{username}/mentors/{mentor}/mentor-memories/` — add a memory:
   ```json
@@ -134,7 +134,7 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 
 ### Settings
 
-- **PUT** `{u}/memsearch-settings/` — update the user's capture / recall settings (send at least one field). Tenant admins may update another user's settings by putting that user's username in the `{username}` path segment; non-admins are restricted to their own (any other `{username}` resolves back to the caller):
+- **PUT** `{u}/memsearch-settings/` — update the user's capture / recall settings (send at least one field). Organization admins may update another user's settings by putting that user's username in the `{username}` path segment; non-admins are restricted to their own (any other `{username}` resolves back to the caller):
   ```json
   {
     "auto_capture_enabled": "boolean",
@@ -168,7 +168,7 @@ curl -s \
   `…/orgs/{org}/mentors/{mentor}/agent-memories/` (no user segment) is the **shared agent knowledge**
   store. Different data, different path — pick by whether a `users/{username}` segment is present.
 - There is no bulk-delete endpoint: to clear several memories, issue one DELETE per id.
-- Flat list reads (global memories, agent/mentor memories, categories) return a DRF page
+- Flat list reads (global memories, agent memories, categories) return a DRF page
   envelope — `{ "count": n, "results": [...] }`; iterate `results`. The grouped
   `mentor-memories/` read instead buckets memories by category (see Reads). DELETEs return `204`.
 

@@ -7,7 +7,7 @@ alwaysApply: false
 # /iblai-vibe-readme
 
 Write or refresh the project's `README.md` in the standard ibl.ai format —
-the same shape used by [vibe-starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter)
+the same shape used by [vibe-starter](https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter)
 and the reference apps in [`iblai/vibe`](https://github.com/iblai/vibe).
 The README tells humans what the project is, how to run it, how to build
 native shells, how to ship releases, and how to contribute — with
@@ -165,12 +165,12 @@ docker run -p {{ port }}:{{ port }} \
 deployment (it covers both static `output: 'export'` Tauri shells and
 server-rendered Next.js apps). Drop only if the project is explicitly
 self-hosted. Full guide:
-[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md). }}
+[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/ship/iblai-vibe-ops-deploy/SKILL.md). }}
 
 ### Deploy
 
 Deploy through the ibl.ai platform's hosting API (Vercel-backed) with
-[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md).
+[`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/ship/iblai-vibe-ops-deploy/SKILL.md).
 No Vercel account or token — auth is the platform API key (`TOKEN`) in
 `iblai.env`. The skill zips the app (the `out/` export in static mode, the
 project source in server mode), uploads it, polls until the build is
@@ -192,14 +192,14 @@ each platform to ~6–8 lines and link to the canonical guide. }}
 
 Wrap the app in a native shell with [Tauri v2](https://tauri.app) using
 Tauri directly (`pnpm exec tauri …`) (full guide:
-[`/iblai-vibe-ops-build`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-build/SKILL.md)).
+[`/iblai-vibe-ops-build`](https://github.com/iblai/vibe/blob/main/skills/ship/iblai-vibe-ops-build/SKILL.md)).
 
 {{ Include only the platforms the project actually targets. Each
 subsection follows this pattern:
 
 #### iOS
 
-![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
 
 ```bash
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
@@ -280,7 +280,7 @@ See `CLAUDE.md` for the full list of skills and component priority rules.
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the ibl.ai SDK
 - [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server for AI-assisted development
 - [Vibe](https://github.com/iblai/vibe) — developer toolkit for building with ibl.ai
-- [Vibe Starter](https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter) — pre-wired Next.js + ibl.ai SSO template
+- [Vibe Starter](https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) — pre-wired Next.js + ibl.ai SSO template
 {{ Add other public repo links the user wants discoverable }}
 
 ---
@@ -322,13 +322,13 @@ After writing the file, tell the user:
 ## Important Notes
 
 - **Source of truth:** the bundled starter's README at
-  `skills/iblai-vibe-ops-init/assets/vibe-starter/README.md` plus the
+  `skills/start/iblai-vibe-ops-init/assets/vibe-starter/README.md` plus the
   per-skill READMEs, both in `iblai/vibe`. When updating this skill, diff
   against the latest `main` of that repo and pull through structural
   changes.
 - **Do not reference internal repos.** Only the public, open-source
   [`iblai/vibe`](https://github.com/iblai/vibe) repository (including the
-  bundled vibe-starter under `skills/iblai-vibe-ops-init/assets/`) is
+  bundled vibe-starter under `skills/start/iblai-vibe-ops-init/assets/`) is
   citable from a generated README.
 - **No marketing prose:** Keep claims grounded in what the codebase
   actually ships. Don't add features the project hasn't implemented.
@@ -345,5 +345,5 @@ After writing the file, tell the user:
   Vercel target. The deploy works for both static `output: 'export'`
   Tauri shells and server-rendered Next.js apps (the mode is detected
   from `next.config`). See
-  [`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/iblai-vibe-ops-deploy/SKILL.md)
+  [`/iblai-vibe-ops-deploy`](https://github.com/iblai/vibe/blob/main/skills/ship/iblai-vibe-ops-deploy/SKILL.md)
   for the full deploy procedure.

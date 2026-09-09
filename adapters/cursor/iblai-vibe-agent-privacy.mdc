@@ -16,13 +16,13 @@ License, Bank Number), and an "Also filter AI responses" toggle. This is
 one tab in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![Privacy Tab — Router Disabled](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-disabled.png)
+![Privacy Tab — Router Disabled](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-disabled.png)
 
-![Privacy Tab — Block Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-block.png)
+![Privacy Tab — Block Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-block.png)
 
-![Privacy Tab — Mask Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-mask.png)
+![Privacy Tab — Mask Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-mask.png)
 
-![Privacy Tab — Redact Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-redact.png)
+![Privacy Tab — Redact Action](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-redact.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

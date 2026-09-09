@@ -2,7 +2,7 @@
 // Capture the vibe-starter screenshot set (docs/screenshots/README.md).
 //
 //   node scripts/capture-screenshots.mjs --app http://localhost:3000 \
-//     --starter skills/iblai-vibe-ops-init/assets/vibe-starter
+//     --starter skills/start/iblai-vibe-ops-init/assets/vibe-starter
 //
 // Runs the starter's Playwright auth setup (real SSO, credentials from
 // <starter>/e2e/.env.development) to obtain a storage state, then walks the
@@ -13,15 +13,14 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-
-const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+import { ROOT, skillDir } from "./lib/skills.mjs";
 const args = process.argv.slice(2);
 const opt = (name, def) => {
   const i = args.indexOf(name);
   return i === -1 ? def : args[i + 1];
 };
 const APP = opt("--app", "http://localhost:3000");
-const STARTER = resolve(opt("--starter", "skills/iblai-vibe-ops-init/assets/vibe-starter"));
+const STARTER = resolve(opt("--starter", "skills/start/iblai-vibe-ops-init/assets/vibe-starter"));
 const OUT = join(ROOT, "docs", "screenshots", "journey");
 mkdirSync(OUT, { recursive: true });
 
@@ -52,7 +51,7 @@ const shot = async (file, path, { wait = "domcontentloaded", settle = 2500, skil
   await page.screenshot({ path: target, fullPage: false });
   console.log("  wrote", target);
   if (skillCopy) {
-    const dest = join(ROOT, "skills", skillCopy[0], skillCopy[1]);
+    const dest = join(skillDir(skillCopy[0]), skillCopy[1]);
     copyFileSync(target, dest);
     console.log("  copied →", dest);
   }
@@ -88,7 +87,7 @@ if (isAdmin) {
   await page.waitForTimeout(1000);
   const target = join(OUT, "10-user-mode.png");
   await page.screenshot({ path: target });
-  copyFileSync(target, join(ROOT, "skills", "iblai-vibe-admin", "iblai-vibe-admin-1-user-mode.png"));
+  copyFileSync(target, join(skillDir("iblai-vibe-admin"), "iblai-vibe-admin-1-user-mode.png"));
   console.log("  wrote", target);
 }
 

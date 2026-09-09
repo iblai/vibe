@@ -9,7 +9,7 @@ a modal for selecting specific models within a chosen provider. This is
 one tab in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![LLM Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-llm/iblai-vibe-agent-llm.png)
+![LLM Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

@@ -10,7 +10,7 @@ plus a suggested prompts section with add and edit modals. This is one
 tab in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![Prompts Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-prompt/iblai-vibe-agent-prompt.png)
+![Prompts Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-prompt/iblai-vibe-agent-prompt.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 

@@ -73,12 +73,12 @@ the token or query params). The `recommendations/` endpoint above is part of it.
 
 ### Global agent search
 
-- **GET** `https://api.iblai.app/dm/api/ai-search/mentors/` — global agent/mentor
-  search across the platform. Works **anonymously**; if a token is sent, results
+- **GET** `https://api.iblai.app/dm/api/ai-search/mentors/` — global agent search
+  across the platform. Works **anonymously**; if a token is sent, results
   are personalized to that user (pass `platform_key` for RBAC). Query params:
   `query`, `platform_key`, facet filters mirroring the response, and
   `limit`/`offset` pagination. Distinct from the org-pathed agent search above
-  (that one is tenant-scoped; this one is global).
+  (that one is organization-scoped; this one is global).
 
 ### Personalized agents
 
@@ -125,7 +125,7 @@ curl -s "https://api.iblai.app/dm/api/search/catalog/?query=manufacturing&limit=
 
 ## Notes
 
-- Discovery (agent/content/recommendations/mentor/sellable-items search) is
+- Discovery (agent/content/recommendations/global-agent/sellable-items search) is
   read-only; the only writes are the admin **recommendation-prompt** endpoints
   (`POST`/`PUT`/`DELETE …/ai-search/prompts/`).
 - The `facets` block in each response enumerates the available filter dimensions

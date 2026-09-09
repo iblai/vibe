@@ -1,0 +1,149 @@
+---
+name: iblai-api-token
+description: Manage an organization's Platform API Tokens via the platform API — list, create (secret shown once), and delete Api-Tokens by name. Use when issuing or rotating the keys that authenticate ibl.ai API access.
+metadata:
+  kind: api
+---
+
+# iblai-api-token
+
+Manage the organization's **Platform API Tokens** — the keys that authenticate every
+ibl.ai API call. List the tokens, create a new Api-Token (the secret is shown only
+once), retrieve or update a token by name, and delete a token by name. Tokens are
+`platform_key`-scoped, not agent-scoped.
+
+A token's RBAC authority is controlled by its **`mode`**:
+
+- **`owner`** (default) — the token resolves permissions using its creator's RBAC
+  permissions. Simplest option; the token acts with the owner's authority.
+- **`token_policies`** — the token carries its **own** fine-grained RBAC, independent
+  of the owner. You attach specific RBAC policies/groups to the token, and only those
+  determine what it can do. Use this to issue narrowly-scoped service tokens for an
+  organization.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`.
+- **Host:** these endpoints live under `…/dm/api/core/…`.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/?platform_key={org}` — list API keys. The list view omits `policies`/`groups`.
+- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — retrieve a single token, including its currently associated `policies` and `groups`.
+- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/field-permissions/?platform_key={org}` — report which RBAC-gated fields (`mode`, `policies_to_add`, `policies_to_remove`, `groups_to_add`, `groups_to_remove`) the caller may write. Returns `{field: {"write": bool}}`. Useful for building the create form. Gated on create access.
+
+## Writes
+
+- **POST** `https://api.iblai.app/dm/api/core/platform/api-tokens/` — create a token (returns the secret only once):
+  ```json
+  {
+    "username": "string (required)",
+    "name": "string (required)",
+    "key": "",
+    "platform_key": "{org} (required)",
+    "created": "ISO datetime (required)",
+    "expires": "'' or seconds-string (required)",
+    "expires_in": "seconds-string | undefined",
+    "mode": "owner | token_policies (optional, default 'owner')",
+    "policies_to_add": "[int] policy IDs (optional, mode=token_policies only)",
+    "groups_to_add": "[int] group IDs (optional, mode=token_policies only)"
+  }
+  ```
+- **PATCH** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — update a token's `mode` and its policy/group associations:
+  ```json
+  {
+    "mode": "owner | token_policies",
+    "policies_to_add": "[int] policy IDs",
+    "policies_to_remove": "[int] policy IDs",
+    "groups_to_add": "[int] group IDs",
+    "groups_to_remove": "[int] group IDs"
+  }
+  ```
+- **DELETE** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — delete a key by name. Destructive — confirm with the user first.
+
+## RBAC-scoped fields
+
+`mode` and the four relation fields (`policies_to_add`, `policies_to_remove`,
+`groups_to_add`, `groups_to_remove`) are **privileged**: writing them needs
+field-level RBAC write access (`Ibl.Core/ApiTokens/*/write`), separate from ordinary
+create/update access. Constraints the server enforces:
+
+- Policies/groups can only be set when `mode` is `token_policies`; sending them with
+  `owner` mode is rejected.
+- Referenced policies/groups must belong to the token's platform (the organization),
+  otherwise the request is rejected.
+- **No escalation:** you cannot grant a token more authority than you hold yourself —
+  each candidate policy (including those reached via `groups_to_add`) must be a subset
+  of the granter's own permissions.
+- A `token_policies` token does **not** inherit the owner's staff/superuser flags
+  (fail-closed).
+
+## Examples
+
+Create a basic (owner-mode) Platform API Token named `prod-integration` (capture the
+secret from the response — it is shown only once):
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/core/platform/api-tokens/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "'"$IBLAI_USERNAME"'",
+    "name": "prod-integration",
+    "key": "",
+    "platform_key": "'"$IBLAI_ORG"'",
+    "created": "2026-06-12T00:00:00Z",
+    "expires": ""
+  }'
+```
+
+Create an RBAC-scoped token for the organization — its own policies/groups decide what it
+can do, independent of the creator:
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/core/platform/api-tokens/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "'"$IBLAI_USERNAME"'",
+    "name": "scoped-service-token",
+    "key": "",
+    "platform_key": "'"$IBLAI_ORG"'",
+    "created": "2026-06-12T00:00:00Z",
+    "expires": "",
+    "mode": "token_policies",
+    "policies_to_add": [12, 34],
+    "groups_to_add": [5]
+  }'
+```
+
+Re-scope an existing token's policies:
+
+```bash
+curl -X PATCH \
+  "https://api.iblai.app/dm/api/core/platform/api-tokens/scoped-service-token?platform_key=$IBLAI_ORG" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "token_policies",
+    "policies_to_add": [56],
+    "policies_to_remove": [12]
+  }'
+```
+
+## Notes
+
+- The create response returns the token secret **only once** — store it
+  immediately; it cannot be retrieved again afterward.
+- `/iblai-api-login` uses this same `POST …/platform/api-tokens/` endpoint to mint
+  the Api-Token it stores as `IBLAI_API_KEY`.
+- Retrieve, update, and delete are by token **name** (not id), and are scoped to the
+  org via `platform_key={org}`.
+- `policies`/`groups` are returned only on detail responses (retrieve/create/update),
+  not in the list view.

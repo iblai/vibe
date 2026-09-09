@@ -26,7 +26,7 @@ echo ""
 # SKILL.md: under 500 lines
 # Optional dirs: references/, scripts/, assets/
 
-for skill_dir in "$SKILLS_DIR"/*/; do
+for skill_dir in "$SKILLS_DIR"/*/*/; do
     skill_name=$(basename "$skill_dir")
     skill_file="$skill_dir/SKILL.md"
     skill_errors=()
