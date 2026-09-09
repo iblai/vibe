@@ -11,6 +11,10 @@ install (`npx skills add iblai/vibe --all`), two skill families:
   contract intact (`docs/api-skills.md`).
 
 - **Full agent guidance lives in [CLAUDE.md](CLAUDE.md)** — read it first.
+- **The first conversation is `/iblai-vibe-start`** — new or existing project;
+  single-org, multi-org, or headless; who signs in; users / memories / agents /
+  organizations. Recorded in `iblai.env`; every later skill reads it.
+  How sign-in and tenancy work: [docs/auth-model.md](docs/auth-model.md).
 - **Start at [`skills/iblai-vibe/SKILL.md`](skills/iblai-vibe/SKILL.md)** — what
   you want → which skill. Headless: [`skills/iblai-api-login/SKILL.md`](skills/iblai-api-login/SKILL.md).
 - The families and kinds: [docs/skill-kinds.md](docs/skill-kinds.md). Sibling

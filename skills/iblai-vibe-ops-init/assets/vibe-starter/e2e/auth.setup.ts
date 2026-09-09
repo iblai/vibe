@@ -25,9 +25,11 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app — AuthProvider will redirect to the auth SPA
   await page.goto(APP_HOST, { waitUntil: 'domcontentloaded', timeout: 30_000 });
 
-  // Wait for the auth SPA login page — just check for /login and app=agent
+  // Wait for the auth SPA login page. The app identifier (`app=custom` for
+  // vibe-starter; `app=mentor` for the OS) is not asserted — only the SPA's
+  // /login route, so a rebranded app keeps this setup working.
   await page.waitForURL(
-    (url) => url.href.includes('/login') && url.href.includes('app=agent'),
+    (url) => url.href.includes('/login') && url.href.includes('redirect-to='),
     { timeout: 60_000 },
   );
 

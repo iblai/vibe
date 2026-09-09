@@ -1,6 +1,13 @@
 
 /**
- * Tenant resolution for ibl.ai apps.
+ * Tenant (organization) resolution for ibl.ai apps.
+ *
+ * vibe-starter is a SINGLE-ORGANIZATION app (docs/auth-model.md, architecture
+ * A): the org comes from NEXT_PUBLIC_MAIN_TENANT_KEY and every member signs in
+ * to it. For a multi-organization app (architecture B — org in the URL, a
+ * tenant switcher, re-auth per org) follow "Going multi-org" in
+ * /iblai-vibe-auth; the providers below already implement the storage hooks
+ * TenantProvider needs for that.
  *
  * Priority:
  *   1. app_tenant localStorage — highest priority (set on tenant switch)

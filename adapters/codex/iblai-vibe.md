@@ -24,6 +24,7 @@ drives the same platform data headlessly — exact endpoints, `curl`, no screen.
 
 | You want… | With a screen (`iblai-vibe-*`) | Headless (`iblai-api-*`) |
 |---|---|---|
+| **To start, and you have not decided** new/existing, one org or many, who signs in | `/iblai-vibe-start` — four questions, recorded in `iblai.env`, then routed | same |
 | **A new app** — sign-in, chat with an agent, users/admins, profile, admin area, custom data | `/iblai-vibe-ops-init` (copies vibe-starter; asks only for org key + token) | — |
 | **Operate an org with no app** — from a terminal, a script, CI, or your assistant | — | `/iblai-api-login` first, then the skill for the family below |
 | Chat with an agent; customize the chat surface | `/iblai-vibe-agent-chat` (+ `/iblai-vibe-agent-chat-sidebar`, `/iblai-vibe-project`) | `iblai-api-agent-session`, `agent-chat` |
@@ -67,6 +68,7 @@ older than two weeks or older than the
 - [CLAUDE.md](https://github.com/iblai/vibe/blob/main/CLAUDE.md) — agent guidance, the tiered skill catalogue
 - [docs/platform-lifecycle.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/platform-lifecycle.md) — join → org → credentials → credits → ship
 - [docs/security-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/security-model.md) — where each credential lives and why
+- [docs/auth-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/auth-model.md) — sign-in, tenancy, single-org / multi-org / headless · [docs/domain-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/domain-model.md) — users, agents, organizations
 - [docs/skill-kinds.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-kinds.md) — the two families and five kinds · [docs/api-skills.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/api-skills.md) — the headless contract
 - [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) — brand guidelines
 - [ibl.ai/docs](https://ibl.ai/docs) — every screen of the OS, documented

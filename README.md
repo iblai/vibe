@@ -7,7 +7,7 @@
 Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
 [![Release](https://img.shields.io/github/v/release/iblai/vibe?label=skills%20release)](https://github.com/iblai/vibe/releases/latest)
-[![Skills](https://img.shields.io/badge/skills-135_%C2%B7_ui_53_%C2%B7_api_51-CC785C)](docs/skill-kinds.md)
+[![Skills](https://img.shields.io/badge/skills-136_%C2%B7_ui_53_%C2%B7_api_51-CC785C)](docs/skill-kinds.md)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -47,19 +47,45 @@ macOS/Windows app, and an iOS/Android app from one codebase.
 
 ## Quick Start
 
+Install the skills (any [skills-compatible agent](https://skills.sh)):
+
 ```bash
 npx skills add iblai/vibe --all
 ```
 
-Then, in Claude Code (or Cursor, OpenCode, Copilot — [15+ agents](https://skills.sh)):
+or, in Claude Code, as a plugin (skills + the `@iblai/mcp` SDK-docs server in one step; updates with `/plugin update`):
 
 ```text
-/iblai-vibe-ops-init
+/plugin marketplace add iblai/vibe
+/plugin install iblai-vibe@iblai
 ```
 
-It copies **vibe-starter** into the current directory, asks for your org key
-and Platform API Token (and where they come from), verifies both, and writes
-the env files. Then:
+Then have **one conversation** before anything is built:
+
+```text
+/iblai-vibe-start
+```
+
+Four questions — new project or existing codebase; one organization, many, or none;
+who signs in; what the app is about (users · memories · agents · organizations) —
+recorded in `iblai.env` and the project `CLAUDE.md`, so no later skill asks again.
+It routes you to the right entry point:
+
+| You are | Architecture | Entry point |
+|---|---|---|
+| Starting a **new app for one organization** — yours, or a customer you deploy to (most apps) | **single-org**: the org key is pinned, one server-to-server token, members sign in with SSO | `/iblai-vibe-ops-init` — copies **vibe-starter**, asks for your org key and Platform API Token (and where they come from), verifies both, writes the env files |
+| Building **one deployment for many organizations**, users moving between them (the os.ibl.ai model) | **multi-org**: org in the URL, a tenant switcher, re-auth per org | `/iblai-vibe-ops-init`, then `/iblai-vibe-auth` → "Going multi-org" |
+| Adding ibl.ai to an **existing Next.js app** | either of the above | `/iblai-vibe-auth`, then the feature skills |
+| Writing a **script, CI job, or backend** — nobody signs in | **headless**: a Platform API Token per org | `/iblai-api-login`, then the `iblai-api-*` skill for the family |
+
+How sign-in, tenancy, anonymous agents, and native shells actually work — the
+parameters the OS sends and why — is one page: [docs/auth-model.md](docs/auth-model.md).
+The entities almost every app is built on — users (profile, custom metadata,
+memories), agents (settings and 24 tabs), organizations (metadata, people,
+billing) — with the SDK hook, the UI skill, and the headless skill for each:
+[docs/domain-model.md](docs/domain-model.md).
+
+For the common case, after `/iblai-vibe-ops-init`:
 
 ```bash
 pnpm dev
@@ -144,7 +170,7 @@ username, Platform API Token → `.env` + `iblai.env`), then any skill below is 
 
 | Area | Skills |
 |---|---|
-| **Setup** | [`/iblai-api-login`](skills/iblai-api-login/SKILL.md) |
+| **Setup** | [`/iblai-api-login`](skills/iblai-api-login/SKILL.md) (start with [`/iblai-vibe-start`](skills/iblai-vibe-start/SKILL.md) if you have not) |
 | **One agent** (★ = the families most apps read or write) | ★ [`agent-setting`](skills/iblai-api-agent-setting/SKILL.md), ★ [`agent-memory`](skills/iblai-api-agent-memory/SKILL.md), [`agent-create`](skills/iblai-api-agent-create/SKILL.md), [`agent-prompt`](skills/iblai-api-agent-prompt/SKILL.md), [`agent-llm`](skills/iblai-api-agent-llm/SKILL.md), [`agent-dataset`](skills/iblai-api-agent-dataset/SKILL.md), [`agent-tool`](skills/iblai-api-agent-tool/SKILL.md), [`agent-access`](skills/iblai-api-agent-access/SKILL.md), [`agent-embed`](skills/iblai-api-agent-embed/SKILL.md), [`agent-mcp`](skills/iblai-api-agent-mcp/SKILL.md), [`agent-safety`](skills/iblai-api-agent-safety/SKILL.md), [`agent-privacy`](skills/iblai-api-agent-privacy/SKILL.md), [`agent-disclaimer`](skills/iblai-api-agent-disclaimer/SKILL.md), [`agent-history`](skills/iblai-api-agent-history/SKILL.md), [`agent-audit`](skills/iblai-api-agent-audit/SKILL.md), [`agent-eval`](skills/iblai-api-agent-eval/SKILL.md), [`agent-skill`](skills/iblai-api-agent-skill/SKILL.md), [`agent-sandbox`](skills/iblai-api-agent-sandbox/SKILL.md), [`agent-support`](skills/iblai-api-agent-support/SKILL.md) |
 | **Talk to an agent** | [`agent-session`](skills/iblai-api-agent-session/SKILL.md) (REST/SSE/WebSocket), [`agent-chat`](skills/iblai-api-agent-chat/SKILL.md) (hosted MCP server), [`inference`](skills/iblai-api-inference/SKILL.md) (OpenAI-compatible `/v1`) |
 | **Organization** | [`org`](skills/iblai-api-org/SKILL.md), [`management`](skills/iblai-api-management/SKILL.md), [`rbac`](skills/iblai-api-rbac/SKILL.md), [`invite`](skills/iblai-api-invite/SKILL.md), [`scim`](skills/iblai-api-scim/SKILL.md), [`token`](skills/iblai-api-token/SKILL.md), [`integration`](skills/iblai-api-integration/SKILL.md), [`notification`](skills/iblai-api-notification/SKILL.md), [`feature`](skills/iblai-api-feature/SKILL.md), [`billing`](skills/iblai-api-billing/SKILL.md), [`spend-caps`](skills/iblai-api-spend-caps/SKILL.md), [`crm`](skills/iblai-api-crm/SKILL.md), [`external-service-proxy`](skills/iblai-api-external-service-proxy/SKILL.md) |
@@ -321,6 +347,7 @@ The former `iblai/api` repository now lives here as the `iblai-api-*` skills, `m
 - [docs/platform-lifecycle.md](docs/platform-lifecycle.md) — join → org → credentials → credits → ship
 - [docs/glossary.md](docs/glossary.md) · [docs/security-model.md](docs/security-model.md) · [docs/screenshots/README.md](docs/screenshots/README.md)
 - [@iblai/iblai-js](https://www.npmjs.com/package/@iblai/iblai-js) — the SDK · [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) — MCP server
+- [docs/auth-model.md](docs/auth-model.md) — sign-in, tenancy, the three architectures · [docs/domain-model.md](docs/domain-model.md) — users, agents, organizations
 - [docs/skill-kinds.md](docs/skill-kinds.md) — the two families and the five kinds · [docs/api-skills.md](docs/api-skills.md) — the headless contract · [tutorials/](tutorials/)
 - [skills.sh/iblai/vibe](https://skills.sh/iblai/vibe) · [ibl.ai/docs](https://ibl.ai/docs) — every screen of the OS · [ibl.ai/developer](https://ibl.ai/developer)
 

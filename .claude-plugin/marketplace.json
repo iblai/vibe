@@ -1,0 +1,25 @@
+{
+  "name": "iblai",
+  "owner": {
+    "name": "ibl.ai",
+    "url": "https://ibl.ai"
+  },
+  "metadata": {
+    "description": "Skills for building on and operating the ibl.ai platform."
+  },
+  "plugins": [
+    {
+      "name": "iblai-vibe",
+      "source": "./",
+      "description": "Build apps on ibl.ai and operate the platform headlessly \u2014 136 skills (iblai-vibe-* with visual components, iblai-api-* headless), the /iblai-vibe-start intake, and the @iblai/mcp SDK-docs server.",
+      "category": "development",
+      "keywords": [
+        "ibl.ai",
+        "agents",
+        "sso",
+        "nextjs",
+        "rest-api"
+      ]
+    }
+  ]
+}

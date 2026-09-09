@@ -9,7 +9,7 @@ it produces. Both are enforced by `scripts/check-skill-kinds.mjs`.
 |---|---|---|---|---|---|
 | **`ui`** | `iblai-vibe-*` | Mounts an SDK **visual component** in a Next.js app (a page, a tab, a dialog, a widget) | Files in your app: routes, components, providers; a screen you can screenshot | The signed-in user's session (SSO) in the browser; `IBLAI_API_KEY` only in server routes | 53 |
 | **`api`** | `iblai-api-*` (and three `iblai-vibe-*` that drive an API without a screen) | Operates the platform **headlessly** — exact REST endpoints (method, URL, body, errors), `curl` first | Nothing in your app unless you want it: the endpoint contract, a script, a CI job, a server route | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`; org key; username | 51 |
-| **`guide`** | either | Orients and decides — an index, a decision page, a reference. Builds nothing | A pointer to the skill that builds | — | 12 |
+| **`guide`** | either | Orients and decides — an index, a decision page, a reference. Builds nothing | A pointer to the skill that builds | — | 13 |
 | **`ops`** | `iblai-vibe-ops-*` and friends | Runs, tests, builds, deploys, releases, upgrades, polishes | Builds, URLs, store submissions, a refreshed project | `IBLAI_API_KEY` for deploys | 11 |
 | **`security`** | `iblai-vibe-security-*` | Authorized-use security work unrelated to the platform | Reports | — | 8 |
 

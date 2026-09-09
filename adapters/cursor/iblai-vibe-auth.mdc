@@ -22,6 +22,24 @@ value (not a placeholder like `your-main-platform`, `your-tenant`, `your-platfor
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
+## Which sign-in architecture? (read first)
+
+Sign-in is the same hosted round trip for every ibl.ai front end
+(`login.<domain>/login?app=…&redirect-to=<origin>&tenant=<org>` → back to
+`/sso-login-complete?data=…`); what differs is **where the org comes from**.
+`/iblai-vibe-start` records the answer in `iblai.env` as `ARCHITECTURE=`;
+if it is missing, ask one question before writing files:
+
+| `ARCHITECTURE` | The app is for | Org key | This skill does |
+|---|---|---|---|
+| `single-org` *(default)* | members of one organization — yours, or the customer you deploy to | pinned: `NEXT_PUBLIC_MAIN_TENANT_KEY` (never `main`) | everything below as written |
+| `multi-org` | users who belong to many organizations (the os.ibl.ai model) | from the URL (`/platform/[org]/…`) plus a switcher; `NEXT_PUBLIC_MAIN_TENANT_KEY=main` is the community org | everything below, then **Going multi-org** at the end |
+| `headless` | nobody signs in — scripts, CI, a backend | `IBLAI_ORG` per call | not this skill: `/iblai-api-login` and the `iblai-api-*` family |
+
+The parameters, tokens, anonymous access, tenant switching, native shells,
+and the OS's implementation are in
+[docs/auth-model.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/auth-model.md).
+
 ## Step 0: Start from vibe-starter? (new projects)
 
 Before running this skill, ask the user:
@@ -374,3 +392,27 @@ For a complete reference app with auth, navbar, and pages already wired:
   https://github.com/iblai/vibe/tree/main/skills/iblai-vibe-ops-init/assets/vibe-starter
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
+
+## Going multi-org (`ARCHITECTURE=multi-org`)
+
+Five moves, all with SDK pieces vibe-starter already imports — the full
+version is `providers/index.tsx` in [iblai/os](https://github.com/iblai/os):
+
+1. **Org in the URL** — `app/platform/[tenantKey]/…`; read it with
+   `useParams()`; keep `resolveAppTenant()` for the default org.
+2. **Providers** — `TenantProvider currentTenant={stored} requestedTenant={fromRoute}`
+   with `saveUserTokens`, `saveUserTenants`, `saveCurrentTenant`, `saveTenant`
+   implemented (the starter's `iblai-providers.tsx` already has them).
+3. **Switching** — `UserProfileDropdown showTenantSwitcher` (or `TenantSwitcher`)
+   → `handleTenantSwitch(org, { authUrl })` from `@iblai/iblai-js/web-utils`:
+   clears storage, re-enters the SPA with `tenant=`, broadcasts to other tabs.
+4. **Anonymous per agent** — in `AuthProvider`'s `middleware`, for
+   `^/platform/([^/]+)/([^/]+)` fetch the agent's public settings
+   (`useLazyGetMentorPublicSettingsQuery`) and return `false` when
+   `allow_anonymous` or `mentor_visibility === "viewable_by_anyone"`.
+5. **Landing path guard** — after SSO, reset to `/` when the stored path
+   names an org other than the one just authenticated
+   (`resolveRedirectPath` on `SsoLogin`).
+
+Register every deployed origin as an allowed redirect origin, exactly as for
+a single-org app.

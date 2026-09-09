@@ -36,7 +36,17 @@ import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 
 const storageService = LocalStorageService.getInstance();
 
-/** Routes that do NOT require authentication. */
+/**
+ * Routes that do NOT require authentication (`false` = public).
+ *
+ * This app is a single-organization app (docs/auth-model.md, architecture A):
+ * everything is for signed-in members of NEXT_PUBLIC_MAIN_TENANT_KEY. To open
+ * one agent to the public, add its route here and mark the agent
+ * `allow_anonymous` in its settings — e.g.
+ *   [new RegExp("^/public"), async () => false],
+ * The OS's per-agent rule (fetch the agent's public settings and decide from
+ * `allow_anonymous` / `mentor_visibility`) is the general form.
+ */
 const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
   [new RegExp("^/sso-login"), async () => false],
 ]);

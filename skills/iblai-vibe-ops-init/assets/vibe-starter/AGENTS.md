@@ -13,10 +13,22 @@ preferences, an admin area (users, analytics, billing, memory, organization)
 that only org admins see, typed per-user and per-org settings on the
 platform, and a first-run `/setup`.
 
+## Decisions (from /iblai-vibe-start)
+
+Read `iblai.env` for `PROJECT`, `ARCHITECTURE`, `ACCESS`, `DOMAIN_FOCUS`;
+if they are missing, run `/iblai-vibe-start` before substantial work and
+record the answers here:
+
+- Project: new
+- Architecture: single-org — this app is pinned to one organization (`NEXT_PUBLIC_MAIN_TENANT_KEY`); members sign in with SSO; the server holds that org's Platform API Token. Multi-org: `/iblai-vibe-auth` → "Going multi-org".
+- Access: members (add a public agent route to `PUBLIC_ROUTES` + `allow_anonymous` for `public`)
+- Focus: users, agents
+
 ## Start here — what the user says → what to do
 
 | The user says… | Do this |
 |---|---|
+| "who signs in", "one org or many", "make it multi-tenant", "public agent" | `/iblai-vibe-start` (re-run to change the decisions above); mechanics in the vibe repo's `docs/auth-model.md` |
 | "chat", "the agent", "assistant" | Already on `/`. No agent yet? An admin runs `/setup` (pick or create). Customize with `/iblai-vibe-agent-chat`. |
 | "create an agent", "another agent" | `/iblai-vibe-agent-create` → then `/iblai-vibe-agent-setting` and the tabs in `/iblai-vibe-agent` |
 | "users", "admins", "roles", "invite", "who can" | `/iblai-vibe-admin` (User/Admin mode, `/admin/users`), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |

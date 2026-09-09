@@ -18,6 +18,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 
 | The user says… | Do this |
 |---|---|
+| "I want to build…", "start", "where do I start", "add ibl.ai to my project", or describes an app without saying who signs in | `/iblai-vibe-start` — four questions (new/existing · single-org/multi-org/headless · members/public · users/memories/agents/organizations), recorded in `iblai.env` as `PROJECT`, `ARCHITECTURE`, `ACCESS`, `DOMAIN_FOCUS`; every later skill reads them |
 | "new app", "start a project", "scaffold" | `/iblai-vibe-ops-init` — copies vibe-starter, asks only for the org key and a Platform API Token (refuses `main`), verifies both, writes the env files |
 | "chat", "talk to the agent", "assistant" | The starter's `/` already chats; it needs an agent — `/setup` (pick or create) or `/iblai-vibe-agent-create`; customize with `/iblai-vibe-agent-chat` |
 | "create an agent", "another agent" | `/iblai-vibe-agent-create` ★ → `/iblai-vibe-agent-setting` ★; every tab via `/iblai-vibe-agent` |
@@ -47,6 +48,22 @@ UUID, never invent one; never print a token; the generated app lives in the
 current directory. Terms: *organization (org)*, *org key*, *agent*, *member*,
 *admin* — see [docs/glossary.md](docs/glossary.md); keep wire names
 (`platform_key`, `mentor`, `tenant`) verbatim in code.
+
+## The three architectures (decide once, in `/iblai-vibe-start`)
+
+| `ARCHITECTURE` | Who signs in | Org key | What vibe gives you |
+|---|---|---|---|
+| **single-org** (most apps) | members of one organization; `tenant=<org>` on every sign-in; a non-member is refused (or pays to join) | pinned `NEXT_PUBLIC_MAIN_TENANT_KEY`; one server-to-server `IBLAI_API_KEY` | vibe-starter as shipped |
+| **multi-org** (the os.ibl.ai model) | users of many organizations; org from the URL; switcher; re-auth per org; anonymous per agent | `main` as the community org + the route param | `/iblai-vibe-auth` → "Going multi-org"; the OS as reference |
+| **headless** | nobody; scripts, CI, a backend | `IBLAI_ORG` per call | `/iblai-api-login` + the `api` family |
+
+Sign-in mechanics (the `app` / `redirect-to` / `tenant` / `logout` parameters,
+`data=` on return, `AuthProvider` middleware for public routes,
+`TenantProvider` re-auth and `saveUserTokens`, visiting tenants, tenant lock,
+native return schemes): [docs/auth-model.md](docs/auth-model.md). The entities
+apps are built on — users (profile, metadata, memories), agents (settings and
+tabs), organizations (metadata, people, billing) — hook by hook:
+[docs/domain-model.md](docs/domain-model.md).
 
 ## The platform lifecycle in ten lines
 
@@ -218,6 +235,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 
 | Skill | Description |
 |-------|-------------|
+| `/iblai-vibe-start` | The first conversation: four questions that set architecture, access, and focus |
 | `/iblai-vibe` | Start here — what you want → which skill |
 | `/iblai-vibe-ops-init` | New project from vibe-starter; credentials ladder; writes the project CLAUDE.md |
 | `/iblai-vibe-auth` | SSO auth for an existing Next.js app (providers, store, `lib/iblai/*`) |
@@ -312,7 +330,7 @@ them: `tutorials/`. The hosted chat MCP server: `mcp/iblai-agent-chat/`.
 
 ## Verifying the SDK surface
 
-`.mcp.json` configures `@iblai/mcp` (`pnpm dlx @iblai/mcp` in pnpm projects).
+`.mcp.json` configures `@iblai/mcp` (`pnpm dlx @iblai/mcp` in pnpm projects); the Claude Code plugin (`.claude-plugin/plugin.json`, marketplace `iblai`) declares the same server.
 Before using a hook or component name, confirm it exists:
 
 ```

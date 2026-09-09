@@ -725,3 +725,29 @@ the headless authoring contract `docs/api-skills.md`, and the historical api
 changelog `docs/api-skills-changelog.md`. `/iblai-api-login` writes both
 credential files (`.env` for the api family, `iblai.env` for the ui family).
 References in this plan to "`iblai/api`" as a separate repo are historical.
+
+## 10. Addendum — the first conversation, the three architectures, and the plugin (2026-09-08)
+
+- **`/iblai-vibe-start`** is now the entry point: new/existing · single-org /
+  multi-org / headless · members / public · users / memories / agents /
+  organizations → `iblai.env` (`PROJECT`, `ARCHITECTURE`, `ACCESS`,
+  `DOMAIN_FOCUS`) and a `## Decisions` block in the project CLAUDE.md. ops-init
+  runs it first; auth reads `ARCHITECTURE`.
+- **`docs/auth-model.md`** documents the sign-in round trip the OS uses
+  (`app`, `redirect-to`, `tenant`, `logout`; `data=` on return; `AuthProvider`
+  middleware for public/anonymous agents; `TenantProvider` re-auth and
+  `saveUserTokens`; tenant switching and the shared lock; visiting tenants;
+  tenant-locked Tauri builds; mobile return schemes; `/api/auth-redirect`), the
+  three architectures side by side, the OS pattern for going multi-org, and
+  where each concern lives in vibe-starter. `/iblai-vibe-auth` carries the
+  decision table and a "Going multi-org" section.
+- **`docs/domain-model.md`** puts users (profile, custom metadata, memories,
+  roles), agents (settings + tabs, memory, analytics), and organizations
+  (metadata, people, billing) side by side with the SDK hook, the `ui` skill,
+  and the `api` skill for each, and maps them onto vibe-starter's routes.
+- **Claude Code plugin**: `.claude-plugin/plugin.json` + `marketplace.json`
+  (`/plugin marketplace add iblai/vibe`, `/plugin install iblai-vibe@iblai`)
+  — all 136 skills plus the `@iblai/mcp` server; `claude plugin validate .` passes.
+- vibe-starter: the e2e sign-in setup no longer assumes `app=agent`;
+  `PUBLIC_ROUTES` and `tenant.ts` document the single-org architecture and how
+  to open a public agent; `iblai.env.example` carries the decision keys.
