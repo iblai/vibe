@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-navbar
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add a responsive top navigation bar with:
 - **Left:** Logo + page links
 - **Right:** Notification bell + user profile dropdown

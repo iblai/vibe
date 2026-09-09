@@ -3,6 +3,15 @@
 Shared setup, conventions, and pre-flight checks referenced by ibl.ai
 skills. Each skill links here instead of repeating this boilerplate.
 
+## Pre-flight (every skill)
+
+If `iblai.env` does not record `ARCHITECTURE=` (and `PROJECT=`, `ACCESS=`,
+`DOMAIN_FOCUS=`), stop and run `/iblai-vibe-start` — four questions that
+decide new/existing, single-org / multi-org / headless, who signs in, and
+what the app is about. Then continue. This is the same in Claude Code,
+OpenAI Codex, Cursor, and OpenCode: the answers live in the project, not in
+the agent.
+
 ## Conventions
 
 - Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK

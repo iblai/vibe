@@ -1,5 +1,11 @@
 # AGENTS.md
 
+**First message from a user about building on or operating ibl.ai → run the four
+questions in [`skills/iblai-vibe-start/SKILL.md`](skills/iblai-vibe-start/SKILL.md)
+before touching any file**, unless `iblai.env` already records `ARCHITECTURE=`.
+This file is read by OpenAI Codex, Claude Code (via `CLAUDE.md`), and any
+agent that honors `AGENTS.md`; the same rule is in every skill's common setup.
+
 This is **iblai/vibe** — the toolkit for building apps on the
 [ibl.ai](https://ibl.ai) platform and for operating it headlessly. One
 install (`npx skills add iblai/vibe --all`), two skill families:

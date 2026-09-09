@@ -4,6 +4,8 @@
 
 # /iblai-vibe-pricing
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 One page that answers two questions before any billing skill is run:
 
 1. **How does ibl.ai charge *me* (the organization)?**

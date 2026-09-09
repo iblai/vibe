@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-profile
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add user profile features -- a compact avatar dropdown for your navbar and
 a full settings page with sidebar tabs for Basic info, Social links,
 Education (with Credentials and Skills sub-tabs), Experience (with a

@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-admin
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Every app on the platform has two audiences: **members** (they sign in and
 use the app) and **org admins** (they manage users, agents, spend, memory,
 and branding). This skill is the pattern vibe-starter uses for both, and the

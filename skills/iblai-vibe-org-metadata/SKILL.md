@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-org-metadata
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Every organization has **one public metadata object**. The ibl.ai OS keeps
 its own settings there (default agent, help center URL, chat width, feature
 toggles, the sign-in page branding), and your app can keep its own keys

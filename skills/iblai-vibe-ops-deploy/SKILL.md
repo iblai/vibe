@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-ops-deploy
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Deploy your app's frontend through the ibl.ai platform's hosting API. The
 platform holds the Vercel credential for your tenant — you need only the
 `DOMAIN` / `PLATFORM` / `TOKEN` already in `iblai.env`. No Vercel account,

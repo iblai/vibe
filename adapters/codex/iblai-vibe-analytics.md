@@ -4,6 +4,8 @@
 
 # /iblai-vibe-analytics
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add an analytics dashboard with a tabbed layout (`AnalyticsLayout`):
 Overview, Courses, Programs, Users, Topics, Financial, Transcripts,
 Reports. Each tab is a Next.js route under `/analytics/`.

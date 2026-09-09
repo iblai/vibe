@@ -4,6 +4,8 @@
 
 # /iblai-vibe-memory-guide
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Memory is the platform's answer to "make the app remember me". It is one data
 model with three stores, three gates, and three ready-made surfaces. This page
 tells you which to use; the linked skills mount them.

@@ -7,6 +7,8 @@ metadata:
 
 # iblai-api-login
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Connect an organization so the other `iblai-*` skills can call the ibl.ai platform.
 Every API call needs three things — your **org key**, your **username**, and a
 **Platform API Token** — and this skill collects all three and writes them to

@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-agent-create
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 An agent is created with one platform call and returns a `unique_id` — the
 UUID every other agent skill needs. The SDK has no creation component
 (verified against `@iblai/web-containers` 1.16–1.19), so the pattern is a

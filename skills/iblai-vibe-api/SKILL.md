@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-api
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Every `/iblai-vibe-*` skill mounts an SDK component. When none exists for
 what the user wants, do not build a workaround in the browser — call the
 platform's REST API from a Next.js route handler with the org's Platform API

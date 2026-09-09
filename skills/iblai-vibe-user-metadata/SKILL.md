@@ -9,6 +9,8 @@ metadata:
 
 # /iblai-vibe-user-metadata
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Every ibl.ai user carries **one schemaless JSON object per organization**.
 It is the place for everything your app needs to remember about a person
 that is not their profile identity: preferences, flags, onboarding progress,

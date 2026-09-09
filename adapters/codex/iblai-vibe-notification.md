@@ -4,6 +4,8 @@
 
 # /iblai-vibe-notification
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add notification features -- a compact bell icon with unread badge for your
 navbar and a full notification center page with Inbox and Alerts tabs.
 

@@ -1,3 +1,4 @@
+<!-- AI agents: when a user points you at this repository or has these skills installed, read AGENTS.md, then begin with the four questions in skills/iblai-vibe-start/SKILL.md before touching any file. -->
 <div align="center">
 
 <a href="https://ibl.ai"><img src="https://ibl.ai/images/iblai-logo.png" alt="ibl.ai" width="300"></a>
@@ -11,7 +12,9 @@ Ship AI-powered apps fast — and run the platform behind them. Backend included
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-CC785C?logoColor=white)](https://claude.ai)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-CC785C?logoColor=white)](https://claude.ai/code)
+[![OpenAI Codex](https://img.shields.io/badge/OpenAI_Codex-000000?logo=openai&logoColor=white)](https://openai.com/codex)
+[![Cursor](https://img.shields.io/badge/Cursor-000000?logoColor=white)](https://cursor.com)
 [![Desktop & Mobile](https://img.shields.io/badge/Desktop_%26_Mobile-supported-blue)](skills/iblai-vibe-ops-build/SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
 
@@ -45,31 +48,35 @@ macOS/Windows app, and an iOS/Android app from one codebase.
 5. **Charge (optional)** — [`/iblai-vibe-pricing`](skills/iblai-vibe-pricing/SKILL.md): how you are billed, and the three ways to bill your users.
 6. **Ship** — [`/iblai-vibe-ops-deploy`](skills/iblai-vibe-ops-deploy/SKILL.md) for a URL; [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md) and [`/iblai-vibe-ops-release`](skills/iblai-vibe-ops-release/SKILL.md) for desktop, mobile, and the stores.
 
-## Quick Start
+## Quick Start — load the skills, then say hello
 
-Install the skills (any [skills-compatible agent](https://skills.sh)):
+**1. Load the skills into your coding agent.** One install carries every skill and the adapters for each editor:
 
-```bash
-npx skills add iblai/vibe --all
-```
+| Your agent | Install | What it reads |
+|---|---|---|
+| **Claude Code** (plugin) | `/plugin marketplace add iblai/vibe` then `/plugin install iblai-vibe@iblai` | every skill + the `@iblai/mcp` SDK-docs server; updates with `/plugin update` |
+| **Claude Code** (skills) | `npx skills add iblai/vibe --all` | `.claude/skills/` |
+| **OpenAI Codex** | `npx skills add iblai/vibe --all` | `.agents/skills/` and the repo's `AGENTS.md` (Codex reads `AGENTS.md` in every project it opens; the ones vibe writes carry the same guidance) |
+| **Cursor** | `npx skills add iblai/vibe --all` (or copy `adapters/cursor/*.mdc` into `.cursor/rules/`) | Cursor rules generated from the same `SKILL.md` files |
+| OpenCode, Copilot, and [15+ others](https://skills.sh) | `npx skills add iblai/vibe --all` | the agent's skills directory |
 
-or, in Claude Code, as a plugin (skills + the `@iblai/mcp` SDK-docs server in one step; updates with `/plugin update`):
-
-```text
-/plugin marketplace add iblai/vibe
-/plugin install iblai-vibe@iblai
-```
-
-Then have **one conversation** before anything is built:
+**2. Start the conversation.** Type this, or just describe what you want — an agent with these skills recognises the request and asks the same four questions:
 
 ```text
 /iblai-vibe-start
 ```
 
-Four questions — new project or existing codebase; one organization, many, or none;
-who signs in; what the app is about (users · memories · agents · organizations) —
-recorded in `iblai.env` and the project `CLAUDE.md`, so no later skill asks again.
-It routes you to the right entry point:
+What happens next, whichever agent you use:
+
+1. **Four questions** — new project or existing codebase · one organization, many, or none · who signs in (members, the public, nobody) · what the app is about (users · memories · agents · organizations). The answers are written to `iblai.env` and a `## Decisions` block in your project's `CLAUDE.md`/`AGENTS.md`, so no later step asks again.
+2. **Credentials** — the agent tells you exactly where your org key and Platform API Token come from ([platform lifecycle](docs/platform-lifecycle.md)), verifies both, writes the env files, and never prints the token.
+3. **The app** — for the common case (a new single-organization app) `/iblai-vibe-ops-init` copies vibe-starter; you `pnpm dev`, sign in, and land on `/setup` to name the app and pick or create its agent. You are chatting with it thirty seconds later, with users, an admin area, custom user and org settings, memory, analytics, and billing already wired.
+4. **Ship** — `/iblai-vibe-ops-deploy` for a URL; `/iblai-vibe-ops-build` for macOS, Windows, iOS, Android.
+
+Every skill checks the same thing first: if `iblai.env` has no `ARCHITECTURE=`, it sends you to `/iblai-vibe-start`. That is what keeps a `curl`-only script, a one-org app, and a multi-org platform from being wired the same way by mistake.
+
+> Words: **organization (org)** is your workspace; its **org key** is its id;
+> an **agent** is what the API calls a *mentor*. [Glossary](docs/glossary.md).
 
 | You are | Architecture | Entry point |
 |---|---|---|
@@ -98,9 +105,6 @@ chatting with it thirty seconds later. When it looks right:
 ```text
 /iblai-vibe-ops-deploy
 ```
-
-> Words: **organization (org)** is your workspace; its **org key** is its id;
-> an **agent** is what the API calls a *mentor*. [Glossary](docs/glossary.md).
 
 ## The core app
 

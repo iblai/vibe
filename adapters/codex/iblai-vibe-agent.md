@@ -4,6 +4,8 @@
 
 # /iblai-vibe-agent
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Everything about **configuring an agent** lives behind one provider and one
 route layout. Set the provider up once (§1), then mount only the tabs your app
 needs (§2). Most apps need five or six; the rest are there when asked for.
