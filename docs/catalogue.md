@@ -151,7 +151,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-vibe-credit`](../skills/billing/iblai-vibe-credit/SKILL.md) | 🖥️ ui | Add the ibl.ai credit balance widget. |
 | [`/iblai-vibe-monetization`](../skills/billing/iblai-vibe-monetization/SKILL.md) | 📖 guide | Reference and family index for ibl.ai's item-level monetization system |
 | [`/iblai-vibe-monetization-analytics`](../skills/billing/iblai-vibe-monetization-analytics/SKILL.md) | 🖥️ ui | Build custom Platform analytics surfaces |
-| [`/iblai-vibe-monetization-app-paywall`](../skills/billing/iblai-vibe-monetization-app-paywall/SKILL.md) | 🖥️ ui | Put a Stripe "pay to enter" gate on a whole vibe-starter app using the organization's OWN Stripe key via the DM Stripe proxy paywall endp… |
+| [`/iblai-vibe-monetization-app-paywall`](../skills/billing/iblai-vibe-monetization-app-paywall/SKILL.md) | 🖥️ ui | Put a Stripe "pay to enter" gate on a whole app on the organization's OWN Stripe account via the DM Stripe proxy paywall endpoints |
 | [`/iblai-vibe-monetization-checkout`](../skills/billing/iblai-vibe-monetization-checkout/SKILL.md) | 🖥️ ui | Build the buyer-facing PaywallModal, access-check gate, Stripe checkout flow, and public/guest buy surface for ibl.ai's item-level moneti… |
 | [`/iblai-vibe-monetization-configure`](../skills/billing/iblai-vibe-monetization-configure/SKILL.md) | 🖥️ ui | Build the admin MonetizationTab inside the Account page |
 | [`/iblai-vibe-monetization-onboard`](../skills/billing/iblai-vibe-monetization-onboard/SKILL.md) | 🖥️ ui | Build the Stripe Connect Express onboarding surface for Platform sellers |

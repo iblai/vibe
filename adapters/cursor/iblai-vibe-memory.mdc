@@ -47,7 +47,7 @@ profile Memory tab. Same data, admin-scoped.
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- **Memsearch must be enabled for the tenant** — the tab checks the
+- **Memsearch must be enabled for the organization** — the tab checks the
   platform's memsearch status and shows a "feature disabled" notice
   when it is off.
 - The user lists and memory endpoints are RBAC-gated admin endpoints —

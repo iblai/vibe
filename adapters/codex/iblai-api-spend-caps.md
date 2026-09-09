@@ -7,7 +7,7 @@
 Configure and read **LLM spend caps** for an organization. A spend cap is an
 admin-imposed maximum LLM cost enforced at one of three scopes:
 
-- **tenant** — the whole org (one cap per platform).
+- `tenant` — the whole org (one cap per organization).
 - **agent** — one agent (one cap per agent).
 - **user_agent** — one user on one agent (an explicit per-user cap).
 

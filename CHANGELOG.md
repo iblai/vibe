@@ -3,6 +3,18 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [1.26.2] - 2026-09-09
+
+### Documentation
+
+- reconnect sequence, 502 on disconnect, no refresh=1 poll in app-paywall
+
+## [1.26.1] - 2026-09-09
+
+### Documentation
+
+- Connect with Stripe, recorded price and member self-service rail in app-paywall
+
 ## [1.26.0] - 2026-09-03
 
 ### Added
