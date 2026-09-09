@@ -68,7 +68,11 @@ minute; `?refresh=1` reads it now.
     the POST means an account is already connected; `503` (or
     `available: false`) means the instance has not applied the migration yet.
     `DELETE $CONNECT` (204) deauthorizes at Stripe and forgets the link —
-    confirm with the user first.
+    confirm with the user first; a `502` there means Stripe could not
+    confirm it and the link is kept (retry). Reconnect (another account, or
+    the same one after the admin revoked the app on Stripe) = `DELETE`, the
+    `POST` round trip again, then re-record the price (§3b) on the new
+    account.
   - **A pasted key**: the admin adds an integration credential named `stripe`
     in the platform credentials UI, holding a **restricted** key: Stripe
     Dashboard → Developers → API keys → Create restricted key — write on
@@ -183,6 +187,7 @@ platforms seeded before it). The recorded price (§3b) is required here.
 | 409 | `POST $CONNECT` while an account is connected | `GET $CONNECT` shows it; `DELETE` first to link another |
 | 429 | Stripe rate limit (passed through) | Wait `Retry-After` seconds, retry |
 | 502 | Stripe rejected the source (key or connected account) | Admin re-saves a valid restricted key, or reconnects |
+| 502 | `DELETE $CONNECT` while Stripe is unreachable or failing | Still connected; retry the disconnect |
 | 503 | `$CONNECT` before the instance applied its migration (`available: false`) | Ops; a pasted key works meanwhile |
 
 ## Setup verify

@@ -82,8 +82,14 @@ and `AUTH="Authorization: Api-Token $TOKEN"`:
      open `authorize_url` in the browser; the admin signs in to Stripe (or
      creates an account there) and clicks Connect; Stripe returns through the
      platform to `return_url?stripe_connect=connected` (or
-     `…=error&reason=<code>`); re-run `GET $CONNECT?refresh=1` until
-     `connected`. The other way stays: a platform admin adds an integration
+     `…=error&reason=<code>`); re-run `GET $CONNECT` until `connected`
+     (plain — not `?refresh=1` in a loop, that read holds a worker on a
+     Stripe call; use it once afterwards if the snapshot matters).
+     Reconnect (another Stripe account, or the same one after the admin
+     revoked the app on Stripe): `DELETE $CONNECT` (confirm first; a `502`
+     means Stripe could not confirm it and the link is kept — retry), then
+     the same `POST` round trip, then re-record the price (item 5) on the
+     new account. The other way stays: a platform admin adds an integration
      credential named `stripe` in the platform credentials UI, holding a
      **restricted** key: Stripe Dashboard → Developers → API keys → Create
      restricted key — write on Products, Prices, Checkout Sessions,
