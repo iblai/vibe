@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.1] - 2026-09-10
+
+### Documentation
+
+- available means a new Stripe connect can start, not that the backend is migrated
+
 ## [2.0.0] - 2026-09-09
 
 ### Added
