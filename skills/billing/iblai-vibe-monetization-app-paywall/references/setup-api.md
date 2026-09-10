@@ -44,6 +44,13 @@ stripe_account}` plus, when connected, the account snapshot (`account_id`,
 `connected_at`, `stale`). The snapshot is read from Stripe at most once a
 minute; `?refresh=1` reads it now.
 
+`available` answers one narrow question — whether a **new** Connect with Stripe
+can be started on this backend — so `available: false` with `connected: true` is
+a real combination and not an error: an organization whose account is already
+linked keeps its working payments proxy, and only starting over is unavailable.
+Read `source` for what the proxy runs on, and `available` only before offering
+the Connect button.
+
 - `source: "key"` → a pasted `stripe` credential runs the proxy (it wins over
   a connected account). `source: "connected"` → the linked account runs it.
 - `source: null` → nothing yet. Two ways, the admin's choice:
@@ -66,7 +73,10 @@ minute; `?refresh=1` reads it now.
     (that Stripe account is linked to another organization), `not_configured`
     (the instance has no Connect credential), `stripe_unreachable`. `409` on
     the POST means an account is already connected; `503` (or
-    `available: false`) means the instance has not applied the migration yet.
+    `available: false`) means the backend has nowhere to keep the OAuth state,
+    so it needs an operator (a migration, or a cache it can actually write to) —
+    tell the admin that, do not retry, and note that an already-linked
+    organization still works meanwhile (`connected: true`).
     `DELETE $CONNECT` (204) deauthorizes at Stripe and forgets the link —
     confirm with the user first; a `502` there means Stripe could not
     confirm it and the link is kept (retry). Reconnect (another account, or
@@ -188,7 +198,7 @@ organizations seeded before it). The recorded price (§3b) is required here.
 | 429 | Stripe rate limit (passed through) | Wait `Retry-After` seconds, retry |
 | 502 | Stripe rejected the source (key or connected account) | Admin re-saves a valid restricted key, or reconnects |
 | 502 | `DELETE $CONNECT` while Stripe is unreachable or failing | Still connected; retry the disconnect |
-| 503 | `$CONNECT` before the instance applied its migration (`available: false`) | Ops; a pasted key works meanwhile |
+| 503 | `POST $CONNECT` when the backend cannot keep the OAuth state (`available: false`) | Ops; a pasted key, and an account already linked, both work meanwhile |
 
 ## Setup verify
 
