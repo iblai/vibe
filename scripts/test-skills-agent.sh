@@ -27,11 +27,18 @@ skill_path() { ls -d "$ROOT"/skills/*/"$1" 2>/dev/null | head -1; }
 WORK="$ROOT/.skill-tests/agent"
 MAX_TURNS="${MAX_TURNS:-40}"
 AGENT_TIMEOUT="${AGENT_TIMEOUT:-900}"
+# Explicit model for the headless run — a user-level default model the CLI
+# account can't use (or an interactive-only alias) would fail `claude -p`.
+AGENT_MODEL="${AGENT_MODEL:-sonnet}"
 
 fail() { echo "✗ $*" >&2; exit 1; }
 note() { echo "• $*"; }
 
 command -v claude >/dev/null || fail "claude CLI not found (npm i -g @anthropic-ai/claude-code)"
+
+# GNU `timeout` — macOS ships without it; Homebrew coreutils provides `gtimeout`.
+TIMEOUT_BIN="$(command -v timeout || command -v gtimeout || true)"
+[[ -n "$TIMEOUT_BIN" ]] || fail "timeout not found (macOS: brew install coreutils)"
 
 # ---- resolve target skills ----------------------------------------------
 skills=()
@@ -89,8 +96,8 @@ for skill in "${skills[@]}"; do
   prompt="Use the $skill skill to add its feature to this app. Follow the skill exactly. Do not ask questions; use placeholder values wherever a real ID, UUID, or credential is required. Stop when the skill's own verification steps pass or cannot proceed further without real credentials."
   log="$scratch/.agent-run.log"
   note "$skill: running agent (max ${MAX_TURNS} turns, ${AGENT_TIMEOUT}s cap)"
-  if ! (cd "$scratch" && timeout "$AGENT_TIMEOUT" \
-        claude -p "$prompt" --dangerously-skip-permissions --max-turns "$MAX_TURNS" \
+  if ! (cd "$scratch" && "$TIMEOUT_BIN" "$AGENT_TIMEOUT" \
+        claude -p "$prompt" --model "$AGENT_MODEL" --dangerously-skip-permissions --max-turns "$MAX_TURNS" \
         >"$log" 2>&1); then
     echo "✗ $skill: agent run failed or timed out — last 40 lines:"
     tail -40 "$log" | sed 's/^/    /'
