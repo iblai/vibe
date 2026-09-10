@@ -63,8 +63,6 @@ organization — free to start. Want the details of every step?
 
 ## What you get
 
-![Your app after setup: signed in, chatting with your agent](docs/screenshots/journey/03-starter-home-chat.png)
-
 vibe-starter, the app `/iblai-vibe-start` sets up for the common case:
 
 - **Sign-in** with ibl.ai SSO, pinned to your organization
