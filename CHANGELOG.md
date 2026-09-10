@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.2] - 2026-09-10
+
+### Documentation
+
+- document admin/watcher view in iblai-vibe-history
+
 ## [2.0.1] - 2026-09-10
 
 ### Documentation
