@@ -10,8 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# testing — playwright/.auth holds live session tokens from e2e/auth.setup.ts
 /coverage
+/playwright/
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/

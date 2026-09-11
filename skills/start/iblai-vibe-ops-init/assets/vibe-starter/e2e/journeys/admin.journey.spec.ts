@@ -7,19 +7,47 @@ import { test, expect } from '@playwright/test';
  */
 const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
+/**
+ * A few seconds after first load the app makes a one-time re-auth round trip
+ * through the auth SPA. Navigate during it and you are bounced back to the home
+ * page mid-assertion, so wait until the URL has held still on the app first.
+ */
+async function settleAuth(page: import('@playwright/test').Page) {
+  const deadline = Date.now() + 40_000;
+  let last = page.url();
+  let stableSince = Date.now();
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(500);
+    const now = page.url();
+    if (now !== last || !now.startsWith(appHost)) {
+      last = now;
+      stableSince = Date.now();
+    } else if (Date.now() - stableSince > 5_000) {
+      return;
+    }
+  }
+}
+
 async function isAdmin(page: import('@playwright/test').Page) {
   await page.goto(appHost);
   await page.waitForLoadState('domcontentloaded');
   await page.waitForFunction(() => !!window.localStorage.getItem('tenants'), { timeout: 30_000 });
-  return page.evaluate(() => {
-    try {
-      const tenants = JSON.parse(localStorage.getItem('tenants') ?? '[]');
-      const key = localStorage.getItem('app_tenant');
-      return !!tenants.find((t: any) => t.key === key)?.is_admin;
-    } catch {
-      return false;
-    }
-  });
+  await settleAuth(page);
+  // waitForFunction rather than evaluate: the service worker can still reload
+  // the page here, and a bare evaluate dies with "execution context destroyed".
+  const result = await page.waitForFunction(
+    () => {
+      try {
+        const tenants = JSON.parse(localStorage.getItem('tenants') ?? '[]');
+        const key = localStorage.getItem('app_tenant');
+        return { value: !!tenants.find((t: any) => t.key === key)?.is_admin };
+      } catch {
+        return { value: false };
+      }
+    },
+    { timeout: 30_000 },
+  );
+  return (await result.jsonValue()).value;
 }
 
 test.describe('admin journey', () => {
@@ -38,6 +66,13 @@ test.describe('admin journey', () => {
     await page.goto(`${appHost}/admin/users`);
     await expect(page.getByRole('button', { name: 'Invite user' })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('button', { name: 'Pending invites' })).toBeVisible();
+    // Those two buttons are ours, so they prove nothing about the SDK panel —
+    // assert on what <Account targetTab="management"> itself renders. Passing
+    // `enableRbac` without `rbacPermissions` silently empties this whole panel
+    // while the buttons above stay green (see components/admin/account-panel.tsx).
+    await expect(page.getByRole('tab', { name: 'Users' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('tab', { name: 'Roles' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Email' })).toBeVisible();
   });
 
   test('/admin/analytics renders the tab strip', async ({ page }) => {

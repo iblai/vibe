@@ -30,7 +30,7 @@ Every Tier 0/1 skill has at least one; the journey set below illustrates
 | `02c-os-billing-plan-credits.png` | Billing → Plan & Credits (Free plan) | manual |
 | `02d-os-integrations-llms.png` | Integrations → LLMs with one masked key | manual |
 | `03-starter-home-chat.png` | vibe-starter home chatting with the default agent — the README hero | `scripts/capture-screenshots.mjs` |
-| `03b-starter-home-empty.png` | the "No agent yet" empty state | script |
+| `03b-starter-home-empty.png` | the "No agent yet" empty state | manual (needs an org with no default agent) |
 | `04-starter-setup.png` | `/setup` pick-or-create agent | script |
 | `05-starter-agents.png` | `/agents` | script |
 | `06-starter-profile-preferences.png` | `/profile` with the app preferences card | script |
@@ -42,10 +42,11 @@ Every Tier 0/1 skill has at least one; the journey set below illustrates
 | `12-deploy-ready.png` | terminal: READY + URL (masked) | manual |
 | `13-macos.png`, `13-ios.png`, `13-android.png`, `13-windows.png` | native shells | reuse `skills/ship/iblai-vibe-ops-build/*.png`; capture Windows |
 
-Per-skill screenshots for the new skills: `iblai-vibe-user-metadata-1-preferences.png`,
-`iblai-vibe-user-metadata-2-admin.png`, `iblai-vibe-org-metadata-1-settings.png`,
+The script also copies each shot into the skill that documents it:
+`iblai-vibe-ops-init-1-home.png`, `iblai-vibe-agent-search.png`,
+`iblai-vibe-user-metadata-1-preferences.png`, `iblai-vibe-org-metadata-1-settings.png`,
 `iblai-vibe-admin-{1-user-mode,2-admin-mode,3-users}.png`,
-`iblai-vibe-agent-create-1-dialog.png` — the script writes these too.
+`iblai-vibe-agent-create-1-dialog.png`.
 
 ## Capturing the starter set
 

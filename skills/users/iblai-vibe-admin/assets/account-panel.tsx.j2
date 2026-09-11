@@ -13,6 +13,16 @@ import { resolveAppTenant, readTenants } from "@/lib/iblai/tenant";
  *
  * Tabs: organization · management (Users, Groups, Roles, Policies, Teams,
  * Alerts) · integrations · advanced · billing · memory · monetization.
+ *
+ * `enableRbac` is deliberately NOT passed. It only means anything alongside a
+ * matching `rbacPermissions` object: `checkRbacPermission` returns true when
+ * RBAC is off, but denies everything when it is on and the permissions are
+ * empty — which hides the whole Management tab, admin or not. This app is
+ * single-org and /admin/** is already admin-only (see lib/iblai/admin-mode),
+ * with writes enforced server-side by requireAdmin, so there is nothing left
+ * for RBAC to refine. Going multi-org? Add BOTH halves: load permissions via
+ * TenantProvider's onLoadPlatformPermissions into the `rbac` store slice and
+ * pass them here with `enableRbac`. Never one without the other.
  */
 export function AccountPanel({
   tab,
@@ -64,7 +74,6 @@ export function AccountPanel({
         onInviteClick={onInviteClick ?? (() => {})}
         onClose={() => router.push("/")}
         targetTab={tab}
-        enableRbac
         showPlatformName
         useGravatarPicFallback
       />

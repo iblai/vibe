@@ -204,16 +204,27 @@ get_component_info("Account")
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |
 | `topUpURL` | `string` | Stripe top-up URL -- shows Billing tab |
-| `enableRbac` | `boolean` | Enable RBAC permission checks for Management |
+| `enableRbac` | `boolean` | Turn on RBAC permission checks for Management. **Only ever pass this together with `rbacPermissions`** — see the warning below |
+| `rbacPermissions` | `object` | The caller's effective permissions, from `POST /dm/api/core/rbac/permissions/check/`. Defaults to `{}` |
+| `onLoadGroupPermissions` | `(permissions: object) => void` | Optional; the Teams tab calls it with group-scoped permissions so you can merge them back in |
 | `showPlatformName` | `boolean` | Show platform name badge in sidebar |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no org logo |
+
+> **`enableRbac` without `rbacPermissions` hides Management entirely.**
+> `checkRbacPermission(perms, resource, enableRbac)` returns `true` when RBAC is
+> **off**, but denies everything when it is **on** and the permissions object is
+> empty — so passing the flag alone is strictly worse than omitting it, and the
+> Management tab disappears even for an org admin. Either pass both (load them
+> with `POST rbac/permissions/check/`, see `/iblai-vibe-rbac`) or pass neither.
+> Single-org apps whose admin routes are already admin-gated should pass
+> neither: vibe-starter and the ibl.ai OS's own admin dialog both do.
 
 ## Tabs
 
 | Tab | Requires |
 |-----|---------|
 | **Organization** | `isAdmin === true` |
-| **Management** | RBAC permissions |
+| **Management** | `enableRbac` unset (any admin), or `enableRbac` **plus** a `rbacPermissions` object granting one of `/platforms/<org>/#can_manage_users`, `/groups/#list`, `/roles/#list`, `/policies/#list`, `/usergroups/#list`, `/watchedgroups/#list` |
 | **Integrations** | `isAdmin === true` |
 | **Advanced** | `isAdmin === true` |
 | **Billing** | `billingURL` or `topUpURL` prop set |

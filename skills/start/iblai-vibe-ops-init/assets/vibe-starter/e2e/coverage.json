@@ -8,7 +8,7 @@
     { "id": "M3", "journey": "member", "name": "profile carries the app preferences card", "spec": "journeys/member.journey.spec.ts" },
     { "id": "M4", "journey": "member", "name": "User mode never shows admin links", "spec": "journeys/member.journey.spec.ts" },
     { "id": "D1", "journey": "admin", "name": "admin links toggle with Admin mode", "spec": "journeys/admin.journey.spec.ts" },
-    { "id": "D2", "journey": "admin", "name": "/admin/users has Management + invite actions", "spec": "journeys/admin.journey.spec.ts" },
+    { "id": "D2", "journey": "admin", "name": "/admin/users renders the SDK Management panel (tab strip + member table) and the invite actions", "spec": "journeys/admin.journey.spec.ts" },
     { "id": "D3", "journey": "admin", "name": "/admin/analytics renders the tab strip", "spec": "journeys/admin.journey.spec.ts" },
     { "id": "D4", "journey": "admin", "name": "/admin/organization shows the app settings form", "spec": "journeys/admin.journey.spec.ts" },
     { "id": "D5", "journey": "admin", "name": "/setup asks for the app name first", "spec": "journeys/admin.journey.spec.ts" }

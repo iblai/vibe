@@ -13,7 +13,7 @@ row. `coverage.json` is the machine-readable twin.
 | M3 | member | profile carries the app preferences card | `journeys/member.journey.spec.ts` |
 | M4 | member | User mode never shows admin links; /admin redirects home | `journeys/member.journey.spec.ts` |
 | D1 | admin | admin links toggle with Admin mode | `journeys/admin.journey.spec.ts` |
-| D2 | admin | /admin/users has Management + invite actions | `journeys/admin.journey.spec.ts` |
+| D2 | admin | /admin/users renders the SDK Management panel (tab strip + member table) and the invite actions | `journeys/admin.journey.spec.ts` |
 | D3 | admin | /admin/analytics renders the tab strip | `journeys/admin.journey.spec.ts` |
 | D4 | admin | /admin/organization shows the app settings form | `journeys/admin.journey.spec.ts` |
 | D5 | admin | /setup asks for the app name first | `journeys/admin.journey.spec.ts` |
