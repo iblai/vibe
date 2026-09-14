@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.5] - 2026-09-14
+
+### Fixed
+
+- arm the key guard only for apps that read it; ship no .env* but .env.production
+
 ## [2.0.4] - 2026-09-14
 
 ### Documentation
