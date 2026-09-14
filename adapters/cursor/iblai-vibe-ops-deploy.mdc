@@ -111,21 +111,32 @@ the guards abort the deploy loudly instead of shipping a broken app:
 # 1. Regenerate runtime env from .env.local on every deploy (never stale)
 grep -E '^(NEXT_PUBLIC_[A-Za-z0-9_]+|IBLAI_API_KEY|PAYWALL_[A-Za-z0-9_]+|CSP_MODE)=' .env.local | grep -vE '=$|=your-' > .env.production
 
-# 2. Guard: the server needs its platform key
-grep -q '^IBLAI_API_KEY=' .env.production || { echo "ABORT: IBLAI_API_KEY missing/placeholder — fill it in .env.local"; exit 1; }
+# 2. Guard: the server needs its platform key — but only if this app reads one.
+#    An app that keeps no server-side key (it calls the platform on the signed-in
+#    user's own token) ships no IBLAI_API_KEY and must not be blocked here.
+if grep -rq --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.mjs' \
+     --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=coverage \
+     'IBLAI_API_KEY' . ; then
+  grep -q '^IBLAI_API_KEY=' .env.production || { echo "ABORT: IBLAI_API_KEY missing/placeholder — fill it in .env.local"; exit 1; }
+fi
 
-# 3. Zip the source (src-tauri/target alone would blow the 50 MB cap)
+# 3. Zip the source (src-tauri/target alone would blow the 50 MB cap).
+#    Drop EVERY .env* and add .env.production back by name: naming the ones to
+#    drop ships whatever nobody thought of — '.env*.local' does not match a
+#    stray '.env.local.backup', which carries the platform key into the deploy.
 rm -f app.zip
 zip -qr app.zip . -x 'node_modules/*' '.git/*' '.next/*' 'out/*' 'coverage/*' \
   'playwright-report/*' 'test-results/*' 'src-tauri/target/*' 'src-tauri/gen/*' \
-  '.env*.local' 'iblai.env' 'app.zip'
+  '.env*' 'iblai.env' 'app.zip'
+zip -q app.zip .env.production
 
 # 4. Proof: the runtime env actually made it into the upload
 unzip -l app.zip | grep -q '\.env\.production' || { echo "ABORT: .env.production not in zip"; exit 1; }
 ```
 
-(Skip guard 2 only if this app deliberately has no server-side platform
-key.)
+(Guard 2 decides for itself: it fires only when the app's own source reads
+`IBLAI_API_KEY`. An app that holds no server-side key passes straight
+through — never add one to satisfy it.)
 
 ## Step 3.5: Skip if unchanged
 
