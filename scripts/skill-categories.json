@@ -141,7 +141,21 @@
       "iblai-api-milestone",
       "iblai-api-credential",
       "iblai-api-apply",
-      "iblai-api-canvas-course-builder"
+      "iblai-api-canvas-course-builder",
+      "iblai-api-studio",
+      "iblai-api-studio-auth",
+      "iblai-api-studio-course-create",
+      "iblai-api-studio-section",
+      "iblai-api-studio-subsection",
+      "iblai-api-studio-unit",
+      "iblai-api-studio-html",
+      "iblai-api-studio-pdf",
+      "iblai-api-studio-problem",
+      "iblai-api-studio-settings",
+      "iblai-api-studio-team",
+      "iblai-api-studio-grading",
+      "iblai-api-studio-publish",
+      "iblai-api-studio-lms"
     ],
     "ship": [
       "iblai-vibe-ops-deploy",

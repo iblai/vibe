@@ -31,6 +31,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
+| "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
@@ -319,6 +320,7 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
 | Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply` |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |
+| Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
 | Guides | `ecosystem`, `infrastructure` (self-hosting) |
 
 Authoring contract (Reads/Writes structure, `urls.py` as source of truth, the

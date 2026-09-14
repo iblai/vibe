@@ -14,7 +14,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
-| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 11 |
+| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 25 |
 | [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 11 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
@@ -113,7 +113,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-rbac`](../skills/users/iblai-api-rbac/SKILL.md) | 🔌 api | Manage an ibl.ai organization's RBAC via the platform API |
 | [`/iblai-api-scim`](../skills/users/iblai-api-scim/SKILL.md) | 🔌 api | Provision and manage an ibl.ai organization's directory over the SCIM 2.0 REST API |
 | [`/iblai-vibe-admin`](../skills/users/iblai-vibe-admin/SKILL.md) | 🖥️ ui | Users versus admins in an ibl.ai app |
-| [`/iblai-vibe-history`](../skills/users/iblai-vibe-history/SKILL.md) | 🖥️ ui | Add the user profile History surface (review and export your own conversations with AI agents |
+| [`/iblai-vibe-history`](../skills/users/iblai-vibe-history/SKILL.md) | 🖥️ ui | Add the user profile History surface (review and export conversations with AI agents |
 | [`/iblai-vibe-invite`](../skills/users/iblai-vibe-invite/SKILL.md) | 🖥️ ui | Add user invitation dialogs to your Next.js app |
 | [`/iblai-vibe-memory`](../skills/users/iblai-vibe-memory/SKILL.md) | 🖥️ ui | Add the organization-wide Memory settings surface (manage every user's global memories and every agent's memories from one place |
 | [`/iblai-vibe-memory-guide`](../skills/users/iblai-vibe-memory-guide/SKILL.md) | 📖 guide | What memory means for an ibl.ai app and which surface to mount for which audience |
@@ -181,6 +181,20 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-course-create`](../skills/content/iblai-api-course-create/SKILL.md) | 🔌 api | Programmatically generate, edit, and publish courses via the ibl.ai Course Creation API |
 | [`/iblai-api-credential`](../skills/content/iblai-api-credential/SKILL.md) | 🔌 api | Manage an ibl.ai organization's digital credentials via the platform API |
 | [`/iblai-api-milestone`](../skills/content/iblai-api-milestone/SKILL.md) | 🔌 api | Read and write an ibl.ai organization's catalog milestones via the platform API |
+| [`/iblai-api-studio`](../skills/content/iblai-api-studio/SKILL.md) | 📖 guide | Family index for authoring Open edX courses directly on Studio (studio.learn.iblai.app) and verifying them on the LMS (lms.ibl.ai) from t… |
+| [`/iblai-api-studio-auth`](../skills/content/iblai-api-studio-auth/SKILL.md) | 🔌 api | Sign in to Open edX Studio (studio.learn.iblai.app) and the LMS from a browser window the user controls, capture the session cookies (stu… |
+| [`/iblai-api-studio-course-create`](../skills/content/iblai-api-studio-course-create/SKILL.md) | 🔌 api | Create a course on Open edX Studio (studio.learn.iblai.app) from the terminal |
+| [`/iblai-api-studio-grading`](../skills/content/iblai-api-studio-grading/SKILL.md) | 🔌 api | Read and set an Open edX course's grading policy on Studio |
+| [`/iblai-api-studio-html`](../skills/content/iblai-api-studio-html/SKILL.md) | 🔌 api | Add and edit HTML (text) components in an Open edX unit on Studio |
+| [`/iblai-api-studio-lms`](../skills/content/iblai-api-studio-lms/SKILL.md) | 🔌 api | Verify and operate the LMS side of an Open edX course built on Studio |
+| [`/iblai-api-studio-pdf`](../skills/content/iblai-api-studio-pdf/SKILL.md) | 🔌 api | Add a PDF viewer component to an Open edX unit on Studio |
+| [`/iblai-api-studio-problem`](../skills/content/iblai-api-studio-problem/SKILL.md) | 🔌 api | Add and edit problem (assessment) components in an Open edX unit on Studio |
+| [`/iblai-api-studio-publish`](../skills/content/iblai-api-studio-publish/SKILL.md) | 🔌 api | Publish draft changes of an Open edX course on Studio |
+| [`/iblai-api-studio-section`](../skills/content/iblai-api-studio-section/SKILL.md) | 🔌 api | Manage the top level of an Open edX course outline on Studio |
+| [`/iblai-api-studio-settings`](../skills/content/iblai-api-studio-settings/SKILL.md) | 🔌 api | Read and update an Open edX course's settings on Studio |
+| [`/iblai-api-studio-subsection`](../skills/content/iblai-api-studio-subsection/SKILL.md) | 🔌 api | Manage subsections (sequential blocks) of an Open edX course on Studio |
+| [`/iblai-api-studio-team`](../skills/content/iblai-api-studio-team/SKILL.md) | 🔌 api | Manage an Open edX course team on Studio |
+| [`/iblai-api-studio-unit`](../skills/content/iblai-api-studio-unit/SKILL.md) | 🔌 api | Manage units (vertical blocks) of an Open edX course on Studio |
 | [`/iblai-vibe-application`](../skills/content/iblai-vibe-application/SKILL.md) | 🖥️ ui | Add the platform application gate (admissions) |
 | [`/iblai-vibe-course-access`](../skills/content/iblai-vibe-course-access/SKILL.md) | 🖥️ ui | Add course-content pages (the edX course-viewing UI) to your Next.js app |
 | [`/iblai-vibe-course-create`](../skills/content/iblai-vibe-course-create/SKILL.md) | 🔌 api | Use this skill when a user asks to create, draft, scaffold, generate, or publish a course on ibl.ai / OpenEdX |
@@ -218,4 +232,4 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 137 skills.
+Total: 151 skills.

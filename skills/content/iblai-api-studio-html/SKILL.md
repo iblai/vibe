@@ -1,0 +1,86 @@
+---
+name: iblai-api-studio-html
+description: Add and edit HTML (text) components in an Open edX unit on Studio — create the html block, write its HTML body and title in one update, reference uploaded images and files via /static/ paths, duplicate or delete it, and follow the authoring rules that keep content accessible and renderable in the LMS app. Use when the user wants text, a reading, an explanation, an embedded video/iframe, or any rich content inside a unit. Session auth via studio.env.
+metadata:
+  kind: api
+---
+
+# iblai-api-studio-html
+
+The `html` component is the workhorse of course content: any HTML the user
+should read. Create it, then write `data` (the HTML) and `metadata.display_name`
+(the title). Two calls per component; no editor round-trips.
+
+## Auth & conventions
+
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Snippet:**
+  ```bash
+  set -a; . ./studio.env; set +a
+  S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+     -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+  ```
+- **Keys:** parent = a unit locator (`…+type@vertical+block@…`, from `/iblai-api-studio-unit`); the block is `…+type@html+block@<hex>`.
+- Content is a draft until the unit is published (`/iblai-api-studio-publish`). DELETE is destructive — confirm with the user first.
+
+## Reads
+
+- **GET** `/xblock/{html}` — `{ "id", "display_name", "category": "html", "data": "<html string>", "metadata": { "display_name" }, "published", "has_changes", … }`.
+- **GET** `/api/contentstore/v1/container/vertical/{unit}/children` — the unit's components in order (`block_type: "html"`, `name`, `block_id`).
+
+## Writes
+
+- **POST** `/xblock/` — create an empty text block (appends to the unit):
+  ```json
+  { "parent_locator": "<unit>", "category": "html" }
+  ```
+  → `{ "locator": "…+type@html+block@<hex>", "courseKey": "…" }`.
+  Optional `"boilerplate": "announcement.yaml"` pre-fills an announcement template; `"display_name"` is ignored on create — set it in the update.
+- **POST** `/xblock/{html}` — write the content (this is the whole edit):
+  ```json
+  { "data": "<h3>Why data matters</h3><p>…</p>", "metadata": { "display_name": "Why data matters" } }
+  ```
+  → `{ "id", "data": "<the stored HTML>", "metadata": { "display_name": "…" } }`. `data` replaces the previous body entirely; `metadata` is merged.
+- **POST** `/xblock/` `{ "duplicate_source_locator": "<html>", "parent_locator": "<unit>" }` — copy into the same or another unit.
+- **DELETE** `/xblock/{html}` → `204`. Confirm with the user first.
+
+## Example
+
+```bash
+set -a; . ./studio.env; set +a
+S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+   -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+UNIT="block-v1:acme+DATA101+2026-T1+type@vertical+block@645f5ded5f544adab9fb603c4afc3bac"
+
+HTML=$(curl "${S[@]}" -X POST "$STUDIO_URL/xblock/" -d "{\"parent_locator\":\"$UNIT\",\"category\":\"html\"}" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["locator"])')
+
+# Build the body in a file so quotes and newlines survive; send it as JSON.
+cat > body.html <<'HTML'
+<h3>Why data matters</h3>
+<p>Every decision in this course starts with a question and ends with evidence.</p>
+<img src="/static/decision-loop.png" alt="The question → data → decision loop" width="640">
+<ul><li>Ask</li><li>Measure</li><li>Decide</li></ul>
+HTML
+python3 -c 'import json,sys; print(json.dumps({"data": open("body.html").read(), "metadata": {"display_name": "Why data matters"}}))' \
+  | curl "${S[@]}" -X POST "$STUDIO_URL/xblock/$HTML" -d @-
+```
+
+## Authoring rules (what renders well in the LMS app)
+
+- **Fragment, not a document.** No `<html>`, `<head>`, `<body>`, `<style>` blocks or `<script>`; the block is injected into the page. Inline `style=""` on elements is fine; keep it minimal — the app themes the page.
+- **Headings start at `<h3>`.** The unit and component titles are `h1`/`h2` on the page; use `<h3>`–`<h5>` inside, in order, and prefer `<p>` over `<br>` chains.
+- **Images and files:** upload with `POST /assets/{course_key}/` (see `/iblai-api-studio-settings`) and reference the `portable_url` (`/static/<filename>`). Studio rewrites `/static/…` to the course asset URL in both Studio and LMS; never hard-code the `asset-v1:` URL or the LMS host. Always set `alt` (empty `alt=""` only for decorative images) and `width`/`height` when known.
+- **Video:** YouTube/Vimeo via `<iframe src="https://www.youtube.com/embed/<id>" title="…" allowfullscreen loading="lazy"></iframe>`; wrap in `<div style="aspect-ratio:16/9"><iframe style="width:100%;height:100%" …></iframe></div>` so it scales.
+- **Links:** external links `target="_blank" rel="noopener"`; links to other course pages use the block's `lms_url` from the unit read, or `/jump_to_id/<block_id>` (relative, survives reruns).
+- **Accessibility:** one idea per paragraph, real lists for lists, tables only for tabular data with `<th scope="col">`, sufficient contrast if you color anything, no meaning conveyed by color alone.
+- **Size:** keep a component under ~30 KB of HTML; split long readings into several components or units. Studio stores exactly what you send (no sanitizing of tags, so validate your HTML yourself — an unclosed tag breaks the whole unit's layout).
+- **LaTeX:** `\( … \)` inline and `\[ … \]` display are rendered by MathJax on the LMS.
+- **Localization / RTL:** plain text and standard tags only; the app sets direction.
+
+## Notes
+
+- `display_name` defaults to `"Text"` when never set; give every block a title — it shows in the LMS app's page header and in analytics.
+- Updating `data` on a published block makes the unit `has_changes: true`; republish the unit.
+- The stored HTML is returned verbatim by `GET /xblock/{html}` — read before a partial edit and resend the full body.
+- Boilerplates other than `announcement.yaml` exist upstream (`raw.yaml`, `latex_html.yaml`, `zooming_image.yaml`) but only `announcement.yaml` is verified on this deployment; an unknown name creates a blank block without error.
