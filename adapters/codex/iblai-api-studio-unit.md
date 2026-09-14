@@ -1,0 +1,73 @@
+# iblai-api-studio-unit
+
+> Manage units (vertical blocks) of an Open edX course on Studio — create a unit inside a subsection, list and reorder the components it contains, rename, set staff-only visibility, duplicate, move between subsections, and delete. Use when the user says unit, page, "add a page to the lesson", reorder components, or asks what is inside a unit. Session auth via studio.env; components themselves are added with the html / problem / pdf skills.
+
+# iblai-api-studio-unit
+
+A **unit** (`vertical`) is one user-facing page inside a subsection; it
+holds the components (`html`, `problem`, `pdf`, …). Publishing happens at
+unit level or above. This skill is the container; content goes in with
+`/iblai-api-studio-html`, `/iblai-api-studio-problem`, `/iblai-api-studio-pdf`.
+
+## Auth & conventions
+
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Snippet:**
+  ```bash
+  set -a; . ./studio.env; set +a
+  S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+     -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+  ```
+- **Keys:** parent = a subsection locator (`…+type@sequential+block@…`); a unit is `…+type@vertical+block@<hex>`.
+- Every edit is a draft until `/iblai-api-studio-publish`. DELETE removes the components inside — confirm with the user first.
+
+## Reads
+
+- **GET** `/api/contentstore/v1/container/vertical/{unit}/children` — the components in order:
+  `{ "children": [ { "name", "block_id", "block_type", "actions": {can_copy, can_duplicate, can_move, can_delete, …}, "validation_messages", "render_error", … } ] }`.
+  This is the only JSON listing of a unit's components (`GET /xblock/{unit}` and `/xblock/outline/…` stop at the unit).
+- **GET** `/xblock/{unit}` — the unit itself: `display_name`, `metadata`, `published`, `has_changes`, `visibility_state`, `released_to_students`, `start`, `graded`, `format`, `lms_url` (user deep link), `studio_url`.
+- **GET** `/xblock/container/{unit}` — same plus `ancestor_info.ancestors` (subsection, section, course) and `currently_visible_to_students`.
+- **GET** `/xblock/outline/{subsection}` — units of one subsection with publish state.
+
+## Writes
+
+- **POST** `/xblock/` — create:
+  ```json
+  { "parent_locator": "<subsection>", "category": "vertical", "display_name": "Reading: what is data?" }
+  ```
+  → `{ "locator": "…+type@vertical+block@<hex>", "courseKey": "…" }`.
+- **POST** `/xblock/{unit}` `{ "metadata": { "display_name": "New name" } }` — rename; `{ "metadata": { "visible_to_staff_only": true } }` — hide from users (`false` to show).
+- **POST** `/xblock/{unit}` `{ "children": ["<component A>", "<component B>", …] }` — reorder components (send every current component id in the new order).
+- **PATCH** `/xblock/` `{ "move_source_locator": "<unit>", "parent_locator": "<other subsection>", "target_index": 0 }` — move a unit (or, with a component id, move a component into another unit).
+- **POST** `/xblock/` `{ "duplicate_source_locator": "<unit>", "parent_locator": "<subsection>" }` — duplicate with its components → `{locator, courseKey}`.
+- **DELETE** `/xblock/{unit}` → `204`. Confirm with the user first. (Same call deletes a single component by its locator.)
+- **POST** `/xblock/{unit}` `{ "publish": "make_public" }` — publish this unit (`/iblai-api-studio-publish` for states and discard).
+
+## Example
+
+```bash
+set -a; . ./studio.env; set +a
+S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+   -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+SUB="block-v1:acme+DATA101+2026-T1+type@sequential+block@8b9148c629c54a46b7404a88fcb528d0"
+
+UNIT=$(curl "${S[@]}" -X POST "$STUDIO_URL/xblock/" \
+  -d "{\"parent_locator\":\"$SUB\",\"category\":\"vertical\",\"display_name\":\"Reading\"}" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["locator"])')
+
+# …add components with /iblai-api-studio-html, -problem, -pdf… then list them:
+curl "${S[@]}" "$STUDIO_URL/api/contentstore/v1/container/vertical/$UNIT/children" \
+  | python3 -c 'import sys,json; [print(c["block_type"], c["name"], c["block_id"]) for c in json.load(sys.stdin)["children"]]'
+```
+
+## Notes
+
+- Component locators come back from each create call; keep them instead of
+  re-listing after every addition.
+- A unit with no components publishes fine but renders empty; the LMS app
+  still shows it in the outline.
+- `lms_url` on the unit is the user deep link on the LMS host; the user
+  app equivalent is `$LMS_APP_URL/platform/<org>/course-content/<course_key>/course?unit_id=<unit>`.
+- Duplicating a unit also duplicates any problem inside (new problem ids, same OLX).
+- Next: `/iblai-api-studio-html`, `/iblai-api-studio-problem`, `/iblai-api-studio-pdf`, then `/iblai-api-studio-publish`.
