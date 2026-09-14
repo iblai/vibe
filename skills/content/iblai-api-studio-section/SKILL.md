@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-section
-description: Manage the top level of an Open edX course outline on Studio — create sections (chapter blocks) under the course root, rename them, set release dates and staff-only visibility, reorder them, read the whole outline with publish state, and delete sections. Use when the user says section, week, module, chapter, course outline, "hide this from users", or reorder. Session auth via studio.env.
+description: Manage the top level of an Open edX course outline on Studio — create sections (chapter blocks) under the course root, rename them, set release dates and staff-only visibility, reorder them, read the whole outline with publish state, and delete sections. Use when the user says section, week, module, chapter, course outline, "hide this from users", or reorder. Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 metadata:
   kind: api
 ---

@@ -1,6 +1,6 @@
 # iblai-api-studio-auth
 
-> Sign in to Open edX Studio (studio.learn.iblai.app) and the LMS from a browser window the user controls, capture the session cookies (studio_session_id, sessionid, csrftoken) with the bundled Playwright script, verify them, and write the gitignored studio.env that every /iblai-api-studio-* skill reads; --check validates an existing session in one command. Use first whenever the user wants to author or configure an Open edX course from the terminal, and again when a Studio call answers 302 to /login, 403 CSRF, or an HTML "Studio Server Error" page. Session auth only — no Api-Token, no password handling.
+> Sign in to Open edX Studio (studio.learn.iblai.app) and the LMS from a browser window the user controls, capture the session cookies (studio_session_id, sessionid, csrftoken) with the bundled Playwright script, verify them, and write the gitignored studio.env that every /iblai-api-studio-* skill reads; --check validates an existing session in one command. Use first whenever the user wants to author or configure an Open edX course from the terminal, and again when a Studio call answers 302 to /login, 403 CSRF, or an HTML "Studio Server Error" page. Session auth only — no Api-Token, no password handling. For the build order and the other Studio skills, see /iblai-api-studio.
 
 # iblai-api-studio-auth
 

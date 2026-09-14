@@ -1,5 +1,5 @@
 ---
-description: "Manage units (vertical blocks) of an Open edX course on Studio — create a unit inside a subsection, list and reorder the components it contains, rename, set staff-only visibility, duplicate, move between subsections, and delete. Use when the user says unit, page, \"add a page to the lesson\", reorder components, or asks what is inside a unit. Session auth via studio.env; components themselves are added with the html / problem / pdf skills."
+description: "Manage units (vertical blocks) of an Open edX course on Studio — create a unit inside a subsection, list and reorder the components it contains, rename, set staff-only visibility, duplicate, move between subsections, and delete. Use when the user says unit, page, \"add a page to the lesson\", reorder components, or asks what is inside a unit. Session auth via studio.env; components themselves are added with the html / problem / pdf skills. For the build order and the other Studio skills, see /iblai-api-studio."
 globs:
 alwaysApply: false
 ---

@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-team
-description: Manage an Open edX course team on Studio — list who can edit a course, add a user as staff or instructor by email, change their role, and remove them; check a user's edX roles across courses. Use when the user says course team, add an instructor, give someone edit access, co-author, staff vs admin/instructor, or remove someone from the course. Session auth via studio.env.
+description: Manage an Open edX course team on Studio — list who can edit a course, add a user as staff or instructor by email, change their role, and remove them; check a user's edX roles across courses. Use when the user says course team, add an instructor, give someone edit access, co-author, staff vs admin/instructor, or remove someone from the course. Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 metadata:
   kind: api
 ---

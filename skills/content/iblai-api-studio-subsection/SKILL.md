@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-subsection
-description: Manage subsections (sequential blocks) of an Open edX course on Studio — create them inside a section, rename, set the assignment type (graderType from the grading policy), due date, release date, hide-after-due, staff-only visibility and timed-exam settings, reorder or move them between sections, and delete. Use when the user says subsection, lesson, lecture, assignment, due date, graded, timed exam, or "make this a Homework". Session auth via studio.env.
+description: Manage subsections (sequential blocks) of an Open edX course on Studio — create them inside a section, rename, set the assignment type (graderType from the grading policy), due date, release date, hide-after-due, staff-only visibility and timed-exam settings, reorder or move them between sections, and delete. Use when the user says subsection, lesson, lecture, assignment, due date, graded, timed exam, or "make this a Homework". Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 metadata:
   kind: api
 ---

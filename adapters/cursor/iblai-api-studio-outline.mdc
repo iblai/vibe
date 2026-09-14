@@ -1,5 +1,5 @@
 ---
-description: "Build an entire Open edX course outline on Studio in one request — sections, subsections, units and their text/problem/video components from a JSON spec via the IBL course-creator API (POST /api/v1/ibl/course/create_full_course), which also publishes the result; plus the v1 helpers to list every unit with its components, create/update/publish single blocks, and read a block's content. Use when a course plan is known up front and the user wants it created fast, or to resume a bulk build. Session auth via studio.env; block-by-block edits are the section/subsection/unit/html/problem skills."
+description: "Build an entire Open edX course outline on Studio in one request — sections, subsections, units and their text/problem/video components from a JSON spec via the IBL course-creator API (POST /api/v1/ibl/course/create_full_course), which also publishes the result; plus the v1 helpers to list every unit with its components, create/update/publish single blocks, and read a block's content. Use when a course plan is known up front and the user wants it created fast, or to resume a bulk build. Session auth via studio.env; block-by-block edits are the section/subsection/unit/html/problem skills. For the build order and the other Studio skills, see /iblai-api-studio."
 globs:
 alwaysApply: false
 ---
