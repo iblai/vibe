@@ -97,6 +97,26 @@ config — a legacy backend, an SSO client id tied to one domain, an analytics
 project. A repoint that silently leaves one surface pointing at the old
 environment is worse than one that refuses to.
 
+## Knowing your platform on ibl.ai hosting
+
+An app deployed through the ibl.ai hosting API needs no platform key baked in
+to learn which platform it fronts. Every project the platform creates on
+Vercel exposes Vercel's system environment variables, so a deployment has
+`VERCEL_PROJECT_ID`, and the platform keeps the mapping from that id to the
+platform that deployed it:
+
+```
+GET https://api.<DOMAIN>/dm/api/ai-mentor/providers/vercel/hosting/projects/<VERCEL_PROJECT_ID>/
+200 {"platform_key": "acme"}        404 for any id the platform did not deploy
+```
+
+Public, no credential, cached a minute per id on the platform's side, and
+deliberately unthrottled (Vercel functions share egress IPs across customers).
+Ask once per server instance, at boot — Next.js's `instrumentation.ts`
+`register()` is the place — and treat anything but 200 or 404 as fatal for
+that instance rather than serving a half-configured app. A 404 means the app
+was put on Vercel some other way: fall back to `NEXT_PUBLIC_MAIN_TENANT_KEY`.
+
 ## Related
 
 - Container recipe: [`docker-deploy.md`](docker-deploy.md)
