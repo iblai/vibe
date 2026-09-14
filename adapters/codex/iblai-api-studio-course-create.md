@@ -25,7 +25,21 @@ course-instructor role — use it, not the stock Studio route.
      -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
   ```
 - Course keys in **query strings must be URL-encoded**; in paths they may be raw.
-- Creating registers the course in the catalog at once; deleting is permanent. Confirm both with the user first.
+- Creating registers the course in the catalog at once; deleting is permanent and destroys user data — see the guard rails under Writes. Confirm both with the user first.
+
+## What a good course looks like
+
+The shell you create here is judged by what fills it. Before building, agree
+this shape with the user (details in `/iblai-api-studio` "Planning a
+production-grade outline"):
+
+- **Planned, not improvised.** 3–6 learning objectives; every section serves one; graded work assesses one. Write the outline (sections → subsections → units → components) down first and have the user review it.
+- **An intro and an outro.** First section: welcome, objectives, how the course works, how grading works, syllabus (PDF). Last section: summary, further reading, feedback and next steps. Learners orient at the start and consolidate at the end.
+- **Well labelled.** One naming pattern at every level (`Week 2 · Reading data critically` → `2.1 Distributions` → `Overview` / `Reading` / `Practice` / `Summary`), unit titles that say what the page is, component titles that are never left as "Text" or "Multiple Choice".
+- **A repeatable unit rhythm.** Overview → content (html, video, pdf) → one practice block holding all the unit's questions → summary. Same rhythm in every lesson.
+- **Readable pages.** Short paragraphs with space between them, headings that announce each part, callouts for key ideas, lists for lists, one idea per unit, readings under ~1,500 words, videos under 10 minutes. HTML blocks wrapped in a `<section>` with the spacing rules of `/iblai-api-studio-html`.
+- **Assessment with feedback.** Hints on choices, a solution on every question, formative checks inside lessons, summative work in graded subsections whose type exists in the grading policy.
+- **Configured before it goes live.** Dates, pacing, enrollment window, description and images set (`/iblai-api-studio-settings`), grading policy set, outline complete — then one publish.
 
 ## Reads
 
@@ -60,11 +74,17 @@ course-instructor role — use it, not the stock Studio route.
   and course number…", "OrgErrMsg", "CourseErrMsg"}` — `org+number+run` exists
   (pick a new run, or reuse the existing key).
 
-- **POST** `/api/ibl/manage/course/delete` — delete a course permanently. Confirm with the user first, twice.
+- **POST** `/api/ibl/manage/course/delete` — **DANGER: deletes the course, its content, its users' enrollments and progress, permanently and without undo.** In production this is data loss. Do not run it because it seems convenient; treat it as a last resort that the user must ask for explicitly.
+  Required before calling, all of them:
+  1. The user asked to *delete* (not "remove from catalog", "hide", "archive" — those are `/iblai-api-studio-settings`: `catalog_visibility: "none"`, `visible_to_staff_only` on sections, or an `end_date` in the past).
+  2. `GET /api/ibl/manage/course/?course_key=…` returns the course and its `display_name` matches what the user named; show both to the user.
+  3. Check for enrolled users: `POST $LMS_URL/courses/{COURSE}/instructor/api/get_students_features` (`/iblai-api-studio-lms`) — if anyone besides the author is enrolled, stop and report the count; deletion needs an explicit decision from the user with that number in front of them.
+  4. The user confirms by writing the **full course key** back (not "yes"); on the production host (`studio.learn.iblai.app`) ask a second time.
+  5. Never delete a course you did not create in this session unless the user has done steps 1–4; never delete more than one course per confirmation.
   ```json
-  { "course_key": "course-v1:acme+DATA101+2026-T1", "keep_instructors": false, "remove_assets": false }
+  { "course_key": "course-v1:acme+DATA101+2026-T1", "keep_instructors": true, "remove_assets": false }
   ```
-  → `200 {"message": "course with id: course-v1:… deleted"}`. Needs `org-instructor` for the course's org (or global staff). `404 {"error":"Course key does not exist"}`, `400` for a missing/invalid key, `403` without the role. `remove_assets: true` also purges uploaded files; `keep_instructors: true` leaves the team roles in place.
+  → `200 {"message": "course with id: course-v1:… deleted"}`. Needs `org-instructor` for the course's org (or global staff). `404 {"error":"Course key does not exist"}`, `400` for a missing/invalid key, `403` without the role. Keep `remove_assets: false` (files may be referenced elsewhere) and `keep_instructors: true` unless told otherwise. Report the deletion in the final summary.
 
 - The stock Studio `POST /course/` (`{org, number, run, display_name}`) exists
   but answers `403 "User does not have the permission to create courses in

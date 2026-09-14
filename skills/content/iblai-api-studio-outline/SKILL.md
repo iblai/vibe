@@ -16,8 +16,9 @@ of a hundred.
 
 ## Before you start
 
+0. **This is for new (empty) courses.** The builder appends to the outline and then publishes the *entire* course, drafts included. To add or change one section, lesson, unit or component of an existing course use the individual skills (`/iblai-api-studio-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on one locator and leave everything else untouched.
 1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` must print two `ok`s — otherwise run **`/iblai-api-studio-auth`** first, do not attempt the calls below.
-2. A course key from `/iblai-api-studio-course-create`; the user must be instructor on it (the creator is).
+2. A course key from `/iblai-api-studio-course-create`; the user must be instructor on it (the creator is). Confirm with `GET /xblock/outline/{ROOT}` that `child_info.children` is empty.
 3. **Settings and grading first** (`/iblai-api-studio-settings`, `/iblai-api-studio-grading`): this call publishes, and pacing cannot change after the course start.
 4. The outline planned per `/iblai-api-studio` "Planning a production-grade outline" and reviewed with the user.
 

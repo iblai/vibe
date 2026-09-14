@@ -108,6 +108,15 @@ emphasis inside the component. Wrap every component in one `<section>` (or
 Use `width:100%` only *inside* the component (tables, images, iframes) — it
 means "fill whatever the LMS gives me", not "set the page width".
 
+**Spacing — the difference between a wall of text and a page:**
+- One idea per paragraph, 2–4 sentences; a `<p>` per paragraph, never `<br>` to fake spacing.
+- A heading (`<h3>`/`<h4>`) every 150–300 words; leave the LMS's own heading margins alone.
+- Vertical rhythm with `margin:16px 0` on callouts, tables, images and card grids (`24px 0` before a new `<h3>` block if it follows a dense element).
+- Padding inside boxes (`12px 16px` callouts, `14px` cards, `8px` table cells); nothing inside a box touches its border.
+- Lists for anything enumerable; a blank line's worth of space (`margin-bottom:12px`) after a list before prose resumes.
+- Media on its own line with space around it (`display:block;margin:16px auto;` on images).
+- No empty `<p></p>` or `&nbsp;` spacers — they render inconsistently across devices.
+
 **Images and files:** upload with `POST /assets/{course_key}/` and reference the
 `portable_url` (`/static/<filename>`) — Studio rewrites it on both hosts. Always
 set `alt` (empty `alt=""` for decorative) and `width`/`height` when known.

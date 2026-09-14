@@ -54,13 +54,23 @@ first. Do not start creating anything until this prints two `ok`s and the org ke
 before the start date, and a published-but-empty course is what users see
 in the catalog. Configure, build, review the outline, then publish once.
 
-## Bulk or block by block?
+## Bulk or one block at a time?
+
+Both are first-class; pick by situation, not by convenience:
 
 | Situation | Use |
 |---|---|
-| New course, outline known up front, text + questions | `/iblai-api-studio-outline` — `POST /api/v1/ibl/course/create_full_course` builds and publishes the whole tree in one request (a 5-section course is 1 call instead of ~120) |
-| Adding to or editing an existing course; PDFs; reordering; unpublished drafts | block by block (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) |
-| Both | build the skeleton + text with the bulk call, then add PDFs and edits block by block, then republish |
+| **New course**, outline known up front, text + questions | `/iblai-api-studio-outline` — `POST /api/v1/ibl/course/create_full_course` builds and publishes the whole tree in one request (a 5-section course is 1 call instead of ~120) |
+| **Existing course**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
+| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block, then republish what changed |
+
+Never run the bulk builder against a course that already has content to
+"add a section": it appends **and publishes everything**, including drafts.
+
+**Deleting a course** (`/iblai-api-studio-course-create`) is permanent and
+destroys user enrollments and progress. It is guarded by explicit checks
+in that skill; hiding a course (`/iblai-api-studio-settings`) is almost always
+what is meant.
 
 Budget for block-by-block: 1 call per section/subsection/unit, 2 per html or
 problem block, 4 per pdf block, plus 1 publish. Keep every returned locator
