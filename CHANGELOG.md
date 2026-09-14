@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.4] - 2026-09-14
+
+### Documentation
+
+- document the hosting project → platform read
+
 ## [2.0.3] - 2026-09-11
 
 ### Fixed
