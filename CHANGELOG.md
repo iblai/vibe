@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.0.3] - 2026-09-11
+
+### Fixed
+
+- render the starter's Management panel and replace the placeholder screenshots
+
 ## [2.0.2] - 2026-09-10
 
 ### Documentation
