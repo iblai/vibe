@@ -116,6 +116,7 @@ python3 -c 'import json; print(json.dumps({"data": open("q.xml").read(),
 
 ## Authoring rules
 
+- Questions test the unit's objective, at the unit's level, in the unit's terms; distractors are plausible mistakes, not jokes or throwaways. Questions drafted by a sub-agent are reviewed against the content brief (`/iblai-api-studio` "Content quality") for alignment, difficulty, consistency with the reading and valid OLX before they are posted — the block goes live as written.
 - One `<problem>` root; one `*response` per question, each with its own `<label>` (required) and optional `<description>` (hint under the label). Mix types freely.
 - Every choice gets a `<choicehint>` where feedback helps; every question gets a `<solution>` — formative value comes from the explanation, not the score.
 - `shuffle="true"` on `<choicegroup>`/`<checkboxgroup>` unless option order carries meaning (`fixed="true"` pins "All of the above").

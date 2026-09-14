@@ -104,6 +104,46 @@ before the first request and keep it consistent:
 Write the plan as the JSON spec that `/iblai-api-studio-outline` accepts; it
 doubles as the review artefact for the user before anything is created.
 
+## Content quality — and how to keep sub-agents on the rails
+
+Course content is the product. Every page a user opens must be **well
+written, presentable and beautiful, informative without being distracting,
+well structured and organized, carefully planned and reviewed.** That bar is
+easy to state and easy to lose when writing is split up.
+
+**Sub-agents drift.** When sections or units are delegated to parallel agents,
+the pieces come back with different voices, different heading levels,
+different callout styles, uneven depth (one unit a rich reading, the next
+three sentences), invented terminology, or questions that do not match the
+objectives. Nothing in Studio stops that. Regulate it explicitly:
+
+1. **One content brief, given to every agent verbatim** — course objectives,
+   audience and reading level, tone (second person, plain, no filler), the
+   unit rhythm (overview → content → one practice block → summary), the
+   naming pattern, the HTML patterns allowed (`/iblai-api-studio-html`), the
+   question rules (`/iblai-api-studio-problem`), target length per unit
+   (300–1,200 words of reading, 3–5 questions), and the glossary of terms
+   already defined in earlier units.
+2. **Produce the spec, not the calls.** Sub-agents return JSON fragments for
+   `/iblai-api-studio-outline` (or `data` strings for single blocks); only the
+   coordinating agent posts to Studio, after review. No sub-agent gets
+   `studio.env`.
+3. **Review every fragment against the brief before it is posted:** objective
+   coverage, depth (no unit under ~150 words of real content, no placeholder
+   text, no "in this section we will…" padding), consistent headings and
+   callouts, valid HTML fragment and valid OLX, a title on every block, hints
+   and solutions on every question, terminology consistent with earlier
+   units, nothing that repeats a neighbouring unit. Send thin or divergent
+   pieces back with the specific gap; do not "fix in post" by posting and
+   patching.
+4. **Read the whole course once, in order,** as a user would (the published
+   outline from `/iblai-api-studio-lms`, or the spec end to end) before the
+   first publish. Transitions between sections, an intro that sets
+   expectations, an outro that closes them.
+
+Beautiful means calm: consistent components, generous spacing, one accent
+colour, no decoration that competes with the reading.
+
 ## Keys you will pass around
 
 | Thing | Shape | Where it comes from |

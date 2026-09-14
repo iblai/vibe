@@ -82,6 +82,14 @@ python3 -c 'import json,sys; print(json.dumps({"data": open("body.html").read(),
 
 ## Authoring rules
 
+**The bar:** every block is well written, presentable and beautiful,
+informative without being distracting, structured and reviewed. Written by a
+sub-agent? It must follow the same content brief as every other block
+(`/iblai-api-studio` "Content quality"); review it for voice, depth (no
+placeholder or padding text, no unit under ~150 words of real content),
+heading levels, the same callout/card patterns as its neighbours, and a real
+title — before posting, not after.
+
 **What the LMS owns — never override:** font family, base font size, line
 height, text colour of body copy, and the component's width. No `font-family`,
 `font-size` on body text, `max-width`/`width` on the outer wrapper, no

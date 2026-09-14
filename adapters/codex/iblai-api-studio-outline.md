@@ -18,6 +18,7 @@ of a hundred.
 2. A course key from `/iblai-api-studio-course-create`; the user must be instructor on it (the creator is). Confirm with `GET /xblock/outline/{ROOT}` that `child_info.children` is empty.
 3. **Settings and grading first** (`/iblai-api-studio-settings`, `/iblai-api-studio-grading`): this call publishes, and pacing cannot change after the course start.
 4. The outline planned per `/iblai-api-studio` "Planning a production-grade outline" and reviewed with the user.
+5. If sub-agents wrote parts of the spec: they worked from the same content brief, and every fragment has been reviewed against it (`/iblai-api-studio` "Content quality") — consistent voice and headings, no thin or placeholder units, valid OLX, titles on every block. The builder posts whatever it is given and publishes it; divergent or shallow content goes live verbatim.
 
 ## Auth & conventions
 
