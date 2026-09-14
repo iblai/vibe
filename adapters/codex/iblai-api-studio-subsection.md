@@ -9,9 +9,15 @@ also the grading unit of Open edX: the assignment type and due date live here,
 and a subsection marked with a type from the grading policy is what gets
 graded. Same `/xblock/` endpoints as sections, different metadata.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A section locator from `/iblai-api-studio-section` (or the outline read).
+3. For graded subsections: the assignment type exists in `/iblai-api-studio-grading`, and the course's pacing is decided (`/iblai-api-studio-settings`) — due dates behave differently on self-paced courses.
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

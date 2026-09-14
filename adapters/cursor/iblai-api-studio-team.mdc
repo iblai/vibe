@@ -12,9 +12,15 @@ calls it "Admin"). Members are addressed by **email** and must already have an
 account on the LMS. Org-level access (`org-instructor`, `course-creator`) is
 not managed here — that is `/iblai-api-management`.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A course key; the signed-in user must be an **instructor** on it (the creator is).
+3. The member's account email (they need an LMS account already — `/iblai-api-invite` otherwise).
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

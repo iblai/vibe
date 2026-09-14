@@ -14,7 +14,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
-| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 24 |
+| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 25 |
 | [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 11 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
@@ -186,6 +186,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-studio-grading`](../skills/content/iblai-api-studio-grading/SKILL.md) | 🔌 api | Read and set an Open edX course's grading policy on Studio |
 | [`/iblai-api-studio-html`](../skills/content/iblai-api-studio-html/SKILL.md) | 🔌 api | Add and edit HTML (text) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-lms`](../skills/content/iblai-api-studio-lms/SKILL.md) | 🔌 api | Verify and operate the LMS side of an Open edX course built on Studio |
+| [`/iblai-api-studio-outline`](../skills/content/iblai-api-studio-outline/SKILL.md) | 🔌 api | Build an entire Open edX course outline on Studio in one request |
 | [`/iblai-api-studio-pdf`](../skills/content/iblai-api-studio-pdf/SKILL.md) | 🔌 api | Add a PDF viewer component to an Open edX unit on Studio |
 | [`/iblai-api-studio-problem`](../skills/content/iblai-api-studio-problem/SKILL.md) | 🔌 api | Add and edit problem (assessment) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-publish`](../skills/content/iblai-api-studio-publish/SKILL.md) | 🔌 api | Publish draft changes of an Open edX course on Studio |
@@ -231,4 +232,4 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 150 skills.
+Total: 151 skills.

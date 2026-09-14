@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-course-create
-description: Create a course on Open edX Studio (studio.learn.iblai.app) from the terminal — POST the org key and display name (optionally number and run) to Studio's course-management endpoint and get the course key back; list the user's courses, read a course summary, and derive the course root block for outline work. Use when the user wants a new Open edX course, asks for their course key, or needs to know which courses they can edit. Session auth via studio.env.
+description: Create a course on Open edX Studio (studio.learn.iblai.app) from the terminal — POST the org key and display name (optionally number and run) to Studio's course-management endpoint and get the course key back; list the user's courses, read a course summary, derive the course root block for outline work, and delete a course. Use when the user wants a new Open edX course, asks for their course key, needs to know which courses they can edit, or wants a course removed. Session auth via studio.env; run the auth preflight first.
 metadata:
   kind: api
 ---
@@ -12,19 +12,23 @@ One call, one course key. Studio on ibl.ai exposes a management endpoint that
 also registers the course in the ibl.ai catalog and gives the creator the
 course-instructor role — use it, not the stock Studio route.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s and `studio.env` has `STUDIO_ORG=<org key>`. Anything else → **`/iblai-api-studio-auth`** first; never guess an org key and never use `main`.
+2. The user's roles include `org-instructor` for that org (`GET /api/ibl/users/manage/roles/?username=$STUDIO_USERNAME`); otherwise `/iblai-api-management` grants it.
+3. Agree `number` and `run` with the user — they are part of the key forever.
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL` (`https://studio.learn.iblai.app`; test: `https://studio.learn.iblai.org`).
-- **Auth:** Studio session cookies + CSRF from `studio.env` — run **`/iblai-api-studio-auth`** first.
-- **Snippet used below:**
+- **Base URL:** `$STUDIO_URL`; Studio session cookies + CSRF from `studio.env`.
+- **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
   S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
      -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
   ```
-- **Org key:** `STUDIO_ORG` in `studio.env` (the organization's key, e.g. `acme`) — ask if unset; never invent one and never use `main`.
 - Course keys in **query strings must be URL-encoded**; in paths they may be raw.
-- There is **no delete-course API**. Creating is not reversible from here — confirm the org, number and run with the user first.
+- Creating registers the course in the catalog at once; deleting is permanent. Confirm both with the user first.
 
 ## Reads
 
@@ -59,6 +63,12 @@ course-instructor role — use it, not the stock Studio route.
   and course number…", "OrgErrMsg", "CourseErrMsg"}` — `org+number+run` exists
   (pick a new run, or reuse the existing key).
 
+- **POST** `/api/ibl/manage/course/delete` — delete a course permanently. Confirm with the user first, twice.
+  ```json
+  { "course_key": "course-v1:acme+DATA101+2026-T1", "keep_instructors": false, "remove_assets": false }
+  ```
+  → `200 {"message": "course with id: course-v1:… deleted"}`. Needs `org-instructor` for the course's org (or global staff). `404 {"error":"Course key does not exist"}`, `400` for a missing/invalid key, `403` without the role. `remove_assets: true` also purges uploaded files; `keep_instructors: true` leaves the team roles in place.
+
 - The stock Studio `POST /course/` (`{org, number, run, display_name}`) exists
   but answers `403 "User does not have the permission to create courses in
   this organization"` for org instructors; only use it for global course
@@ -75,17 +85,17 @@ COURSE=$(curl "${S[@]}" -X POST "$STUDIO_URL/api/ibl/manage/course/" \
   -d "{\"org\":\"$STUDIO_ORG\",\"display_name\":\"Intro to Data\",\"number\":\"DATA101\",\"run\":\"2026-T1\"}" \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["course_key"])')
 echo "$COURSE"                                   # course-v1:acme+DATA101+2026-T1
-ROOT="block-v1:${COURSE#course-v1:}+type@course+block@course"   # parent_locator for sections
+ROOT="block-v1:${COURSE#course-v1:}+type@course+block@course"   # parent_locator for sections / the bulk builder
 ```
 
 ## Notes
 
 - Derive the **course root block** as above; it is the `parent_locator` for
-  `/iblai-api-studio-section` and the target for a whole-course publish.
+  `/iblai-api-studio-section` and `/iblai-api-studio-outline`, and the target for a whole-course publish.
 - `number` and `run` become part of the key forever: letters, digits, `.`, `_`, `-`
   only, no spaces. Use a run that encodes the cohort (`2026-T1`, `self-paced`).
 - A new course starts with `start` = `2030-01-01` (never released) and no
-  content: set real dates in `/iblai-api-studio-settings`.
+  content: set real dates, pacing and enrollment window in `/iblai-api-studio-settings` **before** the first publish.
 - Re-running with the same `number`+`run` fails; list first and reuse the key
   if the course already exists.
 - LMS app URL to report: `$LMS_APP_URL/platform/<org>/courses/<course_key>`.

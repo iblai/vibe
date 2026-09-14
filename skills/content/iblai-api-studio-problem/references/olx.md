@@ -4,6 +4,14 @@ Every snippet is a complete `data` value for `POST /xblock/{problem}`. Send it
 with `"nullout": ["markdown"]` and the metadata shown. Question text goes in
 `<label>`; keep the XML well-formed (escape `&lt;` `&gt;` `&amp;`).
 
+**Combine, don't multiply.** A unit gets **one** problem block; put all of its
+questions inside that block as sibling `*response` elements under the single
+`<problem>` root (any mix of the types below). One problem block = one Submit
+button = one graded item. Several problem blocks in a unit force users to
+submit each question separately and list each as its own assignment — avoid
+it. `weight` applies to the block and is split evenly across its questions,
+so `weight = number of questions` gives one point each.
+
 ## Multiple choice (one correct answer)
 
 ```xml

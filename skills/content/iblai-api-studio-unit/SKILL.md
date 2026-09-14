@@ -12,9 +12,15 @@ holds the components (`html`, `problem`, `pdf`, …). Publishing happens at
 unit level or above. This skill is the container; content goes in with
 `/iblai-api-studio-html`, `/iblai-api-studio-problem`, `/iblai-api-studio-pdf`.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A subsection locator from `/iblai-api-studio-subsection` (or `GET /api/v1/ibl/course/{COURSE}/units` from `/iblai-api-studio-outline` for existing units).
+3. Plan the unit's rhythm before adding components (overview → content → one problem block → summary; `/iblai-api-studio`).
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
