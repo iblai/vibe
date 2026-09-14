@@ -14,7 +14,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
-| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 25 |
+| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 24 |
 | [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 11 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
@@ -178,7 +178,6 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-catalog`](../skills/content/iblai-api-catalog/SKILL.md) | 🔌 api | Manage an ibl.ai organization's learning catalog via the platform API |
 | [`/iblai-api-catalog-invitation`](../skills/content/iblai-api-catalog-invitation/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog invitations, licenses, access requests, and content suggestions via the platform API |
 | [`/iblai-api-catalog-media`](../skills/content/iblai-api-catalog-media/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog media resources via the Data Manager API |
-| [`/iblai-api-course-create`](../skills/content/iblai-api-course-create/SKILL.md) | 🔌 api | Programmatically generate, edit, and publish courses via the ibl.ai Course Creation API |
 | [`/iblai-api-credential`](../skills/content/iblai-api-credential/SKILL.md) | 🔌 api | Manage an ibl.ai organization's digital credentials via the platform API |
 | [`/iblai-api-milestone`](../skills/content/iblai-api-milestone/SKILL.md) | 🔌 api | Read and write an ibl.ai organization's catalog milestones via the platform API |
 | [`/iblai-api-studio`](../skills/content/iblai-api-studio/SKILL.md) | 📖 guide | Family index for authoring Open edX courses directly on Studio (studio.learn.iblai.app) and verifying them on the LMS (lms.ibl.ai) from t… |
@@ -232,4 +231,4 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 151 skills.
+Total: 150 skills.

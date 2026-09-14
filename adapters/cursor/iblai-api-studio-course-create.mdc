@@ -88,4 +88,4 @@ ROOT="block-v1:${COURSE#course-v1:}+type@course+block@course"   # parent_locator
 - Re-running with the same `number`+`run` fails; list first and reuse the key
   if the course already exists.
 - LMS app URL to report: `$LMS_APP_URL/platform/<org>/courses/<course_key>`.
-- Headless twin for AI-generated courses: `/iblai-api-course-create`.
+- AI-generated course drafts through the ibl.ai pipeline: `/iblai-vibe-course-create`.
