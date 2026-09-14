@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.1.0] - 2026-09-14
+
+### Added
+
+- add iblai-api-studio family for Open edX Studio course authoring
+
 ## [2.0.5] - 2026-09-14
 
 ### Fixed
