@@ -114,6 +114,31 @@ for u in json.load(sys.stdin)["units"]:
 done
 ```
 
+## After a bulk build — the three fix-up passes
+
+`create_full_course` does not finish the course. Two things it cannot express,
+plus the republish they cause, are always needed before the outline is done.
+Budget for them; they are pure derivation from the spec you already have.
+
+1. **Rename the html components.** The builder titles every `html` block
+   **"Text"** (it ignores `display_name` for html; `problem` blocks keep their
+   `metadata.display_name` and need nothing). Rename them with
+   `POST /api/v1/ibl/xblock/update` — the loop in the Example above does it for
+   a whole course. Leave this out and every reading is called "Text" in the
+   unit header, the breadcrumb and analytics.
+2. **Set the graded subsections.** The spec has **no `graderType` key** —
+   `subsection[]` accepts only `name` and `unit[]`. Every graded subsection is
+   `notgraded` until you `POST /xblock/{subsection}` `{"graderType": "Homework"}`
+   per `/iblai-api-studio-subsection`. Read the tree back with
+   `GET /xblock/outline/{ROOT}` to get the subsection locators.
+3. **Publish again.** The builder publishes at the end of *its* request, so the
+   two passes above leave the course dirty (`has_changes: true`). Finish with
+   `POST /xblock/{ROOT}` `{"publish": "make_public"}` and confirm the root reads
+   `published: true, has_changes: false`.
+
+Verify the finished outline in one read: `GET /xblock/outline/{ROOT}` gives
+`course_graders` plus every subsection's `graded` / `format` and publish state.
+
 ## Bulk edits to an existing course — reconcile
 
 `scripts/reconcile.py` (standard library only) takes the **same spec shape**
@@ -137,6 +162,18 @@ python3 .claude/skills/iblai-api-studio-outline/scripts/reconcile.py spec.json -
   `display_name` on every component (required — it is the match key).
   `problem_type` handled: `html`, `blank`, `multiplechoice`, `dropdown`,
   `video`; `pdf` is skipped with a note (`/iblai-api-studio-pdf`).
+- **Reconciling a course that was bulk-built duplicates every html block unless
+  you rename first.** Components match on `(type, display_name)`, and a spec
+  component with no `display_name` falls back to its `problem_type` — the
+  literal string `"html"`. Live html blocks straight from `create_full_course`
+  are named `"Text"`, so nothing matches: the driver plans a `create` for every
+  reading and leaves the originals as `extra`, and you end up with two copies of
+  each. Adding `display_name` to the spec does not help on its own, because the
+  builder ignored it when it created the blocks. Run fix-up pass 1 above (rename
+  the html blocks to exactly the `display_name` the spec carries) before the
+  first reconcile, or give each component an `"id"` from `build.json`.
+  `problem` blocks are unaffected — their `metadata.display_name` survives the
+  bulk build.
 - Plan lines read `create | update | reorder | grade | delete | extra | publish  <path> [locator]`; `--apply` writes `build.json` (path → locator).
 - Cost: 3 calls for the plan (outline + units + nothing else) plus one `GET`
   per matched component, then one call per change. Rewriting 40 readings ≈ 45
