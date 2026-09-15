@@ -2,10 +2,13 @@
 name: iblai-api-agent-setting
 description: Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, forkable). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-agent-setting
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-agent-setting` mounts the agent Settings tab — this skill is the headless twin (same data, exact endpoints).
 
 Read and write an agent's core settings: identity (name, description, category,
 profile image), discovery/visibility, and capability flags (anonymous, featured,

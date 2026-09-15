@@ -108,7 +108,7 @@ Map to `DOMAIN_FOCUS=…`. Most apps say "users and agents"; that is fine.
 | users | `/iblai-vibe-profile` ★, `/iblai-vibe-user-metadata` ★, `/iblai-vibe-admin` |
 | memories | `/iblai-vibe-memory-guide` ★ |
 | agents | `/iblai-vibe-agent-create` ★ → `/iblai-vibe-agent-setting` ★ → `/iblai-vibe-agent` |
-| organizations | `/iblai-vibe-org-metadata`, `/iblai-vibe-account`, `/iblai-vibe-pricing` |
+| organizations | `/iblai-vibe-org-metadata` ★, `/iblai-vibe-account`, `/iblai-vibe-pricing` |
 
 Always finish with `/iblai-vibe-ops-test` before showing work, and mention
 `/iblai-vibe-ops-deploy` / `/iblai-vibe-ops-build` as the way to ship.

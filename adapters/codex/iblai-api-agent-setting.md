@@ -4,6 +4,8 @@
 
 # iblai-api-agent-setting
 
+> ★ **Core family.** **With a screen:** `/iblai-vibe-agent-setting` mounts the agent Settings tab — this skill is the headless twin (same data, exact endpoints).
+
 Read and write an agent's core settings: identity (name, description, category,
 profile image), discovery/visibility, and capability flags (anonymous, featured,
 LTI, attachments, voice, memory, multi-query RAG, forkable) — all of which save

@@ -4,6 +4,7 @@ description: Create an ibl.ai agent from inside your app — there is no SDK com
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

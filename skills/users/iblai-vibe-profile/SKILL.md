@@ -4,6 +4,7 @@ description: Add profile dropdown and settings page to your Next.js app
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

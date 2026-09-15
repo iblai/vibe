@@ -10,6 +10,72 @@
     "ship",
     "security"
   ],
+  "core": [
+    {
+      "capability": "Custom data per user",
+      "scope": "one schemaless JSON object per user × organization — preferences, flags, onboarding, app state",
+      "ui": [
+        "iblai-vibe-user-metadata"
+      ],
+      "api": [
+        "iblai-api-profile-metadata"
+      ]
+    },
+    {
+      "capability": "The user's own profile",
+      "scope": "account fields, image, education, experience, résumé",
+      "ui": [
+        "iblai-vibe-profile"
+      ],
+      "api": [
+        "iblai-api-profile"
+      ]
+    },
+    {
+      "capability": "Memory",
+      "scope": "user-global · per user × agent (by category) · agent knowledge",
+      "ui": [
+        "iblai-vibe-memory-guide",
+        "iblai-vibe-memory",
+        "iblai-vibe-agent-memory"
+      ],
+      "api": [
+        "iblai-api-agent-memory"
+      ]
+    },
+    {
+      "capability": "Custom data per organization",
+      "scope": "one metadata object per organization (GET-merge-PUT) — branding, feature toggles, defaults",
+      "ui": [
+        "iblai-vibe-org-metadata"
+      ],
+      "api": [
+        "iblai-api-org"
+      ]
+    },
+    {
+      "capability": "Agent configuration",
+      "scope": "create an agent; identity, visibility, capability flags",
+      "ui": [
+        "iblai-vibe-agent-create",
+        "iblai-vibe-agent-setting"
+      ],
+      "api": [
+        "iblai-api-agent-create",
+        "iblai-api-agent-setting"
+      ]
+    },
+    {
+      "capability": "Analytics",
+      "scope": "org-wide or one agent: usage, users, topics, transcripts, costs, audit, reports",
+      "ui": [
+        "iblai-vibe-analytics"
+      ],
+      "api": [
+        "iblai-api-analytics"
+      ]
+    }
+  ],
   "categories": {
     "start": [
       "iblai-vibe",
