@@ -162,18 +162,18 @@ python3 .claude/skills/iblai-api-studio-outline/scripts/reconcile.py spec.json -
   `display_name` on every component (required — it is the match key).
   `problem_type` handled: `html`, `blank`, `multiplechoice`, `dropdown`,
   `video`; `pdf` is skipped with a note (`/iblai-api-studio-pdf`).
-- **Reconciling a course that was bulk-built duplicates every html block unless
-  you rename first.** Components match on `(type, display_name)`, and a spec
-  component with no `display_name` falls back to its `problem_type` — the
-  literal string `"html"`. Live html blocks straight from `create_full_course`
-  are named `"Text"`, so nothing matches: the driver plans a `create` for every
-  reading and leaves the originals as `extra`, and you end up with two copies of
-  each. Adding `display_name` to the spec does not help on its own, because the
-  builder ignored it when it created the blocks. Run fix-up pass 1 above (rename
-  the html blocks to exactly the `display_name` the spec carries) before the
-  first reconcile, or give each component an `"id"` from `build.json`.
-  `problem` blocks are unaffected — their `metadata.display_name` survives the
-  bulk build.
+- **Reconciling a course that was bulk-built.** Components match on
+  `(type, display_name)`, and `create_full_course` leaves every html block
+  named `"Text"`. The driver treats a live block that still carries a default
+  title (`"Text"`, `"Multiple Choice"`, `"Video"`, …) as *unnamed* and adopts it
+  for the next spec component of the same type in that unit, then sets the
+  spec's `display_name` on it — so the first reconcile after a bulk build
+  renames the readings instead of duplicating them (fix-up pass 1 becomes part
+  of the reconcile). Two cautions: the adoption is positional within a unit,
+  so keep the spec's component order equal to the built order until the first
+  reconcile has run; and a spec component with no `display_name` falls back to
+  the literal `problem_type` as its name — always give components a title.
+  Pin a component with an `"id"` from `build.json` when in doubt.
 - Plan lines read `create | update | reorder | grade | delete | extra | publish  <path> [locator]`; `--apply` writes `build.json` (path → locator).
 - Cost: 3 calls for the plan (outline + units + nothing else) plus one `GET`
   per matched component, then one call per change. Rewriting 40 readings ≈ 45

@@ -18,6 +18,7 @@ banner, any asset) go through the assets endpoint first; advanced settings
 2. A course key from `/iblai-api-studio-course-create`.
 3. **Do this before building content and before the first publish.** Three rules that Studio enforces silently:
    - **Pacing is locked once the course has started.** `self_paced` can only change while `start_date` is in the future; after that the endpoint returns `200` and echoes the old value. Decide pacing now. (Workaround for a started course: set `start_date` to a future date, flip `self_paced`, restore `start_date`.)
+     **The lock is evaluated against the `start_date` in the request, not the stored one** — so sending `self_paced` and a past/today `start_date` in the *same* body silently keeps the old pacing, even on a fresh course still sitting at `2030-01-01`. Always send `self_paced` in its own call first, verify the echo, then set the real dates in a second call. (Verified live: `self_paced` + a *future* `start_date` in one body is accepted even on a started course, which is why the workaround above works in two calls; `self_paced` + a past `start_date` in one body applies the date and drops the pacing change.)
    - **Enrollment opens before the course starts:** `enrollment_start` must be earlier than `start_date` (and `enrollment_end`, if set, later than `enrollment_start`).
    - The `/iblai-api-studio-outline` builder publishes the whole course; set dates, description and images first so the catalog never shows a half-configured course.
 

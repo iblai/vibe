@@ -38,6 +38,8 @@ first. Do not start creating anything until this prints two `ok`s and the org ke
 3. /iblai-api-studio-settings        dates, pacing, about page, images, catalog fields — BEFORE any publish
    /iblai-api-studio-grading         assignment types + weights — subsections reference these
 4. /iblai-api-studio-outline         ONE call builds every section/subsection/unit (+ html/problem) and publishes
+   then, always: rename the html blocks (the builder names them all "Text"),
+   set graderType per graded subsection (the spec has no such key), republish
    — or block by block —
    /iblai-api-studio-section · -subsection · -unit    POST /xblock/ {parent_locator, category}
 5. /iblai-api-studio-html            text blocks: data = HTML fragment
@@ -62,7 +64,7 @@ Both are first-class; pick by situation, not by convenience:
 | **New course**, outline known up front, text + questions | `/iblai-api-studio-outline` — `POST /api/v1/ibl/course/create_full_course` builds and publishes the whole tree in one request (a 5-section course is 1 call instead of ~120) |
 | **Existing course, one change**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
 | **Existing course, many changes**: rewrite all readings, add units across lessons, restructure sections | `/iblai-api-studio-outline` "Bulk edits — reconcile": `scripts/reconcile.py` diffs a spec against the live outline and creates/updates/reorders (and, only on request, deletes) idempotently, then publishes what changed |
-| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block or by reconcile, then republish what changed |
+| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block or by reconcile, then republish what changed — the reconcile driver adopts the builder's `"Text"` html blocks on its first run, provided the spec keeps the built component order |
 
 The same block is named three ways across endpoints — `locator`/`id` +
 `display_name` + `category` (stock), `xblock_locator`/`id` + `display_name` +

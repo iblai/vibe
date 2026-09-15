@@ -15,6 +15,14 @@ dropdown, video. Standard library only.
 import argparse, json, re, sys, urllib.parse, urllib.request
 
 CATEGORY = {"html": "html", "blank": "problem", "multiplechoice": "problem", "dropdown": "problem", "video": "video"}
+# Titles Studio gives components that were never named (create_full_course leaves html blocks as "Text").
+# A live block still carrying one of these is treated as unnamed and adopted by the next spec component of
+# the same type, so a bulk-built course reconciles without a rename pass and without duplicates.
+DEFAULT_TITLES = {
+    "html": {"Text", "Raw HTML", "Announcement"},
+    "problem": {"Blank Common Problem", "Blank Advanced Problem", "Multiple Choice", "Checkboxes", "Dropdown", "Numerical Input", "Text Input"},
+    "video": {"Video"},
+}
 
 
 def load_env(path):
@@ -159,6 +167,10 @@ def main():
                         plan.append(f"skip     {cpath}  (problem_type {p['problem_type']} not handled — use the pdf/other skill)"); continue
                     if lc and lc["type"] != cat:
                         lc = None  # same name, different type → create anew
+                    if lc is None:  # adopt the next unnamed live block of this type instead of duplicating it
+                        lc = next((c for c in cextra if c["type"] == cat and c["display_name"] in DEFAULT_TITLES.get(cat, ())), None)
+                        if lc is not None:
+                            cextra.remove(lc)
                     if lc is None:
                         cid = act("create", cpath, "", lambda: st.create(uid, cat, p["name"]))
                         if write: st.update(cid, component_body(p))
