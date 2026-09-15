@@ -19,7 +19,7 @@ should read. Create it, then write `data` (the HTML) and `metadata.display_name`
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
@@ -138,9 +138,13 @@ block's `lms_url` or `/jump_to_id/<block_id>` (relative, survives reruns).
 for tabular data with `<th scope="col">`, ≥ 4.5:1 contrast on anything
 coloured, no meaning by colour alone, headings in order.
 
-**Size and validity:** under ~30 KB per component (split long readings across
-components or units); Studio stores exactly what you send, so validate the
-fragment yourself — one unclosed tag breaks the unit's layout. `\( … \)` /
+**Size and validity:** under ~30 KB per component **including inline SVG and
+any `data:` image URIs** — an inline chart or diagram easily runs to hundreds
+of KB and is the usual way this limit is blown. Upload images and SVGs as
+course assets (`POST /assets/{course_key}/`) and reference `/static/<file>`;
+split long readings across components or units. Studio stores exactly what you
+send, so validate the fragment yourself — one unclosed tag breaks the unit's
+layout. `\( … \)` /
 `\[ … \]` LaTeX is rendered by MathJax.
 
 ## Notes

@@ -58,8 +58,14 @@ Both are first-class; pick by situation, not by convenience:
 | Situation | Use |
 |---|---|
 | **New course**, outline known up front, text + questions | `/iblai-api-studio-outline` — `POST /api/v1/ibl/course/create_full_course` builds and publishes the whole tree in one request (a 5-section course is 1 call instead of ~120) |
-| **Existing course**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
-| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block, then republish what changed |
+| **Existing course, one change**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
+| **Existing course, many changes**: rewrite all readings, add units across lessons, restructure sections | `/iblai-api-studio-outline` "Bulk edits — reconcile": `scripts/reconcile.py` diffs a spec against the live outline and creates/updates/reorders (and, only on request, deletes) idempotently, then publishes what changed |
+| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block or by reconcile, then republish what changed |
+
+The same block is named three ways across endpoints — `locator`/`id` +
+`display_name` + `category` (stock), `xblock_locator`/`id` + `display_name` +
+`type` (v1), `block_id` + `name` + `block_type` (container children). The
+table in `/iblai-api-studio-outline` maps them.
 
 Never run the bulk builder against a course that already has content to
 "add a section": it appends **and publishes everything**, including drafts.

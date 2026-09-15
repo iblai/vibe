@@ -29,7 +29,7 @@ there is a reason a user should see them as separate items.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
@@ -110,6 +110,18 @@ python3 -c 'import json; print(json.dumps({"data": open("q.xml").read(),
   "metadata": {"display_name": "Check your understanding", "max_attempts": 3, "weight": 3, "showanswer": "finished"},
   "nullout": ["markdown"]}))' | curl "${S[@]}" -X POST "$STUDIO_URL/xblock/$PROB" -d @-
 ```
+
+## The five response types at a glance
+
+| Type | Element | Answer markup |
+|---|---|---|
+| Multiple choice | `<multiplechoiceresponse>` | `<choicegroup type="MultipleChoice"><choice correct="true">…</choice></choicegroup>` |
+| Checkboxes | `<choiceresponse partial_credit="EDC">` | `<checkboxgroup><choice correct="true">…</choice></checkboxgroup>` |
+| Numerical | `<numericalresponse answer="12.5">` | `<responseparam type="tolerance" default="0.1"/><formulaequationinput/>` |
+| Text | `<stringresponse answer="median" type="ci">` | `<textline size="30"/>` |
+| Dropdown | `<optionresponse>` | `<optioninput><option correct="True">right-skewed</option><option correct="False">symmetric</option></optioninput>` — **nested `<option>` elements; the `options="('a','b')" correct="a"` attribute form is not valid here** |
+
+Full snippets with hints and solutions: `references/olx.md`.
 
 ## Authoring rules
 
