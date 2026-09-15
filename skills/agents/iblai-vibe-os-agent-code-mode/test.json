@@ -1,0 +1,9 @@
+{
+  "_comment": "The Rust modules and the OS chat components are copied verbatim from the OS app and adapted by the reader (their @/ imports are OS-internal), so there is no starter overlay to typecheck; the render gate validates the JSON assets parse and the rest read cleanly.",
+  "render_only": [
+    "assets/tauri/src-tauri/capabilities/mobile-pairing.json",
+    "assets/tauri/src-tauri/permissions/code-mode.toml",
+    "assets/tauri/src-tauri/src/opencode_build_prompt.txt",
+    "assets/nextjs/messages/code-mode.en.json"
+  ]
+}

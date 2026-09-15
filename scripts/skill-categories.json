@@ -33,6 +33,7 @@
       "iblai-vibe-project",
       "iblai-vibe-workflow",
       "iblai-vibe-local-llm",
+      "iblai-vibe-os-agent-code-mode",
       "iblai-vibe-agent-access",
       "iblai-vibe-agent-api",
       "iblai-vibe-agent-audit",

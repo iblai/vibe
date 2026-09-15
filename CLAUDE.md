@@ -31,6 +31,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
+| "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
 | "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
@@ -293,7 +294,8 @@ selling items via Stripe Connect: `/iblai-vibe-monetization-onboard`,
 `/iblai-vibe-monetization-subscription`, `/iblai-vibe-monetization-analytics`), `/iblai-vibe-application` (admissions gate),
 `/iblai-vibe-course-access`, `/iblai-vibe-course-create`,
 `/iblai-vibe-crm-overview`, `/iblai-vibe-workflow`, `/iblai-vibe-onboard`,
-`/iblai-vibe-local-llm`.
+`/iblai-vibe-local-llm`, `/iblai-vibe-os-agent-code-mode` (the OS app's
+agentic Code mode in a Tauri build — opencode, permission cards, phone pairing).
 
 **Tier 4 — ops and polish**: `/iblai-vibe-ops-build` (macOS, Windows, iOS,
 Android via Tauri v2), `/iblai-vibe-ops-release` (App Store / Play),
