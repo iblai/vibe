@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.2.0] - 2026-09-15
+
+### Added
+
+- studio family — prerequisites, bulk outline builder, authoring rules, publish ordering
+
+### Documentation
+
+- guard course deletion, keep individual edits first-class, describe a good course
+
 ## [2.1.0] - 2026-09-14
 
 ### Added
