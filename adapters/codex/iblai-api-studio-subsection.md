@@ -1,6 +1,6 @@
 # iblai-api-studio-subsection
 
-> Manage subsections (sequential blocks) of an Open edX course on Studio — create them inside a section, rename, set the assignment type (graderType from the grading policy), due date, release date, hide-after-due, staff-only visibility and timed-exam settings, reorder or move them between sections, and delete. Use when the user says subsection, lesson, lecture, assignment, due date, graded, timed exam, or "make this a Homework". Session auth via studio.env.
+> Manage subsections (sequential blocks) of an Open edX course on Studio — create them inside a section, rename, set the assignment type (graderType from the grading policy), due date, release date, hide-after-due, staff-only visibility and timed-exam settings, reorder or move them between sections, and delete. Use when the user says subsection, lesson, lecture, assignment, due date, graded, timed exam, or "make this a Homework". Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 
 # iblai-api-studio-subsection
 
@@ -17,7 +17,7 @@ graded. Same `/xblock/` endpoints as sections, different metadata.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

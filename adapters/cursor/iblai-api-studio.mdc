@@ -38,6 +38,8 @@ first. Do not start creating anything until this prints two `ok`s and the org ke
 3. /iblai-api-studio-settings        dates, pacing, about page, images, catalog fields — BEFORE any publish
    /iblai-api-studio-grading         assignment types + weights — subsections reference these
 4. /iblai-api-studio-outline         ONE call builds every section/subsection/unit (+ html/problem) and publishes
+   then, always: rename the html blocks (the builder names them all "Text"),
+   set graderType per graded subsection (the spec has no such key), republish
    — or block by block —
    /iblai-api-studio-section · -subsection · -unit    POST /xblock/ {parent_locator, category}
 5. /iblai-api-studio-html            text blocks: data = HTML fragment
@@ -60,8 +62,14 @@ Both are first-class; pick by situation, not by convenience:
 | Situation | Use |
 |---|---|
 | **New course**, outline known up front, text + questions | `/iblai-api-studio-outline` — `POST /api/v1/ibl/course/create_full_course` builds and publishes the whole tree in one request (a 5-section course is 1 call instead of ~120) |
-| **Existing course**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
-| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block, then republish what changed |
+| **Existing course, one change**: add one section or lesson, insert a unit, fix one component's text, replace a quiz, reorder, rename, hide, delete a single block, work in an unpublished draft | the individual skills (`-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on exactly one block by locator and never touch the rest |
+| **Existing course, many changes**: rewrite all readings, add units across lessons, restructure sections | `/iblai-api-studio-outline` "Bulk edits — reconcile": `scripts/reconcile.py` diffs a spec against the live outline and creates/updates/reorders (and, only on request, deletes) idempotently, then publishes what changed |
+| Both | build the skeleton + text with the bulk call, then add PDFs and later edits block by block or by reconcile, then republish what changed — the reconcile driver adopts the builder's `"Text"` html blocks on its first run, provided the spec keeps the built component order |
+
+The same block is named three ways across endpoints — `locator`/`id` +
+`display_name` + `category` (stock), `xblock_locator`/`id` + `display_name` +
+`type` (v1), `block_id` + `name` + `block_type` (container children). The
+table in `/iblai-api-studio-outline` maps them.
 
 Never run the bulk builder against a course that already has content to
 "add a section": it appends **and publishes everything**, including drafts.
@@ -103,6 +111,46 @@ before the first request and keep it consistent:
 
 Write the plan as the JSON spec that `/iblai-api-studio-outline` accepts; it
 doubles as the review artefact for the user before anything is created.
+
+## Content quality — and how to keep sub-agents on the rails
+
+Course content is the product. Every page a user opens must be **well
+written, presentable and beautiful, informative without being distracting,
+well structured and organized, carefully planned and reviewed.** That bar is
+easy to state and easy to lose when writing is split up.
+
+**Sub-agents drift.** When sections or units are delegated to parallel agents,
+the pieces come back with different voices, different heading levels,
+different callout styles, uneven depth (one unit a rich reading, the next
+three sentences), invented terminology, or questions that do not match the
+objectives. Nothing in Studio stops that. Regulate it explicitly:
+
+1. **One content brief, given to every agent verbatim** — course objectives,
+   audience and reading level, tone (second person, plain, no filler), the
+   unit rhythm (overview → content → one practice block → summary), the
+   naming pattern, the HTML patterns allowed (`/iblai-api-studio-html`), the
+   question rules (`/iblai-api-studio-problem`), target length per unit
+   (300–1,200 words of reading, 3–5 questions), and the glossary of terms
+   already defined in earlier units.
+2. **Produce the spec, not the calls.** Sub-agents return JSON fragments for
+   `/iblai-api-studio-outline` (or `data` strings for single blocks); only the
+   coordinating agent posts to Studio, after review. No sub-agent gets
+   `studio.env`.
+3. **Review every fragment against the brief before it is posted:** objective
+   coverage, depth (no unit under ~150 words of real content, no placeholder
+   text, no "in this section we will…" padding), consistent headings and
+   callouts, valid HTML fragment and valid OLX, a title on every block, hints
+   and solutions on every question, terminology consistent with earlier
+   units, nothing that repeats a neighbouring unit. Send thin or divergent
+   pieces back with the specific gap; do not "fix in post" by posting and
+   patching.
+4. **Read the whole course once, in order,** as a user would (the published
+   outline from `/iblai-api-studio-lms`, or the spec end to end) before the
+   first publish. Transitions between sections, an intro that sets
+   expectations, an outro that closes them.
+
+Beautiful means calm: consistent components, generous spacing, one accent
+colour, no decoration that competes with the reading.
 
 ## Keys you will pass around
 

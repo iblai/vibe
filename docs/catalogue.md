@@ -213,7 +213,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-studio-grading`](../skills/content/iblai-api-studio-grading/SKILL.md) | 🔌 api | Read and set an Open edX course's grading policy on Studio |
 | [`/iblai-api-studio-html`](../skills/content/iblai-api-studio-html/SKILL.md) | 🔌 api | Add and edit HTML (text) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-lms`](../skills/content/iblai-api-studio-lms/SKILL.md) | 🔌 api | Verify and operate the LMS side of an Open edX course built on Studio |
-| [`/iblai-api-studio-outline`](../skills/content/iblai-api-studio-outline/SKILL.md) | 🔌 api | Build an entire Open edX course outline on Studio in one request |
+| [`/iblai-api-studio-outline`](../skills/content/iblai-api-studio-outline/SKILL.md) | 🔌 api | Build or bulk-edit an Open edX course outline on Studio |
 | [`/iblai-api-studio-pdf`](../skills/content/iblai-api-studio-pdf/SKILL.md) | 🔌 api | Add a PDF viewer component to an Open edX unit on Studio |
 | [`/iblai-api-studio-problem`](../skills/content/iblai-api-studio-problem/SKILL.md) | 🔌 api | Add and edit problem (assessment) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-publish`](../skills/content/iblai-api-studio-publish/SKILL.md) | 🔌 api | Publish draft changes of an Open edX course on Studio |

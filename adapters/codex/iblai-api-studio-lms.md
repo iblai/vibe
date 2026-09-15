@@ -19,7 +19,7 @@ edits course content.
 ## Auth & conventions
 
 - **Base URL:** `$LMS_URL` (`https://learn.iblai.app`; test `https://learn.iblai.org`). LMS app: `$LMS_APP_URL`.
-- **Auth:** LMS session cookies from `studio.env`.
+- **Auth:** LMS session cookies from `studio.env` (values single-quoted — strip them in any non-bash parser: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

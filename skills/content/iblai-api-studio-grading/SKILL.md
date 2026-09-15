@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-grading
-description: Read and set an Open edX course's grading policy on Studio — assignment types (Homework, Lab, Exam…) with min_count, drop_count, short_label and weight, the letter-grade cutoffs, grace period and minimum credit grade; replace the whole policy or edit one assignment type. Use when the user says grading policy, assignment types, weights, pass mark, letter grades, drop the lowest, grace period, or "how is the course graded". Session auth via studio.env.
+description: Read and set an Open edX course's grading policy on Studio — assignment types (Homework, Lab, Exam…) with min_count, drop_count, short_label and weight, the letter-grade cutoffs, grace period and minimum credit grade; replace the whole policy or edit one assignment type. Use when the user says grading policy, assignment types, weights, pass mark, letter grades, drop the lowest, grace period, or "how is the course graded". Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 metadata:
   kind: api
 ---
@@ -21,7 +21,7 @@ patch one grader by index.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

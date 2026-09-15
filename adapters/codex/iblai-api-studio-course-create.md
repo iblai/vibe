@@ -17,7 +17,7 @@ course-instructor role — use it, not the stock Studio route.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies + CSRF from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies + CSRF from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
@@ -39,6 +39,7 @@ production-grade outline"):
 - **A repeatable unit rhythm.** Overview → content (html, video, pdf) → one practice block holding all the unit's questions → summary. Same rhythm in every lesson.
 - **Readable pages.** Short paragraphs with space between them, headings that announce each part, callouts for key ideas, lists for lists, one idea per unit, readings under ~1,500 words, videos under 10 minutes. HTML blocks wrapped in a `<section>` with the spacing rules of `/iblai-api-studio-html`.
 - **Assessment with feedback.** Hints on choices, a solution on every question, formative checks inside lessons, summative work in graded subsections whose type exists in the grading policy.
+- **One voice, even when many hands write it.** Sub-agents drafting sections or units diverge in tone, depth and structure unless they share one content brief and every piece is reviewed against it before posting (`/iblai-api-studio` "Content quality"). Well written, presentable, beautiful, informative without distraction, carefully planned and reviewed — for every unit, not on average.
 - **Configured before it goes live.** Dates, pacing, enrollment window, description and images set (`/iblai-api-studio-settings`), grading policy set, outline complete — then one publish.
 
 ## Reads

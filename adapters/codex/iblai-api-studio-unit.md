@@ -1,6 +1,6 @@
 # iblai-api-studio-unit
 
-> Manage units (vertical blocks) of an Open edX course on Studio — create a unit inside a subsection, list and reorder the components it contains, rename, set staff-only visibility, duplicate, move between subsections, and delete. Use when the user says unit, page, "add a page to the lesson", reorder components, or asks what is inside a unit. Session auth via studio.env; components themselves are added with the html / problem / pdf skills.
+> Manage units (vertical blocks) of an Open edX course on Studio — create a unit inside a subsection, list and reorder the components it contains, rename, set staff-only visibility, duplicate, move between subsections, and delete. Use when the user says unit, page, "add a page to the lesson", reorder components, or asks what is inside a unit. Session auth via studio.env; components themselves are added with the html / problem / pdf skills. For the build order and the other Studio skills, see /iblai-api-studio.
 
 # iblai-api-studio-unit
 
@@ -17,7 +17,7 @@ unit level or above. This skill is the container; content goes in with
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
