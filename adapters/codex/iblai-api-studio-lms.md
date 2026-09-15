@@ -10,10 +10,16 @@ captured by `/iblai-api-studio-auth` to make the same calls, so you can prove a
 build is visible, enroll users, and read what they will see. Nothing here
 edits course content.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s (the second one is the LMS session used here); otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. The course is published (`/iblai-api-studio-publish`) and its `enrollment_start` is in the past and before `start_date` (`/iblai-api-studio-settings`) — otherwise enrollment and outline reads legitimately return "not yet".
+3. A course key.
+
 ## Auth & conventions
 
 - **Base URL:** `$LMS_URL` (`https://learn.iblai.app`; test `https://learn.iblai.org`). LMS app: `$LMS_APP_URL`.
-- **Auth:** LMS session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Auth:** LMS session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
@@ -30,7 +36,7 @@ edits course content.
 - **GET** `/api/ibl/enrollment/enroll_status?course_id={CE}` → `{ "is_enrolled", "can_enroll", "invitation_only", "is_admin" }` for the signed-in user.
 - **GET** `/api/enrollment/v1/enrollment/{username},{COURSE}` → `{ "created", "mode": "audit", "is_active", "course_details": { "course_id", "course_name", "enrollment_start", "enrollment_end", "course_start", "course_end", "invite_only", "course_modes": […], "pacing_type" }, "user" }` (own enrollment; `404` when not enrolled).
 - **GET** `/api/ibl/v1/course_metadata?course_key={CE}` — the merged object the LMS app shows on the course page: all `/iblai-api-studio-settings` fields plus `display_name`, `course_price`, `advertised_start`, `display_organization`, `certificate_available`, `course_outline` (published tree). Catalog fields (`subject`, `tags`, `level`, …) read back from here prove the catalog sync.
-- **GET** `/api/courses/v1/courses/{COURSE}` → Open edX course detail: `{ "id", "name", "org", "number", "start", "end", "enrollment_start", "enrollment_end", "pacing": "instructor" | "self", "short_description", "overview", "effort", "media": { "course_image": { "uri" }, "banner_image", "course_video": { "uri": "http://www.youtube.com/watch?v=…" } }, "blocks_url", "hidden", "invitation_only" }`.
+- **GET** `/api/courses/v1/courses/{COURSE}` → Open edX course detail: `{ "id", "name", "org", "number", "start", "end", "enrollment_start", "enrollment_end", "pacing": "instructor" | "self", "short_description", "overview", "effort", "media": { "course_image": { "uri" }, "banner_image", "course_video": { "uri": "http://www.youtube.com/watch?v=…" } }, "blocks_url", "hidden", "invitation_only" }`. On some deployments this returns the shape with `null` values for a freshly built course (cache lag) — treat `course_metadata` above as the source of truth and use this only for `pacing`/`hidden`.
 - **GET** `/api/ibl/completion/course_outline/{COURSE}?course_id={CE}` — the **published** outline as a user sees it, with completion: nested `{ id, block_id, type, display_name, lms_web_url, student_view_url, graded, start, has_score, effort_time, children: […] }` down to units. A unit missing here is unpublished or not yet released.
 - **GET** `/api/courses/v2/blocks/?course_id={CE}&username={user}&depth=all&all_blocks=true&requested_fields=children,graded,format,due,type` → `{ "root", "blocks": { "<usage key>": { "id", "type", "display_name", "lms_web_url", "student_view_url", "children": […] } } }` — every visible block incl. components. `GET /api/courses/v2/blocks/{usage_key}?username={user}&depth=all` for one unit.
 - **GET** `/api/course_home/progress/{COURSE}` → `{ "course_grade": { "percent", "letter_grade", "is_passing" }, "grading_policy": { "assignment_policies": [ { "type", "weight", "num_total", "num_droppable", "short_label" } ], "grade_range" }, "section_scores": [ { "display_name", "subsections": [ { "display_name", "assignment_type", "num_points_earned", "num_points_possible", "problem_scores", "url" } ] } ], "completion_summary", "enrollment_mode", "certificate_data" }` — grading policy and structure as graded.

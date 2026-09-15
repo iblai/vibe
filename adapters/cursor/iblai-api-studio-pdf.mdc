@@ -11,9 +11,15 @@ the course has to list it in `advanced_modules` before Studio will create one,
 and it saves its fields through its own handler, not the generic xblock update.
 Three steps: enable once per course → upload the file → create + save.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A unit locator (`/iblai-api-studio-unit`, or the unit list from `/iblai-api-studio-outline` — the bulk builder cannot create `pdf` blocks, so they are always added here afterwards).
+3. The PDF file on disk (compressed if large).
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

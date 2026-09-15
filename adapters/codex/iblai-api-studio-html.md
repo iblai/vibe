@@ -1,6 +1,6 @@
 # iblai-api-studio-html
 
-> Add and edit HTML (text) components in an Open edX unit on Studio — create the html block, write its HTML body and title in one update, reference uploaded images and files via /static/ paths, duplicate or delete it, and follow the authoring rules that keep content accessible and renderable in the LMS app. Use when the user wants text, a reading, an explanation, an embedded video/iframe, or any rich content inside a unit. Session auth via studio.env.
+> Add and edit HTML (text) components in an Open edX unit on Studio — create the html block, write its HTML body and title in one update, reference uploaded images and files via /static/ paths, duplicate or delete it, and follow the authoring rules that make content look designed (cards, callouts, tables, tooltips via inline CSS) while leaving typography and page width to the LMS. Use when the user wants text, a reading, an explanation, a callout, a comparison table, an embedded video/iframe, or any rich content inside a unit. Session auth via studio.env; run the auth preflight first.
 
 # iblai-api-studio-html
 
@@ -8,21 +8,29 @@ The `html` component is the workhorse of course content: any HTML the user
 should read. Create it, then write `data` (the HTML) and `metadata.display_name`
 (the title). Two calls per component; no editor round-trips.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A unit locator (`…+type@vertical+block@…`) from `/iblai-api-studio-unit` or `/iblai-api-studio-outline`.
+3. If images or files are referenced, upload them first (`POST /assets/{course}/`, `/iblai-api-studio-settings`) and use their `/static/…` paths.
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
   S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
      -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
   ```
-- **Keys:** parent = a unit locator (`…+type@vertical+block@…`, from `/iblai-api-studio-unit`); the block is `…+type@html+block@<hex>`.
+- **Keys:** parent = a unit locator; the block is `…+type@html+block@<hex>`.
 - Content is a draft until the unit is published (`/iblai-api-studio-publish`). DELETE is destructive — confirm with the user first.
+- A `500` HTML page on these calls = malformed session cookie (`/iblai-api-studio-auth`, "Reading failures"), not bad HTML — Studio stores any string.
 
 ## Reads
 
 - **GET** `/xblock/{html}` — `{ "id", "display_name", "category": "html", "data": "<html string>", "metadata": { "display_name" }, "published", "has_changes", … }`.
+- **GET** `/api/v1/ibl/xblock/get-details?locator=<url-encoded html locator>` — `{ "id", "data", "display_name" }` (lighter; `406` for non-html blocks).
 - **GET** `/api/contentstore/v1/container/vertical/{unit}/children` — the unit's components in order (`block_type: "html"`, `name`, `block_id`).
 
 ## Writes
@@ -35,9 +43,10 @@ should read. Create it, then write `data` (the HTML) and `metadata.display_name`
   Optional `"boilerplate": "announcement.yaml"` pre-fills an announcement template; `"display_name"` is ignored on create — set it in the update.
 - **POST** `/xblock/{html}` — write the content (this is the whole edit):
   ```json
-  { "data": "<h3>Why data matters</h3><p>…</p>", "metadata": { "display_name": "Why data matters" } }
+  { "data": "<section>…</section>", "metadata": { "display_name": "Why data matters" } }
   ```
   → `{ "id", "data": "<the stored HTML>", "metadata": { "display_name": "…" } }`. `data` replaces the previous body entirely; `metadata` is merged.
+  (Equivalent v1 route: `POST /api/v1/ibl/xblock/update` `{ "locator", "category": "html", "courseKey", "data", "metadata": { "display_name" } }` → `200`; `/iblai-api-studio-outline`.)
 - **POST** `/xblock/` `{ "duplicate_source_locator": "<html>", "parent_locator": "<unit>" }` — copy into the same or another unit.
 - **DELETE** `/xblock/{html}` → `204`. Confirm with the user first.
 
@@ -54,30 +63,79 @@ HTML=$(curl "${S[@]}" -X POST "$STUDIO_URL/xblock/" -d "{\"parent_locator\":\"$U
 
 # Build the body in a file so quotes and newlines survive; send it as JSON.
 cat > body.html <<'HTML'
-<h3>Why data matters</h3>
-<p>Every decision in this course starts with a question and ends with evidence.</p>
-<img src="/static/decision-loop.png" alt="The question → data → decision loop" width="640">
-<ul><li>Ask</li><li>Measure</li><li>Decide</li></ul>
+<section>
+  <h3>Why data matters</h3>
+  <p>Every decision in this course starts with a question and ends with evidence.</p>
+  <div style="border-left:4px solid #0058cc;background:#f3f7ff;padding:12px 16px;margin:16px 0;border-radius:6px;">
+    <strong>Key idea.</strong> A number without a question is noise; a question without a number is a guess.
+  </div>
+  <img src="/static/decision-loop.png" alt="The question → data → decision loop" width="640">
+  <ol><li>Ask</li><li>Measure</li><li>Decide</li></ol>
+</section>
 HTML
 python3 -c 'import json,sys; print(json.dumps({"data": open("body.html").read(), "metadata": {"display_name": "Why data matters"}}))' \
   | curl "${S[@]}" -X POST "$STUDIO_URL/xblock/$HTML" -d @-
 ```
 
-## Authoring rules (what renders well in the LMS app)
+## Authoring rules
 
-- **Fragment, not a document.** No `<html>`, `<head>`, `<body>`, `<style>` blocks or `<script>`; the block is injected into the page. Inline `style=""` on elements is fine; keep it minimal — the app themes the page.
-- **Headings start at `<h3>`.** The unit and component titles are `h1`/`h2` on the page; use `<h3>`–`<h5>` inside, in order, and prefer `<p>` over `<br>` chains.
-- **Images and files:** upload with `POST /assets/{course_key}/` (see `/iblai-api-studio-settings`) and reference the `portable_url` (`/static/<filename>`). Studio rewrites `/static/…` to the course asset URL in both Studio and LMS; never hard-code the `asset-v1:` URL or the LMS host. Always set `alt` (empty `alt=""` only for decorative images) and `width`/`height` when known.
-- **Video:** YouTube/Vimeo via `<iframe src="https://www.youtube.com/embed/<id>" title="…" allowfullscreen loading="lazy"></iframe>`; wrap in `<div style="aspect-ratio:16/9"><iframe style="width:100%;height:100%" …></iframe></div>` so it scales.
-- **Links:** external links `target="_blank" rel="noopener"`; links to other course pages use the block's `lms_url` from the unit read, or `/jump_to_id/<block_id>` (relative, survives reruns).
-- **Accessibility:** one idea per paragraph, real lists for lists, tables only for tabular data with `<th scope="col">`, sufficient contrast if you color anything, no meaning conveyed by color alone.
-- **Size:** keep a component under ~30 KB of HTML; split long readings into several components or units. Studio stores exactly what you send (no sanitizing of tags, so validate your HTML yourself — an unclosed tag breaks the whole unit's layout).
-- **LaTeX:** `\( … \)` inline and `\[ … \]` display are rendered by MathJax on the LMS.
-- **Localization / RTL:** plain text and standard tags only; the app sets direction.
+**What the LMS owns — never override:** font family, base font size, line
+height, text colour of body copy, and the component's width. No `font-family`,
+`font-size` on body text, `max-width`/`width` on the outer wrapper, no
+`margin: 0 auto` centring, no `<style>` blocks, `<script>`, `<html>`/`<head>`/`<body>`.
+The LMS app themes the page and adapts it to phones; a component that pins its
+own width or type breaks that.
+
+**What you own — use inline CSS to make content look designed:** structure and
+emphasis inside the component. Wrap every component in one `<section>` (or
+`<div>`), then build with these patterns, keeping colours to a small palette
+(brand blue `#0058cc`, neutral greys, one accent for warnings):
+
+| Pattern | Markup |
+|---|---|
+| Callout / key idea | `<div style="border-left:4px solid #0058cc;background:#f3f7ff;padding:12px 16px;border-radius:6px;margin:16px 0;">…</div>` |
+| Warning / common mistake | same, `border-left-color:#b45309;background:#fff7ed;` |
+| Card grid (2–3 concepts) | `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;"><div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;"><h4 style="margin-top:0;">Title</h4><p>…</p></div>…</div>` |
+| Definition / step list | `<ol>` with `<li><strong>Step name.</strong> detail</li>` |
+| Comparison table | `<table style="border-collapse:collapse;width:100%;"><thead><tr><th scope="col" style="text-align:left;border-bottom:2px solid #e5e7eb;padding:8px;">…</th></tr></thead><tbody><tr><td style="border-bottom:1px solid #e5e7eb;padding:8px;">…</td></tr></tbody></table>` |
+| Tooltip / glossary term | `<abbr title="Full explanation">term</abbr>` or `<span title="…" style="border-bottom:1px dotted;">term</span>` |
+| Hierarchy inside a component | `<h3>` for the component's topic, `<h4>`/`<h5>` for parts; never `<h1>`/`<h2>` |
+| Emphasis | `<strong>` for terms, `<em>` for nuance; colour only as a secondary cue |
+
+Use `width:100%` only *inside* the component (tables, images, iframes) — it
+means "fill whatever the LMS gives me", not "set the page width".
+
+**Spacing — the difference between a wall of text and a page:**
+- One idea per paragraph, 2–4 sentences; a `<p>` per paragraph, never `<br>` to fake spacing.
+- A heading (`<h3>`/`<h4>`) every 150–300 words; leave the LMS's own heading margins alone.
+- Vertical rhythm with `margin:16px 0` on callouts, tables, images and card grids (`24px 0` before a new `<h3>` block if it follows a dense element).
+- Padding inside boxes (`12px 16px` callouts, `14px` cards, `8px` table cells); nothing inside a box touches its border.
+- Lists for anything enumerable; a blank line's worth of space (`margin-bottom:12px`) after a list before prose resumes.
+- Media on its own line with space around it (`display:block;margin:16px auto;` on images).
+- No empty `<p></p>` or `&nbsp;` spacers — they render inconsistently across devices.
+
+**Images and files:** upload with `POST /assets/{course_key}/` and reference the
+`portable_url` (`/static/<filename>`) — Studio rewrites it on both hosts. Always
+set `alt` (empty `alt=""` for decorative) and `width`/`height` when known.
+
+**Video:** `<div style="aspect-ratio:16/9;"><iframe style="width:100%;height:100%;border:0;" src="https://www.youtube.com/embed/<id>" title="…" allowfullscreen loading="lazy"></iframe></div>`.
+
+**Links:** external `target="_blank" rel="noopener"`; other course pages via the
+block's `lms_url` or `/jump_to_id/<block_id>` (relative, survives reruns).
+
+**Accessibility:** one idea per paragraph, real lists for lists, tables only
+for tabular data with `<th scope="col">`, ≥ 4.5:1 contrast on anything
+coloured, no meaning by colour alone, headings in order.
+
+**Size and validity:** under ~30 KB per component (split long readings across
+components or units); Studio stores exactly what you send, so validate the
+fragment yourself — one unclosed tag breaks the unit's layout. `\( … \)` /
+`\[ … \]` LaTeX is rendered by MathJax.
 
 ## Notes
 
-- `display_name` defaults to `"Text"` when never set; give every block a title — it shows in the LMS app's page header and in analytics.
+- `display_name` defaults to `"Text"` when never set (the bulk builder in `/iblai-api-studio-outline` leaves it so) — give every block a title; it shows in the page header and analytics.
 - Updating `data` on a published block makes the unit `has_changes: true`; republish the unit.
 - The stored HTML is returned verbatim by `GET /xblock/{html}` — read before a partial edit and resend the full body.
-- Boilerplates other than `announcement.yaml` exist upstream (`raw.yaml`, `latex_html.yaml`, `zooming_image.yaml`) but only `announcement.yaml` is verified on this deployment; an unknown name creates a blank block without error.
+- One html block per idea; several html blocks in a unit are fine (unlike problem blocks — see `/iblai-api-studio-problem`).
+- Boilerplates other than `announcement.yaml` exist upstream (`raw.yaml`, `latex_html.yaml`, `zooming_image.yaml`) but only `announcement.yaml` is verified here; an unknown name creates a blank block without error.

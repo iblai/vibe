@@ -320,7 +320,7 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
 | Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply` |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |
-| Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
+| Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-outline` (bulk build), `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
 | Guides | `ecosystem`, `infrastructure` (self-hosting) |
 
 Authoring contract (Reads/Writes structure, `urls.py` as source of truth, the

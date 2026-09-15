@@ -178,7 +178,6 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-catalog`](../skills/content/iblai-api-catalog/SKILL.md) | 🔌 api | Manage an ibl.ai organization's learning catalog via the platform API |
 | [`/iblai-api-catalog-invitation`](../skills/content/iblai-api-catalog-invitation/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog invitations, licenses, access requests, and content suggestions via the platform API |
 | [`/iblai-api-catalog-media`](../skills/content/iblai-api-catalog-media/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog media resources via the Data Manager API |
-| [`/iblai-api-course-create`](../skills/content/iblai-api-course-create/SKILL.md) | 🔌 api | Programmatically generate, edit, and publish courses via the ibl.ai Course Creation API |
 | [`/iblai-api-credential`](../skills/content/iblai-api-credential/SKILL.md) | 🔌 api | Manage an ibl.ai organization's digital credentials via the platform API |
 | [`/iblai-api-milestone`](../skills/content/iblai-api-milestone/SKILL.md) | 🔌 api | Read and write an ibl.ai organization's catalog milestones via the platform API |
 | [`/iblai-api-studio`](../skills/content/iblai-api-studio/SKILL.md) | 📖 guide | Family index for authoring Open edX courses directly on Studio (studio.learn.iblai.app) and verifying them on the LMS (lms.ibl.ai) from t… |
@@ -187,6 +186,7 @@ See [skill-kinds.md](skill-kinds.md).
 | [`/iblai-api-studio-grading`](../skills/content/iblai-api-studio-grading/SKILL.md) | 🔌 api | Read and set an Open edX course's grading policy on Studio |
 | [`/iblai-api-studio-html`](../skills/content/iblai-api-studio-html/SKILL.md) | 🔌 api | Add and edit HTML (text) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-lms`](../skills/content/iblai-api-studio-lms/SKILL.md) | 🔌 api | Verify and operate the LMS side of an Open edX course built on Studio |
+| [`/iblai-api-studio-outline`](../skills/content/iblai-api-studio-outline/SKILL.md) | 🔌 api | Build an entire Open edX course outline on Studio in one request |
 | [`/iblai-api-studio-pdf`](../skills/content/iblai-api-studio-pdf/SKILL.md) | 🔌 api | Add a PDF viewer component to an Open edX unit on Studio |
 | [`/iblai-api-studio-problem`](../skills/content/iblai-api-studio-problem/SKILL.md) | 🔌 api | Add and edit problem (assessment) components in an Open edX unit on Studio |
 | [`/iblai-api-studio-publish`](../skills/content/iblai-api-studio-publish/SKILL.md) | 🔌 api | Publish draft changes of an Open edX course on Studio |

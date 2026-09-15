@@ -13,9 +13,15 @@ its `type` (`/iblai-api-studio-subsection` `graderType`), and each grader's
 `weight` decides its share of the final grade. Replace the whole object or
 patch one grader by index.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A course key from `/iblai-api-studio-course-create`.
+3. Set the policy **before** creating graded subsections (`graderType` must name an existing type) and before the first publish; decide the pass mark and letter grades with the user.
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

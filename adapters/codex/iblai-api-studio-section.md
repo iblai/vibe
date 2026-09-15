@@ -9,9 +9,15 @@ A course outline is a tree: course → **section** (`chapter`) → subsection
 This skill covers sections and the outline read; subsections and units have
 their own skills with the same `/xblock/` mechanics.
 
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s; otherwise run **`/iblai-api-studio-auth`** first — do not attempt the calls below.
+2. A course key from `/iblai-api-studio-course-create` (→ `ROOT` below) and the outline planned per `/iblai-api-studio`.
+3. Building a whole new outline? `/iblai-api-studio-outline` creates every section/subsection/unit in one call; use this skill for edits and additions.
+
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` — run **`/iblai-api-studio-auth`** first.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
