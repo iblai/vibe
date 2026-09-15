@@ -24,7 +24,8 @@ the table, open the skill, build. This skill builds nothing itself.
 Two families, one install. **`iblai-vibe-*`** (kind `ui`/`ops`/`guide`) mounts
 a visual component in your app or ships it; **`iblai-api-*`** (kind `api`)
 drives the same platform data headlessly — exact endpoints, `curl`, no screen.
-★ = the five platform families most apps read or write. Full delineation:
+★ = the six core families almost every app reads or writes — which scope stores
+what: [docs/catalogue.md#core](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/catalogue.md). Full delineation:
 [docs/skill-kinds.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-kinds.md).
 
 | You want… | With a screen (`iblai-vibe-*`) | Headless (`iblai-api-*`) |
@@ -37,7 +38,7 @@ drives the same platform data headlessly — exact endpoints, `curl`, no screen.
 | ★ Create an agent; set its identity, visibility, capabilities | `/iblai-vibe-agent-create` → `/iblai-vibe-agent-setting`; all 24 tabs via `/iblai-vibe-agent` | ★ `iblai-api-agent-setting`, `agent-create` |
 | ★ The user's profile (name, bio, image, education, résumé) | `/iblai-vibe-profile` | ★ `iblai-api-profile` |
 | ★ Custom data per user — preferences, flags, onboarding progress, app state | `/iblai-vibe-user-metadata` | ★ `iblai-api-profile-metadata` |
-| Organization settings and custom org data; branding | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` | `iblai-api-org` |
+| ★ Custom data per organization — settings, branding, toggles | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` | ★ `iblai-api-org` |
 | Users vs admins: directory, invites, roles, a User/Admin view | `/iblai-vibe-admin`, `/iblai-vibe-invite`, `/iblai-vibe-rbac` | `iblai-api-management`, `rbac`, `invite`, `scim` |
 | ★ Memory — what agents remember about people; agent knowledge | `/iblai-vibe-memory-guide` → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` | ★ `iblai-api-agent-memory` |
 | ★ Analytics — usage, users, topics, transcripts, costs, audit, reports | `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` | ★ `iblai-api-analytics` |

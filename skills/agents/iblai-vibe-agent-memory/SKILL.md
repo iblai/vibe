@@ -4,6 +4,7 @@ description: Add the agent Memory tab (enable/disable memory and manage memories
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

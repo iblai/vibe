@@ -4,6 +4,7 @@ description: Store custom organization-wide settings for your app on the ibl.ai 
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

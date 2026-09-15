@@ -2,10 +2,13 @@
 name: iblai-api-org
 description: Read and write an ibl.ai organization's org-wide settings via the platform API — the org metadata object holding Default Agent, Help Center URL, Chat Area Width, and feature toggles (Help/Accessibility menus, Community Agents, Report Inappropriate Content). Use when configuring org-wide behavior.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-org
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-org-metadata` mounts the typed org settings hook and the Organization tab — this skill is the headless twin (same data, exact endpoints).
 
 Read and write an organization's org-wide settings from the API: settings that
 all live inside one org **metadata** object — Default Agent, Help Center URL,

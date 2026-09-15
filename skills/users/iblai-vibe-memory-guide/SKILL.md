@@ -4,6 +4,7 @@ description: What memory means for an ibl.ai app and which surface to mount for 
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: guide
 ---
 

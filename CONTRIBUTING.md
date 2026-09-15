@@ -18,6 +18,10 @@ Full definitions and the "same data, two doors" rule: [docs/skill-kinds.md](docs
 One skill = one capability. If you are documenting both a component and its
 REST twin, that is two skills, one of each kind, that link to each other.
 
+Is it one of the six **core** families (custom user data, profile, memory,
+custom org data, agent configuration, analytics)? Then the bar is higher —
+see [Core skills](#core-skills) below.
+
 ## 2. Put it in the right folder
 
 `skills/<folder>/<skill-name>/SKILL.md`. Pick by what a builder is doing when
@@ -118,6 +122,28 @@ release; `fix:`/`docs:` → patch). Fill in the PR template — it asks for the
 user test and the checks above. CI runs the deterministic tiers on every PR;
 add the `run-tests` label to also run the agent tier on your skill
 ([TESTING.md](TESTING.md)).
+
+## Core skills
+
+Six data families are read or written by almost every app, so their skills are
+the ones people open first. The list is `core` in
+`scripts/skill-categories.json`; each listed skill carries `metadata.core: true`
+and `check-skill-kinds` fails when the two disagree. The catalogue, the README
+block, and the ★ marks are all generated from that list — never hand-mark.
+
+A core skill meets everything above, plus:
+
+- **A screenshot** (`ui`) or a verified request/response pair (`api`) near the top.
+- **The scope stated in the first paragraph** — per user, per user × agent, per
+  agent, or per organization — because that is what people get wrong.
+- **The twin linked both ways**: the `ui` skill names its `iblai-api-*` twin,
+  the `api` skill names the component that mounts the same data.
+- **A starter journey**: vibe-starter exercises the surface in
+  `e2e/journeys/` (or the skill says why it cannot).
+- **Endpoints verified against the live schema** (`https://api.iblai.app/dm/api/docs/schema/`), with the date.
+
+Adding a seventh family is a decision, not a PR detail: propose it in the PR
+description with the evidence that most apps need it.
 
 ## Changing an existing skill
 

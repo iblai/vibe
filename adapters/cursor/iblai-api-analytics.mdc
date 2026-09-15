@@ -6,6 +6,8 @@ alwaysApply: false
 
 # iblai-api-analytics
 
+> ★ **Core family.** **With a screen:** `/iblai-vibe-analytics` mounts the analytics dashboard, org-wide or per agent — this skill is the headless twin (same data, exact endpoints).
+
 Read ibl.ai analytics from the platform API. One `/api/analytics/` family serves
 every scope; the query params decide what you get:
 

@@ -4,6 +4,7 @@ description: Add analytics dashboard page to your Next.js app
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

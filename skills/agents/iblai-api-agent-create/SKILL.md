@@ -2,10 +2,13 @@
 name: iblai-api-agent-create
 description: Create a new ibl.ai agent from a template via the platform API — set name, display name, description, system prompt, and LLM provider; returns the new agent's unique id. Use when creating an agent from scratch, then configure it with the other /iblai-api-agent-* skills.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-agent-create
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-agent-create` mounts the in-app create flow and `/setup` screen — this skill is the headless twin (same data, exact endpoints).
 
 Create a brand-new agent from a template. This is the step **before**
 configuring an agent: it mints a new agent and returns its `unique_id`, which

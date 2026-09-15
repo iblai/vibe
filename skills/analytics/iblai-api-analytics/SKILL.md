@@ -2,10 +2,13 @@
 name: iblai-api-analytics
 description: Read ibl.ai analytics via the platform API — agent (chat) analytics, content (courses/programs/pathways/skills) analytics, org-wide KPIs, per-user learning data, costs, and fine-grained LLM usage (per-model/-agent/-user cost, tokens, latency) — plus generate and download Data Reports. Scope per-agent or organization-wide. Use to pull usage, engagement, cost, catalog, or per-user analytics.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-analytics
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-analytics` mounts the analytics dashboard, org-wide or per agent — this skill is the headless twin (same data, exact endpoints).
 
 Read ibl.ai analytics from the platform API. One `/api/analytics/` family serves
 every scope; the query params decide what you get:

@@ -4,6 +4,7 @@ description: Store custom data per user on the ibl.ai platform — preferences, 
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 
