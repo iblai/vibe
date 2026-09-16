@@ -186,8 +186,10 @@ Every edge degrades to deploying, which is today's behaviour:
 - **Vercel unreachable** — the list is served `stale: true` with
   `latest_deployment: null`, so the jq falls back to the row's cached
   `last_ready_state`; if neither says `READY`, deploy.
-- **No confirmed URL yet** — `url` is only non-empty once Vercel has minted an
-  alias, so a skip can always name the live host instead of guessing one.
+- **No confirmed URL yet** — `url` is `null` until a READY build has confirmed
+  the host (the `select(. != "")` covers both, and jq's `//` treats `null` like
+  a missing key), so a skip can always name the live host instead of guessing
+  one.
 
 > **ponytail:** in **static** mode the Next.js build mints a fresh build ID
 > every run, so identical source usually still hashes differently and the
@@ -208,8 +210,9 @@ if [ -z "$SKIP" ]; then
   ID=$(echo "$RESP" | jq -r .id)
   # The live URL is Vercel's to mint — NEVER build it from the project name
   # (long names get right-truncated, collisions get a hash suffix). `.url` is
-  # the confirmed host from a previous deploy; empty on the very first one —
-  # the poll below fills it from the deployment's alias list.
+  # the confirmed host of whatever is live right now; `null` on the very first
+  # deploy, and again once this build starts — the poll below fills it from
+  # the deployment's alias list when the build is READY.
   APP_URL=$(echo "$RESP" | jq -r '.url // empty')
 fi
 ```
