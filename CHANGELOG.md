@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.3.1] - 2026-09-16
+
+### Fixed
+
+- send every inference completion to the ASGI host, fix the models URL
+
 ## [2.3.0] - 2026-09-16
 
 ### Added
