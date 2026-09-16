@@ -11,6 +11,12 @@ platform holds the Vercel credential for your organization — you need only the
 `DOMAIN` / `PLATFORM` / `TOKEN` already in `iblai.env`. No Vercel account,
 no Vercel token, no `vercel` CLI.
 
+The hosting API is **admin-only**: what authorises a deploy is the platform API
+key your ibl.ai operator issued for the organization — the `TOKEN` in
+`iblai.env`, sent as `Api-Token`. A learner's own sign-in token is not that key
+and every call below answers 403. If `iblai.env` has no `TOKEN`, ask the
+operator for one rather than substituting a personal token.
+
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
@@ -272,6 +278,7 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 | — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
 | 400 | No Vercel credential stored for this organization, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
 | 402 | Deploy credit cost unmet | Top up platform credits |
+| 403 | `TOKEN` is not the organization's platform API key, or it belongs to another `PLATFORM` — hosting is admin-only | Use the `TOKEN` your operator issued for this `PLATFORM`; a personal sign-in token cannot deploy |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
 | 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
