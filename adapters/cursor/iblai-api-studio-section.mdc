@@ -1,5 +1,5 @@
 ---
-description: "Manage the top level of an Open edX course outline on Studio — create sections (chapter blocks) under the course root, rename them, set release dates and staff-only visibility, reorder them, read the whole outline with publish state, and delete sections. Use when the user says section, week, module, chapter, course outline, \"hide this from users\", or reorder. Session auth via studio.env."
+description: "Manage the top level of an Open edX course outline on Studio — create sections (chapter blocks) under the course root, rename them, set release dates and staff-only visibility, reorder them, read the whole outline with publish state, and delete sections. Use when the user says section, week, module, chapter, course outline, \"hide this from users\", or reorder. Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio."
 globs:
 alwaysApply: false
 ---
@@ -19,7 +19,7 @@ their own skills with the same `/xblock/` mechanics.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a

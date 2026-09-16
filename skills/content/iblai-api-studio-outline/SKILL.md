@@ -1,6 +1,6 @@
 ---
 name: iblai-api-studio-outline
-description: Build an entire Open edX course outline on Studio in one request — sections, subsections, units and their text/problem/video components from a JSON spec via the IBL course-creator API (POST /api/v1/ibl/course/create_full_course), which also publishes the result; plus the v1 helpers to list every unit with its components, create/update/publish single blocks, and read a block's content. Use when a course plan is known up front and the user wants it created fast, or to resume a bulk build. Session auth via studio.env; block-by-block edits are the section/subsection/unit/html/problem skills.
+description: Build or bulk-edit an Open edX course outline on Studio — a new course in one request from a JSON spec via the IBL course-creator API (POST /api/v1/ibl/course/create_full_course, which also publishes), or an existing course at scale with the bundled reconcile driver that diffs the same spec against the live outline and creates/updates/reorders/deletes idempotently; plus the v1 helpers to list every unit with its components and create/update/publish single blocks. Use when a course plan is known up front, when many readings/units of an existing course must change at once, or to resume a bulk build. Session auth via studio.env; single-block edits are the section/subsection/unit/html/problem skills. For the build order and the other Studio skills, see /iblai-api-studio.
 metadata:
   kind: api
 ---
@@ -16,15 +16,16 @@ of a hundred.
 
 ## Before you start
 
-0. **This is for new (empty) courses.** The builder appends to the outline and then publishes the *entire* course, drafts included. To add or change one section, lesson, unit or component of an existing course use the individual skills (`/iblai-api-studio-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`) — they act on one locator and leave everything else untouched.
+0. **Three situations, three tools.** New, empty course → `create_full_course` (below; it appends and then publishes the *entire* course, drafts included). One section, lesson, unit or component of an existing course → the individual skills (`/iblai-api-studio-section`, `-subsection`, `-unit`, `-html`, `-problem`, `-pdf`), which act on one locator. Many changes to an existing course (rewrite readings, add units across lessons, restructure) → the **reconcile driver** (section "Bulk edits to an existing course" below), which diffs the same spec against the live outline and only touches what differs.
 1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` must print two `ok`s — otherwise run **`/iblai-api-studio-auth`** first, do not attempt the calls below.
-2. A course key from `/iblai-api-studio-course-create`; the user must be instructor on it (the creator is). Confirm with `GET /xblock/outline/{ROOT}` that `child_info.children` is empty.
+2. A course key from `/iblai-api-studio-course-create`; the user must be instructor on it (the creator is). For `create_full_course`, confirm with `GET /xblock/outline/{ROOT}` that `child_info.children` is empty; for the reconcile driver, that outline is the baseline it diffs against.
 3. **Settings and grading first** (`/iblai-api-studio-settings`, `/iblai-api-studio-grading`): this call publishes, and pacing cannot change after the course start.
 4. The outline planned per `/iblai-api-studio` "Planning a production-grade outline" and reviewed with the user.
+5. If sub-agents wrote parts of the spec: they worked from the same content brief, and every fragment has been reviewed against it (`/iblai-api-studio` "Content quality") — consistent voice and headings, no thin or placeholder units, valid OLX, titles on every block. The builder posts whatever it is given and publishes it; divergent or shallow content goes live verbatim.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
@@ -113,11 +114,91 @@ for u in json.load(sys.stdin)["units"]:
 done
 ```
 
+## After a bulk build — the three fix-up passes
+
+`create_full_course` does not finish the course. Two things it cannot express,
+plus the republish they cause, are always needed before the outline is done.
+Budget for them; they are pure derivation from the spec you already have.
+
+1. **Rename the html components.** The builder titles every `html` block
+   **"Text"** (it ignores `display_name` for html; `problem` blocks keep their
+   `metadata.display_name` and need nothing). Rename them with
+   `POST /api/v1/ibl/xblock/update` — the loop in the Example above does it for
+   a whole course. Leave this out and every reading is called "Text" in the
+   unit header, the breadcrumb and analytics.
+2. **Set the graded subsections.** The spec has **no `graderType` key** —
+   `subsection[]` accepts only `name` and `unit[]`. Every graded subsection is
+   `notgraded` until you `POST /xblock/{subsection}` `{"graderType": "Homework"}`
+   per `/iblai-api-studio-subsection`. Read the tree back with
+   `GET /xblock/outline/{ROOT}` to get the subsection locators.
+3. **Publish again.** The builder publishes at the end of *its* request, so the
+   two passes above leave the course dirty (`has_changes: true`). Finish with
+   `POST /xblock/{ROOT}` `{"publish": "make_public"}` and confirm the root reads
+   `published: true, has_changes: false`.
+
+Verify the finished outline in one read: `GET /xblock/outline/{ROOT}` gives
+`course_graders` plus every subsection's `graded` / `format` and publish state.
+
+## Bulk edits to an existing course — reconcile
+
+`scripts/reconcile.py` (standard library only) takes the **same spec shape**
+and makes the live course match it: creates what is missing, updates
+components whose `data`/`metadata` differ, reorders, reports blocks that are
+live but not in the spec (deletes them only with `--delete`), and publishes
+changed units with `--publish`. Idempotent — a second run is a no-op. Dry run
+by default.
+
+```bash
+python3 .claude/skills/iblai-api-studio-outline/scripts/reconcile.py spec.json --course "$COURSE"                       # plan only
+python3 .claude/skills/iblai-api-studio-outline/scripts/reconcile.py spec.json --course "$COURSE" --apply --publish     # do it
+python3 .claude/skills/iblai-api-studio-outline/scripts/reconcile.py spec.json --course "$COURSE" --apply --delete      # also remove blocks absent from the spec — confirm with the user first
+```
+
+- Matching: by `"id"` (a locator) when a node carries one, else by **name at
+  the same level** (section/subsection/unit `name`, component `display_name`
+  + type). Rename = delete + create, so give nodes an `id` (from `build.json`)
+  before renaming.
+- Spec additions over `create_full_course`: `subsection.graderType`, and
+  `display_name` on every component (required — it is the match key).
+  `problem_type` handled: `html`, `blank`, `multiplechoice`, `dropdown`,
+  `video`; `pdf` is skipped with a note (`/iblai-api-studio-pdf`).
+- **Reconciling a course that was bulk-built.** Components match on
+  `(type, display_name)`, and `create_full_course` leaves every html block
+  named `"Text"`. The driver treats a live block that still carries a default
+  title (`"Text"`, `"Multiple Choice"`, `"Video"`, …) as *unnamed* and adopts it
+  for the next spec component of the same type in that unit, then sets the
+  spec's `display_name` on it — so the first reconcile after a bulk build
+  renames the readings instead of duplicating them (fix-up pass 1 becomes part
+  of the reconcile). Two cautions: the adoption is positional within a unit,
+  so keep the spec's component order equal to the built order until the first
+  reconcile has run; and a spec component with no `display_name` falls back to
+  the literal `problem_type` as its name — always give components a title.
+  Pin a component with an `"id"` from `build.json` when in doubt.
+- Plan lines read `create | update | reorder | grade | delete | extra | publish  <path> [locator]`; `--apply` writes `build.json` (path → locator).
+- Cost: 3 calls for the plan (outline + units + nothing else) plus one `GET`
+  per matched component, then one call per change. Rewriting 40 readings ≈ 45
+  calls.
+- Flags: `--env studio.env`, `--map build.json`. Exit with the failing call's
+  status on any HTTP error (302/403/500 → `/iblai-api-studio-auth`).
+
+Workflow for "rewrite the readings and add units": export the live outline
+into a spec (`GET /xblock/outline/{ROOT}` + `GET /api/v1/ibl/course/{COURSE}/units`,
+or reuse the previous `spec.json`), edit it, dry-run, review the plan with the
+user, `--apply --publish`.
+
+## Same thing, three names
+
+| Endpoint | locator | title | type |
+|---|---|---|---|
+| stock `/xblock/…` create / outline | `locator` (create) · `id` (read) | `display_name` | `category` |
+| v1 `xblock/create` · `course/{COURSE}/units` | `xblock_locator` (create) · `id` (units) | `display_name` | `type` |
+| `/api/contentstore/v1/container/vertical/{unit}/children` | `block_id` | `name` | `block_type` |
+
 ## Notes
 
 - Keep `spec.json` and `build.json` next to the project: together they are the
   resumable record of what exists (re-running the bulk call duplicates every
-  section).
+  section; the reconcile driver does not).
 - One `blank` problem per unit with several `*response` elements is the
   intended shape; several problem blocks in one unit force separate
   submissions (`/iblai-api-studio-problem`).

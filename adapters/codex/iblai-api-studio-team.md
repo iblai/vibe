@@ -1,6 +1,6 @@
 # iblai-api-studio-team
 
-> Manage an Open edX course team on Studio — list who can edit a course, add a user as staff or instructor by email, change their role, and remove them; check a user's edX roles across courses. Use when the user says course team, add an instructor, give someone edit access, co-author, staff vs admin/instructor, or remove someone from the course. Session auth via studio.env.
+> Manage an Open edX course team on Studio — list who can edit a course, add a user as staff or instructor by email, change their role, and remove them; check a user's edX roles across courses. Use when the user says course team, add an instructor, give someone edit access, co-author, staff vs admin/instructor, or remove someone from the course. Session auth via studio.env. For the build order and the other Studio skills, see /iblai-api-studio.
 
 # iblai-api-studio-team
 
@@ -18,7 +18,7 @@ not managed here — that is `/iblai-api-management`.
 
 ## Auth & conventions
 
-- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env`.
+- **Base URL:** `$STUDIO_URL`; Studio session cookies from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
 - **Snippet:**
   ```bash
   set -a; . ./studio.env; set +a
