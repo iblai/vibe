@@ -57,8 +57,8 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.9.8` |
-  | `@iblai/agent-ai` | `^2.9.3` |
+  | `@iblai/iblai-js` | `^2.12.1` |
+  | `@iblai/agent-ai` | `^2.10.0` |
 
 - **Pre-flight prop check (do this before writing the route):**
 
@@ -98,7 +98,7 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^2.9.8 @iblai/agent-ai@^2.9.3
+pnpm add @iblai/iblai-js@^2.12.1 @iblai/agent-ai@^2.10.0
 ```
 
 (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
