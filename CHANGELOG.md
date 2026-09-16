@@ -3,6 +3,21 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.3.0] - 2026-09-16
+
+### Added
+
+- studio outline — reconcile driver for bulk edits; quoting, dropdown OLX, size and naming notes
+
+### Fixed
+
+- reconcile driver adopts default-titled blocks; verify pacing lock note; regenerate adapters
+
+### Documentation
+
+- add related-skill references to studio descriptions
+- studio family — content quality bar and sub-agent regulation
+
 ## [2.2.0] - 2026-09-15
 
 ### Added
