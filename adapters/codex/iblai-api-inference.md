@@ -7,8 +7,8 @@
 Call ibl.ai's **OpenAI-compatible** chat endpoint: identical request/response shape
 to OpenAI's `/v1/chat/completions`, but served by your deployment and routed to
 whichever `provider/model` you name. Use it for raw completions, streamed tokens,
-or tool calls directly — no MCP server, no agent needed. To *configure* which model
-an agent runs on use `/iblai-api-agent-llm`; to *converse with a deployed agent*
+or tool calls directly — no MCP server, no agent needed. To _configure_ which model
+an agent runs on use `/iblai-api-agent-llm`; to _converse with a deployed agent_
 (RAG, memory, history) use `/iblai-api-agent-chat`.
 
 ## Auth & conventions
@@ -17,23 +17,27 @@ an agent runs on use `/iblai-api-agent-llm`; to *converse with a deployed agent*
 - **Path var:** `{org}` = `$IBLAI_ORG` (no username in the path).
 - **Model:** always `provider/model` form, e.g. `openai/gpt-5`,
   `anthropic/claude-sonnet-4`. A bare name is rejected `400 invalid_request`.
-- **Two hosts — streaming is async/ASGI-only:**
-  - Non-streaming → `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1`
-  - Streaming (`stream: true`) → `https://asgi.data.iblai.app/api/ai-mentor/orgs/{org}/v1`
+- **Two hosts — every completion is ASGI-only:**
+  - Chat completions, streaming **and** non-streaming →
+    `https://asgi.data.iblai.app/api/ai-mentor/orgs/{org}/v1/chat/completions`
+  - Model list →
+    `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models`
 
-  The sync WSGI gateway can't drive the async SSE generator, so `stream:true`
-  must hit the ASGI host.
+  The sync WSGI gateway (`api.iblai.app`) can't drive the inference generator at
+  all, so **no** completion — streamed or not — goes through it; it serves the
+  model list only.
+
 - Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG` and
   `IBLAI_API_KEY`.
 
 ## Reads
 
-- **GET** `…/orgs/{org}/v1/models` — OpenAI-style model list for the deployment;
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models` — OpenAI-style model list for the deployment;
   each `id` is a `provider/model` you can pass as `model`.
 
 ## Writes
 
-- **POST** `…/orgs/{org}/v1/chat/completions` — run a completion (an inference
+- **POST** `https://asgi.data.iblai.app/api/ai-mentor/orgs/{org}/v1/chat/completions` — run a completion (an inference
   call, not a state mutation; `POST` per the OpenAI wire format). Standard OpenAI
   chat body:
   ```json
@@ -54,13 +58,13 @@ Non-streaming completion:
 
 ```bash
 curl -X POST \
-  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/v1/chat/completions" \
+  "https://asgi.data.iblai.app/api/ai-mentor/orgs/$IBLAI_ORG/v1/chat/completions" \
   -H "Authorization: Api-Token $IBLAI_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"openai/gpt-5","messages":[{"role":"user","content":"Say hi"}]}'
 ```
 
-Streaming (ASGI host, SSE):
+Streaming (SSE):
 
 ```bash
 curl -N -X POST \
@@ -80,13 +84,21 @@ curl "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/v1/models" \
 
 ## Notes
 
-- **Drop-in for OpenAI SDKs:** point `base_url` at `…/orgs/{org}/v1`. Auth is
+- **Drop-in for OpenAI SDKs:** point `base_url` at
+  `https://asgi.data.iblai.app/api/ai-mentor/orgs/{org}/v1`. Auth is
   `Api-Token` (not `Bearer`), so pass it via the SDK's default headers
   (`{"Authorization": "Api-Token <key>"}`), not the plain `api_key` field.
-- **Streaming must use the ASGI host** (`asgi.data.iblai.app`); the WSGI gateway
-  (`api.iblai.app`) is fine for non-streaming only.
+  That base URL serves completions only — `client.models.list()` will not
+  resolve against it; fetch
+  `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models` directly.
+- **Every chat completion goes to the ASGI host** (`asgi.data.iblai.app`),
+  streaming or not — the WSGI gateway can't run inference in either mode.
+  `api.iblai.app` serves only
+  `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models`.
 - `model` must be `provider/model` and resolve to a provider the deployment has
-  configured — list it via `…/v1/models`; unknown/bad model → `400 invalid_request`.
+  configured — list it via
+  `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models`; unknown/bad
+  model → `400 invalid_request`.
 - **Tool calling** is supported (OpenAI `tools` / `tool_calls`); streamed
   tool-call deltas carry dense, 0-based `index` values, matching the OpenAI wire
   format that clients index directly.
