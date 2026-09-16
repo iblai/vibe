@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.3.2] - 2026-09-16
+
+### Documentation
+
+- note that platform hosting is admin-only and add its 403 row to the deploy runbook
+
 ## [2.3.1] - 2026-09-16
 
 ### Fixed
