@@ -4,6 +4,7 @@ description: Add the organization-wide Memory settings surface (manage every use
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

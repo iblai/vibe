@@ -3,6 +3,49 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.3.1] - 2026-09-16
+
+### Fixed
+
+- send every inference completion to the ASGI host, fix the models URL
+
+## [2.3.0] - 2026-09-16
+
+### Added
+
+- studio outline — reconcile driver for bulk edits; quoting, dropdown OLX, size and naming notes
+
+### Fixed
+
+- reconcile driver adopts default-titled blocks; verify pacing lock note; regenerate adapters
+
+### Documentation
+
+- add related-skill references to studio descriptions
+- studio family — content quality bar and sub-agent regulation
+
+## [2.2.0] - 2026-09-15
+
+### Added
+
+- studio family — prerequisites, bulk outline builder, authoring rules, publish ordering
+
+### Documentation
+
+- guard course deletion, keep individual edits first-class, describe a good course
+
+## [2.1.0] - 2026-09-14
+
+### Added
+
+- add iblai-api-studio family for Open edX Studio course authoring
+
+## [2.0.5] - 2026-09-14
+
+### Fixed
+
+- arm the key guard only for apps that read it; ship no .env* but .env.production
+
 ## [2.0.4] - 2026-09-14
 
 ### Documentation

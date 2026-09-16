@@ -5,7 +5,7 @@
 // on purpose and is not required to list everything.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, listSkills } from "./lib/skills.mjs";
+import { ROOT, CATEGORIES, listSkills } from "./lib/skills.mjs";
 
 const skills = listSkills().map((s) => s.name).sort();
 const mentioned = (file) => {
@@ -26,5 +26,16 @@ for (const file of ["CLAUDE.md", "docs/catalogue.md"]) {
   if (missing.length) { failed = true; console.error(`${file}: skills not mentioned: ${missing.join(", ")}`); }
   if (ghosts.length) { failed = true; console.error(`${file}: mentions skills that do not exist: ${ghosts.join(", ")}`); }
 }
+// README.md's folder table carries a count per folder; it drifted once (content/ 11 vs 25).
+const readme = readFileSync(join(ROOT, "README.md"), "utf8");
+for (const c of CATEGORIES.order) {
+  const n = listSkills().filter((s) => s.category === c).length;
+  const m = new RegExp(`^\\| \\[\`${c}/\`\\]\\(skills/${c}\\) \\|[^|]*\\| (\\d+) \\|`, "m").exec(readme);
+  if (!m) { failed = true; console.error(`README.md: no folder-table row for ${c}/`); }
+  else if (Number(m[1]) !== n) { failed = true; console.error(`README.md: ${c}/ row says ${m[1]} skills, skills/${c} has ${n}`); }
+}
+const coreNames = CATEGORIES.core.flatMap((k) => [...k.ui, ...k.api]);
+const coreMissing = coreNames.filter((n) => !readme.includes(`/${n}\``));
+if (coreMissing.length) { failed = true; console.error(`README.md: core skills not named: ${coreMissing.join(", ")}`); }
 if (failed) process.exit(1);
-console.log(`check-skill-tables: ${skills.length} skills, CLAUDE.md and docs/catalogue.md consistent.`);
+console.log(`check-skill-tables: ${skills.length} skills, CLAUDE.md, docs/catalogue.md and the README folder table consistent.`);

@@ -2,10 +2,13 @@
 name: iblai-api-agent-memory
 description: Manage an ibl.ai agent's memories via the platform API — list and filter agent memories (by category, user, email, date), curate global (cross-agent) memories, curate shared agent knowledge injected into every user's chat, add/edit/delete memories, manage memory categories, and toggle capture/recall settings. Use when inspecting or curating what an agent remembers.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-agent-memory
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-memory-guide` mounts the memory surfaces — org-wide admin, one agent's tab, the member's own view — this skill is the headless twin (same data, exact endpoints).
 
 Manage an agent's memories through the API: browse and filter what an agent has
 remembered, curate global (cross-agent) memories, add / edit / delete individual

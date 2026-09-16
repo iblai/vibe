@@ -2,10 +2,13 @@
 name: iblai-api-profile-metadata
 description: Read and write per-user, per-organization metadata via the platform API — a key-value store for user preferences, app settings, feature flags, and onboarding progress. Defaults to the signed-in user; admins can target another user. Use to persist per-user state.
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-profile-metadata
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-user-metadata` mounts the typed per-user settings hook and the profile preferences UI — this skill is the headless twin (same data, exact endpoints).
 
 Read and write per-user, per-organization metadata via the API: a key-value store
 for preferences, app settings, feature flags, and onboarding progress, all served

@@ -6,6 +6,8 @@ alwaysApply: false
 
 # iblai-api-profile-metadata
 
+> ★ **Core family.** **With a screen:** `/iblai-vibe-user-metadata` mounts the typed per-user settings hook and the profile preferences UI — this skill is the headless twin (same data, exact endpoints).
+
 Read and write per-user, per-organization metadata via the API: a key-value store
 for preferences, app settings, feature flags, and onboarding progress, all served
 from a single `…/dm/api/core/users/platform-metadata/` endpoint. Defaults to the

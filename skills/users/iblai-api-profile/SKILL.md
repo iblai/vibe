@@ -2,10 +2,13 @@
 name: iblai-api-profile
 description: Read and manage the signed-in user's own profile via the platform API — basic account info, social links, education, experience, résumé, and memory. Use for self-service profile management. (For the user's learning analytics, see /iblai-api-analytics.)
 metadata:
+  core: true
   kind: api
 ---
 
 # iblai-api-profile
+
+> ★ **Core family.** **With a screen:** `/iblai-vibe-profile` mounts the profile dropdown and settings page — this skill is the headless twin (same data, exact endpoints).
 
 Manage the signed-in user's own profile via the API: their basic account info,
 social links, education, experience, résumé, and memory. The signed-in user

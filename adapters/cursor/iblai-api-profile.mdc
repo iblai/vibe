@@ -6,6 +6,8 @@ alwaysApply: false
 
 # iblai-api-profile
 
+> ★ **Core family.** **With a screen:** `/iblai-vibe-profile` mounts the profile dropdown and settings page — this skill is the headless twin (same data, exact endpoints).
+
 Manage the signed-in user's own profile via the API: their basic account info,
 social links, education, experience, résumé, and memory. The signed-in user
 manages their **own** profile. (To manage an *agent's* memories from the admin

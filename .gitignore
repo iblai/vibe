@@ -5,3 +5,5 @@
 .daily-work-log/
 node_modules
 .skill-tests/
+studio.env
+__pycache__/

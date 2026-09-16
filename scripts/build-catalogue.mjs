@@ -20,6 +20,8 @@ const TITLES = {
 const KIND = { ui: "🖥️ ui", api: "🔌 api", guide: "📖 guide", ops: "🛠️ ops", security: "🛡️ security" };
 
 const skills = listSkills();
+const CORE = new Set(CATEGORIES.core.flatMap((c) => [...c.ui, ...c.api]));
+const link = (name) => { const s = skills.find((x) => x.name === name); if (!s) throw new Error(`core skill ${name} not found`); return `[\`/${name}\`](../skills/${s.category}/${name}/SKILL.md)`; };
 const fm = (file) => {
   const src = readFileSync(file, "utf8");
   const m = /^---\n([\s\S]*?)\n---\n/.exec(src)?.[1] ?? "";
@@ -38,19 +40,44 @@ Every skill, by folder — what it does, and whether it has a screen. Generated 
 \`node scripts/build-catalogue.mjs\` from each skill's frontmatter; do not edit by
 hand. Kinds: 🖥️ **ui** mounts a visual component · 🔌 **api** is headless REST ·
 📖 **guide** routes you · 🛠️ **ops** builds and ships · 🛡️ **security**.
-See [skill-kinds.md](skill-kinds.md).
+See [skill-kinds.md](skill-kinds.md). ★ marks a **core** skill — one of the
+six data families almost every app reads or writes (the section right below).
 
 | Folder | What it covers | Skills |
 |---|---|---|
 `;
 for (const c of CATEGORIES.order) out += `| [\`${c}/\`](#${c}) | ${TITLES[c][1]} | ${skills.filter((s) => s.category === c).length} |\n`;
 
+out += `
+## Core
+
+Whatever the app is about, it reads or writes these six families — so their
+skills are the deepest in the repo: a screenshot, verified endpoints, a
+starter journey, and a link to the twin that does the same thing the other way.
+Each row has a component door (\`iblai-vibe-*\`) and a headless door (\`iblai-api-*\`).
+
+| Capability | What it stores | With a screen | Headless |
+|---|---|---|---|
+`;
+for (const c of CATEGORIES.core) out += `| ★ **${c.capability}** | ${c.scope} | ${c.ui.map(link).join(" → ")} | ${c.api.map(link).join(", ")} |\n`;
+out += `
+**Which scope stores what.** The one place people pick the wrong skill: the same
+word ("memory", "settings", "metadata") exists at four scopes.
+
+| Scope | Custom data | Memory | Configuration |
+|---|---|---|---|
+| **Per user** | ${link("iblai-vibe-user-metadata")} | global memories — ${link("iblai-vibe-memory")} (admin), the Profile › Memory tab (member) | ${link("iblai-vibe-profile")} |
+| **Per user × agent** | — | agent memories, by category — ${link("iblai-vibe-agent-memory")} | — |
+| **Per agent** | — | agent knowledge (no user) — ${link("iblai-api-agent-memory")} | ${link("iblai-vibe-agent-setting")} |
+| **Per organization** | ${link("iblai-vibe-org-metadata")} | the \`enable_memsearch\` gate — ${link("iblai-vibe-memory-guide")} | [\`/iblai-vibe-account\`](../skills/organizations/iblai-vibe-account/SKILL.md) |
+`;
+
 for (const c of CATEGORIES.order) {
-  const rows = skills.filter((s) => s.category === c);
+  const rows = skills.filter((s) => s.category === c).sort((a, b) => (CORE.has(b.name) - CORE.has(a.name)) || a.name.localeCompare(b.name));
   out += `\n## ${TITLES[c][0]}\n\n\`skills/${c}/\` — ${TITLES[c][1]}\n\n| Skill | Kind | What it does |\n|---|---|---|\n`;
   for (const s of rows) {
     const { description, kind } = fm(s.file);
-    out += `| [\`/${s.name}\`](../skills/${c}/${s.name}/SKILL.md) | ${KIND[kind] ?? kind} | ${short(description)} |\n`;
+    out += `| ${CORE.has(s.name) ? "★ " : ""}[\`/${s.name}\`](../skills/${c}/${s.name}/SKILL.md) | ${KIND[kind] ?? kind} | ${short(description)} |\n`;
   }
 }
 out += `\nTotal: ${skills.length} skills.\n`;

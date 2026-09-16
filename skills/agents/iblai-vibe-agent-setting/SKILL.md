@@ -4,6 +4,7 @@ description: Add the agent Settings tab (name, description, visibility, copy, de
 globs:
 alwaysApply: false
 metadata:
+  core: true
   kind: ui
 ---
 

@@ -24,13 +24,14 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "create an agent", "another agent" | `/iblai-vibe-agent-create` ★ → `/iblai-vibe-agent-setting` ★; every tab via `/iblai-vibe-agent` |
 | "users", "admins", "roles", "invite", "who can" | `/iblai-vibe-admin` (User/Admin mode, `/admin/users`), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |
 | "store something per user", "preferences", "onboarding progress", "custom user fields" | `/iblai-vibe-user-metadata` ★ — never localStorage, never your own DB |
-| "organization setting", "white-label", "per-org config" | `/iblai-vibe-org-metadata` (GET-merge-PUT) + `/iblai-vibe-account` |
+| "organization setting", "white-label", "per-org config" | `/iblai-vibe-org-metadata` ★ (GET-merge-PUT) + `/iblai-vibe-account` |
 | "profile", "avatar", "résumé" | `/iblai-vibe-profile` ★ |
 | "remember", "memory", "personalize" | `/iblai-vibe-memory-guide` ★ → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` |
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
+| "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
@@ -120,7 +121,9 @@ is the CLAUDE.md that ops-init writes into projects.
 
 ### The Core Twelve
 
-★ = the five platform families most apps read or write (deepest skills; each
+★ = the six core families almost every app reads or writes — the generated
+table in [docs/catalogue.md#core](docs/catalogue.md#core) is the source of truth
+(`core` in `scripts/skill-categories.json`; deepest skills; each
 links its headless twin, the `iblai-api-*` skill for the same data).
 
 | # | Capability | SDK surface | Skill |
@@ -131,7 +134,7 @@ links its headless twin, the `iblai-api-*` skill for the same data).
 | 4 ★ | Create + configure an agent | server route; `AgentSettingsProvider` + `AgentSettingsTab` (+23 tabs) | `/iblai-vibe-agent-create`, `/iblai-vibe-agent-setting`, `/iblai-vibe-agent` |
 | 5 ★ | The user's own profile | `Profile`, `UserProfileDropdown`, `useGetUserMetadataQuery` | `/iblai-vibe-profile` (starter) |
 | 6 ★ | Custom per-user data | `useGetUserPlatformMetadataQuery`, `useUpdateUserPlatformMetadataMutation` | `/iblai-vibe-user-metadata` (starter) |
-| 7 | Org settings + custom org data | `Account` → `OrganizationTab`; `useGetTenantMetadataQuery`, `useUpdateTenantMetadataMutation` | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` (starter) |
+| 7 ★ | Org settings + custom org data | `Account` → `OrganizationTab`; `useGetTenantMetadataQuery`, `useUpdateTenantMetadataMutation` | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` (starter) |
 | 8 | Users vs admins: directory, invites, roles, User/Admin mode | `Admin`, `UsersTab`, `RolesTab`, `PoliciesTab`, `InviteUserDialog`, `checkRbacPermission` | `/iblai-vibe-admin` (starter), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |
 | 9 ★ | Memory: user-global, per-agent, agent knowledge | `useGetGlobalMemoriesQuery`, `useGetUserMemorySettingsQuery`, `AgentMemoryTab`, `Account targetTab="memory"` | `/iblai-vibe-memory-guide`, `/iblai-vibe-memory` (starter), `/iblai-vibe-agent-memory` |
 | 10 ★ | Analytics, transcripts, costs, audit, reports | `AnalyticsLayout` + tabs, `AgentAnalyticsTab` | `/iblai-vibe-analytics` (starter), `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
@@ -142,7 +145,7 @@ links its headless twin, the `iblai-api-*` skill for the same data).
 
 ### Platform data most apps lean on
 
-Most apps on the platform read or write the same five REST families. Each
+Most apps on the platform read or write the same six REST families. Each
 entry: what it gives your app → the SDK entry points that call it from the
 browser → the `/iblai-vibe-*` skill that mounts the UI → the `iblai-api-*`
 skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
@@ -216,6 +219,15 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   `UserProfileDropdown`, `UserProfileModal`, `Account` (`/next`).
   Skills: `/iblai-vibe-profile`, `/iblai-vibe-account`, `/iblai-vibe-history`.
   REST: [profile](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-profile/SKILL.md)
+
+- **Organization metadata** — one JSON object per organization
+  (`…/dm/api/core/orgs/<key>/metadata/`; public GET, admin PUT that
+  **replaces**, so always GET-merge-PUT). Branding (name, logos, support
+  email), feature toggles, the default agent, anything your app needs once
+  per organization. SDK: `useGetTenantMetadataQuery`,
+  `useUpdateTenantMetadataMutation` (tuple args `[{ org }]`); the starter's
+  typed `useOrgSettings` wraps them. UI: `Account` → `OrganizationTab`.
+  Skills: `/iblai-vibe-org-metadata`, `/iblai-vibe-account`. REST: [org](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-org/SKILL.md)
 
 **Auth on the wire.** In the browser the SDK sends `Authorization: Token
 <dm_token>` (session tokens in localStorage `dm_token` / `axd_token`), so
@@ -319,6 +331,7 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
 | Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply` |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |
+| Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-outline` (bulk build), `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
 | Guides | `ecosystem`, `infrastructure` (self-hosting) |
 
 Authoring contract (Reads/Writes structure, `urls.py` as source of truth, the
@@ -434,15 +447,6 @@ node scripts/test-skills-render.mjs       # skill assets + SKILL.md ts/tsx fence
 scripts/test-skills-agent.sh --changed    # headless-agent execution of changed skills (needs claude CLI)
 bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)
 ```
-
-Prose vocabulary everywhere: **organization / org key**, **agent**, **user** —
-`tenant`, `mentor`, `learner` appear only as verbatim wire names in backticks
-(`scripts/sweep-terms.py` enforces the sweep; `docs/glossary.md` explains the
-mapping). Every skill declares `metadata.kind` (`ui` · `api` · `guide` · `ops` · `security`),
-checked by `node scripts/check-skill-kinds.mjs`; `ui` skills follow
-`templates/skill-template-feature.md`, `api` skills follow the contract in
-[docs/api-skills.md](docs/api-skills.md) (Reads/Writes, verified endpoints,
-no UI language). Asset-bearing skills map their templates to app paths in `skills/<name>/test.json`; justified typecheck skips live in `scripts/skill-render-skips.json`.
 
 Prose vocabulary everywhere: **organization / org key**, **agent**, **user** —
 `tenant`, `mentor`, `learner` appear only as verbatim wire names in backticks
