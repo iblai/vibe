@@ -10,7 +10,7 @@ six data families almost every app reads or writes (the section right below).
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
-| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 55 |
+| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 56 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
@@ -122,6 +122,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
+| [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Add the OS app's Code mode to a vibe Next.js + Tauri app |
 | [`/iblai-vibe-project`](../skills/agents/iblai-vibe-project/SKILL.md) | 🖥️ ui | Add the in-process Projects surface (project landing page |
 | [`/iblai-vibe-workflow`](../skills/agents/iblai-vibe-workflow/SKILL.md) | 🖥️ ui | Add workflow builder components to your Next.js app |
 
@@ -259,4 +260,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 151 skills.
+Total: 152 skills.
