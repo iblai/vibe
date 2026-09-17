@@ -18,11 +18,13 @@ card** inside the reply the user Allows or Denies (or, once chosen, approves
 automatically). A mobile build can't spawn binaries, so a phone **pairs** to
 a desktop over the LAN by QR and runs the same turns against it.
 
-![Code pill in the composer — Approvals, workspace, phone access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-1-code-pill.png)
+![Desktop — the Code pill's popover: Approvals, Workspace (Open in Finder / Select / New), and Phone Access with the pairing QR, address, and password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-1-code-pill.png)
 
-![Permission card inside the assistant reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-2-permission-card.png)
+![Phone, not yet paired — Your Computer: Scan QR Code or enter the desktop's address and password manually](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
 
-![Phone paired to a desktop — Your Computer, workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-3-phone-pairing.png)
+![Phone, paired — Connected To the desktop, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
+
+![Phone, Code on — picking one of the desktop's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
 
 > **Ships code, not a contract.** Unlike [`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md),
 > this skill carries the OS app's actual implementation: the Rust modules
