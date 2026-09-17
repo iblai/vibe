@@ -168,6 +168,15 @@ is never leaked. An unreachable/erroring tracing backend returns **`502`** (dist
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
 
+**Access (self-service).** Platform admins — and watchers / mentor owners via
+their RBAC grants — see the whole tenant. A **non-admin** end user may read
+**only their own usage**: the `userId`/`username` filter is clamped to the
+caller, so a self-access call can never return tenant-wide aggregates. Omitting
+`username` defaults to the caller's own rows; passing **another** user's
+`username` is rejected **`403`**. This governs end-user tokens driving the UI —
+with an `Api-Token` workspace key you act as the platform, so you always get the
+full-tenant scope and the self-scoping above does not apply.
+
 ### Per-user analytics
 
 A single user's own learning data. **RBAC-gated**, with a self-access bypass:
