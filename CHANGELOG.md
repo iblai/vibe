@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.0] - 2026-09-17
+
+### Added
+
+- analytics revamp skills update
+
 ## [2.4.0] - 2026-09-17
 
 ### Added
