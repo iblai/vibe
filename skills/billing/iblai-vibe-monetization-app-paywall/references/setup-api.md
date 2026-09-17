@@ -158,12 +158,15 @@ PAYWALL_APP_SLUG=<slug>
 ## 6. Who paid (admin reporting)
 
 ```bash
-curl -s "$PAY/paywall/payments/?app=<slug>" -H "$AUTH" | jq '{count, results: [.results[] | {username, mode, status, amount_total, currency}]}'
+curl -s "$PAY/paywall/payments/?app=<slug>" -H "$AUTH" | jq '{count, results: [.results[] | {username, user_email, user_full_name, mode, status, amount_total, currency}]}'
 ```
 
 Filter a single buyer with `&username=<name>`. Rows are the DM's own
 records — no Stripe calls; subscriptions carry the last observed status and
-refresh on every uncached access check.
+refresh on every uncached access check. `username` is stored on the payment
+row so the record survives the buyer's deletion; `user_email` and
+`user_full_name` are read through the user and come back `null` once they are
+gone, rather than naming whoever holds that username next.
 
 ## 7. Member self-service checkout (the browser, the member's own token)
 

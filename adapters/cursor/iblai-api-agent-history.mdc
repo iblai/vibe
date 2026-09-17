@@ -29,8 +29,8 @@ users have chatted with an agent.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/public-settings/` — gating (whether history is available for this agent).
-- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history/?mentor={mentor}&page={n}&page_size=10&sentiment={s}&topics={t}&filter_user_id={id}&start_date={d}&end_date={d}` — conversation list (paginated; sentiment / topics / user / date filters).
-- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history-filter/?mentor_id={mentor}&monthly_range=false&start_date=&end_date=` — available filter options (sentiments, topics, users).
+- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history/?mentor={mentor}&page={n}&page_size=10&sentiment={s}&topics={t}&filter_user_id={id}&start_date={d}&end_date={d}` — conversation list (paginated; sentiment / topics / user / date filters). Each row identifies the learner with `student` (username), `email`, `user_full_name` and, for LTI users, `lti_email`.
+- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history-filter/?mentor_id={mentor}&monthly_range=false&start_date=&end_date=` — available filter options (sentiments, topics, users). Each entry in `users[]` carries `username`, `email`, `user_full_name` and `lti_email`, so a filter dropdown can label people rather than show raw usernames.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/summaries/general/` — general summary, average rating, and topics.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/memory/{conversationId}/` — per-conversation memory.
 

@@ -182,7 +182,7 @@ curl -s \
 | --- | --- | --- |
 | `id` | ro | integer |
 | `content` | req (write) | the memory text; ≥10 chars |
-| `username`, `email` | ro | resolved from the user |
+| `username`, `email`, `user_full_name` | ro | resolved from the user; `user_full_name` is the display name, empty when the user has none |
 | `mentor_id` | ro | agent memories only |
 | `platform` | ro | global memories only (org key) |
 | `category` | ro | agent memories only; nested category object |
@@ -199,9 +199,11 @@ curl -s \
 | `mentor_name` | ro | the agent's name |
 | `content` | req (write) | the knowledge text; ≥10 chars |
 | `created_by` | ro | username of the curator, or `null` (service/API-key callers) |
+| `created_by_email`, `created_by_full_name` | ro | the curator's email and display name; both `null` when `created_by` is |
 | `created_at`, `updated_at` | ro | ISO 8601 |
 
-No `category`, `is_auto_generated`, or user fields — agent knowledge is shared and manually curated.
+No `category` or `is_auto_generated` — agent knowledge is shared and manually curated, so
+the only user it names is the curator (`created_by*`), never a learner.
 
 **Category object** (`MentorMemoryCategory`): `id` (ro), `name`, `slug` (unique per agent),
 `description`, `extraction_prompt`, `is_active` (default `true`), `created_at` (ro).

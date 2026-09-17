@@ -54,6 +54,11 @@ agent against a dataset and grade the results.
 ### Datasets
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/evaluations/datasets/` — list. Filters: `?name=` (substring), `?user_email=` (creator, exact).
+
+Every dataset, run, score and judge-record read identifies its creator with
+`username`, `user_email` and `user_full_name` (the display name). All three are
+read-only and empty for rows written before the convention, or where the user
+no longer exists. `?user_email=` filters on the same fact it returns.
 - **GET** `…/evaluations/datasets/{dataset_name}/` — get one.
 
 ### Dataset items

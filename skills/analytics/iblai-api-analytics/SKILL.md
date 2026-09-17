@@ -98,8 +98,9 @@ org-wide scope on every endpoint here.
 
 - **GET** `{dm_url}/api/analytics/messages/?platform_key={platform}&search={q}&topic={topic}&sentiment={s}&min_messages=&max_messages=&page=1&limit=20[&mentor_unique_id={mentor}][&start_date=&end_date=]`
   — transcript list (one row per session). `search` matches the user's
-  **email** or username and the session's first user message. Each row carries
-  the user's `email`.
+  **email** or username and the session's first user message. Each row
+  identifies the learner with `user` (numeric id), `username`, `email` and
+  `name` (display name), so a table needs no second request to label a row.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended

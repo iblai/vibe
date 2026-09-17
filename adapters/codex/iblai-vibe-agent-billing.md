@@ -232,6 +232,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Username key, email display**: per-user caps are keyed by
   `username` in the API; the UI deliberately shows the email
   everywhere. The user is picked via search — no free-text usernames.
+  A cap read echoes `username`, `email` and `user_full_name`, so the
+  table renders the person without a second request.
 - **Enforcement is server-side**: with `block`, an exceeded cap makes
   chat/training requests fail with HTTP 429 (or a WebSocket error
   frame) whose body carries `error_code: "spend_cap_exceeded"`.
