@@ -193,7 +193,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | Skill | Kind | What it does |
 |---|---|---|
 | ★ [`/iblai-api-analytics`](../skills/analytics/iblai-api-analytics/SKILL.md) | 🔌 api | Read ibl.ai analytics via the platform API |
-| ★ [`/iblai-vibe-analytics`](../skills/analytics/iblai-vibe-analytics/SKILL.md) | 🖥️ ui | Add analytics dashboard page to your Next.js app |
+| ★ [`/iblai-vibe-analytics`](../skills/analytics/iblai-vibe-analytics/SKILL.md) | 🖥️ ui | Add the analytics dashboard (Overview, Users, Courses, Programs, Topics, Transcripts, Memory, Cost, Audit, Data Reports) to your Next.js app |
 
 ## Content
 
