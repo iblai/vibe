@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.3.3] - 2026-09-17
+
+### Documentation
+
+- document llm-usage non-admin self-access in analytics
+
 ## [2.3.2] - 2026-09-16
 
 ### Documentation
