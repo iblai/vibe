@@ -30,7 +30,7 @@ users have chatted with an agent.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/public-settings/` — gating (whether history is available for this agent).
-- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history/?mentor={mentor}&page={n}&page_size=10&sentiment={s}&topics={t}&filter_user_id={id}&start_date={d}&end_date={d}` — conversation list (paginated; sentiment / topics / user / date filters).
+- **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history/?mentor={mentor}&page={n}&page_size=10&sentiment={s}&topics={t}&filter_user_id={id}&start_date={d}&end_date={d}` — conversation list (paginated; sentiment / topics / user / date filters). Each conversation's `messages` is a list of `{human, ai, human_files, ai_files}` turns. A turn the user sent as attachments only is included with `human: ""` and its attachments in `human_files` (`[{id, name, content_type, url, …}]`).
 - **GET** `https://api.iblai.app/dm/api/ai-analytics/orgs/{org}/users/{username}/chat-history-filter/?mentor_id={mentor}&monthly_range=false&start_date=&end_date=` — available filter options (sentiments, topics, users).
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/summaries/general/` — general summary, average rating, and topics.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/memory/{conversationId}/` — per-conversation memory.
