@@ -103,6 +103,12 @@ org-wide scope on every endpoint here.
   `tool_calls` (`[{name, input, output}]`; `[]` when none), `metadata`
   (`{client, llm_model, llm_provider, llm_temperature}`, or `null`), and
   `request_context` (the credential-stripped request payload, or `null`).
+  Every turn also carries `human_files` and `ai_files`: the attachments on
+  each side (`[{id, name, file_size, content_type, uploaded_by, uploaded_at,
+  metadata, processing_error, url}]`; `[]` when none). A turn the user sent
+  as attachments only is included with `human: ""` and its files in
+  `human_files`, so render the files when the text is empty. `url` is a
+  signed link that expires, so fetch it again rather than storing it.
 
 ### Content analytics (courses / programs / pathways / skills)
 
