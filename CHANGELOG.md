@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.2] - 2026-09-18
+
+### Documentation
+
+- content analytics sort_by default and program identifiers
+
 ## [2.5.1] - 2026-09-18
 
 ### Documentation
