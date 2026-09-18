@@ -226,7 +226,8 @@ fi
 ```
 
 A `202` returns the project row (`{id, name, vercel_project_name, url,
-vercel_alias, push_state, …}`). Anything else → see the error table.
+vercel_alias, push_state, …}`), including who owns it: `username`,
+`user_email` and `user_full_name`. Anything else → see the error table.
 
 Poll until the build finishes (static deploys take seconds, server builds a
 few minutes; give up after ~10 min):

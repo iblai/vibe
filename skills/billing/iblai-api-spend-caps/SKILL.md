@@ -121,7 +121,9 @@ can render a progress bar.
 
   `status` is the worst zone across the applicable caps (`ok` → `warning` →
   `exceeded`); `blocked` is `true` when a hard-block cap is already exceeded (the
-  next chat would be refused).
+  next chat would be refused). This shape names `username` only to say which
+  scope a row belongs to — it deliberately carries no email or display name, so
+  it stays safe to render to the capped user themselves.
 
 ## Writes (platform admin — confirm with the user first)
 
@@ -208,6 +210,7 @@ Cap object (read; write accepts the non-read-only fields):
 | `mentor_name` | str \| null | read-only |
 | `username` | str \| null | read-only; set for user_agent |
 | `email` | str \| null | read-only; set for user_agent |
+| `user_full_name` | str \| null | read-only; the capped user's display name, set for user_agent |
 | `interval_type` | str | **write**, required: `day`\|`week`\|`month`\|`year` |
 | `max_cost_usd` | decimal string | **write**, required on create, > 0 |
 | `enforcement` | str | **write**: `block` (default) \| `alert_only` |

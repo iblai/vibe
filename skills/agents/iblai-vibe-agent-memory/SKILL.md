@@ -147,6 +147,11 @@ Defaults are `false` if no settings row exists.
 |---|---|---|
 | PUT | `users/{user_id}/mentors/{mentor}/settings/` | Body includes `enable_memory_component: bool` |
 
+Every memory row identifies its owner with `username`, `email` and
+`user_full_name`, so a list renders the person without a second request; an
+agent-knowledge row names its curator with `created_by`, `created_by_email` and
+`created_by_full_name` instead.
+
 ### Global memories (apply across all agents)
 
 | Method | Path | Purpose |

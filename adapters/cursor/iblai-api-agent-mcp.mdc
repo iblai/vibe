@@ -107,9 +107,12 @@ existed for the same (user, provider, org, service), it is updated in place.
   — list MCP servers (paged; `include_global=true` surfaces org-wide
   connectors; `search` and `transport` narrow results).
 - **GET** `…/users/{username}/mcp-server-connections/` — list connections:
-  scope, `is_active`, `server_name`, `platform_key`, masked `credentials`
+  scope, `is_active`, `server_name`, `platform_key`, the owning `user`
+  (username) with `user_email` and `user_full_name`, masked `credentials`
   (e.g. `sup****key`), masked `extra_headers`, `connected_service_summary`
-  (`{id, provider, service, user, platform_key}`).
+  (`{id, provider, service, user, platform_key}`). A server row likewise
+  carries `owner` (username) plus `owner_email` and `owner_full_name`; all six
+  are read-only and `null` when the row has no user.
 - **GET** `…/users/{username}/mentors/{mentor}/settings/` — the agent's
   active `tool_slugs`, `mcp_servers` (serialized server objects), and
   `can_use_tools`.
@@ -130,8 +133,8 @@ existed for the same (user, provider, org, service), it is updated in place.
   connected service (`id`, `provider`, `service`, `expires_at`, `scope`
   (raw scope string), `scope_names` (canonical ids, e.g. `["drive"]`),
   `scopes` (full scope strings), `token_type`, `service_info`
-  (`{id, name, display_name, logo}`), `username`) — the same
-  `ConnectedServiceSerializer` the
+  (`{id, name, display_name, logo}`), `username`, `user_email`,
+  `user_full_name`) — the same `ConnectedServiceSerializer` the
   connected-services list read returns.
 
 ## Writes
