@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.1] - 2026-09-18
+
+### Documentation
+
+- document the user identity fields on every read that names a user
+
 ## [2.5.0] - 2026-09-17
 
 ### Added
