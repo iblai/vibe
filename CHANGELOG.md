@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.3] - 2026-09-18
+
+### Documentation
+
+- refresh Spend Limits and Agent Limits screenshots in iblai-vibe-billing
+
 ## [2.5.2] - 2026-09-18
 
 ### Documentation
