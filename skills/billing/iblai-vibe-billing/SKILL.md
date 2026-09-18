@@ -30,9 +30,9 @@ management, the workspace-wide cap, and the cross-agent overview.
 
 ![Manage Usage (Auto Recharge) Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-manage-usage.png)
 
-![Billing — Spend Limits (workspace-wide)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-spend-limits.png)
+![Billing — Spend Limits (one org-wide limit; actual spend shown before a cap exists)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-spend-limits.png)
 
-![Billing — Agent Limits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits.png)
+![Billing — Agent Limits (every agent cap, status toggle + Alert Only badge, Manage)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits.png)
 
 ![Agent Limits — Manage popup (This Agent)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits-manage.png)
 
