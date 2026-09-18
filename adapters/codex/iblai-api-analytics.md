@@ -110,11 +110,22 @@ org-wide scope on every endpoint here.
 Catalog engagement and time-spent, org-wide by default. Add `mentor_unique_id`
 to scope to content consumed via one agent.
 
-- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
+- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&sort_by=enrollments][&search=][&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
   — aggregated content analytics + paginated item list. `metric` (**required**)
   ∈ `course`/`courses` | `program`/`programs` | `pathway`/`pathways` |
   `skill`/`skills`. `include_overtime=true` adds a 7-day time-spent series
   (courses only).
+  - **Order (`sort_by`):** `enrollments` (default when omitted) - total
+    enrollments, active and inactive, highest first, ties by name;
+    `active_enrollments` - active enrollments, highest first; `name` - A to Z.
+    Counts use the same user scope as each item's `analytics.enrollments`, so
+    content with 0 enrollments sorts last. Skills are always ordered by name.
+    Send `sort_by=name` if you need the alphabetical list.
+  - **Program identifiers:** with `metric=program`, each result has
+    `program_id` (the program code, e.g. `2025`, the value catalog search
+    filters take as `program_id`) and `program_key`
+    (`program-v1:<org>+<program_id>`). `id` still returns the program key but
+    is deprecated for programs; read `program_id` / `program_key` instead.
 - **GET** `{dm_url}/api/analytics/content/details/{content_id}/?platform_key={platform}&metric=courses&date_filter=30d&search=&page=1&limit=20[&time_metric=][&mentor_unique_id={mentor}]`
   — detailed analytics for one content item (summary + per-user rows +
   optional time series). `metric` **required**.
