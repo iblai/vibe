@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 import { Logo } from './logo';
 import {
   Sheet,
@@ -26,12 +27,13 @@ export function NavigationDrawer({
   onClose,
   items,
 }: NavigationDrawerProps) {
+  const t = useTranslations('Nav');
   const pathname = usePathname() ?? '/';
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="left" className="w-72 p-0">
-        <SheetTitle className="sr-only">Navigation</SheetTitle>
+        <SheetTitle className="sr-only">{t('navigation')}</SheetTitle>
 
         <div className="flex h-16 items-center border-b border-[var(--border-color)] px-5">
           <div onClick={onClose}>
