@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.4] - 2026-09-20
+
+### Documentation
+
+- null all three identity fields for deleted user
+- document read-only privacy-flags audit endpoint
+
 ## [2.5.3] - 2026-09-18
 
 ### Documentation
