@@ -39,5 +39,9 @@
   "iblai-vibe-course-access": {
     "all": true,
     "reason": "documents v1-era course hooks: useGetDepartmentMemberCheckQuery is gone from the v2 runtime entirely, useCourseNavigator/exam/enrollment hooks are d.ts gaps — the skill needs a v2 rewrite"
+  },
+  "iblai-vibe-analytics": {
+    "targets": ["app/(app)/analytics/layout.tsx", "app/(app)/analytics/financial/page.tsx"],
+    "reason": "SDK pin gap: AnalyticsLayout showPicker and AnalyticsFinancialStats userId ship in @iblai/web-containers 1.21.0, but @iblai/iblai-js 2.12.2 resolves 1.16.0 — unskip when the starter's SDK pin picks up web-containers >= 1.21.0"
   }
 }

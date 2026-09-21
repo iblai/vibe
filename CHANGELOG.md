@@ -3,6 +3,59 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.5.4] - 2026-09-20
+
+### Documentation
+
+- null all three identity fields for deleted user
+- document read-only privacy-flags audit endpoint
+
+## [2.5.3] - 2026-09-18
+
+### Documentation
+
+- refresh Spend Limits and Agent Limits screenshots in iblai-vibe-billing
+
+## [2.5.2] - 2026-09-18
+
+### Documentation
+
+- content analytics sort_by default and program identifiers
+
+## [2.5.1] - 2026-09-18
+
+### Documentation
+
+- document the user identity fields on every read that names a user
+
+## [2.5.0] - 2026-09-17
+
+### Added
+
+- analytics revamp skills update
+
+## [2.4.0] - 2026-09-17
+
+### Added
+
+- add iblai-vibe-os-agent-code-mode
+
+### Documentation
+
+- real screenshots for iblai-vibe-os-agent-code-mode
+
+## [2.3.3] - 2026-09-17
+
+### Documentation
+
+- document llm-usage non-admin self-access in analytics
+
+## [2.3.2] - 2026-09-16
+
+### Documentation
+
+- note that platform hosting is admin-only and add its 403 row to the deploy runbook
+
 ## [2.3.1] - 2026-09-16
 
 ### Fixed

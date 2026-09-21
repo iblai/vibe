@@ -98,8 +98,9 @@ org-wide scope on every endpoint here.
 
 - **GET** `{dm_url}/api/analytics/messages/?platform_key={platform}&search={q}&topic={topic}&sentiment={s}&min_messages=&max_messages=&page=1&limit=20[&mentor_unique_id={mentor}][&start_date=&end_date=]`
   — transcript list (one row per session). `search` matches the user's
-  **email** or username and the session's first user message. Each row carries
-  the user's `email`.
+  **email** or username and the session's first user message. Each row
+  identifies the learner with `user` (numeric id), `username`, `email` and
+  `name` (display name), so a table needs no second request to label a row.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended
@@ -113,11 +114,22 @@ org-wide scope on every endpoint here.
 Catalog engagement and time-spent, org-wide by default. Add `mentor_unique_id`
 to scope to content consumed via one agent.
 
-- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
+- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&sort_by=enrollments][&search=][&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
   — aggregated content analytics + paginated item list. `metric` (**required**)
   ∈ `course`/`courses` | `program`/`programs` | `pathway`/`pathways` |
   `skill`/`skills`. `include_overtime=true` adds a 7-day time-spent series
   (courses only).
+  - **Order (`sort_by`):** `enrollments` (default when omitted) - total
+    enrollments, active and inactive, highest first, ties by name;
+    `active_enrollments` - active enrollments, highest first; `name` - A to Z.
+    Counts use the same user scope as each item's `analytics.enrollments`, so
+    content with 0 enrollments sorts last. Skills are always ordered by name.
+    Send `sort_by=name` if you need the alphabetical list.
+  - **Program identifiers:** with `metric=program`, each result has
+    `program_id` (the program code, e.g. `2025`, the value catalog search
+    filters take as `program_id`) and `program_key`
+    (`program-v1:<org>+<program_id>`). `id` still returns the program key but
+    is deprecated for programs; read `program_id` / `program_key` instead.
 - **GET** `{dm_url}/api/analytics/content/details/{content_id}/?platform_key={platform}&metric=courses&date_filter=30d&search=&page=1&limit=20[&time_metric=][&mentor_unique_id={mentor}]`
   — detailed analytics for one content item (summary + per-user rows +
   optional time series). `metric` **required**.
@@ -167,6 +179,15 @@ observations) whose record belongs to another organization returns **`404`** —
 is never leaked. An unreachable/erroring tracing backend returns **`502`** (distinct
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
+
+**Access (self-service).** Platform admins — and watchers / mentor owners via
+their RBAC grants — see the whole tenant. A **non-admin** end user may read
+**only their own usage**: the `userId`/`username` filter is clamped to the
+caller, so a self-access call can never return tenant-wide aggregates. Omitting
+`username` defaults to the caller's own rows; passing **another** user's
+`username` is rejected **`403`**. This governs end-user tokens driving the UI —
+with an `Api-Token` workspace key you act as the platform, so you always get the
+full-tenant scope and the self-scoping above does not apply.
 
 ### Per-user analytics
 

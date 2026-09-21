@@ -13,7 +13,7 @@ no Vercel token, no `vercel` CLI.
 
 The hosting API is **admin-only**: what authorises a deploy is the platform API
 key your ibl.ai operator issued for the organization — the `TOKEN` in
-`iblai.env`, sent as `Api-Token`. A learner's own sign-in token is not that key
+`iblai.env`, sent as `Api-Token`. A user's own sign-in token is not that key
 and every call below answers 403. If `iblai.env` has no `TOKEN`, ask the
 operator for one rather than substituting a personal token.
 
@@ -227,19 +227,21 @@ fi
 ```
 
 A `202` returns the project row (`{id, name, vercel_project_name, site_url,
-shared_domain, url, vercel_alias, push_state, …}`). Anything else → see the
-error table.
+shared_domain, url, vercel_alias, push_state, …}`), including who owns it:
+`username`, `user_email` and `user_full_name`. `shared_domain` is that host on
+its own when the platform assigned it automatically, and empty when the site is
+served at a custom domain. Anything else → see the error table.
 
 **Deploying to a custom domain.** Omit `domain` and the project keeps whatever
-address it already has, or is assigned one automatically. To pin a deployment to
-a custom domain the platform has **already configured** (see *Custom Domain*
-below), add `-F "domain=app.example.com"`. A domain nobody has configured is a
-`400`.
+address it already has, or is assigned one automatically. To pin a deployment
+to a custom domain your organization has **already configured** (see
+[references/custom-domains.md](references/custom-domains.md)), add
+`-F "domain=app.example.com"`. A domain nobody has configured is a `400`.
 
-A domain another platform holds is also a `400` — *unless* that platform's site
-no longer serves it, in which case the deployment takes the domain over and the
-other platform is detached from it. That is checked before anything is created,
-so a refused domain leaves nothing behind.
+A domain another organization holds is also a `400` — *unless* that
+organization's site no longer serves it, in which case the deployment takes
+the domain over and the other organization is detached. That is checked before
+anything is created, so a refused domain leaves nothing behind.
 
 Poll until the build finishes (static deploys take seconds, server builds a
 few minutes; give up after ~10 min):
@@ -294,25 +296,21 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 |---|---|---|
 | — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
 | 400 | No Vercel credential stored for this organization, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
-| 400 | The `domain` you named is not configured for this platform, or another platform holds it and still serves it | Configure it first (see *Custom Domain* below). A domain held by a platform whose site no longer serves it is taken over automatically, so this means the other platform is still live on it |
+| 400 | The `domain` you named is not configured for this organization, or another organization holds it and still serves it | Configure it first (see [references/custom-domains.md](references/custom-domains.md)). A domain held by an organization whose site no longer serves it is taken over automatically, so this means the other one is still live on it |
+| 400 | The `domain` you named is attached to another of your organization's projects | Detach it there first — a domain serves one project at a time |
+| 400 | The `domain` you named is reserved: the automatically assigned subdomain namespace, or a provider-owned host such as `*.vercel.app` | Deploy to a domain your organization owns and has configured |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 403 | `TOKEN` is not the organization's platform API key, or it belongs to another `PLATFORM` — hosting is admin-only | Use the `TOKEN` your operator issued for this `PLATFORM`; a personal sign-in token cannot deploy |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
 | 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
-| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain is unreachable | Nothing was uploaded. Either configure a custom domain for the project (see below) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
+| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain is unreachable | Nothing was uploaded. Either configure a custom domain for the project (see the custom-domains reference) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
 
 ## Custom Domain (optional)
 
-```bash
-curl -s -X POST "$BASE/providers/vercel/hosting/dns/" -H "$AUTH" \
-  -H 'Content-Type: application/json' \
-  -d "{\"project\": $ID, \"domain\": \"app.example.com\"}" | jq '.required_records'
-```
-
-Hand the returned `required_records` DNS instructions to the user — they
-add them at their registrar. `GET` / `DELETE` on the same path list /
-remove domains.
+Attaching a domain, handing the user the DNS records to set, re-verifying one,
+reclaiming one and detaching it — every route and response field is in
+[references/custom-domains.md](references/custom-domains.md).
 
 ## Deploy to a server the team controls
 
@@ -391,3 +389,4 @@ static files again.
 
 - Container/server: [`references/docker-deploy.md`](references/docker-deploy.md)
 - Runtime config: [`references/runtime-config.md`](references/runtime-config.md)
+- Custom domains: [`references/custom-domains.md`](references/custom-domains.md)
