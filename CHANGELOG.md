@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.6.0] - 2026-09-21
+
+### Added
+
+- add shared domain content
+
+### Documentation
+
+- document custom domains for hosted apps
+
 ## [2.5.4] - 2026-09-20
 
 ### Documentation
