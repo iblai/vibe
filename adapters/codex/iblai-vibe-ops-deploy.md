@@ -20,11 +20,17 @@ operator for one rather than substituting a personal token.
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
-poll until the build is READY. The app lands on the `*.vercel.app` URL the
-API reports (never derived from the project name), public by default (no Vercel
-SSO/password protection to disable). POST again with the same `project`
-slug to redeploy — content identical to what is already live is skipped
-automatically (Step 3.5).
+poll until the build is READY. The address comes back as `site_url` on the
+deploy response itself — either a subdomain the platform assigns the project
+automatically, or a custom domain already configured for it. Public by default
+(no Vercel SSO/password protection to disable). POST again with the same
+`project` slug to redeploy — content identical to what is already live is
+skipped automatically (Step 3.5).
+
+> **Read `site_url`, not `url`.** `url` is the underlying `*.vercel.app` host,
+> which Vercel mints and revises, so it stays `null` until a live build confirms
+> it. `site_url` is the address the platform chose, so it is already in the
+> deploy response. Never derive either from the project name.
 
 ## Which target
 
@@ -173,7 +179,7 @@ if [ -n "$HASH" ]; then         # empty hash must never match a missing field
         | select((.push_state // "") != "pending" and (.push_state // "") != "uploading")
         | select((.deployment_hash // "") == $h)
         | select((.latest_deployment.state // .last_ready_state // "") == "READY")
-        | (.url // "") | select(. != "")' | head -1)
+        | (.site_url // "") | select(. != "")' | head -1)
   if [ -n "$PREV_URL" ]; then
     SKIP=1; APP_URL="$PREV_URL"
     echo "unchanged — already live at $APP_URL"
@@ -192,10 +198,9 @@ Every edge degrades to deploying, which is today's behaviour:
 - **Vercel unreachable** — the list is served `stale: true` with
   `latest_deployment: null`, so the jq falls back to the row's cached
   `last_ready_state`; if neither says `READY`, deploy.
-- **No confirmed URL yet** — `url` is `null` until a READY build has confirmed
-  the host (the `select(. != "")` covers both, and jq's `//` treats `null` like
-  a missing key), so a skip can always name the live host instead of guessing
-  one.
+- **Older backend** without `site_url` — the field reads empty, nothing
+  selects, deploy. (jq's `//` treats `null` exactly like a missing key, and the
+  `select(. != "")` covers the empty string, so both shapes fall through.)
 
 > **ponytail:** in **static** mode the Next.js build mints a fresh build ID
 > every run, so identical source usually still hashes differently and the
@@ -214,17 +219,27 @@ if [ -z "$SKIP" ]; then
     -F "file=@app.zip" -F "project=$PROJECT" -F "framework=$MODE" \
     ${HASH:+-F "deployment_hash=$HASH"})
   ID=$(echo "$RESP" | jq -r .id)
-  # The live URL is Vercel's to mint — NEVER build it from the project name
-  # (long names get right-truncated, collisions get a hash suffix). `.url` is
-  # the confirmed host of whatever is live right now; `null` on the very first
-  # deploy, and again once this build starts — the poll below fills it from
-  # the deployment's alias list when the build is READY.
-  APP_URL=$(echo "$RESP" | jq -r '.url // empty')
+  # The address the platform chose for this deployment — already final here,
+  # because it is a name the platform assigns, not one Vercel mints and later
+  # revises. NEVER build it from the project name.
+  APP_URL=$(echo "$RESP" | jq -r '.site_url // empty')
 fi
 ```
 
-A `202` returns the project row (`{id, name, vercel_project_name, url,
-vercel_alias, push_state, …}`). Anything else → see the error table.
+A `202` returns the project row (`{id, name, vercel_project_name, site_url,
+shared_domain, url, vercel_alias, push_state, …}`). Anything else → see the
+error table.
+
+**Deploying to a custom domain.** Omit `domain` and the project keeps whatever
+address it already has, or is assigned one automatically. To pin a deployment to
+a custom domain the platform has **already configured** (see *Custom Domain*
+below), add `-F "domain=app.example.com"`. A domain nobody has configured is a
+`400`.
+
+A domain another platform holds is also a `400` — *unless* that platform's site
+no longer serves it, in which case the deployment takes the domain over and the
+other platform is detached from it. That is checked before anything is created,
+so a refused domain leaves nothing behind.
 
 Poll until the build finishes (static deploys take seconds, server builds a
 few minutes; give up after ~10 min):
@@ -241,17 +256,19 @@ until [ "$STATE" = "READY" ] || [ "$STATE" = "ERROR" ] || [ "$STATE" = "PUSH_FAI
     # it only after push_state reaches "pushed", or a stale READY masks failure
     pushed)
       STATE=$(echo "$R" | jq -r '.deployment.ready_state // "BUILDING"')
-      # The deployment's alias list is the authoritative live host.
-      ALIAS=$(echo "$R" | jq -r '.deployment.aliases[0] // empty')
-      [ -n "$ALIAS" ] && APP_URL="https://$ALIAS" ;;
+      # site_url was already known at Step 4; re-read it only in case a name
+      # collision moved it (rare, and the server records the move).
+      SITE=$(echo "$R" | jq -r '.site_url // empty')
+      [ -n "$SITE" ] && APP_URL="$SITE" ;;
   esac
 done
-echo "$STATE ${APP_URL:-'(URL not reported yet)'}"
+echo "$STATE ${APP_URL:-'(no address reported)'}"
 ```
 
-If `APP_URL` is still empty on READY, re-poll the detail endpoint and read
-`.deployment.aliases[0]` — tell the user the URL is not confirmed yet rather
-than guessing one from the project name.
+`APP_URL` is set before the loop starts, so it is known while the build runs —
+the site simply does not serve until `READY`. If it is ever empty, read
+`.site_domain_error` on the same response: it says why the address could not be
+attached. Never guess a host from the project name.
 
 On `PUSH_FAILED`, the printed `push_error` says why the upload never reached
 Vercel (fix it, rebuild the zip, POST again). On `ERROR`, print the build
@@ -269,7 +286,7 @@ no-op instead of a push.
 
 If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 `build.devUrl` to it so mobile/desktop dev builds load the hosted frontend.
-(Skip while the URL is unconfirmed — never write a guessed one.)
+(Skip if it is empty — never write a guessed one.)
 
 ## Errors
 
@@ -277,11 +294,13 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 |---|---|---|
 | — | No upload happened: Step 3.5 matched the live `deployment_hash` and READY state | Expected — the URL printed is the current one. To force a push anyway, set `HASH=` (and `SKIP=`) before Step 4 |
 | 400 | No Vercel credential stored for this organization, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
+| 400 | The `domain` you named is not configured for this platform, or another platform holds it and still serves it | Configure it first (see *Custom Domain* below). A domain held by a platform whose site no longer serves it is taken over automatically, so this means the other platform is still live on it |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 403 | `TOKEN` is not the organization's platform API key, or it belongs to another `PLATFORM` — hosting is admin-only | Use the `TOKEN` your operator issued for this `PLATFORM`; a personal sign-in token cannot deploy |
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
 | 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
+| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain is unreachable | Nothing was uploaded. Either configure a custom domain for the project (see below) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
 
 ## Custom Domain (optional)
 
