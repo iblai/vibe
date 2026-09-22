@@ -65,6 +65,12 @@ Selling items *inside* the app instead? Use the Connect family — start at
 
 ## Step 1: Admin setup (once per app)
 
+> The app files in Step 2 include **`/paywall/setup`**, an admin-only screen that does
+> item 1 below — probe the Stripe source, Connect with Stripe, disconnect — from the
+> browser on the admin's own session token, so the organization can relink later without
+> running this skill. It holds no platform key: the platform enforces
+> `Ibl.Mentor/StripeConnect/*` and answers `403` to anyone else. Items 2–6 stay here.
+
 Full curls, error table, and verify list: [`references/setup-api.md`](references/setup-api.md).
 Condensed sequence — read `iblai.env` with the `val()` reader (do not
 `source` it), resolve `IBLAI_USERNAME` (env → `iblai.env` → ask once; both
@@ -94,7 +100,10 @@ and `AUTH="Authorization: Api-Token $TOKEN"`:
      **restricted** key: Stripe Dashboard → Developers → API keys → Create
      restricted key — write on Products, Prices, Checkout Sessions,
      Customers; read on Subscriptions; everything else None. In the platform
-     UI, **not in this chat** — never ask for or accept the key here.
+     UI, **not in this chat** — never ask for or accept the key here. Have them
+     store the account's **publishable key** (`pk_…`, a public value) in the
+     same credential under `publishable_key`: in-app checkout reads it, and
+     without it the app must set `PAYWALL_EMBEDDED=0` (item 6).
    - `502` from any proxy call → Stripe rejected the source (wrong-mode key,
      or the account was disconnected on Stripe's side).
    - `404` → old backend (then `GET $PAY/products/?limit=1` still tells a
@@ -126,7 +135,15 @@ and `AUTH="Authorization: Api-Token $TOKEN"`:
    ```bash
    PAYWALL_PRICE_IDS=price_xxx,price_yyy   # server-only allowlist, comma-separated
    PAYWALL_APP_SLUG=my-app                 # must equal the product's metadata.app
+   PAYWALL_EMBEDDED=0                      # optional: redirect to Stripe instead of paying in-app
    ```
+
+   Buyers pay **inside the app** by default. That needs the `publishable_key` from
+   `GET $CONNECT` (item 1) to be non-empty — it is what Stripe.js is initialised with, and
+   without one the DM refuses with a 400 naming exactly that, with no fallback. A
+   Connect-linked account always has one (the instance credential cannot omit it). A pasted
+   restricted key has one only if the credential stores it too — so either add it (item 1)
+   or set `PAYWALL_EMBEDDED=0` to keep the redirect.
 
 ## Step 2: Install the app files
 
@@ -148,11 +165,15 @@ the app's existing `pnpm test`.
 | File | Role | ~Lines |
 |---|---|---|
 | `lib/paywall.ts` | Server-only helpers: `resolveUser` (identity from the forwarded `dm_token`), `userFromRequest`, `dmPaywallFetch` (Api-Token calls to the DM) | 75 |
+| `lib/paywall-connect.ts` | Browser-side Connect with Stripe on the admin's **own** session token: `getConnectStatus`, `startConnect`, `disconnect`, `reasonText` | 135 |
 | `app/api/paywall/access/route.ts` | GET → resolve user → forward optional `session_id` → DM's answer verbatim | 22 |
-| `app/api/paywall/checkout/route.ts` | POST → resolve user → allowlisted `price_id` → DM mints the Checkout session | 32 |
+| `app/api/paywall/checkout/route.ts` | POST → resolve user → allowlisted `price_id` → DM mints the Checkout session (`ui_mode: embedded` unless `PAYWALL_EMBEDDED=0`) | 43 |
 | `components/paywall-gate.tsx` | Client gate + shared `checkPaywallAccess()`; denied → `/paywall` | 55 |
-| `app/paywall/page.tsx` + `app/paywall/paywall-actions.tsx` | Pricing page (outside `(app)`, login-first via the existing providers) + buy/auto-verify/restore actions | 105 |
+| `components/paywall-connect.tsx` | The Stripe status card: source, account snapshot, Connect / Disconnect, the `?stripe_connect=` outcome | 174 |
+| `components/paywall-embedded.tsx` | Renders the session in the page — `loadStripe(pk, { stripeAccount })` → `createEmbeddedCheckoutPage` | 69 |
+| `app/paywall/page.tsx` + `app/paywall/paywall-actions.tsx` | Pricing page (outside `(app)`, login-first via the existing providers) + buy/auto-verify/restore actions | 128 |
 | `app/paywall/return/page.tsx` | Confirms the purchase by `session_id`, then into the app | 38 |
+| `app/paywall/setup/page.tsx` | Admin-only Connect screen (Step 1, item 1, without curls) | 35 |
 | `app/(app)/layout.tsx` | 3-line edit: wrap `{children}` in `<PaywallGate>` | — |
 
 **Trust rules (non-negotiable):**
@@ -226,6 +247,12 @@ deploy first, or attach the domain.
 - [ ] `GET $CONNECT` shows the `source` in use and, when connected,
       `charges_enabled: true` (`?refresh=1` for a live read; the snapshot is
       otherwise refreshed at most once a minute)
+- [ ] `/paywall/setup` as an org admin shows that same `source`; as a member it
+      refuses. From `source: null`, Connect → `connect.stripe.com` → back on
+      `/paywall/setup?stripe_connect=connected` with the card updated
+- [ ] Default: `/paywall` renders Stripe's form in the page (no redirect), and
+      completing it lands on `/paywall/return?session_id=…`
+- [ ] `PAYWALL_EMBEDDED=0`: the same buy redirects to `checkout.stripe.com`
 - [ ] Subscription price only: cancel in the Stripe dashboard → clear
       `sessionStorage` → access lapses within ~75s (DM cache) + up to 60s of
       client grant cache
@@ -259,6 +286,11 @@ deploy first, or attach the domain.
   `no price recorded`): record it (Step 1, item 5) or test with a member account.
 - Asking for a Stripe key when `GET $CONNECT` says `source: null` — offer
   Connect with Stripe first; the key path is the admin's, in the platform UI.
+- Leaving in-app checkout on (the default) for a source with **no**
+  `publishable_key` — the DM 400s and nothing falls back to hosted, so every
+  buyer is stuck. Read `publishable_key` from `GET $CONNECT` (or `/paywall/setup`,
+  which warns in words): add it to the `stripe` credential, or set
+  `PAYWALL_EMBEDDED=0`. Only pasted-key organizations can be missing one.
 - Mixing auth schemes: DM paywall/proxy calls take
   `Api-Token <platform key>`; `core/token/verify/` identity resolution
   takes the end user's `Token <dm_token>`.

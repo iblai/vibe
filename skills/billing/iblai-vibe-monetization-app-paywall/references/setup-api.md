@@ -34,6 +34,13 @@ META="$DM/api/core/orgs/$PLATFORM/metadata/"
 
 ## 1. Verify the organization's Stripe source (and the backend)
 
+> The installed app also ships `/paywall/setup` (`components/paywall-connect.tsx`), which
+> runs this whole section from the browser on the signed-in admin's **own** session token —
+> status, Connect with Stripe, disconnect — so the organization can relink without an
+> agent. Same endpoint, different credential: `Authorization: Token <dm_token>` and the
+> caller's `Ibl.Mentor/StripeConnect/*` instead of the platform key. The curls below stay
+> the agent's path.
+
 ```bash
 curl -s "$CONNECT" -H "$AUTH"
 ```
@@ -88,7 +95,11 @@ the Connect button.
     Dashboard → Developers → API keys → Create restricted key — write on
     Products, Prices, Checkout Sessions, Customers; read on Subscriptions;
     everything else None. Test-mode key first if they want a dry run. **Never
-    ask for or accept the key in chat.**
+    ask for or accept the key in chat.** Store the account's **publishable
+    key** (`pk_…`) in the same credential under `publishable_key` — it is a
+    public value, it is what `GET $CONNECT` then reports, and the in-app
+    checkout that §5 leaves on by default cannot run without it. A credential
+    holding only `key` forces `PAYWALL_EMBEDDED=0`.
 - `502` on any proxy call → Stripe rejected the source (wrong-mode key, or
   the account was disconnected on Stripe's side) — the admin re-saves the
   key, or reconnects.
@@ -153,7 +164,19 @@ Append to `.env.local`:
 ```bash
 PAYWALL_PRICE_IDS=price_xxx,price_yyy
 PAYWALL_APP_SLUG=<slug>
+PAYWALL_EMBEDDED=0        # optional opt-out — see below
 ```
+
+The checkout route asks for `ui_mode: "embedded"` by default, so Stripe's form renders
+inside `/paywall` instead of redirecting; the answer carries `client_secret`,
+`publishable_key` and `stripe_account` for `loadStripe(publishable_key, {stripeAccount})`,
+and `success_url`/`cancel_url` are neither sent nor validated. That needs
+`publishable_key` from §1 to be non-empty — without one the DM answers 400
+(`…has no publishable key, which embedded checkout needs…`) and nothing falls back to
+hosted. A **connected** account always has one: the instance's `auth_stripe` credential
+cannot resolve without `publishable_key`, so an organization that managed to connect has
+it. A **pasted key** has one only if the credential stores it alongside the restricted key
+(§1) — add it, or set `PAYWALL_EMBEDDED=0` for the redirect.
 
 ## 6. Who paid (admin reporting)
 

@@ -7,8 +7,9 @@ import { NextRequest } from "next/server";
  * when PAYWALL_APP_SLUG is missing (the components install without it —
  * misconfiguration must fail visibly the moment they are actually used, never
  * silently grant), the PAYWALL_PRICE_IDS allowlist, Stripe's literal
- * {CHECKOUT_SESSION_ID} placeholder in success_url, and verbatim DM
- * passthrough (DM 4xx bodies are actionable).
+ * {CHECKOUT_SESSION_ID} placeholder in success_url, the PAYWALL_EMBEDDED
+ * switch between the two checkout presentations, and verbatim DM passthrough
+ * (DM 4xx bodies are actionable).
  */
 
 const ENV_KEYS = [
@@ -18,6 +19,7 @@ const ENV_KEYS = [
   "IBLAI_API_KEY",
   "PAYWALL_APP_SLUG",
   "PAYWALL_PRICE_IDS",
+  "PAYWALL_EMBEDDED",
 ] as const;
 
 const saved: Record<string, string | undefined> = {};
@@ -102,7 +104,8 @@ describe("POST /api/paywall/checkout", () => {
     expect(res.status).toBe(400);
   });
 
-  it("mints the session via the DM with origin-derived URLs and returns checkout_url", async () => {
+  it("mints a hosted session with origin-derived URLs when PAYWALL_EMBEDDED opts out", async () => {
+    process.env.PAYWALL_EMBEDDED = "0";
     stubFetch({
       dm: () => Response.json({ checkout_url: "https://checkout.stripe.com/c/pay/cs_123" }),
     });
@@ -134,6 +137,69 @@ describe("POST /api/paywall/checkout", () => {
       success_url: "https://demo.vercel.app/paywall/return?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "https://demo.vercel.app/paywall",
     });
+    // Opting out means hosted, so the DM must not be told "embedded".
+    expect(sent).not.toHaveProperty("ui_mode");
+  });
+
+  it("accepts `false` as well as `0` for the opt-out", async () => {
+    process.env.PAYWALL_EMBEDDED = "false";
+    stubFetch({
+      dm: () => Response.json({ checkout_url: "https://checkout.stripe.com/c/pay/cs_9" }),
+    });
+    const { POST } = await loadCheckout();
+
+    await POST(post(JSON.stringify({ price_id: "price_a" }), authed));
+
+    const sent = JSON.parse(String(dmCalls[0].init?.body));
+    expect(sent).not.toHaveProperty("ui_mode");
+    expect(sent).toHaveProperty("success_url");
+  });
+
+  it("asks for embedded checkout — and sends no redirect URLs — by default", async () => {
+    stubFetch({
+      dm: () =>
+        Response.json({
+          client_secret: "cs_secret",
+          session_id: "cs_123",
+          publishable_key: "pk_live_1",
+          stripe_account: "acct_1",
+        }),
+    });
+    const { POST } = await loadCheckout();
+
+    const res = await POST(post(JSON.stringify({ price_id: "price_a" }), authed));
+
+    expect(res.status).toBe(200);
+    // The browser needs all four to render the connected account's session.
+    expect(await res.json()).toEqual({
+      client_secret: "cs_secret",
+      session_id: "cs_123",
+      publishable_key: "pk_live_1",
+      stripe_account: "acct_1",
+    });
+    expect(JSON.parse(String(dmCalls[0].init?.body))).toEqual({
+      price_id: "price_a",
+      app: "demo-app",
+      ui_mode: "embedded",
+    });
+  });
+
+  it("passes the DM's no-publishable-key refusal through instead of quietly falling back to hosted", async () => {
+    // The default path's failure mode: an org whose Stripe source has no
+    // publishable key. It must stay loud — the message names both fixes.
+    const refusal = {
+      error:
+        "This platform's Stripe source has no publishable key, which embedded checkout needs: " +
+        "connect a Stripe account, or add publishable_key to the 'stripe' integration credential.",
+    };
+    stubFetch({ dm: () => Response.json(refusal, { status: 400 }) });
+    const { POST } = await loadCheckout();
+
+    const res = await POST(post(JSON.stringify({ price_id: "price_a" }), authed));
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual(refusal);
+    expect(dmCalls).toHaveLength(1); // one attempt, no silent retry
   });
 });
 

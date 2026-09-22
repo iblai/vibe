@@ -20,7 +20,10 @@ Header: `Authorization: Api-Token $TOKEN` (the platform API token; the org's
 
 Skill: `/iblai-vibe-monetization-app-paywall` (installs `lib/paywall.ts`, two
 route handlers, `PaywallGate`, `/paywall` pages, unit tests from
-`iblai-vibe-ops-init/assets/stripe-components/`).
+`iblai-vibe-ops-init/assets/stripe-components/`). Also installs `/paywall/setup`
+— the admin links or unlinks the organization's Stripe account on their own
+session token (`…/providers/stripe/connect/`) — and renders checkout in the app
+rather than redirecting to Stripe, unless `PAYWALL_EMBEDDED=0`.
 
 ## Rail C — item-level monetization via Stripe Connect Express
 
