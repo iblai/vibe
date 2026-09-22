@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { IblaiProviders } from "@/providers/iblai-providers";
 
 const geistSans = Geist({
@@ -30,18 +32,26 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // <html lang> follows the resolved locale. Hardcoding "en" misreports the
+  // document language to screen readers and crawlers as soon as a second
+  // locale ships (WCAG 3.1.1).
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <IblaiProviders>{children}</IblaiProviders>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <IblaiProviders>{children}</IblaiProviders>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
