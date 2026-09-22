@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.7.0] - 2026-09-22
+
+### Added
+
+- add iblai-api-hosting and iblai-api-heygen
+
 ## [2.6.0] - 2026-09-21
 
 ### Added
