@@ -6,43 +6,16 @@ alwaysApply: false
 
 # /iblai-vibe-account
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add an account/organization settings page with tabs for Organization info,
 User Management, Integrations, Advanced settings, and Billing.
 
-![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-account/account-page.png)
+![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-page.png)
 
 > **Template:** the page this skill creates is bundled as
 > [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 > **Navbar:** If the user wants a navbar with links to the account page,
 > guide them to `/iblai-vibe-navbar` first. That skill creates the full navbar
@@ -55,16 +28,21 @@ not in a subdirectory.
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe-starter/tree/spa) already ships the /account
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) already ships the /account
 > page wired up, alongside auth, navbar, and profile/notifications. Want to
 > use that instead?
 
-If yes, clone into a temp directory and copy into the current directory before
-installing (running pnpm install inside the cloned subdirectory causes hardlink
-issues), then skip this skill:
+If yes, copy the bundled starter template from the installed
+`iblai-vibe-ops-init` skill's `assets/vibe-starter/` directory (it sits
+alongside this skill in your skills directory; in the vibe repo it lives
+under `skills/start/`), or fetch it from the vibe repo if those assets
+are not installed -- tell the user which path you took -- then skip this
+skill:
 
-    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
+    # or, without local assets:
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+
     pnpm install --ignore-scripts
 
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
@@ -124,6 +102,7 @@ import { resolveAppTenant } from "@/lib/iblai/tenant";
 export default function AccountPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [tenantKey, setTenantKey] = useState("");
   const [tenants, setTenants] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -135,6 +114,7 @@ export default function AccountPage() {
       if (raw) {
         const parsed = JSON.parse(raw);
         setUsername(parsed.user_nicename ?? parsed.username ?? "");
+        setEmail(parsed.user_email ?? parsed.email ?? "");
       }
     } catch {}
 
@@ -169,6 +149,8 @@ export default function AccountPage() {
           tenant={tenantKey}
           tenants={tenants}
           username={username}
+          email={email}
+          mainPlatformKey={config.mainTenantKey()}
           isAdmin={isAdmin}
           authURL={config.authUrl()}
           currentPlatformBaseDomain={config.platformBaseDomain()}
@@ -208,6 +190,8 @@ get_component_info("Account")
 | `tenant` | `string` | Platform key |
 | `tenants` | `Tenant[]` | Full list of user platforms from localStorage |
 | `username` | `string` | Username |
+| `email` | `string` | User email (from `userData` in localStorage) |
+| `mainPlatformKey` | `string` | Main org key — `config.mainTenantKey()` |
 | `onInviteClick` | `() => void` | Called when "Invite user" is clicked |
 | `onClose` | `() => void` | Cancel/close callback |
 | `authURL` | `string` | Auth service URL |
@@ -217,21 +201,32 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing` |
+| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing`, `memory` (the org-wide Memory surface — see `/iblai-vibe-memory`) |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |
 | `topUpURL` | `string` | Stripe top-up URL -- shows Billing tab |
-| `enableRbac` | `boolean` | Enable RBAC permission checks for Management |
+| `enableRbac` | `boolean` | Turn on RBAC permission checks for Management. **Only ever pass this together with `rbacPermissions`** — see the warning below |
+| `rbacPermissions` | `object` | The caller's effective permissions, from `POST /dm/api/core/rbac/permissions/check/`. Defaults to `{}` |
+| `onLoadGroupPermissions` | `(permissions: object) => void` | Optional; the Teams tab calls it with group-scoped permissions so you can merge them back in |
 | `showPlatformName` | `boolean` | Show platform name badge in sidebar |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no org logo |
+
+> **`enableRbac` without `rbacPermissions` hides Management entirely.**
+> `checkRbacPermission(perms, resource, enableRbac)` returns `true` when RBAC is
+> **off**, but denies everything when it is **on** and the permissions object is
+> empty — so passing the flag alone is strictly worse than omitting it, and the
+> Management tab disappears even for an org admin. Either pass both (load them
+> with `POST rbac/permissions/check/`, see `/iblai-vibe-rbac`) or pass neither.
+> Single-org apps whose admin routes are already admin-gated should pass
+> neither: vibe-starter and the ibl.ai OS's own admin dialog both do.
 
 ## Tabs
 
 | Tab | Requires |
 |-----|---------|
 | **Organization** | `isAdmin === true` |
-| **Management** | RBAC permissions |
+| **Management** | `enableRbac` unset (any admin), or `enableRbac` **plus** a `rbacPermissions` object granting one of `/platforms/<org>/#can_manage_users`, `/groups/#list`, `/roles/#list`, `/policies/#list`, `/usergroups/#list`, `/watchedgroups/#list` |
 | **Integrations** | `isAdmin === true` |
 | **Advanced** | `isAdmin === true` |
 | **Billing** | `billingURL` or `topUpURL` prop set |

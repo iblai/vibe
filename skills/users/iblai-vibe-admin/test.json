@@ -1,0 +1,9 @@
+{
+  "overlay": {
+    "assets/admin-mode.tsx.j2": "lib/iblai/admin-mode.tsx",
+    "assets/admin-mode-switch.tsx.j2": "components/navbar/admin-mode-switch.tsx",
+    "assets/account-panel.tsx.j2": "components/admin/account-panel.tsx",
+    "assets/admin-users-page.tsx.j2": "app/(app)/admin/users/page.tsx",
+    "assets/tenant.test.ts.j2": "__tests__/tenant.test.ts"
+  }
+}

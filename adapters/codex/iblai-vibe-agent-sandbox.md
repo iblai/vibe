@@ -1,62 +1,52 @@
 # iblai-vibe-agent-sandbox
 
-> Add the agent Sandbox tab (OpenClaw instance management, agent prompt configuration, and agent skills) to your Next.js app
+> Add the agent Sandbox tab (sandbox type selection — Computing Runtime, Virtual Machine Shell, or Claw — plus OpenClaw instance management and agent prompt configuration) to your Next.js app
 
 # /iblai-vibe-agent-sandbox
 
-Add the agent **Sandbox tab** -- a three-section workspace that
-connects an agent to an OpenClaw sandbox instance, edits the
-agent-workspace prompt files (Identity, Soul, User Context, Tools,
-Agents, Bootstrap, Heartbeat, Memory) backing the agent's runtime
-behaviour, and assigns reusable Skills to the agent with toggleable
-enable/disable. Push pulls the current configuration onto the
-connected sandbox; Auto Push on Save pushes after every edit.
+Add the agent **Sandbox tab** -- choose how the agent runs code and,
+for Claw, manage its sandbox workspace. A **Sandbox Type** card picks
+one of three mutually exclusive kinds:
 
-![Sandbox — Instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
+- **Computing Runtime** — a lightweight JavaScript calculator for
+  quick computations; the low-cost option.
+- **Virtual Machine Shell** — a full Linux virtual machine: the agent
+  can write files and run real shell commands in an isolated sandbox.
+- **Claw** — a dedicated Claw worker: a persistent agent host with
+  its own skills and plugins, billed by usage. This is the original
+  OpenClaw sandbox flow — selecting it reveals the instance
+  management sections below the card.
 
-![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
+With **Claw** selected, the tab connects the agent to an OpenClaw
+instance and edits the agent-workspace prompt files (Identity, Soul,
+User Context, Tools, Agents, Bootstrap, Heartbeat, Memory) backing
+the agent's runtime behaviour. Push pulls the current configuration
+onto the connected sandbox; Auto Push on Save pushes after every
+edit.
 
-![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
+Agent Skills are managed independently of the sandbox — see
+`/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
+per-agent assignment, skill resources, and the chat `/` picker).
 
-![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
+![Sandbox — Claw selected, instances list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox.png)
 
-![Sandbox — Connected Instance, Auto Push, Push, Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
+![Sandbox Type — Computing Runtime selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-computing.png)
 
-![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
+![Sandbox Type — Virtual Machine Shell selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-type-vm.png)
 
-![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
+![Sandbox — Per-row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-actions.png)
 
-![Sandbox — Skills list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-skills.png)
+![Sandbox — New Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-instance.png)
 
-![Sandbox — New Skill dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-new-skill.png)
+![Sandbox — Edit Instance dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-instance.png)
 
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
+![Sandbox — Connected Instance, Auto Push, Push](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected.png)
 
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
+![Sandbox — Connected Instance with Push Configuration and Model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-connected-model.png)
 
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
+![Sandbox — Prompts (Identity, Soul, User Context, Tools, Agents)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-prompts.png)
 
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Sandbox — Edit prompt dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-sandbox/iblai-vibe-agent-sandbox-edit-prompt.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -73,10 +63,11 @@ is not installed.
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
-- A reachable OpenClaw instance URL plus a Gateway Token to register
-  the first instance. Without one, the Sandbox section sits empty
-  ("Add Instance") and the Prompts / Skills sections are gated until a
-  config is connected.
+- **Only for the Claw kind**: a reachable OpenClaw instance URL plus a
+  Gateway Token to register the first instance. Without one, the
+  Sandbox section sits empty ("Add Instance") and the Prompts section
+  is gated until a config is connected. Computing Runtime and Virtual
+  Machine Shell need no external instance — they are single toggles.
 
 ## Step 1: Check Environment
 
@@ -87,12 +78,12 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount the three sections
+## Step 2: Mount the two sections
 
-`SandboxConfig`, `AgentConfigPrompts`, and `AgentSkills` are independent
-components — none of them reads from `AgentSettingsProvider`. They each
+`SandboxConfig` and `AgentConfigPrompts` are independent
+components — neither reads from `AgentSettingsProvider`. They each
 take `platformKey` and `mentorUniqueId` as required props. Compose them
-on a single page so the user sees Sandbox → Prompts → Skills, top to
+on a single page so the user sees Sandbox → Prompts, top to
 bottom.
 
 ```tsx
@@ -104,7 +95,6 @@ import { useParams } from "next/navigation";
 import {
   SandboxConfig,
   AgentConfigPrompts,
-  AgentSkills,
 } from "@iblai/iblai-js/web-containers";
 
 export default function AgentSandboxPage() {
@@ -146,116 +136,85 @@ export default function AgentSandboxPage() {
         platformKey={platformKey}
         mentorUniqueId={mentorId}
       />
-      <AgentSkills
-        platformKey={platformKey}
-        mentorUniqueId={mentorId}
-      />
     </div>
   );
 }
 ```
 
-`AgentConfigPrompts` and `AgentSkills` self-gate on the connected
-sandbox config — they each call `useGetClawMentorConfigQuery` and
-short-circuit when no config exists, so it is safe (and intended) to
-mount all three together. The Prompts and Skills sections appear only
-after the user connects an instance.
+`AgentConfigPrompts` self-gates on the connected sandbox config — it
+calls `useGetClawMentorConfigQuery` and short-circuits when no config
+exists, so it is safe (and intended) to mount both together. The
+Prompts section appears only after the user connects an instance.
 
 `SandboxConfig`'s `username` prop is optional — if omitted, the
 component falls back to `getUserName()` (which reads from
 `localStorage.userData`). Pass it explicitly when you already have it
 to avoid the extra read.
 
-## Step 2.5: Enable the Sandbox tab for an agent (`enable_claw`)
+## Step 2.5: Sandbox types (`enable_computational_runtime` / `enable_virtual_machine` / `enable_claw`)
 
-The Sandbox feature is **off by default per agent**. Whether the
-Sandbox tab is shown is governed by `enable_claw` (`boolean`) on the
-agent's settings — `true` = show, `false`/missing = hide. The three
-sandbox components themselves render their UI unconditionally; it is
-the host app's job to gate the navigation entry and route based on
-this flag, so users only see the "advanced" sandbox surface for
-agents where it has been opted in.
+The **Sandbox Type** card at the top of `SandboxConfig` selects how
+the agent runs code. Three boolean flags back it, all read from the
+agent's settings and written through the standard agent-settings
+update endpoint:
 
-### Reading the flag
+| Kind | Flag | What it gives the agent |
+|---|---|---|
+| Computing Runtime | `enable_computational_runtime` | A lightweight JavaScript calculator for quick computations — the low-cost option |
+| Virtual Machine Shell | `enable_virtual_machine` | A full Linux VM: file writes and real shell commands in an isolated sandbox |
+| Claw | `enable_claw` | A dedicated Claw worker (persistent agent host with its own skills and plugins, billed by usage) — unlocks the OpenClaw sections below |
 
-```tsx
-import { useGetMentorSettingsQuery } from "@iblai/iblai-js/data-layer";
+**The kinds are mutually exclusive** — only one can be enabled at a
+time. The component enforces this client-side: enabling one kind
+turns the other two off **in the same PATCH**, and toggling the
+active kind off leaves none enabled. Switches flip optimistically and
+revert with an error toast if the save fails.
 
-const { data: settings } = useGetMentorSettingsQuery({
-  org: platformKey,
-  mentor: mentorId,
-});
-
-const sandboxEnabled = settings?.enable_claw === true;
-```
-
-Use `sandboxEnabled` to:
-
-- Hide the Sandbox tab from the agent-settings nav when `false`.
-- Redirect or render a "Sandbox is disabled for this agent" notice on
-  the route when the user lands on it directly.
+`SandboxConfig` handles all of this itself (via
+`useGetMentorSettingsQuery` + `useEditMentorMutation`), so the host
+app no longer needs to gate the Sandbox tab on `enable_claw` — mount
+the tab and let users pick a type. Custom UI toggling the flags
+directly should mirror the exclusivity:
 
 ```tsx
-// app/(app)/agents/[mentorId]/sandbox/page.tsx
-if (!settings) return null;
-if (!sandboxEnabled) {
-  return (
-    <div className="p-6 text-sm text-gray-500">
-      Sandbox is disabled for this agent.
-    </div>
-  );
-}
-return (
-  <div className="flex h-full flex-col gap-8 bg-white p-6">
-    <SandboxConfig platformKey={platformKey} mentorUniqueId={mentorId} username={username} />
-    <AgentConfigPrompts platformKey={platformKey} mentorUniqueId={mentorId} />
-    <AgentSkills platformKey={platformKey} mentorUniqueId={mentorId} />
-  </div>
-);
-```
+import { useEditMentorMutation } from "@iblai/iblai-js/data-layer";
 
-### Toggling the flag
+const [editMentor] = useEditMentorMutation();
 
-`enable_claw` is set via the standard agent-settings endpoint
-(`PUT mentors/{mentor_unique_id}/settings/`). Toggle it from wherever
-your app exposes per-agent admin controls (e.g. the Settings tab in
-`/iblai-vibe-agent-setting`, or a tenant-admin row action):
-
-```tsx
-import { useEditMentorJsonMutation } from "@iblai/iblai-js/data-layer";
-
-const [editMentorJson] = useEditMentorJsonMutation();
-
-await editMentorJson({
-  mentorId,
+// Select Virtual Machine Shell (turning the other kinds off):
+await editMentor({
+  mentor: mentorUniqueId,
   org: platformKey,
   userId: username,
-  requestBody: { enable_claw: true },
+  formData: {
+    enable_claw: false,
+    enable_computational_runtime: false,
+    enable_virtual_machine: true,
+  },
 }).unwrap();
 ```
 
-The same mutation un-gates / re-gates the tab — pass `false` to hide
-it again. Pre-existing instances and bound configs are preserved
-across toggles; flipping the flag only affects visibility, not data.
+Pre-existing Claw instances and bound configs are preserved when
+switching kinds — the flags only affect which sandbox the agent uses
+and which sections render, not the stored data.
 
 ## Step 3: Use MCP Tools for Customization
 
 ```
 get_component_info("SandboxConfig")
 get_component_info("AgentConfigPrompts")
-get_component_info("AgentSkills")
 get_component_info("LLMProviderModal")
 ```
 
 ## Component Props
 
-All three components import from `@iblai/iblai-js/web-containers`.
+Both components import from `@iblai/iblai-js/web-containers`.
 
 ### `<SandboxConfig>`
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 | `username` | `string \| null` | No | Current user. Falls back to `getUserName()` from `localStorage` when omitted |
 
@@ -263,19 +222,23 @@ All three components import from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
-| `mentorUniqueId` | `string` | Yes | Agent UUID |
-
-### `<AgentSkills>`
-
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Tenant / org slug |
+| `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
 
 ## What each section renders
 
-### Sandbox (instance management + connection)
+### Sandbox Type (kind selection)
+
+- **Three toggle rows** — Computing Runtime, Virtual Machine Shell,
+  Claw — each with an info tooltip carrying the longer explanation.
+  "Only one sandbox type can be enabled at a time": enabling one
+  turns the others off in the same save; switches update
+  optimistically and revert on failure.
+- Everything below the card (instances, connected card, Auto Push,
+  Push, Model) renders **only while Claw is the selected kind** — the
+  claw-config query is skipped entirely for the other kinds.
+
+### Sandbox (instance management + connection — Claw only)
 
 - **Instances table** — searchable, paginated (5 per page). Columns:
   Name, URL, Type, Status (Active / Error), Health (Healthy /
@@ -318,24 +281,11 @@ that opens a `RichTextEditor` modal:
 
 Updates are upserts — the first PATCH bootstraps the row.
 
-### Skills (reusable instruction bundles)
-
-- **Skills table** — name, version (`v1.0.0`), info tooltip,
-  enable/disable switch, kebab (Edit / Delete).
-- **New Skill** dialog — Name, Slug, Version (default `1.0.0`),
-  Description, Instruction (`RichTextEditor`).
-- **Toggle** — flipping a skill on creates or re-enables a
-  `MentorSkillAssignment` keyed by skill UUID; flipping off deletes
-  it. Only `enabled=true` skills are shown in the toggle list.
-- Skill CRUD is **platform-level** (visible to every agent in the
-  tenant); assignment is **agent-level**.
-
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers`:
 
-- `SandboxConfig`, `AgentConfigPrompts`, `AgentSkills` — the three
-  section components.
+- `SandboxConfig`, `AgentConfigPrompts` — the two section components.
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
@@ -357,13 +307,9 @@ From `@iblai/data-layer`:
   `useTestConnectivityClawInstanceMutation` — instance CRUD + checks.
 - `useGetAgentConfigQuery`, `useUpdateAgentConfigMutation` — prompt
   fields + model.
-- `useGetAgentSkillsQuery`, `useGetMentorSkillAssignmentsQuery`,
-  `useCreateAgentSkillMutation`, `useUpdateAgentSkillMutation`,
-  `useDeleteAgentSkillMutation`,
-  `useCreateMentorSkillAssignmentMutation`,
-  `useUpdateMentorSkillAssignmentMutation`,
-  `useDeleteMentorSkillAssignmentMutation` — skills + assignments.
-- `AgentSkill`, `MentorSkillAssignment` — payload types.
+
+Skills hooks and types (`useGetAgentSkillsQuery`, `AgentSkill`, …)
+are documented in `/iblai-vibe-agent-skills`.
 
 ## Step 4: Verify
 
@@ -384,7 +330,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **No `AgentSettingsProvider`**: All three components take raw props.
+- **No `AgentSettingsProvider`**: Both components take raw props.
   If your app already mounts `AgentSettingsProvider` for sibling tabs,
   read its values via `useAgentSettings()` in the page wrapper and
   forward them.
@@ -399,20 +345,21 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `400 No configuration to push` when every agent-config field is
   empty. The component mirrors that gate locally — the manual Push
   button is disabled until the user has saved at least one prompt.
-- **Skill UUID, not pk**: `MentorSkillAssignment.skill` is the skill's
-  `unique_id`, not the integer id. Custom UI joining skills to
-  assignments must key on `skill.unique_id`.
 - **404 ≠ error**: `useGetClawMentorConfigQuery` 404s when no agent
   has been bound to a sandbox — that's the "not connected" state, not
   a failure. The component treats `isError` as `null` here. Custom
   consumers should do the same.
-- **`enable_claw` gate (advanced toggle)**: The Sandbox tab is hidden
-  per agent until `enable_claw === true` on its settings. The SDK
-  components do not enforce this gate themselves — the host app reads
-  it from `useGetMentorSettingsQuery` and decides whether to render
-  the tab and route (see Step 2.5). Toggle with `editMentorJson`
-  (`{ enable_claw: true | false }`). Existing instances and configs
-  are preserved across toggles.
+- **Sandbox kinds are mutually exclusive**: `SandboxConfig` owns the
+  three flags (`enable_computational_runtime`, `enable_virtual_machine`,
+  `enable_claw`) and enforces the one-at-a-time rule in each PATCH
+  (see Step 2.5) — host-side tab gating on `enable_claw` is no longer
+  required. Custom UI writing the flags directly must clear the other
+  two when enabling one. Existing Claw instances and configs are
+  preserved across kind switches.
+- **Flag homes**: `enable_claw` and `enable_virtual_machine` live on
+  `MentorSettings`; `enable_computational_runtime` lives on `Mentor` —
+  all three are readable from the settings response and writable
+  through the same agent-settings update (`useEditMentorMutation`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 
 ## Sandbox REST API
@@ -421,17 +368,18 @@ For custom UI beyond these three components. All endpoints are
 prefixed with `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
 `NEXT_PUBLIC_API_BASE_URL`. Auth: `Authorization: Token <token>`.
 
-### Tab gate (agent settings)
+### Sandbox type flags (agent settings)
 
 | Method | Path | Body |
 |---|---|---|
-| GET | `mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw: boolean` |
-| PUT | `mentors/{mentor_unique_id}/settings/` | `{ "enable_claw": true }` to show the Sandbox tab for this agent, `false` to hide it |
+| GET | `mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw`, `enable_virtual_machine`, and `enable_computational_runtime` (booleans) |
+| PUT | `mentors/{mentor_unique_id}/settings/` | e.g. `{ "enable_virtual_machine": true, "enable_claw": false, "enable_computational_runtime": false }` |
 
-`enable_claw` is the per-agent "advanced sandbox" toggle. The host
-app must read it and gate the tab — the SDK components do not.
+The kinds are mutually exclusive by convention, enforced client-side:
+when enabling one flag, send the other two as `false` in the same
+request. Only `enable_claw` unlocks the OpenClaw endpoints below.
 
-### Instances (tenant-scoped)
+### Instances (organization-scoped)
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -479,27 +427,8 @@ field is empty. Pre-flight by checking the agent config locally.
 body of the corresponding `*.md` workspace file), plus `model`
 (`"{provider}/{name}"`).
 
-### Agent skills (platform-level catalog)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `agent-skills/` | List skills available in the tenant |
-| POST | `agent-skills/` | Create a skill — `{ name, slug, version, description, instruction }` |
-| PATCH | `agent-skills/{id}/` | Update |
-| DELETE | `agent-skills/{id}/` | Delete |
-
-### Agent skill assignments (per-agent binding)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `mentors/{mentor_unique_id}/skill-assignments/` | Skills bound to this agent |
-| POST | `mentors/{mentor_unique_id}/skill-assignments/` | Bind — `{ "skill": "<skill-uuid>", "enabled": true }` |
-| PATCH | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Toggle `enabled` |
-| DELETE | `mentors/{mentor_unique_id}/skill-assignments/{id}/` | Unbind |
-
-The `skill` field is the **UUID** (`unique_id`), not the integer
-primary key — keying assignments by `unique_id` keeps the binding
-stable across skill edits.
+Agent Skills endpoints (catalog, resources, per-agent assignments)
+are documented in `/iblai-vibe-agent-skills`.
 
 ### Common errors
 

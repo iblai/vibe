@@ -1,0 +1,22 @@
+allowBuilds:
+  canvas: false
+  msw: false
+  sharp: false
+  unrs-resolver: false
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+minimumReleaseAgeExclude:
+  - '@iblai/*'
+# `@iblai/web-containers` 1.16.1 was published against an unreleased
+# `@iblai/data-layer` -- it imports `useGetApiKeyQuery`,
+# `useUpdateApiKeyMutation`, `useGetApiKeyFieldPermissionsQuery` and
+# `unwrapApiTokenList`, none of which exist in data-layer 1.12.0 (the latest
+# published, and the version `@iblai/iblai-js` itself pins). Any import from
+# `@iblai/iblai-js/web-containers/next` fails the Turbopack build with 16
+# "export doesn't exist in target module" errors. Holding web-containers at
+# 1.16.0 -- the last version whose imports data-layer satisfies -- lets us stay
+# on the latest iblai-js. Drop this override once data-layer ships those
+# exports; iblai-js 2.3.1..2.3.3 are all affected.
+overrides:
+  '@iblai/web-containers': 1.16.0

@@ -1,0 +1,6 @@
+{
+  "overlay": {
+    "assets/chat-widget.tsx.j2": "components/iblai/chat-widget.tsx",
+    "assets/iblai-web-mentor.d.ts": "types/iblai-web-mentor.d.ts"
+  }
+}

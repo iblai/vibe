@@ -1,0 +1,120 @@
+# iblai-api-studio-course-create
+
+> Create a course on Open edX Studio (studio.learn.iblai.app) from the terminal — POST the org key and display name (optionally number and run) to Studio's course-management endpoint and get the course key back; list the user's courses, read a course summary, derive the course root block for outline work, and delete a course. Use when the user wants a new Open edX course, asks for their course key, needs to know which courses they can edit, or wants a course removed. Session auth via studio.env; run the auth preflight first.
+
+# iblai-api-studio-course-create
+
+Create the course shell that every other `/iblai-api-studio-*` skill fills.
+One call, one course key. Studio on ibl.ai exposes a management endpoint that
+also registers the course in the ibl.ai catalog and gives the creator the
+course-instructor role — use it, not the stock Studio route.
+
+## Before you start
+
+1. Preflight: `node .claude/skills/iblai-api-studio-auth/scripts/studio-login.mjs --check` prints two `ok`s and `studio.env` has `STUDIO_ORG=<org key>`. Anything else → **`/iblai-api-studio-auth`** first; never guess an org key and never use `main`.
+2. The user's roles include `org-instructor` for that org (`GET /api/ibl/users/manage/roles/?username=$STUDIO_USERNAME`); otherwise `/iblai-api-management` grants it.
+3. Agree `number` and `run` with the user — they are part of the key forever.
+
+## Auth & conventions
+
+- **Base URL:** `$STUDIO_URL`; Studio session cookies + CSRF from `studio.env` (its values are single-quoted — bash strips the quotes; any other parser must strip them too, or Studio answers 500: `/iblai-api-studio-auth`).
+- **Snippet:**
+  ```bash
+  set -a; . ./studio.env; set +a
+  S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+     -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+  ```
+- Course keys in **query strings must be URL-encoded**; in paths they may be raw.
+- Creating registers the course in the catalog at once; deleting is permanent and destroys user data — see the guard rails under Writes. Confirm both with the user first.
+
+## What a good course looks like
+
+The shell you create here is judged by what fills it. Before building, agree
+this shape with the user (details in `/iblai-api-studio` "Planning a
+production-grade outline"):
+
+- **Planned, not improvised.** 3–6 learning objectives; every section serves one; graded work assesses one. Write the outline (sections → subsections → units → components) down first and have the user review it.
+- **An intro and an outro.** First section: welcome, objectives, how the course works, how grading works, syllabus (PDF). Last section: summary, further reading, feedback and next steps. Learners orient at the start and consolidate at the end.
+- **Well labelled.** One naming pattern at every level (`Week 2 · Reading data critically` → `2.1 Distributions` → `Overview` / `Reading` / `Practice` / `Summary`), unit titles that say what the page is, component titles that are never left as "Text" or "Multiple Choice".
+- **A repeatable unit rhythm.** Overview → content (html, video, pdf) → one practice block holding all the unit's questions → summary. Same rhythm in every lesson.
+- **Readable pages.** Short paragraphs with space between them, headings that announce each part, callouts for key ideas, lists for lists, one idea per unit, readings under ~1,500 words, videos under 10 minutes. HTML blocks wrapped in a `<section>` with the spacing rules of `/iblai-api-studio-html`.
+- **Assessment with feedback.** Hints on choices, a solution on every question, formative checks inside lessons, summative work in graded subsections whose type exists in the grading policy.
+- **One voice, even when many hands write it.** Sub-agents drafting sections or units diverge in tone, depth and structure unless they share one content brief and every piece is reviewed against it before posting (`/iblai-api-studio` "Content quality"). Well written, presentable, beautiful, informative without distraction, carefully planned and reviewed — for every unit, not on average.
+- **Configured before it goes live.** Dates, pacing, enrollment window, description and images set (`/iblai-api-studio-settings`), grading policy set, outline complete — then one publish.
+
+## Reads
+
+- **GET** `/api/contentstore/v2/home/courses?page=1&search=<text>` — the signed-in user's courses (paginated):
+  `{count, num_pages, next, previous, results: {courses: [{course_key, display_name, org, number, run, url, cms_link, lms_link, rerun_link, is_active}], in_process_course_actions: []}}`.
+  `search` matches the display name. (`/api/contentstore/v1/home/courses` returns the same unpaginated as `{courses, archived_courses}`.)
+- **GET** `/api/ibl/manage/course/?course_key=<url-encoded key>` — one course's summary:
+  `{course_key, org, number, run, display_name, url}`. `400 {"error":"course_key parameter is required"}` without the param; `404` if unknown.
+- **GET** `/xblock/outline/block-v1:<org>+<number>+<run>+type@course+block@course` — the course root as Studio sees it (`display_name`, `published`, `has_changes`, `start`, `course_graders`, `child_info.children` = sections). Detailed in `/iblai-api-studio-section`.
+- **GET** `/api/ibl/users/manage/roles/?username=$STUDIO_USERNAME` — the user's edX roles: `[{role, org, course}]`. Creating needs `org-instructor` (or `course-creator` / `org-course-creator`) for the target org.
+
+## Writes
+
+- **POST** `/api/ibl/manage/course/` — create a course. Confirm with the user first.
+  ```json
+  { "org": "acme", "display_name": "Intro to Data", "number": "DATA101", "run": "2026-T1" }
+  ```
+  `org` and `display_name` are required. `number` and `run` are optional: when
+  omitted Studio assigns `C<n>` (next free number in the org) and the current
+  `YYYY-MM`. Response `200`:
+  ```json
+  { "url": "/course/course-v1:acme+DATA101+2026-T1", "course_key": "course-v1:acme+DATA101+2026-T1" }
+  ```
+  Side effects: the caller becomes `course-instructor` + `course-staff` on it, is
+  enrolled, and the course is registered in the ibl.ai catalog for that org
+  (it shows in the LMS app's catalog immediately, empty and unpublished).
+
+  Errors: `401` no/expired session → `/iblai-api-studio-auth`;
+  `403 {"error": "Permission denied"}` — the user cannot create courses in that
+  org, or `org` is missing → grant `org-instructor` via `/iblai-api-management`;
+  `400 {"ErrMsg": "There is already a course defined with the same organization
+  and course number…", "OrgErrMsg", "CourseErrMsg"}` — `org+number+run` exists
+  (pick a new run, or reuse the existing key).
+
+- **POST** `/api/ibl/manage/course/delete` — **DANGER: deletes the course, its content, its users' enrollments and progress, permanently and without undo.** In production this is data loss. Do not run it because it seems convenient; treat it as a last resort that the user must ask for explicitly.
+  Required before calling, all of them:
+  1. The user asked to *delete* (not "remove from catalog", "hide", "archive" — those are `/iblai-api-studio-settings`: `catalog_visibility: "none"`, `visible_to_staff_only` on sections, or an `end_date` in the past).
+  2. `GET /api/ibl/manage/course/?course_key=…` returns the course and its `display_name` matches what the user named; show both to the user.
+  3. Check for enrolled users: `POST $LMS_URL/courses/{COURSE}/instructor/api/get_students_features` (`/iblai-api-studio-lms`) — if anyone besides the author is enrolled, stop and report the count; deletion needs an explicit decision from the user with that number in front of them.
+  4. The user confirms by writing the **full course key** back (not "yes"); on the production host (`studio.learn.iblai.app`) ask a second time.
+  5. Never delete a course you did not create in this session unless the user has done steps 1–4; never delete more than one course per confirmation.
+  ```json
+  { "course_key": "course-v1:acme+DATA101+2026-T1", "keep_instructors": true, "remove_assets": false }
+  ```
+  → `200 {"message": "course with id: course-v1:… deleted"}`. Needs `org-instructor` for the course's org (or global staff). `404 {"error":"Course key does not exist"}`, `400` for a missing/invalid key, `403` without the role. Keep `remove_assets: false` (files may be referenced elsewhere) and `keep_instructors: true` unless told otherwise. Report the deletion in the final summary.
+
+- The stock Studio `POST /course/` (`{org, number, run, display_name}`) exists
+  but answers `403 "User does not have the permission to create courses in
+  this organization"` for org instructors; only use it for global course
+  creators, and prefer the endpoint above because of its catalog registration.
+
+## Example
+
+```bash
+set -a; . ./studio.env; set +a
+S=(-s -b "studio_session_id=$STUDIO_SESSION; csrftoken=$STUDIO_CSRF" -H "X-CSRFToken: $STUDIO_CSRF" \
+   -H "Origin: $STUDIO_URL" -H "Referer: $STUDIO_URL/" -H "Accept: application/json" -H "Content-Type: application/json")
+
+COURSE=$(curl "${S[@]}" -X POST "$STUDIO_URL/api/ibl/manage/course/" \
+  -d "{\"org\":\"$STUDIO_ORG\",\"display_name\":\"Intro to Data\",\"number\":\"DATA101\",\"run\":\"2026-T1\"}" \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["course_key"])')
+echo "$COURSE"                                   # course-v1:acme+DATA101+2026-T1
+ROOT="block-v1:${COURSE#course-v1:}+type@course+block@course"   # parent_locator for sections / the bulk builder
+```
+
+## Notes
+
+- Derive the **course root block** as above; it is the `parent_locator` for
+  `/iblai-api-studio-section` and `/iblai-api-studio-outline`, and the target for a whole-course publish.
+- `number` and `run` become part of the key forever: letters, digits, `.`, `_`, `-`
+  only, no spaces. Use a run that encodes the cohort (`2026-T1`, `self-paced`).
+- A new course starts with `start` = `2030-01-01` (never released) and no
+  content: set real dates, pacing and enrollment window in `/iblai-api-studio-settings` **before** the first publish.
+- Re-running with the same `number`+`run` fails; list first and reuse the key
+  if the course already exists.
+- LMS app URL to report: `$LMS_APP_URL/platform/<org>/courses/<course_key>`.
+- AI-generated course drafts through the ibl.ai pipeline: `/iblai-vibe-course-create`.

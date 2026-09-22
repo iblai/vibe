@@ -3,7 +3,7 @@
 /**
  * Build adapter files from canonical SKILL.md definitions.
  *
- * Reads skills from skills/<skill-name>/SKILL.md and generates:
+ * Reads skills from skills/<category>/<skill-name>/SKILL.md and generates:
  * - adapters/cursor/<skill-name>.mdc  (Cursor rules format)
  * - adapters/codex/<skill-name>.md    (Codex instructions format)
  *
@@ -11,11 +11,10 @@
  * ARE the Claude Code format. Copy skills/ into .claude/skills/ directly.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "fs";
-import { join, basename, dirname } from "path";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
+import { join } from "path";
+import { ROOT, listSkills } from "./lib/skills.mjs";
 
-const ROOT = new URL("..", import.meta.url).pathname;
-const SKILLS_DIR = join(ROOT, "skills");
 const ADAPTERS_DIR = join(ROOT, "adapters");
 
 // ---------------------------------------------------------------------------
@@ -41,15 +40,8 @@ function parseFrontmatter(content) {
   return { meta, body };
 }
 
-function collectSkills(dir) {
-  const skills = [];
-  for (const entry of readdirSync(dir)) {
-    const skillFile = join(dir, entry, "SKILL.md");
-    if (existsSync(skillFile)) {
-      skills.push({ name: entry, path: skillFile });
-    }
-  }
-  return skills;
+function collectSkills() {
+  return listSkills().map((s) => ({ name: s.name, path: s.file }));
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +74,7 @@ ${body}`;
 // ---------------------------------------------------------------------------
 
 function main() {
-  const skills = collectSkills(SKILLS_DIR);
+  const skills = collectSkills();
 
   if (skills.length === 0) {
     console.log("No SKILL.md files found in skills/*/");

@@ -2,7 +2,478 @@
 
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
-## [Unreleased]
+
+## [2.8.0] - 2026-09-22
+
+### Added
+
+- add the paywall Stripe Connect screen and in-app embedded checkout
+
+## [2.7.2] - 2026-09-22
+
+### Documentation
+
+- document catalog search price and format filters
+
+## [2.7.1] - 2026-09-22
+
+### Documentation
+
+- correct the hosted-app address contract and document the shared-subdomain route
+
+## [2.7.0] - 2026-09-22
+
+### Added
+
+- add iblai-api-hosting and iblai-api-heygen
+
+## [2.6.0] - 2026-09-21
+
+### Added
+
+- add shared domain content
+
+### Documentation
+
+- document custom domains for hosted apps
+
+## [2.5.4] - 2026-09-20
+
+### Documentation
+
+- null all three identity fields for deleted user
+- document read-only privacy-flags audit endpoint
+
+## [2.5.3] - 2026-09-18
+
+### Documentation
+
+- refresh Spend Limits and Agent Limits screenshots in iblai-vibe-billing
+
+## [2.5.2] - 2026-09-18
+
+### Documentation
+
+- content analytics sort_by default and program identifiers
+
+## [2.5.1] - 2026-09-18
+
+### Documentation
+
+- document the user identity fields on every read that names a user
+
+## [2.5.0] - 2026-09-17
+
+### Added
+
+- analytics revamp skills update
+
+## [2.4.0] - 2026-09-17
+
+### Added
+
+- add iblai-vibe-os-agent-code-mode
+
+### Documentation
+
+- real screenshots for iblai-vibe-os-agent-code-mode
+
+## [2.3.3] - 2026-09-17
+
+### Documentation
+
+- document llm-usage non-admin self-access in analytics
+
+## [2.3.2] - 2026-09-16
+
+### Documentation
+
+- note that platform hosting is admin-only and add its 403 row to the deploy runbook
+
+## [2.3.1] - 2026-09-16
+
+### Fixed
+
+- send every inference completion to the ASGI host, fix the models URL
+
+## [2.3.0] - 2026-09-16
+
+### Added
+
+- studio outline — reconcile driver for bulk edits; quoting, dropdown OLX, size and naming notes
+
+### Fixed
+
+- reconcile driver adopts default-titled blocks; verify pacing lock note; regenerate adapters
+
+### Documentation
+
+- add related-skill references to studio descriptions
+- studio family — content quality bar and sub-agent regulation
+
+## [2.2.0] - 2026-09-15
+
+### Added
+
+- studio family — prerequisites, bulk outline builder, authoring rules, publish ordering
+
+### Documentation
+
+- guard course deletion, keep individual edits first-class, describe a good course
+
+## [2.1.0] - 2026-09-14
+
+### Added
+
+- add iblai-api-studio family for Open edX Studio course authoring
+
+## [2.0.5] - 2026-09-14
+
+### Fixed
+
+- arm the key guard only for apps that read it; ship no .env* but .env.production
+
+## [2.0.4] - 2026-09-14
+
+### Documentation
+
+- document the hosting project → platform read
+
+## [2.0.3] - 2026-09-11
+
+### Fixed
+
+- render the starter's Management panel and replace the placeholder screenshots
+
+## [2.0.2] - 2026-09-10
+
+### Documentation
+
+- document admin/watcher view in iblai-vibe-history
+
+## [2.0.1] - 2026-09-10
+
+### Documentation
+
+- available means a new Stripe connect can start, not that the backend is migrated
+
+## [2.0.0] - 2026-09-09
+
+### Added
+
+- the first conversation, the three architectures, the domain model, and a Claude Code plugin
+- merge iblai/api into iblai/vibe — two skill families, one install, every skill tagged by kind
+- user-first revamp — journey-led docs, the core app in vibe-starter, eight new skills
+
+### Documentation
+
+- make the entry path unmissable in every agent; add the OpenAI Codex and Cursor labels
+
+## [1.26.2] - 2026-09-09
+
+### Documentation
+
+- reconnect sequence, 502 on disconnect, no refresh=1 poll in app-paywall
+
+## [1.26.1] - 2026-09-09
+
+### Documentation
+
+- Connect with Stripe, recorded price and member self-service rail in app-paywall
+
+## [1.26.0] - 2026-09-03
+
+### Added
+
+- application feature skills
+
+## [1.25.2] - 2026-09-02
+
+### Documentation
+
+- explain the five core iblai/api families, add the live-tenant pattern, ibl.ai/docs links, README truth pass
+
+## [1.25.1] - 2026-09-02
+
+
+### Added
+
+- Ready-made Stripe app-paywall components as ops-init assets
+  (`skills/start/iblai-vibe-ops-init/assets/stripe-components/`): `lib/paywall.ts`, both
+  `/api/paywall/*` route handlers, `PaywallGate`, the `/paywall` pricing + return
+  pages, and unit tests for the helpers and handlers. vibe-starter itself stays
+  Stripe-free — `/iblai-vibe-monetization-app-paywall` Step 2 installs them with one
+  copy. Gated by the render script, which now also RUNS an overlay's unit tests when
+  its `test.json` sets `"run_tests": true`.
+
+### Fixed
+
+- `iblai-vibe-course-create` taught `Authorization: Token $IBLAI_API_KEY`, which the
+  platform rejects with 401 — a platform API key matches only the `Api-Token` scheme
+  outside `/v1`. Fixed the three sites (+ regenerated adapters), the stale
+  `Token <key>` comment on `config.apiKey()` in the auth template and the shipped
+  vibe-starter copy, and the mislabeled auth class in the monetization-onboard
+  Connect API reference (a user DM token, not `PlatformApiKeyAuthentication`).
+- `iblai-vibe-ops-deploy` Step 3.5: the skip now ignores rows whose `push_state` is
+  `pending`/`uploading` — while a push of different content is in flight, the stored
+  hash and READY state still describe the previous deploy, so the skip could report
+  "unchanged" while other content landed (the server answers a re-push with 409).
+  The client hash guard also rejects non-lowercase-hex (matching the server's
+  validation), and the 400 row in the error table names the malformed-hash cause.
+
+### Documentation
+
+- `IBLAI_API_KEY` is now a standard OpenAI api key on the platform's
+  OpenAI-compatible endpoint (`https://asgi.data.<domain>/api/ai-mentor/orgs/<tenant>/v1`,
+  `Authorization: Bearer`): taught in `iblai-vibe-ops-init` (skill + starter
+  `.env.example` + `config.ts` comment) and the sandbox agent briefing, so apps get
+  LLM features (chat completions incl. streaming, tenant-scoped `GET /models`)
+  without a separate provider key. `Bearer` applies to `/v1` only; everything else
+  keeps `Api-Token`.
+
+## [1.25.0] - 2026-09-02
+
+### Added
+
+- ship ready-made Stripe app-paywall components as installable assets, unit-tested via the render gate; vibe-starter stays Stripe-free
+
+## [1.24.0] - 2026-09-02
+
+### Added
+
+- add cross-repo link-liveness check (nightly + skills-ci); fix 2 dead links it caught
+
+## [1.23.1] - 2026-09-02
+
+### Documentation
+
+- link iblai/api REST references (raw URLs) from 4 skills, CLAUDE.md, /iblai-vibe; fix stale iblai-analytics name
+
+## [1.23.0] - 2026-09-02
+
+### Added
+
+- /iblai-vibe ecosystem index skill + iblai/api & iblai/os refs, AGENTS.md, .claude/skills symlink
+
+## [1.22.0] - 2026-08-27
+
+### Added
+
+- add support for alternative ibl.ai base domains
+- skip unchanged deploys, read credentials from the env, stop asking for Stripe keys
+
+### Fixed
+
+- use Api-Token for platform keys, guard the deploy skip against in-flight pushes, teach IBLAI_API_KEY as an OpenAI api key on /v1
+
+## [1.21.2] - 2026-08-27
+
+### Documentation
+
+- document sandbox type selection in iblai-vibe-agent-sandbox
+
+## [1.21.1] - 2026-08-24
+
+### Fixed
+
+- gate tests with `run-tests` label
+
+## [1.21.0] - 2026-08-24
+
+### Added
+
+- add test infra
+
+## [1.20.1] - 2026-08-24
+
+### Documentation
+
+- refresh iblai-vibe-profile for the current Profile tabs
+
+## [1.20.0] - 2026-08-24
+
+### Added
+
+- add iblai-vibe-history user chat history skill
+
+## [1.19.0] - 2026-08-22
+
+### Added
+
+- add container and static-host targets
+
+## [1.18.1] - 2026-08-21
+
+### Fixed
+
+- IBLAI_USERNAME identity chain (no users/platforms auto-detect), API-reported deploy URLs only, force-dynamic starter CSP + CSP_MODE passthrough, push_state-aware deploy poll
+
+## [1.18.0] - 2026-08-21
+
+### Added
+
+- add iblai-vibe-memory tenant memory admin skill
+
+## [1.17.1] - 2026-08-20
+
+### Documentation
+
+- document async LTI link creation and voice instructions
+
+## [1.17.0] - 2026-08-20
+
+### Added
+
+- app-paywall skill — whole-app pay-to-enter on the tenant's own Stripe key.
+
+## [1.16.0] - 2026-08-20
+
+### Added
+
+- deploy via ibl.ai hosting API, drop VERCEL_TOKEN
+
+## [1.15.0] - 2026-08-19
+
+### Added
+
+- adding agent and tenant skill for billing
+
+## [1.14.3] - 2026-08-18
+
+### Fixed
+
+- persist the token pair TenantProvider returns from re-auth
+- hydration mismatch on every route
+
+## [1.14.2] - 2026-08-18
+
+### Fixed
+
+- allow eval() in dev CSP; document distributed-mode footgun
+
+## [1.14.1] - 2026-08-18
+
+### Fixed
+
+- vibe-starter no longer hangs after login when `NEXT_PUBLIC_API_BASE_URL`
+  is unset (#155): the hosted URL defaults moved into `lib/iblai/config.ts`,
+  so hosted iblai.app always routes through the consolidated API and can no
+  longer silently fall back to the per-service hosts that reject Auth-SPA
+  session tokens
+- the template ships only `.env.example` / `iblai.env.example`; `.env.local`
+  needs just `NEXT_PUBLIC_MAIN_TENANT_KEY` and the secret `IBLAI_API_KEY`,
+  now exposed server-side via `config.apiKey()`
+- config URL resolution is covered by unit tests
+  (`__tests__/config.test.ts`)
+
+## [1.14.0] - 2026-08-14
+
+### Added
+
+- add signed + notarized macOS/Windows desktop release builds
+- add /iblai-vibe-ops-release for App Store & Play submission
+
+## [1.13.0] - 2026-08-11
+
+### Added
+
+- adding skills for agent
+
+## [1.12.0] - 2026-08-11
+
+### Added
+
+- adding results and overide for grader
+
+## [1.11.1] - 2026-08-10
+
+### Fixed
+
+- remove vibe-starter asset info in README.md and fix vibe-starter structure
+
+## [1.11.0] - 2026-08-10
+
+### Added
+
+- bundle vibe-starter as skill assets
+
+## [1.10.1] - 2026-08-10
+
+### Documentation
+
+- delegate REST reference to the iblai/api companion
+
+## [1.10.0] - 2026-08-04
+
+### Added
+
+- adding skill for grading
+
+## [1.9.0] - 2026-08-04
+
+### Added
+
+- adding agent skill for human support
+
+## [1.8.0] - 2026-07-27
+
+### Added
+
+- adding skill for lti
+
+## [1.7.0] - 2026-07-27
+
+### Added
+
+- Adding skill for the evals
+- adding skill for agent voice tab
+
+## [1.6.0] - 2026-07-27
+
+### Added
+
+- add tenant-lock & in-app-purchase build-time flags to Tauri shell
+- add openclaw post installation setup instruction
+- add iblai-credential skill
+- update openclaw skills
+- add nemoclaw-sandbox skill
+- add iblai-monetization-configure skill
+- add iblai-monetization-analytics skill
+- add iblai-monetization-subscriptions skill
+- add iblai-monetization-checkout skill
+- add iblai-monetization-onboard skill
+- adding skill for the tasks tab for agent settings
+
+### Fixed
+
+- rename learner and mentor to user and agent respectively
+- revert changelog renames
+- update iblai-profile skill to match ibl.ai OS
+
+### Changed
+
+- turn iblai-monetization into family index + extract references
+
+### Documentation
+
+- dm-base + DM token + canonical URLs in configure skill
+- dm-base + DM token + canonical URLs in analytics skill
+- dm-base + DM token + canonical URLs in subscriptions skill
+- dm-base + DM token + canonical URLs in checkout skill
+- dm-base + DM token for onboard skill
+- dm-base + DM token + canonical URLs in overview references
+
+## [1.5.0] - 2026-06-10
+
+### Added
+- **iblai-app-cli migration** — the templates and commands from `iblai-app-cli` now live in this toolkit, completing the conversion
+- **iblai-crm-overview** skill
+
+### Changed
+- **iblai-local-llm** — generalized so the skill is no longer tied to a single backend
+
+### Documentation
+- "Built with iblai/vibe" showcase in `README.md` — moved below "What is Vibe", split into three columns with a Repo column, and de-duplicated
 
 ## [1.4.0] - 2026-06-02
 

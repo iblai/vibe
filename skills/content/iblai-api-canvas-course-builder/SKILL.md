@@ -1,0 +1,197 @@
+---
+name: iblai-api-canvas-course-builder
+description: Build and populate Canvas LMS courses through the Canvas REST API — creating course shells, modules and module items, pages, assignments, quizzes (Classic and New Quizzes), discussions, announcements, files, assignment groups, sections and enrollments, plus bulk seeding from a spec file, course copies and Common Cartridge imports. Use this skill whenever the user mentions Canvas, Instructure, canvas.instructure.com, a Canvas API token, `/api/v1/courses`, or asks to script, seed, migrate, bulk-create, or automate anything in an LMS course — including one-off scripts, sandbox/demo course generation, syllabus or module scaffolding, roster loading, and debugging Canvas API errors like 401/403/404, "Rate Limit Exceeded", unpublished content, or duplicated objects on re-runs. Reach for it even when the user only says "our LMS" or names a course by SIS ID and never says the words "Canvas API".
+metadata:
+  kind: api
+---
+
+# Building Canvas courses via the API
+
+Canvas has no "create a whole course" endpoint. A course is assembled from a dozen
+independent resources, each with its own publish state, and the API will happily let you
+build something that looks complete in the admin view and is entirely invisible to
+students. Most of the difficulty in this task is ordering, publish state, and idempotency
+— not the individual HTTP calls.
+
+## Before touching the API
+
+Three things to establish first, because getting them wrong is expensive:
+
+1. **Which instance and whose token.** Read `CANVAS_API_URL` (e.g.
+   `https://school.instructure.com`) and `CANVAS_API_TOKEN` from the environment. Never
+   put a token in a file you write, in a command line that lands in shell history, or in
+   anything you show back to the user. If they paste a token into the conversation, use it
+   from an env var you set and mention that they should rotate it afterwards.
+
+2. **Confirm identity and permissions before writing anything.** `GET /api/v1/users/self`
+   tells you who the token belongs to; `GET /api/v1/accounts` tells you which accounts they
+   can create courses in (an empty list means teacher-level access — they can populate
+   existing courses but not create new ones, which changes the whole plan). Do this even
+   when the user seems certain, because a token scoped to the wrong sub-account fails
+   halfway through a build and leaves debris.
+
+3. **Is this production?** Creating course content is not reversible in a satisfying way —
+   deleted objects linger, notifications fire, students see things. Ask which course or
+   sub-account to build in, and prefer a sandbox sub-account or a test course for the first
+   run. If the user is clearly iterating on a script, suggest they point it at a throwaway
+   course first.
+
+## The build order that works
+
+Dependencies run one direction. Follow this and you never have to backfill an ID:
+
+```
+1. Course shell            POST /accounts/:id/courses            (leave unpublished)
+2. Sections                POST /courses/:id/sections
+3. Assignment groups       POST /courses/:id/assignment_groups   (assignments need these)
+4. Files                   3-step upload (see references/recipes.md)
+5. Pages                   POST /courses/:id/pages
+   Assignments             POST /courses/:id/assignments
+   Discussions             POST /courses/:id/discussion_topics
+   Quizzes + questions     POST /courses/:id/quizzes then .../questions
+6. Modules                 POST /courses/:id/modules
+7. Module items            POST /courses/:id/modules/:mid/items  (needs IDs from step 5)
+8. Front page / syllabus   PUT  /courses/:id/front_page, PUT /courses/:id
+9. Enrollments             POST /courses/:id/enrollments
+10. Publish everything     modules → then the course itself
+```
+
+Steps 5 and 6 can run concurrently in principle; don't. Canvas throttles on concurrency
+(see below) and serial execution is barely slower in practice.
+
+**Publish last, and publish deliberately.** Content objects, modules, module items, and the
+course each carry an independent published flag. A published assignment inside an
+unpublished module is invisible. Publishing the course while enrollments exist sends
+notification emails to real people. Build the whole thing unpublished, verify it, then
+publish modules and finally the course with `PUT /courses/:id` and `course[event]=offer`.
+
+**A page inside a module is referenced by `page_url`, not by ID.** This is the single most
+common failure in module wiring. When you create a page Canvas returns a `url` slug derived
+from the title; capture it. Every other content type uses `content_id`. `SubHeader` and
+`ExternalUrl` items need neither.
+
+## Idempotency: assume the script will be run twice
+
+Canvas has no upsert. A second run of a naive script produces a second copy of every page,
+assignment and module, and the user will not notice until a student does. Two workable
+approaches:
+
+- **Manifest file** (preferred for scripted builds): write the created object IDs to a JSON
+  file keyed by a stable name from the spec. On re-run, if the key exists, `PUT` instead of
+  `POST`. `scripts/build_course.py` does this.
+- **Match by title** (for ad-hoc work): list existing objects with `GET` and reuse anything
+  whose title matches before creating. Slower and fragile against renames, but needs no
+  state.
+
+Say which one you used, and where the manifest lives, so re-runs are predictable.
+
+## Request mechanics that bite
+
+**Parameter encoding.** Canvas accepts both form-encoded bracket notation
+(`assignment[submission_types][]=online_upload`) and a JSON body with
+`Content-Type: application/json`. Form encoding is what the docs show and what every
+endpoint accepts. But **anything containing a list of objects — quiz answers, assignment
+overrides, module overrides — should go as a JSON body**, because bracket-encoded arrays of
+hashes (`answers[][text]`) rely on Rails' positional grouping and silently mangle answers
+that share key sets. `scripts/canvas_client.py` handles both; use `as_json=True` for those.
+
+**Course dates need a flag to exist.** `course[start_at]` and `course[end_at]` are
+**silently discarded unless `course[restrict_enrollments_to_course_dates]` is true**. Canvas
+returns 200 and a Course object with null dates. Since assignment availability is computed
+against course and term dates, this shows up much later as "why can't students see the
+assignment I set a due date on". Set the flag whenever you set dates.
+
+**A new course may not be empty.** If the account has a course template configured, Canvas
+copies it into every new course. Pass top-level `skip_course_template=true` when you want a
+clean shell to build into, or your build lands on top of someone else's content.
+
+**Four create params are not under `course[...]`.** `offer`, `enroll_me`,
+`skip_course_template` and `enable_sis_reactivation` are top-level. Nesting them as
+`course[offer]` is accepted and ignored — the course just doesn't publish.
+
+**Booleans and nulls.** Send `true`/`false` as lowercase strings in form encoding. Omitting
+a key leaves the existing value; sending an empty string usually clears it. There is no way
+to distinguish "unset" from "set to empty" in form encoding, which is why updates should
+send only the fields you intend to change.
+
+**Pagination.** Collection endpoints return 10 items by default and paginate via the `Link`
+header with `rel="next"` — there is no `page_count` in the body. Set `per_page=100` (the
+practical maximum) and follow `next` until it's absent. Do not construct page URLs by hand;
+some endpoints use bookmark cursors rather than page numbers.
+
+**Throttling.** Canvas uses a leaky bucket keyed on the access token, not the user or
+account. Every response carries `X-Request-Cost`; throttled requests come back as **403 (or
+429 on newer builds) with "Rate Limit Exceeded" in the body**, which is otherwise
+indistinguishable from a permissions 403 — check the body text. Sequential requests are
+almost never throttled; parallel requests take an extra up-front penalty and are the usual
+cause. If you hit it, back off exponentially and reduce concurrency to one.
+
+**SIS IDs.** Anywhere Canvas takes an ID you can pass `sis_course_id:BIO101-F26`,
+`sis_user_id:0001234`, `sis_section_id:...`. URL-encode the colon-suffixed value. This is
+much safer than hardcoding numeric IDs that differ between test and production instances.
+
+**Rich text.** `body`, `description`, `message` and `syllabus_body` are HTML, sanitized
+server-side. Relative links to other course objects break on course copy; use Canvas's
+`/courses/:id/pages/slug` form or, better, wire content together with modules instead of
+inline links.
+
+## When not to build object-by-object
+
+If the user is duplicating an existing course, copying between instances, or importing from
+another LMS, the Content Migrations API does in one call what would otherwise be hundreds:
+`POST /courses/:id/content_migrations` with `migration_type=course_copy_importer` (or
+`common_cartridge_importer` with an uploaded `.imscc`). It preserves internal links and
+dates, which hand-built copies do not. See `references/recipes.md`. Say so if the user is
+about to hand-roll something a migration would handle.
+
+For roster loading at scale, SIS Imports (`POST /accounts/:id/sis_imports` with a CSV) beat
+per-user enrollment calls by orders of magnitude — but they require account-admin rights and
+can deactivate enrollments not present in the file, so only reach for them when the user
+actually owns the SIS integration.
+
+## Bundled tooling
+
+`scripts/canvas_client.py` — a small `CanvasClient` covering auth, pagination, the
+bracket/JSON encoding split, throttle-aware retry, and the three-step file upload. Import it
+rather than rewriting `requests` boilerplate; the retry and pagination logic in particular
+is easy to get subtly wrong.
+
+`scripts/build_course.py` — takes a YAML or JSON course spec and builds the whole course in
+dependency order, idempotently, with `--dry-run`. Use it when the user wants a repeatable
+build; use the client directly for one-off surgery.
+
+```bash
+export CANVAS_API_URL=https://school.instructure.com CANVAS_API_TOKEN=...
+python scripts/build_course.py course.yaml --account 1 --dry-run
+python scripts/build_course.py course.yaml --account 1        # then for real
+python scripts/build_course.py course.yaml --course 12345     # populate an existing course
+```
+
+Both need `requests`; `build_course.py` also wants `pyyaml` for YAML specs (JSON works
+without it).
+
+`assets/course_spec.example.yaml` is a fully-commented spec showing every supported content
+type. When a user describes a course in prose, translating it into this spec and running the
+builder is usually faster and more reviewable than writing a bespoke script — and the spec
+is something they can edit and re-run.
+
+## Reference material
+
+Read these when you need exact parameters rather than the shape of the work:
+
+- `references/endpoints.md` — endpoint and parameter cheat sheet for every resource above,
+  including the exact `module_item[...]` and `course[...]` field names.
+- `references/content-types.md` — request bodies for pages, assignments, discussions,
+  Classic quizzes (with all question types and answer formats) and New Quizzes, which use a
+  completely different API at `/api/quiz/v1/`.
+- `references/recipes.md` — file uploads, enrollments and sections, course copy and Common
+  Cartridge migrations, publishing, and a table of error responses with what actually causes
+  each one.
+
+## Reporting back
+
+End with what exists now, not what was attempted: the course ID and URL, counts per content
+type, publish state of the course and modules, anything that failed, and the manifest path.
+If the course is still unpublished — which it should be by default — say so explicitly and
+give the one-line command to publish it. Users routinely assume a successful build means a
+live course.

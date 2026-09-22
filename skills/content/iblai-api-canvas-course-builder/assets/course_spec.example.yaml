@@ -1,0 +1,168 @@
+# Course spec for scripts/build_course.py
+#
+#   python scripts/build_course.py course.yaml --account 1 --dry-run
+#
+# Objects are created in dependency order. Names are the idempotency keys: change a name
+# and you get a new object, so keep them stable once a build has run.
+
+course:
+  name: "Introduction to Medical Coding"
+  course_code: "MC-101"
+  sis_course_id: "MC-101-2026FA"          # requires SIS permissions; omit if unsure
+  # Canvas IGNORES start_at/end_at unless restrict_enrollments_to_course_dates
+  # is true. No error is raised -- the dates just never take effect.
+  start_at: "2026-09-01T08:00:00Z"
+  end_at: "2026-12-15T23:59:59Z"
+  restrict_enrollments_to_course_dates: true
+  time_zone: "Africa/Accra"               # due dates display in this zone
+  default_view: modules                   # feed | wiki | modules | assignments | syllabus
+  license: private
+  apply_assignment_group_weights: true    # needed for group_weight below to take effect
+  syllabus_body: |
+    <h2>Course description</h2>
+    <p>An introduction to ICD-10-CM and CPT coding for outpatient settings.</p>
+  front_page: "Course Home"               # must match a page title below
+  post_manually: false                    # true = grades never auto-post to students
+  # If the account has a course template, a new course arrives pre-populated with it.
+  # skip_course_template: true            # uncomment for a genuinely empty shell
+  publish: false                          # publish only when you mean it
+
+
+sections:
+  - name: "Morning Cohort"
+  - name: "Evening Cohort"
+
+
+assignment_groups:
+  - name: "Homework"
+    group_weight: 30
+    position: 1
+  - name: "Quizzes"
+    group_weight: 30
+    position: 2
+  - name: "Exams"
+    group_weight: 40
+    position: 3
+
+
+# Paths are relative to the spec file. Uploaded before anything that might link to them.
+files:
+  - path: "handouts/syllabus.pdf"
+    folder: "course files/handouts"
+    on_duplicate: overwrite               # overwrite keeps the file id and your links
+
+
+pages:
+  - title: "Course Home"
+    body: |
+      <h2>Welcome</h2>
+      <p>Start with Module 1 below. Office hours are Tuesdays 14:00.</p>
+    published: true
+    editing_roles: teachers
+
+  - title: "Week 1 Overview"
+    body: "<p>This week we cover the structure of an ICD-10-CM code.</p>"
+    published: true
+
+
+assignments:
+  - name: "Problem Set 1"
+    assignment_group: "Homework"          # resolved to assignment_group_id
+    description: "<p>Code the ten scenarios in the handout.</p>"
+    submission_types: [online_upload, online_text_entry]
+    allowed_extensions: [pdf, docx]
+    points_possible: 100
+    grading_type: points
+    due_at: "2026-09-08T23:59:00Z"
+    published: true
+
+
+discussions:
+  - title: "Introductions"
+    message: "<p>Tell us where you are joining from and what you hope to learn.</p>"
+    discussion_type: threaded
+    require_initial_post: true
+    published: true
+    # is_announcement: true               # announcements notify immediately in a live course
+
+
+quizzes:
+  - title: "Week 1 Check"
+    quiz_type: assignment
+    assignment_group: "Quizzes"           # note: pass assignment_group_id if this errors
+    time_limit: 20
+    allowed_attempts: 2
+    scoring_policy: keep_highest
+    shuffle_answers: true
+    published: true
+    # Questions are created once. Re-runs leave them alone -- edit in the UI or delete the
+    # quiz's entry from the manifest to rebuild them.
+    questions:
+      - question_name: "Code structure"
+        question_type: multiple_choice_question
+        question_text: "<p>How many characters can an ICD-10-CM code have?</p>"
+        points_possible: 2
+        answers:
+          - {text: "Three to seven", weight: 100}
+          - {text: "Exactly five", weight: 0}
+          - {text: "Exactly seven", weight: 0}
+
+      - question_name: "True or false"
+        question_type: true_false_question
+        question_text: "<p>CPT codes describe procedures, not diagnoses.</p>"
+        points_possible: 1
+        answers:
+          - {text: "True", weight: 100}
+          - {text: "False", weight: 0}
+
+      - question_name: "Terminology"
+        question_type: short_answer_question
+        question_text: "<p>What does the C in ICD-10-CM stand for?</p>"
+        points_possible: 1
+        answers:
+          - {text: "Clinical", weight: 100}
+          - {text: "clinical modification", weight: 100}
+
+
+modules:
+  - name: "Module 1: Foundations"
+    published: true                       # applied after everything else is built
+    require_sequential_progress: false
+    items:
+      - type: SubHeader
+        title: "Read first"
+
+      - type: Page
+        title: "Week 1 Overview"          # matched to the page above; wired by slug
+        completion_requirement: {type: must_view}
+
+      - type: File
+        title: "syllabus.pdf"             # the file name, or its path from the spec
+        indent: 1
+
+      - type: Assignment
+        title: "Problem Set 1"
+        completion_requirement: {type: must_submit}
+
+      - type: Quiz
+        title: "Week 1 Check"
+        completion_requirement: {type: min_score, min_score: 3}
+
+      - type: Discussion
+        title: "Introductions"
+        completion_requirement: {type: must_contribute}
+
+      - type: ExternalUrl
+        title: "WHO ICD-11 browser"
+        external_url: "https://icd.who.int/browse11"
+        indent: 1
+
+
+# Users must already exist. enrollment_state defaults to active so nobody has to accept an
+# invitation; notify defaults to false so nobody gets emailed by a test run.
+enrollments:
+  - user_sis_id: "staff-0042"
+    type: TeacherEnrollment
+  - user_sis_id: "stu-1001"
+    type: StudentEnrollment
+    section: "Morning Cohort"

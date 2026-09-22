@@ -1,0 +1,183 @@
+---
+name: iblai-api-agent-embed
+description: Configure an ibl.ai agent's embed/widget settings via the platform API — anonymous access, custom CSS/JS, mode, voice/attachment toggles, starter prompts, SSO, share links, and redirect tokens. Use when embedding an agent on an external website.
+metadata:
+  kind: api
+---
+
+# iblai-api-agent-embed
+
+Configure an agent's embed/widget settings through the API: anonymous access,
+custom CSS/JS, widget mode, voice/attachment toggles, starter prompts, SSO, plus
+the share link and redirect tokens that let an agent live on an external site.
+Use when embedding an agent on an external website.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+- **Embed writes** go through one endpoint —
+  **PUT** `…/mentors/{mentor}/settings/` with `multipart/form-data` — sending
+  **only the changed field(s)**.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `…/mentors/{mentor}/public-settings/` — current embed settings.
+- **GET** `…/mentors/{mentor}/settings/` — current custom CSS/JS.
+- **GET** `…/mentors/{mentor}/sharable-link` — existing share-link token (404 = none).
+- **GET** `https://learn.iblai.app/ibl-auth/get-provider-slug/?platform_key={org}&username={username}` — SSO providers (LMS host).
+
+### Backend token provisioning
+
+- **GET** `https://api.iblai.app/dm/api/core/users/platforms/?username={username}&platform_key={org}` — the provisioned user's org/platform link record(s). Identify the user by `username` (or `user_id` / `email`). **`platform_key={org}` (or `org={org}`) is required** — the Platform API Token is authorized against it and the call `403`s without it. Returns a **list** with one record per matching org link (a Platform API Token is scoped to its own org, so exactly one); the fields the embed payload needs are `key` (the org key), `org`, `is_admin`, and `username`:
+  ```json
+  [
+    {
+      "user_id": 1234,
+      "username": "johndoe",
+      "email": "johndoe@example.com",
+      "key": "iblai",
+      "org": "iblai",
+      "platform_name": "IBL AI",
+      "lms_url": "https://learn.iblai.app",
+      "cms_url": "https://studio.learn.iblai.app",
+      "is_admin": false,
+      "is_staff": false,
+      "active": true
+    }
+  ]
+  ```
+
+## Writes
+
+- **PUT** `…/mentors/{mentor}/settings/` — save embed settings (`multipart/form-data`, send only changed keys):
+  ```json
+  {
+    "allow_anonymous": "boolean",
+    "custom_css": "string",
+    "website_url": "string",
+    "mode": "default|advanced",
+    "is_context_aware": "boolean",
+    "mentor_visibility": "string|null",
+    "embed_show_attachment": "boolean",
+    "embed_show_voice_call": "boolean",
+    "embed_show_voice_record": "boolean",
+    "show_catalogue": "boolean",
+    "starter_prompts": "guided_prompt|suggested_prompt",
+    "sso": "boolean",
+    "sso_provider": "string",
+    "auto_open": "boolean",
+    "slug": "string",
+    "safety_disclaimer": "boolean"
+  }
+  ```
+  To set advanced styling, send just `custom_css`; for advanced scripting, send `custom_javascript`.
+- **POST** `…/mentors/{mentor}/sharable-link` — create / regenerate the share link (empty body). **Confirm with the user first** (publishes a public link to the agent).
+- **PUT** `…/mentors/{mentor}/sharable-link` — enable / disable the share link:
+  ```json
+  {
+    "enabled": "boolean"
+  }
+  ```
+- **POST** `https://api.iblai.app/dm/api/core/orgs/{org}/redirect-tokens/` — mint a redirect token for the embed site. **Confirm with the user first** (issues an outward-facing token):
+  ```json
+  {
+    "url": "string (required)",
+    "mentor_unique_id": "string"
+  }
+  ```
+
+### Backend token provisioning (server-to-server embed auth)
+
+Skip the SSO login popup by minting the user's tokens from your own backend, then
+handing the embed the same `ibl-data` blob the Auth SPA would have produced. All
+calls are **server-to-server** with the org's Platform API Token (issue / rotate it via
+**`/iblai-api-token`**) — never expose this key in browser JS.
+
+- **POST** `https://api.iblai.app/dm/api/core/consolidated-token/provision/` — resolve-or-create the edX user, link them to the org, and mint the tokens. **Confirm with the user first** (it can create a real user + credentials). Request body:
+  ```json
+  {
+    "username": "string (required)",
+    "email": "string (required)",
+    "name": "string (optional — only used when creating a new user)",
+    "platform_key": "string (required — must equal your Api-Token's org)"
+  }
+  ```
+  On `200`, each token comes back as a `{token, expires}` object:
+  ```json
+  {
+    "data": {
+      "user": {
+        "user_id": 1234,
+        "user_email": "string",
+        "user_nicename": "string (username)",
+        "user_display_name": "string (username)",
+        "user_fullname": "string"
+      },
+      "axd_token":     { "token": "string", "expires": "datetime" },
+      "dm_token":      { "token": "string", "expires": "datetime" },
+      "edx_jwt_token": { "token": "string", "expires": "datetime" }
+    }
+  }
+  ```
+
+`edx_jwt_token` is provisioning-only (the plain consolidated-token proxy omits it). Error
+cases: **403** if `email` and `username` resolve to different existing users
+(`{"detail":"Invalid Request"}`), if `platform_key` ≠ your org, or if the per-user token cap
+is hit; **503** with a `Retry-After` header if the new user hasn't synced to DM yet — re-POST
+the identical body.
+
+Gated per-org by the ibl.ai-managed flag `ENABLE_PLATFORM_CONSOLIDATED_PROXY_PROVISIONING`
+(must be boolean `true`, else the provision endpoint returns **404** — contact ibl.ai to enable).
+
+**Assembling `ibl-data`.** Build this JSON on your backend (it carries the freshly minted
+tokens) and hand it to the embed, which seeds its `localStorage` from it exactly as the Auth
+SPA does after SSO. Map the two calls onto its keys:
+
+| `ibl-data` key | Source |
+|---|---|
+| `axd_token` / `axd_token_expires` | `/provision` → `data.axd_token.{token,expires}` |
+| `dm_token` / `dm_token_expires` | `/provision` → `data.dm_token.{token,expires}` |
+| `edx_jwt_token` / `edx_jwt_token_expires` | `/provision` → `data.edx_jwt_token.{token,expires}` |
+| `userData` | `JSON.stringify(/provision data.user)` |
+| `tenant` | `/users/platforms` → `key` |
+| `current_tenant` | `JSON.stringify({ key })` |
+| `tenants` | `JSON.stringify([{ key, name: org, is_admin, username }])` |
+
+`current_tenant`, `tenants`, and `userData` are JSON **strings** (stringify them before
+embedding). `tenant` / `current_tenant` / `tenants` are the widget's verbatim `localStorage`
+keys — each holds the **org** key/name. Deliver the blob one of two ways: append it
+URL-encoded as an `ibl-data=` query param on the iframe `src`, or `postMessage` it to the
+loaded iframe as `{ type: "MENTOR:AUTH_UPDATE", authData: JSON.stringify(iblData) }`.
+
+## Example
+
+Allow anonymous access and turn on the widget's attachment button (only the two
+changed fields are sent):
+
+```bash
+curl -X PUT \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/$MENTOR/settings/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -F "allow_anonymous=true" \
+  -F "embed_show_attachment=true"
+```
+
+## Notes
+
+- A field left out of the PUT is left unchanged — never resend the whole object.
+- The SSO providers read uses the LMS host `learn.iblai.app`, not `api.iblai.app`.
+- A `404` on **GET** `…/sharable-link` just means no share link exists yet —
+  **POST** to create one.
+
+## Reference material
+
+The full end-to-end backend-provisioning walkthrough — the SSO-replacement flow,
+security rationale, the provisioning behavior matrix, the annotated `ibl-data` example,
+the iframe URL template, and both delivery paths (query param + `postMessage`) with code —
+lives in **[`references/embed-guide.md`](references/embed-guide.md)**. Read it when wiring
+up server-to-server embed auth; the endpoints above are the quick reference.

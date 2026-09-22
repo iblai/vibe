@@ -1,0 +1,85 @@
+---
+name: iblai-api-agent-access
+description: Manage role-based access to an ibl.ai agent via the platform API — list role policies, search users/groups, and grant/revoke editor, chat, or analytics_viewer roles for users, groups, and emails. Use when controlling who can edit, chat with, or view analytics for an agent.
+metadata:
+  kind: api
+---
+
+# iblai-api-agent-access
+
+Manage role-based access control that decides who can **edit**, **chat with**, or
+**view analytics for** an agent. Searches resolve users and groups; every grant
+and revoke flows through the single `mentor-access/` write endpoint. Use when
+controlling who can edit, chat with, or view analytics for an agent.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+- **Access writes** go through one endpoint —
+  **POST** `https://api.iblai.app/dm/api/core/rbac/mentor-access/` — keyed by the
+  numeric `mentor_id`, adding/removing users, groups, and emails per `role`.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `…/users/{username}/mentors/{mentor}/settings/` — resolve the numeric `mentor_id`.
+- **GET** `https://api.iblai.app/dm/api/core/rbac/mentor-access/?mentor_id={id}&platform_key={org}` — list current role policies.
+- **POST** `https://api.iblai.app/dm/api/core/rbac/permissions/check/` — can the user search users/groups?
+  ```json
+  {
+    "platform_key": "string (required)",
+    "resources": ["/users/", "/groups/"]
+  }
+  ```
+- **GET** `https://api.iblai.app/dm/api/core/platform/users/?platform_key={org}&platform_org={org}&query={q}&page=1&page_size=20&return_policies=false` — user autocomplete.
+- **GET** `https://api.iblai.app/dm/api/core/rbac/groups/?platform_key={org}&name={q}&page=1&page_size=20&include_users=true` — group autocomplete.
+
+## Writes
+
+- **POST** `https://api.iblai.app/dm/api/core/rbac/mentor-access/` — grant / revoke access (all access changes go through this one endpoint):
+  ```json
+  {
+    "platform_key": "string (required)",
+    "mentor_id": "number (required)",
+    "role": "editor | chat | analytics_viewer (required)",
+    "users_to_add": "number[]",
+    "users_to_remove": "number[]",
+    "groups_to_add": "number[]",
+    "groups_to_remove": "number[]",
+    "emails_to_add": "string[]",
+    "usernames_to_add": "string[]"
+  }
+  ```
+
+## Example
+
+Grant a user (id `4218`) the **chat** role and revoke a group (id `91`) on the agent:
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/core/rbac/mentor-access/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform_key": "'"$IBLAI_ORG"'",
+    "mentor_id": 1057,
+    "role": "chat",
+    "users_to_add": [4218],
+    "groups_to_remove": [91]
+  }'
+```
+
+## Notes
+
+- The write endpoint takes the **numeric `mentor_id`**, not the `{mentor}` UUID —
+  resolve it from the `settings/` read first.
+- One role per POST: send `role` as `editor`, `chat`, or `analytics_viewer` and
+  the add/remove arrays apply to that role only.
+- Use `permissions/check/` before searching — if the user lacks
+  access to `/users/` or `/groups/`, skip the corresponding autocomplete.
+- `emails_to_add` and `usernames_to_add` invite by identifier without a prior id
+  lookup; users and groups are added/removed by numeric id from the search reads.

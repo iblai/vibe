@@ -1,0 +1,46 @@
+---
+description: "Read an ibl.ai agent's audit log via the platform API — a who-changed-what trail filterable by action, actor email, and date range. Read-only. Use when investigating configuration changes to an agent."
+globs:
+alwaysApply: false
+---
+
+# iblai-api-agent-audit
+
+Read an agent's audit log through the API: the who-changed-what trail for an
+agent, filterable by action code, actor email, and date range. **Read-only —
+there are no writes.** Use when investigating configuration changes to an agent.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/audit-logs/?limit=20&offset={n}&mentor={mentor}&action={code}&actor_email={e}&from_date={d}&to_date={d}` — audit entries. No writes.
+
+This skill is **read-only** — it exposes no create, update, or delete
+endpoints.
+
+## Example
+
+Read the first page of audit entries for an agent, filtered to a single actor
+within a date range:
+
+```bash
+curl -s \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/audit-logs/?limit=20&offset=0&mentor=$MENTOR&actor_email=jane@example.com&from_date=2026-01-01&to_date=2026-06-12" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY"
+```
+
+## Notes
+
+- Paginate with `limit` and `offset`; the default page size shown here is `20`.
+- `action`, `actor_email`, `from_date`, and `to_date` are optional filters —
+  omit any you don't need to narrow by.
+- `from_date` / `to_date` take ISO dates (e.g. `2026-06-12`).
+- Read-only: investigating an audit trail never mutates agent state.

@@ -18,7 +18,7 @@ Do NOT write exploits. Every finding ships with a fix.
 3. Trace data flows — user input -> processing -> storage -> output.
 4. Locate authentication and authorization boundaries.
 
-Multi-tenant B2B SaaS (the typical ibl.ai shape) makes A01 and permission-bypass paths the highest-leverage targets — sweep those first.
+Multi-organization B2B SaaS (the typical ibl.ai shape) makes A01 and permission-bypass paths the highest-leverage targets — sweep those first.
 
 ## Audit Checklist
 

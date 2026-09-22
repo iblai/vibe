@@ -38,8 +38,8 @@ fi
 # Activate the virtual environment
 source "$SKILLS_REF_DIR/.venv/bin/activate"
 
-# Return to the original directory
-cd "$(dirname "$0")"
+# Return to the repo root (this script lives in scripts/)
+cd "$(dirname "$0")/.."
 
 # Track results
 PASSED=0
@@ -50,7 +50,7 @@ echo "Running validation..."
 echo ""
 
 # Validate each skill
-for skill_dir in "$SKILLS_DIR"/*/; do
+for skill_dir in "$SKILLS_DIR"/*/*/; do
     skill_name=$(basename "$skill_dir")
     printf "  %-30s" "$skill_name"
 

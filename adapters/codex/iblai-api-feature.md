@@ -1,0 +1,204 @@
+# iblai-api-feature
+
+> Manage an ibl.ai organization's per-user feature configuration and app/onboarding state via the Data Manager (DM) API — read and write a user's feature config (single feature or bulk inline object), bulk-update a feature's values across an entire platform, list the apps a user can access, mark onboarding complete, activate an app free trial, and (when enabled) run an admin platform-provisioning config. Use when toggling feature flags/values for a user or a whole org, reading which apps a user has, updating onboarding status, activating a free trial, or provisioning a platform.
+
+# iblai-api-feature
+
+Manage **per-user feature configuration** and **app / onboarding state** from
+the Data Manager (DM) API: read and write a user's feature config (one feature,
+or a bulk inline `config` object), bulk-apply a feature's `values` across every
+user on a platform, list the apps a user has access to, mark onboarding
+complete, activate an app free trial, and — only when the platform enables it —
+run an admin **platform-provisioning** config. Use when flipping feature
+flags/values for a user or an org, inspecting a user's apps, recording
+onboarding, granting a trial, or provisioning a platform.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app/dm` — these are Data Manager (DM)
+  endpoints, so the **`/dm` prefix is required**; the `/api/features/...` (and
+  `/api/provision/...`) paths below are appended to it (e.g.
+  `https://api.iblai.app/dm/api/features/config/`). `/dm` is the gateway prefix
+  and does not appear in the app's `urls.py`.
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path / scope vars:** `{org}` = `$IBLAI_ORG` (a.k.a. `platform_key` on the
+  wire). The org/platform is always passed as a **query param or body field**
+  (`platform_key`), never baked into the path. The user is resolved flexibly
+  from **`user_id` _or_ `username` _or_ `email`** (in that precedence) — passed
+  as query params on GET, body fields on POST.
+- Most feature/app endpoints are open (`AllowAny` — see Notes); the
+  provisioning endpoint is **platform-admin only**. Destructive /
+  outward-facing actions (trial activation) say "Confirm with the user first."
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+### Feature config
+
+A user's feature config is a set of per-platform `{feature: values}` records.
+Reads return the whole map; writes accept **either** a bulk inline `config`
+object **or** a single `feature` + `values` pair (these two body shapes are
+mutually exclusive — `config` wins if both are present, otherwise `feature` is
+used; sending neither returns `400`).
+
+- **GET** `/api/features/config/` — read a user's feature config. Resolve the
+  user with `user_id`/`username`/`email` (required — `404` if unresolved); scope
+  with `platform_key` (query params). Returns the `{feature: values, ...}` map
+  (empty `{}` if none).
+
+### Apps & onboarding
+
+- **GET** `/api/features/apps/` — list the apps the **authenticated** user has
+  access to (derived from the request token's user — not a `user_id` param).
+  Paginated (`page`, `page_size`; default page size 100). Filterable query
+  params: `app` (matches app name **or** url, icontains), `platform` (platform
+  key, icontains), `has_active_subscription` (bool), `free_trial_started`
+  (bool), `free_trial_expired` (bool), `onboarding_completed` (bool),
+  `created_at` / `updated_at` (datetime range, `*_after` / `*_before`). Each
+  result includes the app, the resolved `platform`, `provider`, `subscription`
+  (entitlements/purchase info), `is_admin`, `is_active`, and the trial/
+  onboarding flags.
+
+## Writes
+
+### Feature config
+
+- **POST** `/api/features/config/` — create or update a user's feature config
+  (`update_or_create`, so it creates missing records). Resolve the user with
+  `user_id`/`username`/`email` (required — `404` if unresolved). Two body shapes:
+  ```json
+  // (a) bulk inline — set several features at once
+  { "user_id": "number | (username | email)", "platform_key": "string",
+    "config": { "feature_a": { "...": "any" }, "feature_b": true } }
+  ```
+  ```json
+  // (b) single feature — set one feature's values
+  { "username": "string | (user_id | email)", "platform_key": "string",
+    "feature": "string", "values": "any (object/bool/etc.)" }
+  ```
+  `200` on success; `400` if neither `config` nor (`feature` + `values`) is
+  given; `500` if the platform key doesn't resolve or the write fails. (`values`
+  must be present in the body for shape (b), even if `null`.)
+
+### Bulk config
+
+Apply a feature's `values` to **every existing** `UserFeatureConfig` record for
+a feature across one platform — a platform-wide overwrite. **Note: this will
+not create configs**, it only updates records that already exist.
+
+- **POST** `/api/features/bulk-config/` — bulk-update feature config across a
+  platform. Scope with `platform_key`. Same two mutually-exclusive body shapes
+  as above, **minus the user** (no user is resolved — it acts on all matching
+  records):
+  ```json
+  // (a) bulk inline
+  { "platform_key": "string", "config": { "feature_a": { "...": "any" } } }
+  ```
+  ```json
+  // (b) single feature
+  { "platform_key": "string", "feature": "string", "values": "any" }
+  ```
+  `200` on success; `400` if neither shape is given; `500` on failure.
+  Confirm with the user first (this rewrites values for every user on the
+  platform).
+
+### Apps & onboarding
+
+- **POST** `/api/features/apps/update/` — set the authenticated user's
+  onboarding status for one app. The user must already have access to the app
+  (`400` otherwise).
+  ```json
+  { "onboarding_completed": "boolean (required)",
+    "app": "string (required — app url, name, or id)" }
+  ```
+  Returns the serializer data (`200`), or `400` with validation errors.
+
+### Trial
+
+- **POST** `/api/features/apps/update-trial-status/` — activate (or set) the
+  authenticated user's free trial for an app. Only supported on the **main /
+  default platform** (`400` otherwise), and the user must have a platform link
+  for that platform (`400` otherwise; a `UserApp` is auto-created if missing).
+  ```json
+  { "app": "string (required — app url, name, or id)",
+    "platform": "string (required — the platform key)",
+    "free_trial_started": "boolean (default true)" }
+  ```
+  When `free_trial_started` is `true`, the trial is started **and marked
+  expired** for non-expired user-apps (one-shot activation). `200` on success.
+  Confirm with the user first (this consumes the user's free trial).
+
+### Provisioning
+
+**Gated by the `ENABLE_PLATFORM_PROVISIONING` setting** — when it is off (the
+default in some environments), this route is **not registered** and returns
+`404`. **Platform-admin only** (it uses the project's default DM-admin
+permission, unlike the open feature/app endpoints).
+
+- **POST** `/api/provision/{config_name}/` — run a stored
+  `PlatformProvisioningConfig` by its `name` (the `{config_name}` path slug;
+  `404` if no config with that name exists). The JSON request body is passed
+  through to the config's provisioning snippet as `request_data`. The snippet
+  is executed server-side and must produce a `result` mapping
+  (`{success, status_code, error_message?, data?}`), which becomes the
+  response; the config's status is recorded as `success` / `failed`.
+  Confirm with the user first (it executes a server-side provisioning routine
+  with side effects). Snippets defining the config are authored in Django admin,
+  not via this API.
+
+## Example
+
+Set a single feature's value for a user on your org's platform:
+
+```bash
+curl -X POST \
+  "https://api.iblai.app/dm/api/features/config/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "username": "'"$IBLAI_USERNAME"'",
+        "platform_key": "'"$IBLAI_ORG"'",
+        "feature": "chat_ui",
+        "values": { "enabled": true, "theme": "dark" }
+      }'
+```
+
+Read it back:
+
+```bash
+curl -G \
+  "https://api.iblai.app/dm/api/features/config/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  --data-urlencode "username=$IBLAI_USERNAME" \
+  --data-urlencode "platform_key=$IBLAI_ORG"
+```
+
+## Notes
+
+- **All endpoints are DM endpoints** under `https://api.iblai.app/dm`
+  (`/dm` + `/api/features/...` or `/api/provision/...`). Omitting `/dm` will not
+  resolve.
+- **Registered routes (exhaustive):** `GET|POST /api/features/config/`,
+  `POST /api/features/bulk-config/`, `GET /api/features/apps/`,
+  `POST /api/features/apps/update/`,
+  `POST /api/features/apps/update-trial-status/`, and (only when
+  `ENABLE_PLATFORM_PROVISIONING` is true) `POST /api/provision/{config_name}/`.
+  The `config` and `bulk-config` paths accept an optional trailing slash.
+- **Permissions.** The feature-config, bulk-config, apps, onboarding, and trial
+  views all set `permission_classes = []` (effectively **AllowAny** — the token
+  is still read for the apps/onboarding/trial views to identify the user). The
+  provisioning view sets no override, so it inherits the project default
+  (DM/platform-admin).
+- **Two body shapes** (`config` inline object vs `feature` + `values`) apply to
+  **both** `config/` and `bulk-config/` POSTs; `config/` additionally resolves
+  and requires a user, while `bulk-config/` operates platform-wide and creates
+  nothing.
+- **`apps/`, `apps/update/`, and `update-trial-status/` act on the
+  authenticated token's user** — there is no `user_id` parameter to target
+  another user. Use a token for the user you intend to modify.
+- **`app` is resolved flexibly** by url, name, or numeric id (`400` "App does
+  not exist" if none match) for the onboarding and trial endpoints.
+- The app also ships Django management commands (`seed_apps`,
+  `setup_features_tasks`) and an admin UI for authoring provisioning snippets;
+  those are server-side, not REST endpoints, and are out of scope here.

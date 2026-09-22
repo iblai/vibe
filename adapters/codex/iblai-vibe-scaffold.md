@@ -1,15 +1,16 @@
 # iblai-vibe-scaffold
 
-> Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project — the project templates and the `startapp` / `add` / `config` steps that assemble them. Use when creating a new app, scaffolding from templates, wiring up the base providers/store/auth, or adding a feature by hand. Holds the base + agent project templates as assets. For per-feature wiring see /iblai-vibe-auth; for the desktop/mobile shell see /iblai-vibe-ops-build.
+> Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project — the project templates and the assembly steps that put them together. Use when creating a new app, scaffolding from templates, wiring up the base providers/store/auth, or adding a feature by hand. Holds the base + agent project templates as assets. For per-feature wiring see /iblai-vibe-auth; for the desktop/mobile shell see /iblai-vibe-ops-build.
 
 # /iblai-vibe-scaffold
+
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
 How an ibl.ai app gets its skeleton: the **project templates** that scaffold
 a new app or add a feature, and the steps that assemble them. The templates
 here record what a generated app contains; the references document the
-assembly steps (`iblai startapp`, `iblai add`, `iblai config`) so the skills
-can perform them directly — render the `assets/` templates, then apply the
-patches described in each reference.
+assembly steps so the skills can perform them directly — render the
+`assets/` templates, then apply the patches described in each reference.
 
 > Do NOT add custom styles / colors to ibl.ai SDK components — they ship
 > with their own styling. See
@@ -22,27 +23,28 @@ patches described in each reference.
 
 | Path | How | Result |
 |---|---|---|
-| **New app** | clone **vibe-starter**, or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
-| **Existing app** | [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
+| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md)), or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
+| **Existing app** | [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
 
 Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 `NEXT_PUBLIC_*` vars in `.env.local` (see
 [`references/config-command.md`](references/config-command.md)).
 
 > **Prefer the starter for greenfield work.** For brand-new projects,
-> `vibe-starter` (a pre-wired clone — see the repo CLAUDE.md "Getting
-> Started") is the recommended path; the `base`+`agent` templates here are
-> the manual equivalent.
+> `vibe-starter` (the pre-wired template bundled with `/iblai-vibe-ops-init` —
+> see the repo CLAUDE.md "Getting Started") is the recommended path; the
+> `base`+`agent` templates here are the manual equivalent.
 
 ## Env: `.env.local` before build
 
-A vibe app (cloned from **vibe-starter** or rendered from these templates)
-needs a `.env.local` to build or run. **Always ensure one exists before
-`pnpm build`** — a missing file is the usual cause of a blank or
-mis-tenanted build:
+A vibe app (scaffolded from **vibe-starter** or rendered from these templates)
+reads its config from `.env.local`. **Always ensure one exists before
+`pnpm build`** — a missing file is the usual cause of a mis-tenanted build.
+(vibe-starter apps carry the URL defaults in code, so only the organization key
+and `IBLAI_API_KEY` are at stake; template-rendered apps need the full set):
 
 ```bash
-[ -f .env.local ] || cp .env.example .env.local   # if the app ships .env.example
+[ -f .env.local ] || cp .env.example .env.local
 ```
 
 No `.env.example` in the project? Seed one from this skill's canonical copy
@@ -53,8 +55,8 @@ Then map `PLATFORM` → `NEXT_PUBLIC_MAIN_TENANT_KEY` and `TOKEN` →
 
 ## The templates
 
-The Jinja2 (`.j2`) templates the CLI renders live as assets beside this
-skill. They use `{{ variable }}` placeholders the command fills in
+The Jinja2 (`.j2`) templates live as assets beside this skill. They use
+`{{ variable }}` placeholders you fill in when rendering
 (platform key, app name, agent id, …) — see
 [`references/template-system.md`](references/template-system.md) for the
 variable contract.
@@ -74,28 +76,22 @@ variable contract.
   `components.json`, `package.json`, `.env.example`.
 
 The Tauri desktop/mobile shell templates (`src-tauri/`, CI workflows)
-that `iblai add builds` renders live with the build skill:
-[`iblai-vibe-ops-build/assets/tauri/`](../iblai-vibe-ops-build/assets/tauri/).
+that the build skill renders live with it:
+[`iblai-vibe-ops-build/assets/tauri/`](../../ship/iblai-vibe-ops-build/assets/tauri/).
 
 Per-feature templates (auth, account, analytics, chat, notification,
 profile) live with **their** skill's assets, not here — e.g.
-[`iblai-vibe-auth/assets/`](../iblai-vibe-auth/assets/),
-[`iblai-vibe-account/assets/`](../iblai-vibe-account/assets/). Icons live in
-[`iblai-vibe-ops-build/assets/icons/`](../iblai-vibe-ops-build/assets/icons/).
+[`iblai-vibe-auth/assets/`](../../start/iblai-vibe-auth/assets/),
+[`iblai-vibe-account/assets/`](../../organizations/iblai-vibe-account/assets/). Icons live in
+[`iblai-vibe-ops-build/assets/icons/`](../../ship/iblai-vibe-ops-build/assets/icons/).
 
-## The commands
+## Feature skills
 
-| Command | What it does | Reference |
-|---|---|---|
-| `iblai startapp <type>` | Render `base` + (`agent`) into a new project | [`references/startapp-command.md`](references/startapp-command.md) |
-| `iblai add <feature>` | Detect the project, render one feature's templates, patch `next.config` / `package.json` | [`references/add-command.md`](references/add-command.md) |
-| `iblai config [get/set/show]` | Read/derive `.env.local` from `iblai.env` shorthand vars | [`references/config-command.md`](references/config-command.md) |
-
-`iblai add` is the dispatcher each feature skill points at (`iblai add auth`
-→ `/iblai-vibe-auth`, `iblai add account` → `/iblai-vibe-account`, …). The
-[`add-command`](references/add-command.md) reference documents the shared
-mechanics: project detection, idempotency, and the `next.config` /
-provider-chain patching every feature relies on.
+Each feature has its own skill that renders its assets and applies its
+patches: `/iblai-vibe-auth` (SSO, store, providers — run first), then
+`/iblai-vibe-agent-chat`, `/iblai-vibe-profile`, `/iblai-vibe-account`,
+`/iblai-vibe-analytics`, `/iblai-vibe-notification`, `/iblai-vibe-ops-build`,
+and the rest of the `/iblai-vibe-*` family.
 
 ## Provider chain (what `base` wires up)
 
@@ -112,15 +108,13 @@ scaffolding by hand.
 
 ## References
 
-- [`references/startapp-command.md`](references/startapp-command.md) — `iblai startapp` behavior + flags.
-- [`references/add-command.md`](references/add-command.md) — `iblai add` project detection + feature generation.
-- [`references/config-command.md`](references/config-command.md) — `iblai config` + the `iblai.env` → `.env.local` derivation.
+- [`references/add-command.md`](references/add-command.md) — adding a feature by hand — the render→patch contract.
+- [`references/config-command.md`](references/config-command.md) — `.env.local` reference — known variables and defaults.
 - [`references/template-system.md`](references/template-system.md) — the Jinja2 template/variable contract.
 
 ## Related skills
 
-- [`/iblai-vibe-auth`](../iblai-vibe-auth/SKILL.md) — the first `iblai add`; SSO auth, store, providers.
-- [`/iblai-vibe-ops-build`](../iblai-vibe-ops-build/SKILL.md) — `iblai add builds` (Tauri shell) + `iblai builds`.
-- [`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) — `iblai deploy`.
-- [`/iblai-vibe-ops-init`](../iblai-vibe-ops-init/SKILL.md) — update a project's CLAUDE.md with platform guidance.
-- [`/iblai-vibe-cli-maintenance`](../iblai-vibe-cli-maintenance/SKILL.md) — internals of the CLI that renders all of the above.
+- [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md) — SSO auth, store, providers (run first).
+- [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md) — Tauri desktop/mobile shell.
+- [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) — deploy to Vercel.
+- [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md) — update a project's CLAUDE.md with platform guidance.

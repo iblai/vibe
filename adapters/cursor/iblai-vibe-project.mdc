@@ -14,8 +14,8 @@ welcome/explore surface for `ProjectLandingPage`. The same `<Chat>` you
 already mounted for `/iblai-vibe-agent-chat` does both modes; this skill
 just adds the routing + URL plumbing.
 
-![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-project/iblai-vibe-project-1-landing.png)
-![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-project/iblai-vibe-project-2-files-modal.png)
+![Project landing](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-project/iblai-vibe-project-1-landing.png)
+![Project files modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-project/iblai-vibe-project-2-files-modal.png)
 
 > **What you get:** a route at `/agents/[mentorId]/projects/[projectId]`
 > that reads both IDs from the URL, hands them to `<Chat>`, and the SDK
@@ -42,22 +42,20 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
   registered, service worker shipped, peer deps installed). The project
   surface uses the **same** `<Chat>` component, so the same wiring
   applies.
-- An agent/mentor ID — same as `/iblai-vibe-agent-chat`.
+- An agent ID — same as `/iblai-vibe-agent-chat`.
 - A **real `projectId`** to test against. Either:
   - Create one in the admin UI, or
   - List the user's projects:
-    `GET https://api.iblai.org/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
-    (use `Authorization: Token <axd_token>`).
+    `GET https://api.$DOMAIN/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
+    (use `Authorization: Token <axd_token>`; `$DOMAIN` is `DOMAIN` from
+    `iblai.env`, default `iblai.app`).
 - **Minimum SDK versions.** The `projectId` prop on `<Chat>` and the
   `ProjectLandingPage` slot were added in:
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^1.11.0` |
-  | `@iblai/web-containers` | `^1.7.0` |
-  | `@iblai/web-utils` | `^1.7.0` |
-  | `@iblai/data-layer` | `^1.5.7` |
-  | `@iblai/agent-ai` | `^2.6.0` |
+  | `@iblai/iblai-js` | `^2.17.0` |
+  | `@iblai/agent-ai` | `^2.10.0` |
 
 - **Pre-flight prop check (do this before writing the route):**
 
@@ -83,7 +81,7 @@ Don't proceed until you confirm:
 | Check | Command / file |
 |---|---|
 | Auth providers tree wrapped in `<ServiceWorkerProvider>` | `providers/index.tsx` |
-| `skip={isSsoLoginRoute}` on Auth + Tenant providers | `providers/index.tsx` |
+| `skip={isSsoLoginRoute}` on `AuthProvider` + `TenantProvider` | `providers/index.tsx` |
 | `chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner` reducers registered | `store/index.ts` |
 | `public/sw.js` present | `ls public/sw.js` |
 | `@iblai/agent-ai` installed | `cat node_modules/@iblai/agent-ai/package.json \| grep version` |
@@ -97,12 +95,12 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^1.11.0 \
-         @iblai/web-containers@^1.7.0 \
-         @iblai/web-utils@^1.7.0 \
-         @iblai/data-layer@^1.5.7 \
-         @iblai/agent-ai@^2.6.0
+pnpm add @iblai/iblai-js@^2.17.0 @iblai/agent-ai@^2.10.0
 ```
+
+(v2 bundles `web-containers`, `web-utils`, and `data-layer` as
+`@iblai/iblai-js/*` subpaths — the separate `@iblai/web-*`/`@iblai/data-layer`
+packages are v1-era and must not be installed alongside v2.)
 
 Run the **Pre-flight prop check** in *Prerequisites* to confirm
 `projectId?: string` is on the `Chat` Props type.
@@ -126,8 +124,8 @@ import {
   useVisitingTenant,
   useIsAdmin,
 } from "@iblai/iblai-js/web-utils";
-import { redirectToAuthSpa } from "@/lib/utils";
-import { config } from "@/lib/config";
+import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
 
 export default function AgentProjectPageWrapper() {
   return (
@@ -205,7 +203,7 @@ function AgentProjectPage() {
 | Item | Why |
 |------|-----|
 | Same wrapper / Suspense / `dynamic` / `chatConfig` / hooks as `/iblai-vibe-agent-chat` | The SDK component is the same; only the `projectId` prop differs. |
-| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are agent-scoped — the WebSocket session still needs a agent. |
+| `mentorId` from `useParams<{ mentorId; projectId }>()` | Project chats are agent-scoped — the WebSocket session still needs an agent. |
 | `projectId` from `useParams<...>()` | Triggers the SDK to render `ProjectLandingPage` instead of the default welcome surface. |
 | `if (!tenantKey \|\| !mentorId \|\| !projectId) return null` | All three are required; render only when all are resolved. |
 | `tenantKey` from `localStorage` (`appTenant` / `current_tenant` / `tenant` / `config.mainTenantKey()`) | Matches `/iblai-vibe-agent-chat`'s pattern. |
@@ -224,7 +222,7 @@ truthy, the bundled `WelcomeChatNew` slot switches its render branch:
 - If the project 404s, the surface renders empty — you'll see a clean
   body and a `[data-layer] API error` in the console. Don't treat that
   as a bug in this skill; verify the `projectId` exists for the
-  authenticated user/tenant.
+  authenticated user/organization.
 
 The chat input you see in the project surface is the same chat input
 as the regular `<Chat>` flow — sending a message creates a session
@@ -266,23 +264,5 @@ fields.
 If the project surface renders but the chat WebSocket can't connect,
 that's a backend issue (LLM config on the agent) — see
 `/iblai-vibe-agent-chat`'s **Known issues**.
-
-## CLI Integration (proposal — not yet implemented)
-
-A future helper for this skill could:
-
-1. **Verify `/iblai-vibe-agent-chat` is wired** — refuse to run if the
-   provider/store/peer-dep setup isn't in place. Point the user at
-   the `/iblai-vibe-agent-chat` skill first.
-2. **Bump the SDK** if it's pinned below the versions in *Prerequisites*.
-3. **Scaffold the route** — write
-   `app/agents/[mentorId]/projects/[projectId]/page.tsx` parameterized
-   on the host's existing `redirectToAuthSpa` and `config` helpers.
-4. **Skip if already added** — detect the existing route file and
-   no-op.
-
-The generator should not regenerate `/iblai-vibe-agent-chat` artifacts —
-the two skills compose (the project surface needs the agent-chat
-wiring already done).
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

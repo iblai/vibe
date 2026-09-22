@@ -1,0 +1,9 @@
+{
+  "overlay": {
+    "assets/metadata-core.ts.j2": "lib/iblai/metadata-core.ts",
+    "assets/metadata.ts.j2": "lib/iblai/metadata.ts",
+    "assets/app-preferences.tsx.j2": "components/settings/app-preferences.tsx",
+    "assets/admin-user-metadata-route.ts.j2": "app/api/admin/user-metadata/route.ts",
+    "assets/metadata.test.ts.j2": "__tests__/metadata.test.ts"
+  }
+}

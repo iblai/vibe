@@ -11,35 +11,7 @@ display names, descriptions in tooltips, and switches for enabling or
 disabling each tool. This is one tab in the wider agent-settings family.
 All tabs share the same `AgentSettingsProvider` wrapper.
 
-![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-agent-tool/iblai-vibe-agent-tool.png)
-
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed.
+![Tools Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-tool/iblai-vibe-agent-tool.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -139,7 +111,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 For custom UI beyond `<AgentToolsTab>` — register external MCP servers and
 bind them to agents. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Tenant admins only.
+`NEXT_PUBLIC_API_BASE_URL`. Organization admins only.
 
 ### Workflow
 
@@ -162,7 +134,7 @@ unchanged; `[]` clears all tools.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `mcp-servers/` | List tenant servers |
+| GET | `mcp-servers/` | List organization servers |
 | POST | `mcp-servers/` | Register a new server |
 | PATCH/PUT | `mcp-servers/{id}/` | Update |
 | DELETE | `mcp-servers/{id}/` | Delete |
@@ -242,7 +214,7 @@ server reusable:
 Returned credentials are **masked** (e.g. `"******90"`); only send a new
 value when the user intentionally rotates the secret.
 
-### 4. Assign servers to a agent
+### 4. Assign servers to an agent
 
 | Method | Path | Body |
 |---|---|---|
@@ -261,7 +233,7 @@ leave unchanged; `[]` clears all servers.
 ### Common errors
 
 - `400 Selected MCP server is not available to the current tenant.` — the
-  server belongs to another tenant and is not `is_featured=true`.
+  server belongs to another organization and is not `is_featured=true`.
 - `400 OAuth2 connections require a connected service.` — create the OAuth
   connector first and pass `connected_service`.
 
@@ -303,7 +275,7 @@ permission once per provider/service before a connection can reference a
 
 ### Prereqs (admin)
 
-Tenant admin must store `auth_{provider}` credentials with `client_id`,
+Organization admin must store `auth_{provider}` credentials with `client_id`,
 `client_secret`, and `redirect_uri` in the credential store. A start
 endpoint returning `400 "No credentials found"` means this is missing.
 

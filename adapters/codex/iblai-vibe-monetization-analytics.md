@@ -20,44 +20,16 @@ helper that cancels the **caller's own** subscription on a given
 > data-layer hooks and one self-service component, but no out-of-the-box
 > analytics UI — this skill is the playbook for assembling that yourself.
 
-Do NOT add custom styles, colors, or CSS overrides to ibl.ai SDK components.
-They ship with their own styling. Keep the components as-is.
-Do NOT implement dark mode unless the user explicitly asks for it.
-
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack, **Style**: shadcn/ui new-york variant
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
-You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready.
-
-After all work is complete, start a dev server (`pnpm dev`) so the user
-can see the result at http://localhost:3000.
-
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables (`DOMAIN`, `PLATFORM`, `TOKEN`). Next.js still reads
-its runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at https://api.iblai.app/dm/api/docs/schema/ and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../iblai-vibe-monetization/references/schema-validation.md).
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md).
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`) — reuse the same
   `Authorization: Token <token>` wiring the rest of the app uses.
-- MCP and skills must be set up: `iblai add mcp`.
+- `.mcp.json` configured with `@iblai/mcp` (and skills installed via
+  `npx skills add iblai/vibe --all`).
 - `iblai.env` populated with `PLATFORM`, `DOMAIN`, `TOKEN`. If missing:
   `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`
 - **Platform admin role required.** All four analytics endpoints
@@ -69,7 +41,7 @@ not in a subdirectory.
   the flag is off) — this applies equally to the per-item subscribers
   endpoint, not just the Platform-wide ones. The flag ships in the SDK's
   `tenants` array.
-  See [/iblai-vibe-monetization → references/platform-flags.md](../iblai-vibe-monetization/references/platform-flags.md).
+  See [/iblai-vibe-monetization → references/platform-flags.md](../../billing/iblai-vibe-monetization/references/platform-flags.md).
 - **Stripe Connect onboarded** with `is_ready_for_payments === true`.
   Without it, revenue is empty and subscribers contains only free /
   grandfathered rows. Wire `/iblai-vibe-monetization-onboard` first.
@@ -92,20 +64,14 @@ not in a subdirectory.
    override; the endpoint resolves the subscription via `request.user`.
    To cancel another user's subscription, use the Stripe Dashboard.
 
-## Step 0: Check for CLI Updates
-
-Before running any `iblai` command, ensure the CLI is up to date.
-Run `iblai --version`, then upgrade directly:
-- pip: `pip install --upgrade iblai-app-cli`
-- npm: `npm install -g @iblai/cli@latest`
-
 ## Step 1: Validate the API schema
 
 Confirm the four analytics endpoints + the cancel endpoint are present
 before writing any code:
 
 ```bash
-curl -sS https://api.iblai.app/dm/api/docs/schema/ -o /tmp/iblai_schema.yaml
+DOMAIN=$(grep -m1 '^DOMAIN=' iblai.env 2>/dev/null | cut -d= -f2-)
+curl -sS "https://api.${DOMAIN:-iblai.app}/dm/api/docs/schema/" -o /tmp/iblai_schema.yaml
 grep -E "/api/billing/platforms/\{platform_key\}/(revenue|subscribers|paywalls)/|/api/billing/platforms/\{platform_key\}/items/\{item_type\}/\{item_id\}/(subscribers|subscription/cancel)/" /tmp/iblai_schema.yaml
 ```
 
@@ -154,7 +120,7 @@ interface RevenueResponse {
 > to `Intl.NumberFormat` — formatting a string yields `NaN`.
 
 ```tsx
-import { useGetRevenueQuery } from '@iblai/data-layer';
+import { useGetRevenueQuery } from '@iblai/iblai-js/data-layer';
 
 function RevenueCard({ platformKey }: { platformKey: string }) {
   const { data } = useGetRevenueQuery({ platform_key: platformKey });
@@ -186,7 +152,7 @@ The commission ibl.ai takes per item type is on the Stripe Connect
 status endpoint, NOT on the revenue response.
 
 ```tsx
-import { useGetStripeConnectStatusQuery } from '@iblai/data-layer';
+import { useGetStripeConnectStatusQuery } from '@iblai/iblai-js/data-layer';
 
 function CommissionTable({ platformKey }: { platformKey: string }) {
   const { data } = useGetStripeConnectStatusQuery({ platform_key: platformKey });
@@ -221,7 +187,7 @@ The backend reads each percentage from per-Platform `Config` keys
 `_PATHWAY`), so at runtime you may see up to four keys; never assume
 exactly four are present. Render `mentor` as **"Agent"** to stay aligned
 with the SDK's `displayItemType` helper —
-see [/iblai-vibe-monetization → references/item-types.md](../iblai-vibe-monetization/references/item-types.md).
+see [/iblai-vibe-monetization → references/item-types.md](../../billing/iblai-vibe-monetization/references/item-types.md).
 
 **Display informationally only.** Commission flows back to ibl.ai
 automatically via Stripe Connect destination charges; do NOT subtract

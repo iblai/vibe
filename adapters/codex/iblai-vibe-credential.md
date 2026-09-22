@@ -41,5 +41,5 @@ whole collection.
 
 ## Related
 
-- [`/iblai-vibe-rbac`](../iblai-vibe-rbac/SKILL.md) — default roles, the action-definitions endpoint, and the SDK Roles + Policies components.
-- [`/iblai-vibe-account`](../iblai-vibe-account/SKILL.md) — the Organization Settings surface where API keys, Roles, and Policies are managed.
+- [`/iblai-vibe-rbac`](../../users/iblai-vibe-rbac/SKILL.md) — default roles, the action-definitions endpoint, and the SDK Roles + Policies components.
+- [`/iblai-vibe-account`](../../organizations/iblai-vibe-account/SKILL.md) — the Organization Settings surface where API keys, Roles, and Policies are managed.

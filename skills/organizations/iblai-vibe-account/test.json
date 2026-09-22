@@ -1,0 +1,5 @@
+{
+  "overlay": {
+    "assets/account-page.tsx.j2": "app/(app)/account/page.tsx"
+  }
+}

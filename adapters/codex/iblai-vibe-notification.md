@@ -4,14 +4,16 @@
 
 # /iblai-vibe-notification
 
+> **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
+
 Add notification features -- a compact bell icon with unread badge for your
 navbar and a full notification center page with Inbox and Alerts tabs.
 
-![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-notification/notifications-page.png)
+![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-notification/notifications-page.png)
 
 > **Template:** the bell this skill creates is bundled as
 > [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
 Do NOT add custom styles to ibl.ai SDK components — they ship with their
 own styling. Do NOT implement dark mode unless asked.
@@ -27,16 +29,21 @@ Follow the component hierarchy: use ibl.ai SDK components
 Before running this skill, ask the user:
 
 > Are you starting a new project from scratch? vibe-starter
-> (https://github.com/iblai/vibe-starter/tree/spa) already ships the
+> (https://github.com/iblai/vibe/tree/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter) already ships the
 > notification bell and /notifications page wired up, alongside auth, navbar,
 > and profile/account. Want to use that instead?
 
-If yes, clone into a temp directory and copy into the current directory before
-installing (running pnpm install inside the cloned subdirectory causes hardlink
-issues), then skip this skill:
+If yes, copy the bundled starter template from the installed
+`iblai-vibe-ops-init` skill's `assets/vibe-starter/` directory (it sits
+alongside this skill in your skills directory; in the vibe repo it lives
+under `skills/start/`), or fetch it from the vibe repo if those assets
+are not installed -- tell the user which path you took -- then skip this
+skill:
 
-    git clone -b spa https://github.com/iblai/vibe-starter.git vibe-starter-init
-    cp -a vibe-starter-init/. . && rm -rf vibe-starter-init
+    cp -a <skills-dir>/iblai-vibe-ops-init/assets/vibe-starter/. .
+    # or, without local assets:
+    git clone --depth 1 https://github.com/iblai/vibe.git vibe-tmp && cp -a vibe-tmp/skills/start/iblai-vibe-ops-init/assets/vibe-starter/. . && rm -rf vibe-tmp
+
     pnpm install --ignore-scripts
 
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
@@ -120,7 +127,7 @@ npx playwright screenshot http://localhost:3000/notifications /tmp/notifications
 > arg passed to `initializeDataLayer()` (sourced from
 > `NEXT_PUBLIC_API_BASE_URL`).
 > **Auth:** `Authorization: Token <token>`
-> **Live OpenAPI:** <https://api.iblai.app/dm/api/docs/schema/swagger-ui/>
+> **Live OpenAPI:** `${dmUrl}/api/docs/schema/swagger-ui/`
 
 The SDK's RTK Query hooks (`useGetUserNotificationsQuery`,
 `useGetNotificationCountQuery`, `useUpdateNotificationStatusMutation`,

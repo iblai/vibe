@@ -1,0 +1,193 @@
+# Permissions for the Code mode commands (opencode over ACP, the phone-access
+# host, and the phone client). Tauri v2 only lets a window invoke commands a
+# capability allows, and app commands need an explicit `[[permission]]` each —
+# reference these identifiers from `capabilities/default.json`.
+#
+# Drop this file into `src-tauri/permissions/` next to your app's own set.
+
+[default]
+identifier = "code-mode"
+description = "Everything the Code button, permission cards, and the SDK chat transport invoke"
+permissions = [
+    "allow-log-fe",
+    "allow-opencode-chat-stream",
+    "allow-opencode-stop",
+    "allow-opencode-permission-respond",
+    "allow-opencode-close",
+    "allow-get-opencode-workspace",
+    "allow-set-opencode-workspace",
+    "allow-new-opencode-workspace",
+    "allow-get-opencode-permission-mode",
+    "allow-set-opencode-permission-mode",
+    "allow-set-opencode-skills",
+    "allow-begin-opencode-skills-sync",
+    "allow-install-opencode",
+    "allow-ensure-vibe-skills",
+    "allow-check-opencode-status",
+    "allow-check-code-local-model",
+    "allow-set-opencode-learner",
+    "allow-ensure-opencode-platform-key",
+    "allow-remote-code-status",
+    "allow-remote-code-enable",
+    "allow-remote-code-disable",
+    "allow-remote-code-pairing-qr",
+    "allow-remote-code-set-host",
+    "allow-remote-code-get-host",
+    "allow-remote-code-clear-host",
+    "allow-remote-code-list-workspaces",
+]
+
+[[permission]]
+identifier = "allow-log-fe"
+description = "Allow logging from frontend"
+[permission.commands]
+allow = ["log_fe"]
+
+[[permission]]
+identifier = "allow-opencode-chat-stream"
+description = "Enables streaming a Coding Mode turn through opencode over ACP"
+[permission.commands]
+allow = ["opencode_chat_stream"]
+
+[[permission]]
+identifier = "allow-opencode-stop"
+description = "Enables cancelling the active opencode turn (ACP session/cancel)"
+[permission.commands]
+allow = ["opencode_stop"]
+
+[[permission]]
+identifier = "allow-opencode-permission-respond"
+description = "Enables answering a Code permission prompt (allow/deny a risky tool call)"
+[permission.commands]
+allow = ["opencode_permission_respond"]
+
+[[permission]]
+identifier = "allow-opencode-close"
+description = "Enables killing a chat's opencode process"
+[permission.commands]
+allow = ["opencode_close"]
+
+[[permission]]
+identifier = "allow-get-opencode-workspace"
+description = "Enables reading the Coding Mode workspace path"
+[permission.commands]
+allow = ["get_opencode_workspace"]
+
+[[permission]]
+identifier = "allow-set-opencode-workspace"
+description = "Enables setting the Coding Mode workspace path"
+[permission.commands]
+allow = ["set_opencode_workspace"]
+
+[[permission]]
+identifier = "allow-set-opencode-skills"
+description = "Enables materialising a mentor's Agent Skills for Code sessions"
+[permission.commands]
+allow = ["set_opencode_skills"]
+
+[[permission]]
+identifier = "allow-begin-opencode-skills-sync"
+description = "Enables announcing an in-flight skills sync so Code spawns wait for it"
+[permission.commands]
+allow = ["begin_opencode_skills_sync"]
+
+[[permission]]
+identifier = "allow-ensure-vibe-skills"
+description = "Enables syncing the shared iblai/vibe skills for Code sessions"
+[permission.commands]
+allow = ["ensure_vibe_skills"]
+
+[[permission]]
+identifier = "allow-install-opencode"
+description = "Enables installing opencode + writing its config + preparing the workspace"
+[permission.commands]
+allow = ["install_opencode"]
+
+[[permission]]
+identifier = "allow-check-opencode-status"
+description = "Enables checking opencode readiness (installed/version/config/workspace)"
+[permission.commands]
+allow = ["check_opencode_status"]
+
+[[permission]]
+identifier = "allow-check-code-local-model"
+description = "Enables checking whether the selected on-device model can drive Code (tool-calling support, runtime reachability)"
+[permission.commands]
+allow = ["check_code_local_model"]
+
+[[permission]]
+identifier = "allow-set-opencode-learner"
+description = "Enables recording the signed-in username so the model proxy attributes usage via learner_id"
+[permission.commands]
+allow = ["set_opencode_learner"]
+
+[[permission]]
+identifier = "allow-new-opencode-workspace"
+description = "Enables switching a mentor to a fresh, empty Coding Mode workspace"
+[permission.commands]
+allow = ["new_opencode_workspace"]
+
+[[permission]]
+identifier = "allow-get-opencode-permission-mode"
+description = "Enables reading the saved Coding Mode approval mode (manual/auto, or unset)"
+[permission.commands]
+allow = ["get_opencode_permission_mode"]
+
+[[permission]]
+identifier = "allow-set-opencode-permission-mode"
+description = "Enables choosing whether Coding Mode asks before each operation or approves automatically"
+[permission.commands]
+allow = ["set_opencode_permission_mode"]
+
+[[permission]]
+identifier = "allow-remote-code-status"
+description = "Enables reading whether the phone-access Code server is running (desktop)"
+[permission.commands]
+allow = ["remote_code_status"]
+
+[[permission]]
+identifier = "allow-remote-code-enable"
+description = "Enables starting the phone-access Code server (desktop)"
+[permission.commands]
+allow = ["remote_code_enable"]
+
+[[permission]]
+identifier = "allow-remote-code-disable"
+description = "Enables stopping the phone-access Code server (desktop)"
+[permission.commands]
+allow = ["remote_code_disable"]
+
+[[permission]]
+identifier = "allow-remote-code-set-host"
+description = "Enables pairing this phone with a desktop Code host"
+[permission.commands]
+allow = ["remote_code_set_host"]
+
+[[permission]]
+identifier = "allow-remote-code-get-host"
+description = "Enables reading this phone's desktop Code pairing state"
+[permission.commands]
+allow = ["remote_code_get_host"]
+
+[[permission]]
+identifier = "allow-remote-code-clear-host"
+description = "Enables removing this phone's desktop Code pairing"
+[permission.commands]
+allow = ["remote_code_clear_host"]
+
+[[permission]]
+identifier = "allow-remote-code-pairing-qr"
+description = "Enables rendering the phone-pairing QR code (desktop)"
+[permission.commands]
+allow = ["remote_code_pairing_qr"]
+
+[[permission]]
+identifier = "allow-remote-code-list-workspaces"
+description = "Enables listing the paired desktop's Code folders (phone)"
+[permission.commands]
+allow = ["remote_code_list_workspaces"]
+[[permission]]
+identifier = "allow-ensure-opencode-platform-key"
+description = "Mint or reuse the scoped platform API key handed to the coding agent as IBLAI_API_KEY"
+[permission.commands]
+allow = ["ensure_opencode_platform_key"]

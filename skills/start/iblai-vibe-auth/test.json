@@ -1,0 +1,13 @@
+{
+  "overlay": {
+    "assets/config.ts.j2": "lib/iblai/config.ts",
+    "assets/auth-utils.ts.j2": "lib/iblai/auth-utils.ts",
+    "assets/storage-service.ts.j2": "lib/iblai/storage-service.ts",
+    "assets/tenant.ts.j2": "lib/iblai/tenant.ts",
+    "assets/iblai-store.ts.j2": "store/iblai-store.ts",
+    "assets/iblai-providers.tsx.j2": "providers/iblai-providers.tsx",
+    "assets/sso-login-complete-page.tsx.j2": "app/sso-login-complete/page.tsx",
+    "assets/home-page.tsx.j2": "app/(app)/page.tsx"
+  },
+  "render_only": ["assets/iblai-styles.css.j2"]
+}

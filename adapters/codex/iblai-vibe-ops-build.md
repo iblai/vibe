@@ -12,9 +12,9 @@ iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 > shell templates live in [`assets/tauri/`](assets/tauri/) (copy into
 > `src-tauri/`), the CI workflows in
 > [`assets/tauri/workflows/`](assets/tauri/workflows/), and the default app
-> icons in [`assets/icons/`](assets/icons/). The full mapping (`init`,
-> `device`, `ci-workflow`, `iconography`, `screenshot`) is in
-> [`references/builds-command.md`](references/builds-command.md).
+> icons in [`assets/icons/`](assets/icons/). The build commands,
+> prerequisites, and MSIX notes are in
+> [`references/tauri-commands.md`](references/tauri-commands.md).
 
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
@@ -45,9 +45,9 @@ All platforms (desktop and mobile) use a static `next build` export. Tauri
 runs the frontend build (via `beforeBuildCommand`) before starting the dev
 server -- the WebView loads the static files from `../out` on all platforms.
 
-For dev builds, you can optionally deploy to Vercel with the
-[`/iblai-vibe-ops-deploy`](../iblai-vibe-ops-deploy/SKILL.md) skill. That deploys `out/`
-and updates `devUrl` in `tauri.conf.json`.
+For dev builds, you can optionally deploy the frontend via ibl.ai hosting
+(Vercel) with the [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) skill.
+That deploys the app and updates `devUrl` in `tauri.conf.json`.
 
 ## Mobile Safe Area
 
@@ -76,6 +76,10 @@ This configures:
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
 
+## Build-Time Flags (Organization Lock & In-App Purchase)
+
+`IBL_TENANT=<key>` locks a binary to one org and `IBL_IAP=1` enables the in-app-purchase path; both are Rust `option_env!` values set in the build shell. Full semantics, examples per platform, and the runtime behavior: [`references/build-time-flags.md`](references/build-time-flags.md).
+
 ## App Icons
 
 Generate platform-ready icons from your logo (works for all platforms):
@@ -96,7 +100,7 @@ pnpm exec tauri device
 
 ## iOS
 
-![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
+![iOS Simulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-ios.png)
 
 Build and run on iOS Simulator and real devices.
 
@@ -135,12 +139,8 @@ pnpm exec tauri device
 **Always pick a device from the list.** Choose the most mainstream iPhone
 (e.g., the newest Pro Max available). Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -224,7 +224,7 @@ base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy
 
 ## Android
 
-![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
+![Android Emulator](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-android.png)
 
 Build and run on Android emulators and real devices.
 
@@ -257,12 +257,8 @@ pnpm exec tauri device
 (e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
 Do NOT run without a device name.
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -299,7 +295,7 @@ pnpm tauri:build:android
 
 ## macOS (Desktop)
 
-![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
+![macOS Desktop](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/ship/iblai-vibe-ops-build/iblai-vibe-ops-build-osx.png)
 
 ### macOS Prerequisites
 
@@ -307,12 +303,8 @@ pnpm tauri:build:android
 
 ### Run in Dev Mode
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -331,11 +323,21 @@ Or:
 pnpm tauri:build
 ```
 
-#### macOS CI
+#### Signed + notarized release — CI or local
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+**CI:** copy `assets/tauri/workflows/tauri-release-macos-dmg.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds a **signed + notarized**
+universal `.dmg` (Intel + Apple Silicon) and attaches it to the tag's GitHub
+Release; a manual run produces a build-only artifact.
+
+**Local (no CI):** copy `assets/tauri/desktop-release.mk` +
+`desktop-signing.env.example` to your project root and run
+`make -f desktop-release.mk macos-dmg` — same sign + notarize, on your own Mac.
+
+Either way needs Apple Developer ID credentials — full setup in
+[`references/signed-release.md`](references/signed-release.md). For a quick
+**unsigned** build across macOS/Linux/Windows, use
+`assets/tauri/workflows/tauri-build-desktop.yml`.
 
 ---
 
@@ -350,12 +352,8 @@ Build for Microsoft Surface tablets running Windows.
 
 ### Run in Dev Mode
 
-If `VERCEL_TOKEN` is set in `iblai.env`, deploy the frontend first:
-
-```bash
-# deploy via /iblai-vibe-ops-deploy
-```
-
+To point this dev build at a hosted frontend, deploy first via the
+`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
 Then start the dev build:
 
 ```bash
@@ -371,11 +369,18 @@ pnpm exec tauri build
 The installer targets are configured in `src-tauri/tauri.conf.json` under
 `bundle.targets` (includes `nsis` and `msi` by default).
 
-#### Surface CI
+#### Surface / Windows CI (signed NSIS, x64 + arm64)
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+Copy `assets/tauri/workflows/tauri-release-windows.yml` into
+`.github/workflows/`. On an `app-v*` tag push it builds **signed** NSIS
+installers for x64 and arm64 and attaches them to the Release. It signs with a
+stored `.pfx` if you provide one, otherwise generates a self-signed cert in the
+runner (zero setup) — see [`references/signed-release.md`](references/signed-release.md).
+Requires `bundle.windows.certificateThumbprint: null` in `tauri.conf.json` (the
+template already has it). To build **locally** instead, run
+`make -f desktop-release.mk windows-nsis` on a Windows machine. For a Store /
+sideload **MSIX** package instead, see
+[`/iblai-vibe-windows-msix`](../../ship/iblai-vibe-windows-msix/SKILL.md).
 
 ---
 
@@ -408,46 +413,19 @@ pnpm exec tauri build
 
 ---
 
-## All Platforms CI
+## CI and the command summary
 
-Generate CI workflows for all platforms at once:
-
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
-
-## Summary of Commands
-
-| Task | Command |
-|------|---------|
-| Add Tauri support | the Tauri shell (copy `assets/tauri/` into `src-tauri/`) |
-| Generate app icons | `pnpm exec tauri icon logo.png` |
-| List available devices | `xcrun simctl list devices` (iOS) / `adb devices` (Android) |
-| **iOS** | |
-| Initialize iOS project | `pnpm exec tauri ios init` |
-| Run on iOS Simulator | `pnpm exec tauri ios dev "iPhone 16 Pro Max"` |
-| Run on physical iPhone | `pnpm exec tauri ios dev --device` |
-| Build release .ipa | `pnpm exec tauri ios build` |
-| iOS CI workflow | the templates in `assets/tauri/workflows/` |
-| **Android** | |
-| Initialize Android project | `pnpm exec tauri android init` |
-| Run on Android emulator | `pnpm exec tauri android dev "Pixel_9"` |
-| Run on physical Android | `pnpm exec tauri android dev --device` |
-| Build release APK | `pnpm exec tauri android build` |
-| Android CI workflow | the templates in `assets/tauri/workflows/` |
-| **Desktop** | |
-| Run desktop dev mode | `pnpm exec tauri dev` |
-| Build desktop release | `pnpm exec tauri build` |
-| macOS CI workflow | the templates in `assets/tauri/workflows/` |
-| Surface CI workflow | the templates in `assets/tauri/workflows/` |
-| Linux CI workflow | the templates in `assets/tauri/workflows/` |
-| All CI workflows | the templates in `assets/tauri/workflows/` |
-| **Deploy** | |
-| Deploy frontend to Vercel | the `/iblai-vibe-ops-deploy` skill |
-| Remove Vercel dev URL | Remove `devUrl` from `src-tauri/tauri.conf.json` |
+The GitHub Actions workflows for every platform and the one-table summary of every `tauri` command used above are in [`references/ci-and-commands.md`](references/ci-and-commands.md).
 
 ## Reference
 
-- [`/iblai-vibe-scaffold`](../iblai-vibe-scaffold/SKILL.md) -- the project templates + scaffold and command behavior
-- [`references/builds-command.md`](references/builds-command.md) -- full `iblai builds` subcommand behavior (for reference)
-- `references/builds-command.md` -- full list of build commands
+- [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
+- [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
+- [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes
+
+## Redirect origins for native shells
+
+Mobile sign-in returns through the custom scheme (`TAURI_CUSTOM_SCHEME`, e.g.
+`my-app://`); desktop returns to the deployed origin the shell loads. Both must
+be in the organization's **allowed redirect origins** — ask your ibl.ai
+operator — or sign-in never completes in the app.

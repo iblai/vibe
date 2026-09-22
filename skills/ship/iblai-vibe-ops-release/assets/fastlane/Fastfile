@@ -1,0 +1,84 @@
+# Fastlane lanes for /iblai-vibe-ops-release
+# Binaries are built by Tauri (make ios-build / android-build); these lanes
+# create app records and upload the artifacts. Config is read from env
+# (fastlane/.env, auto-loaded by fastlane's dotenv). Lanes run from fastlane/,
+# so artifact globs are relative with "../".
+
+# --- App Store Connect API key, shared by the iOS lanes ---
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: ENV.fetch("ASC_KEY_FILEPATH"),
+    in_house: false
+  )
+end
+
+def newest(glob)
+  files = Dir.glob(glob).reject { |f| f.include?("/DerivedData/") }
+  files.max_by { |f| File.mtime(f) }
+end
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Create the App Store Connect app record + bundle id"
+  lane :create do
+    # Tries the API key first. If Apple demands session auth, set
+    # FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD (see references/credentials.md)
+    # or create the app once in App Store Connect and skip this lane.
+    produce(
+      api_key: asc_api_key,
+      app_identifier: ENV.fetch("IOS_APP_IDENTIFIER"),
+      app_name: ENV.fetch("APP_NAME"),
+      language: ENV["APP_LANGUAGE"] || "en-US",
+      app_version: ENV["APP_VERSION"] || "1.0",
+      sku: ENV["APP_SKU"] || ENV.fetch("IOS_APP_IDENTIFIER"),
+      team_id: ENV["APPLE_TEAM_ID"],
+      itc_team_id: ENV["APPLE_ITC_TEAM_ID"]
+    )
+  end
+
+  desc "Upload the newest .ipa to TestFlight"
+  lane :submit do
+    ipa = ENV["IPA_PATH"]
+    ipa = newest("../#{ENV['IPA_GLOB'] || 'src-tauri/gen/apple'}/**/*.ipa") if ipa.to_s == ""
+    UI.user_error!("No .ipa found — run `make ios-build` first") if ipa.to_s == "" || !File.exist?(ipa)
+    UI.message("Uploading #{ipa}")
+    pilot(
+      api_key: asc_api_key,
+      ipa: ipa,
+      skip_submission: true,               # TestFlight only; promote in the console
+      skip_waiting_for_build_processing: true,
+      distribute_external: false
+    )
+  end
+end
+
+platform :android do
+  desc "Validate Play service-account access (Play requires the first app + upload via the console)"
+  lane :create do
+    validate_play_store_json_key(json_key: ENV.fetch("SUPPLY_JSON_KEY_FILE"))
+    UI.success("Service account can reach the Play API.")
+    UI.important("Google Play does NOT allow creating the app or the FIRST upload via the API.")
+    UI.important("Create the app in Play Console and upload one .aab by hand, then use `make android-submit`.")
+  end
+
+  desc "Upload the newest .aab to the internal track"
+  lane :submit do
+    aab = ENV["AAB_PATH"]
+    aab = newest("../#{ENV['AAB_GLOB'] || 'src-tauri/gen/android/app/build/outputs/bundle'}/**/*.aab") if aab.to_s == ""
+    UI.user_error!("No .aab found — run `make android-build` first") if aab.to_s == "" || !File.exist?(aab)
+    UI.message("Uploading #{aab}")
+    supply(
+      aab: aab,
+      package_name: ENV.fetch("ANDROID_PACKAGE_NAME"),
+      json_key: ENV.fetch("SUPPLY_JSON_KEY_FILE"),
+      track: ENV["PLAY_TRACK"] || "internal",
+      release_status: "draft",             # promote in the console
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

@@ -1,0 +1,8 @@
+{
+  "overlay": {
+    "assets/admin-agents-route.ts.j2": "app/api/admin/agents/route.ts",
+    "assets/admin-client.ts.j2": "lib/iblai/admin-client.ts",
+    "assets/setup-screen.tsx.j2": "components/setup/setup-screen.tsx",
+    "assets/setup-page.tsx.j2": "app/setup/page.tsx"
+  }
+}

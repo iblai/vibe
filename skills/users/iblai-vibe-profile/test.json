@@ -1,0 +1,5 @@
+{
+  "overlay": {
+    "assets/profile-dropdown.tsx.j2": "components/iblai/profile-dropdown.tsx"
+  }
+}
