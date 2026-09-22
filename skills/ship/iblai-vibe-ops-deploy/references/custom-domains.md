@@ -1,12 +1,26 @@
 # Custom domains for a hosted app
 
-Every hosted project has an address the moment the deploy is accepted — either a
-subdomain the platform assigns it automatically, or a custom domain your
-organization configured. This reference covers configuring that domain,
+A hosted project usually has an address the moment the deploy is accepted —
+either a subdomain the platform assigns it automatically, or a custom domain
+your organization configured. This reference covers configuring that domain,
 re-verifying it, reclaiming it and detaching it.
 
-`site_url` on the deploy response is always the address to show the user. The
-routes below only change *which* address that is.
+`site_url` on the deploy response is the address to show the user, and the
+routes below change *which* address that is.
+
+**`site_url` can be `null` on an accepted (202) deploy.** Three cases, none of
+them an error, and each answering with an empty `site_domain_error` as well — so
+there is no message explaining it, because nothing was attempted:
+
+- your organization uses **its own** hosting credential rather than the
+  instance-wide one, so there is no shared domain for the platform to assign
+  from;
+- the instance offers **no shared domain** at all;
+- the backend is older than automatic assignment.
+
+Then the deployment's own `url` is the address once the build is READY — or ask
+for a subdomain explicitly, below. Do not treat a `null` `site_url` as a failed
+deploy: the app is live either way.
 
 ## Variables
 
@@ -21,8 +35,10 @@ DOMAINS="https://api.$DOMAIN/dm/api/custom-domains"
 AUTH="Authorization: Api-Token $IBLAI_API_KEY"
 ```
 
-All of this is **admin-only**, authorised by the organization's API key. A
-personal sign-in token gets a 403.
+The hosting routes — everything under `$BASE` and `$ORG_BASE` — are
+**admin-only**, authorised by the organization's API key; a personal sign-in
+token gets a 403. The `$DOMAINS` listing is the exception: it answers without
+authentication. Treat a domain name as public information.
 
 ## Attach a domain to a project
 
@@ -39,6 +55,27 @@ needed, so it can be shown as-is.
 `verified: false` in the response is **normal and not an error** for a domain
 the organization owns: it means the records are not visible in DNS yet. Tell the
 user to add them and re-check later, do not treat it as a failure.
+
+## Ask for a subdomain
+
+Omit `domain` entirely and the platform assigns the project a subdomain of the
+shared domain it offers. Nothing for the user to buy, configure or verify — the
+address works immediately.
+
+```bash
+curl -s -X POST "$BASE/providers/vercel/hosting/dns/" -H "$AUTH" \
+  -H 'Content-Type: application/json' \
+  -d "{\"project\": $ID}" | jq
+```
+
+`201` with the same shape as an attach. This is the fix when a deploy came back
+with `site_url: null` — including a project deployed before the instance offered
+a shared domain at all.
+
+| Status | Meaning | Fix |
+|---|---|---|
+| 201 | Assigned. The response carries the new name | Show it to the user; it serves as soon as the build is READY |
+| 503 | No shared domain is on offer — either the instance configures none, or your organization is on its own hosting credential | Attach a domain you own instead (above). The error body says which of the two it is |
 
 ## Inspect what a project has
 
@@ -114,8 +151,21 @@ nothing is left serving a site the organization no longer tracks.
 curl -s "$DOMAINS/?platform_key=$PLATFORM" -H "$AUTH" | jq
 ```
 
-Optional query parameters: `domain=<name>` to look one up, `include_deleted=true`
-to include soft-deleted rows.
+Optional query parameters: `domain=<name>` to look one up, `status=<value>` to
+filter by DNS registration state, and `include_deleted=true` to include
+soft-deleted rows.
+
+The response is an envelope, not a bare array — and a query that matches nothing
+answers `{}`, with no `custom_domains` key at all, so read it defensively:
+
+```bash
+curl -s "$DOMAINS/?platform_key=$PLATFORM" -H "$AUTH" \
+  | jq '.custom_domains // [] | length'
+```
+
+```json
+{ "custom_domains": [ … ], "count": 2 }
+```
 
 Each row carries:
 
@@ -145,6 +195,17 @@ domain (`spa: "vercel"`) it answers `400` and points at the hosting domains
 route instead — deleting here would drop the record while the domain carried on
 serving, with nothing left tracking it. Use the detach route above.
 
+Hiding the row is refused for the same reason:
+
+```bash
+curl -s -X POST "$DOMAINS/$DOMAIN_ID/deleted-status/" -H "$AUTH" \
+  -H 'Content-Type: application/json' -d '{"is_deleted": true}'
+```
+
+`400` for a `spa: "vercel"` row. Restoring one — `{"is_deleted": false}` — stays
+allowed, and is the way back for a row that was hidden before the refusal
+existed.
+
 ## How a domain moves between organizations
 
 A domain is held by one organization at a time. If a second one tries to deploy
@@ -153,8 +214,13 @@ to a domain the first still serves, that is a `400` and nothing is created.
 If the first organization's site **no longer serves** the domain, the second one
 takes it over: the first is detached and its record is kept and marked with
 `lost_at`, so an admin can see what happened. The check runs before anything is
-created, so a refused domain leaves nothing behind — and a domain that was lost
-comes back the moment it verifies again.
+created, so a **refused** domain leaves nothing behind — and a domain that was
+lost comes back the moment it verifies again.
+
+A takeover that *succeeds* is committed before the deploy runs, and is **not**
+undone if that deploy then fails (a 409 for a push already in flight, say). The
+previous holder is left detached for a deployment that never happened; the
+domain is free, and either organization can re-verify to take it.
 
 Domains that can never be claimed: the automatically assigned subdomain
 namespace (its own apex, and names like `www` under it), and provider-owned

@@ -21,17 +21,17 @@ operator for one rather than substituting a personal token.
 > **Headless twin:** `/iblai-api-hosting` is the same hosting API as a plain REST reference — every deploy, poll and custom-domain call with its response fields and full error surface.
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
-poll until the build is READY. The address comes back as `site_url` on the
-deploy response itself — either a subdomain the platform assigns the project
-automatically, or a custom domain already configured for it. Public by default
+poll until the build is READY. An address usually comes back as `site_url` on
+the deploy response itself — either a subdomain the platform assigns the
+project automatically, or a custom domain configured for it. Public by default
 (no Vercel SSO/password protection to disable). POST again with the same
 `project` slug to redeploy — content identical to what is already live is
 skipped automatically (Step 3.5).
 
 > **Read `site_url`, not `url`.** `url` is the underlying `*.vercel.app` host,
 > which Vercel mints and revises, so it stays `null` until a live build confirms
-> it. `site_url` is the address the platform chose, so it is already in the
-> deploy response. Never derive either from the project name.
+> it. `site_url` is the address the platform chose — and is `null` when the
+> project has neither kind of domain. Never derive either from the project name.
 
 ## Which target
 
@@ -194,8 +194,8 @@ Every edge degrades to deploying, which is today's behaviour:
   deploy.
 - **Older backend** without the field — the stored hash reads empty, never
   equal to a 64-char digest, deploy. The extra POST field below is harmlessly
-  dropped too: the deploy serializer is a plain DRF `Serializer` over
-  multipart, and unknown keys are ignored, not rejected.
+  dropped too: unknown form fields on the deploy request are ignored, not
+  rejected.
 - **Vercel unreachable** — the list is served `stale: true` with
   `latest_deployment: null`, so the jq falls back to the row's cached
   `last_ready_state`; if neither says `READY`, deploy.
@@ -269,9 +269,9 @@ echo "$STATE ${APP_URL:-'(no address reported)'}"
 ```
 
 `APP_URL` is set before the loop starts, so it is known while the build runs —
-the site simply does not serve until `READY`. If it is ever empty, read
-`.site_domain_error` on the same response: it says why the address could not be
-attached. Never guess a host from the project name.
+the site simply does not serve until `READY`. If it is empty, read
+`.site_domain_error`: it says why. **Empty too? Then none was attempted** — use
+`url` once READY, or ask for one ([custom domains](references/custom-domains.md)).
 
 On `PUSH_FAILED`, the printed `push_error` says why the upload never reached
 Vercel (fix it, rebuild the zip, POST again). On `ERROR`, print the build
@@ -305,7 +305,7 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 | 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
 | 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
-| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain is unreachable | Nothing was uploaded. Either configure a custom domain for the project (see the custom-domains reference) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
+| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain **is offered but unreachable**. When no shared domain is offered at all, the deploy is accepted (202) with `site_url: null` instead | Nothing was uploaded. Either configure a custom domain for the project (see the custom-domains reference) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
 
 ## Custom Domain (optional)
 
