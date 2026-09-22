@@ -99,6 +99,7 @@ This installs our vibe skills that teach your AI agent how to build with the ibl
 After installing the skills, use them directly in your AI agent with `/` commands:
 
 ```text
+/iblai-vibe-connect
 /iblai-vibe-auth
 /iblai-vibe-agent-chat
 /iblai-vibe-project
@@ -134,6 +135,7 @@ After installing the skills, use them directly in your AI agent with `/` command
 
 What each skill does:
 
+- `/iblai-vibe-connect` -- connects the project to an ibl.ai organization via a one-click browser flow, writing the org key + a minted API token into the env files (the token never passes through the chat). Runs first, before building.
 - `/iblai-vibe-auth` -- adds authentication and configures the app for ibl.ai login.
 - `/iblai-vibe-agent-chat` -- adds the full in-process agent chat surface.
 - `/iblai-vibe-project` -- adds the in-process Projects surface (project landing page with chat input, files, instructions, assigned agents).
@@ -289,6 +291,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 
 | Skill | Description |
 |-------|-------------|
+| `/iblai-vibe-connect` | Connect the project to an ibl.ai org — one-click browser flow that writes the org key + a minted API token into the env files (no token in the chat) |
 | `/iblai-vibe-auth` | Add SSO authentication (includes CLI installation guide) |
 | `/iblai-vibe-agent-chat` | Add the full in-process agent chat surface |
 | `/iblai-vibe-project` | Add the in-process Projects surface (project landing page — chat input + files + instructions + assigned agents) |
