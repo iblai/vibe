@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.7.1] - 2026-09-22
+
+### Documentation
+
+- correct the hosted-app address contract and document the shared-subdomain route
+
 ## [2.7.0] - 2026-09-22
 
 ### Added
