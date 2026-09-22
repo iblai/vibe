@@ -15,8 +15,8 @@ six data families almost every app reads or writes (the section right below).
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
-| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 25 |
-| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 11 |
+| [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 26 |
+| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 12 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
 ## Core
@@ -207,6 +207,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-catalog-invitation`](../skills/content/iblai-api-catalog-invitation/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog invitations, licenses, access requests, and content suggestions via the platform API |
 | [`/iblai-api-catalog-media`](../skills/content/iblai-api-catalog-media/SKILL.md) | 🔌 api | Manage an ibl.ai organization's catalog media resources via the Data Manager API |
 | [`/iblai-api-credential`](../skills/content/iblai-api-credential/SKILL.md) | 🔌 api | Manage an ibl.ai organization's digital credentials via the platform API |
+| [`/iblai-api-heygen`](../skills/content/iblai-api-heygen/SKILL.md) | 🔌 api | Drive HeyGen through ibl.ai's dedicated video API |
 | [`/iblai-api-milestone`](../skills/content/iblai-api-milestone/SKILL.md) | 🔌 api | Read and write an ibl.ai organization's catalog milestones via the platform API |
 | [`/iblai-api-studio`](../skills/content/iblai-api-studio/SKILL.md) | 📖 guide | Family index for authoring Open edX courses directly on Studio (studio.learn.iblai.app) and verifying them on the LMS (lms.ibl.ai) from t… |
 | [`/iblai-api-studio-auth`](../skills/content/iblai-api-studio-auth/SKILL.md) | 🔌 api | Sign in to Open edX Studio (studio.learn.iblai.app) and the LMS from a browser window the user controls, capture the session cookies (stu… |
@@ -234,6 +235,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | Skill | Kind | What it does |
 |---|---|---|
 | [`/iblai-api-ecosystem`](../skills/ship/iblai-api-ecosystem/SKILL.md) | 📖 guide | Map of the ibl.ai open-source ecosystem |
+| [`/iblai-api-hosting`](../skills/ship/iblai-api-hosting/SKILL.md) | 🔌 api | Deploy and manage ibl.ai-hosted web apps headlessly via the Data Manager API |
 | [`/iblai-api-infrastructure`](../skills/ship/iblai-api-infrastructure/SKILL.md) | 📖 guide | Deploy and self-host the ibl.ai platform infrastructure |
 | [`/iblai-vibe-design`](../skills/ship/iblai-vibe-design/SKILL.md) | 🛠️ ops | Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize… |
 | [`/iblai-vibe-deslop`](../skills/ship/iblai-vibe-deslop/SKILL.md) | 🛠️ ops | Audit and harden existing codebases (especially AI-generated / vibe-coded ones) for production readiness |
@@ -260,4 +262,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 152 skills.
+Total: 154 skills.

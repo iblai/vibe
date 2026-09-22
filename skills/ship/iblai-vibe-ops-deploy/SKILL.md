@@ -23,6 +23,7 @@ and every call below answers 403. If `iblai.env` has no `TOKEN`, ask the
 operator for one rather than substituting a personal token.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+> **Headless twin:** `/iblai-api-hosting` is the same hosting API as a plain REST reference — every deploy, poll and custom-domain call with its response fields and full error surface.
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
 poll until the build is READY. An address usually comes back as `site_url` on
