@@ -222,7 +222,8 @@
       "iblai-api-studio-team",
       "iblai-api-studio-grading",
       "iblai-api-studio-publish",
-      "iblai-api-studio-lms"
+      "iblai-api-studio-lms",
+      "iblai-api-heygen"
     ],
     "ship": [
       "iblai-vibe-ops-deploy",
@@ -235,7 +236,8 @@
       "iblai-vibe-design",
       "iblai-vibe-deslop",
       "iblai-api-infrastructure",
-      "iblai-api-ecosystem"
+      "iblai-api-ecosystem",
+      "iblai-api-hosting"
     ],
     "security": [
       "iblai-vibe-security-recon",

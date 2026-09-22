@@ -8,7 +8,7 @@
 Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
 [![Release](https://img.shields.io/github/v/release/iblai/vibe?label=skills%20release)](https://github.com/iblai/vibe/releases/latest)
-[![Skills](https://img.shields.io/badge/skills-136_%C2%B7_ui_53_%C2%B7_api_51-CC785C)](docs/skill-kinds.md)
+[![Skills](https://img.shields.io/badge/skills-154_%C2%B7_ui_54_%C2%B7_api_66-CC785C)](docs/skill-kinds.md)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -105,8 +105,8 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 9 |
 | [`billing/`](skills/billing) | How you are charged, spend caps, three ways to charge your users | 12 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
-| [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio | 25 |
-| [`ship/`](skills/ship) | Test, deploy, native builds, app stores | 11 |
+| [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
+| [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores | 12 |
 | [`security/`](skills/security) | Authorized-use security work | 8 |
 
 The full list with one line per skill: [docs/catalogue.md](docs/catalogue.md).
