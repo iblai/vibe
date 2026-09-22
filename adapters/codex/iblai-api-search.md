@@ -43,12 +43,21 @@ Provider, Subject, Audience, Promotion, Recently Accessed.
 
 ### Content search
 
-- **GET** `https://api.iblai.app/dm/api/search/catalog/` — search/browse the catalog. Query params:
+- **GET** `https://api.iblai.app/dm/api/search/global/` - search/browse the
+  catalog (`/api/search/catalog/` is the older spelling of the same endpoint).
+  Query params:
   - `query` — full-text (e.g. `manufacturing`).
   - `limit`, `page` — pagination.
   - Filter params mirror the response `facets`: content
     **type** (course / program / pathway / skill), **language**, **level**,
     **subject**, **format**, **price**, **certificate**.
+  - `price` - `free` or `paid`. `free` means every course not explicitly marked
+    paid, including those with no audit setting recorded, so `free` and `paid`
+    together cover the catalog and match the `price` facet counts.
+  - `self_paced` - `self-paced` or `instructor-led`; repeat the param to ask for
+    both. `courseformat` is accepted as the older spelling. Filters on courses
+    whose format is recorded as a boolean, which is narrower than the `format`
+    facet counts.
 
 **Envelope:** `{ results[], count, next, previous, current_page, total_pages, facets }`,
 where each result is `{ "type": "course|program|pathway|skill", "data": { } }`.
@@ -117,7 +126,7 @@ Find calculus agents, then manufacturing courses:
 curl -s "https://api.iblai.app/dm/api/search/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/?query=calculus&limit=10" \
   -H "Authorization: Api-Token $IBLAI_API_KEY"
 
-curl -s "https://api.iblai.app/dm/api/search/catalog/?query=manufacturing&limit=10" \
+curl -s "https://api.iblai.app/dm/api/search/global/?query=manufacturing&limit=10" \
   -H "Authorization: Api-Token $IBLAI_API_KEY"
 ```
 
