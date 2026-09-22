@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.8.0] - 2026-09-22
+
+### Added
+
+- add the paywall Stripe Connect screen and in-app embedded checkout
+
 ## [2.7.2] - 2026-09-22
 
 ### Documentation
