@@ -6,12 +6,9 @@
  * port for the callback, then writes the org key + minted API token into the
  * project's env files. The token never passes through the chat.
  *
- * Zero dependencies (Node 18+). Point it at a local auth app with
- *   IBLAI_CONNECT_AUTH_URL=http://localhost:3000
- * or --auth-url http://localhost:3000.
+ * Zero dependencies (Node 18+).
  *
  * Flags / env:
- *   --auth-url <url>   IBLAI_CONNECT_AUTH_URL   auth app base (default https://login.iblai.app)
  *   --name <label>     IBLAI_CONNECT_NAME       token label (default "<dir> on <host>")
  *   --org <key>        IBLAI_CONNECT_ORG        preselect an org
  *   --origin <url>     IBLAI_CONNECT_ORIGIN     loopback origin to allow-list (optional)
@@ -35,11 +32,7 @@ const flag = (name) => {
 };
 const has = (name) => argv.includes(name);
 
-const AUTH_URL = (
-  flag('--auth-url') ||
-  process.env.IBLAI_CONNECT_AUTH_URL ||
-  'https://login.iblai.app'
-).replace(/\/$/, '');
+const AUTH_URL = 'https://login.iblai.app';
 const DIR = resolve(flag('--dir') || process.env.IBLAI_CONNECT_DIR || process.cwd());
 const NAME =
   flag('--name') ||

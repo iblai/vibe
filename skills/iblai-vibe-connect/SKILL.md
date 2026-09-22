@@ -38,8 +38,8 @@ node <this-skill-dir>/scripts/connect.mjs --name "<project> on <hostname>"
   blocks until they do (5-minute timeout).
 
 Options: `--org <key>` preselects an org; `--origin <url>` allow-lists the
-app's local origin; `--dir <path>` writes elsewhere than the cwd. Point at a
-local or self-hosted auth app with `IBLAI_CONNECT_AUTH_URL=http://localhost:3000`.
+app's local origin; `--dir <path>` writes elsewhere than the cwd. The flow
+always uses `https://login.iblai.app`.
 
 ## Fallbacks
 
