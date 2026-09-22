@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.7.2] - 2026-09-22
+
+### Documentation
+
+- document catalog search price and format filters
+
 ## [2.7.1] - 2026-09-22
 
 ### Documentation
