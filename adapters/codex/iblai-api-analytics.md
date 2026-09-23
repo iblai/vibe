@@ -97,6 +97,9 @@ org-wide scope on every endpoint here.
   **email** or username and the session's first user message. Each row
   identifies the learner with `user` (numeric id), `username`, `email` and
   `name` (display name), so a table needs no second request to label a row.
+  Each row also carries the agent's `model` (the mentor's LLM name) and
+  `llm_provider` (the mentor's LLM provider) — both `null` when the agent has
+  none set.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended
@@ -181,13 +184,17 @@ is never leaked. An unreachable/erroring tracing backend returns **`502`** (dist
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
 
-**Access (self-service).** Platform admins — and watchers / mentor owners via
-their RBAC grants — see the whole tenant. A **non-admin** end user may read
-**only their own usage**: the `userId`/`username` filter is clamped to the
-caller, so a self-access call can never return tenant-wide aggregates. Omitting
-`username` defaults to the caller's own rows; passing **another** user's
-`username` is rejected **`403`**. This governs end-user tokens driving the UI —
-with an `Api-Token` workspace key you act as the platform, so you always get the
+**Access (self-service & delegated).** Platform admins see the whole tenant; a
+**mentor owner** sees their agent's rows (scope with `mentor_unique_id`). A
+**watcher** — a user holding an analytics grant on specific learners — may drill
+into a watched learner via `?username=<watched>`; the query is clamped to their
+watched set (their own rows plus watched users on the plain aggregate), and an
+**unwatched** `username` is rejected **`403`**. A plain **non-admin** end user
+may read **only their own usage**: the `userId`/`username` filter is clamped to
+the caller, so a self-access call can never return tenant-wide aggregates.
+Omitting `username` defaults to the caller's own rows (a watcher additionally
+sees their watched users). This governs end-user tokens driving the UI — with an
+`Api-Token` workspace key you act as the platform, so you always get the
 full-tenant scope and the self-scoping above does not apply.
 
 ### Per-user analytics
