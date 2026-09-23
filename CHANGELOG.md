@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.10.1] - 2026-09-23
+
+### Documentation
+
+- document userFullName/userEmail on llm-usage traces
+
 ## [2.10.0] - 2026-09-23
 
 ### Added
