@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.10.0] - 2026-09-23
+
+### Added
+
+- port vibe-agent's in-app paywall setup and member checkout; allow Stripe in CSP
+
 ## [2.9.0] - 2026-09-22
 
 ### Added
