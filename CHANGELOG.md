@@ -3,6 +3,23 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.9.0] - 2026-09-22
+
+### Added
+
+- always use https://login.iblai.app
+- add /iblai-vibe-connect skill (client half of the connect flow)
+
+### Documentation
+
+- list /iblai-vibe-connect in the skills catalog
+
+## [2.8.0] - 2026-09-22
+
+### Added
+
+- add the paywall Stripe Connect screen and in-app embedded checkout
+
 ## [2.7.2] - 2026-09-22
 
 ### Documentation
