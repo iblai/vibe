@@ -48,11 +48,11 @@ set anything).
 | | **A · Platform credits** | **B · App paywall (your Stripe)** | **C · Item monetization (Stripe Connect)** |
 |---|---|---|---|
 | What is sold | ibl.ai credits / plan tier to the org's own members | Entry to the **whole app** — one-time or subscription | Access to **specific items**: an agent, course, program, pathway, or custom item, with pricing tiers |
-| Whose Stripe | ibl.ai's | **Yours** — a *restricted* key stored on the org as the `stripe` integration credential (never typed into a chat) | Your Stripe **Connect Express** account, ibl.ai-managed |
+| Whose Stripe | ibl.ai's | **Yours** — linked from the app with **Connect with Stripe**, or a *restricted* key stored on the org as the `stripe` integration credential (never typed into a chat) | Your Stripe **Connect Express** account, ibl.ai-managed |
 | Commission | — | None | ibl.ai commission per sale |
 | Webhooks | — | None (verified polling by the platform) | Webhook-reconciled subscriptions |
-| Buyer sees | `CreditBalance` widget + Stripe pricing page | Your `/paywall` page → Stripe Checkout → back into the app as a member | `PaywallModal` per item, guest/public buy, `PurchasesTab` in Profile |
-| Admin sees | Billing tab | The `/setup` question (free / one-time / monthly) | `MonetizationTab` in Account: paywall config, prices, subscribers, revenue |
+| Buyer sees | `CreditBalance` widget + Stripe pricing page | Your `/paywall` page → Stripe's form in a modal → into the app | `PaywallModal` per item, guest/public buy, `PurchasesTab` in Profile |
+| Admin sees | Billing tab | `/paywall/setup`: free / one-time / monthly, then Connect with Stripe | `MonetizationTab` in Account: paywall config, prices, subscribers, revenue |
 | Needs an operator flag | `show_paywall` | none | `enable_monetization` |
 | Choose when | Your org resells ibl.ai usage to its own admins/trial users | "One app, one price, my customers" (the [`iblai/vibe-agent`](https://github.com/iblai/vibe-agent) model) | A marketplace of agents/courses with per-item prices, trials, subscriptions, and revenue reporting |
 | Skill | `/iblai-vibe-credit`, `/iblai-vibe-billing` | `/iblai-vibe-monetization-app-paywall` | `/iblai-vibe-monetization` (family index) |
@@ -71,7 +71,7 @@ tops up its own credits.
 | Rail | Prerequisite | How to check |
 |---|---|---|
 | A | `show_paywall` on the org | `JSON.parse(localStorage.tenants).find(t => t.key === org).show_paywall` |
-| B | A `stripe` integration credential on the org (restricted key: write on Products, Prices, Checkout Sessions, Customers; read on Subscriptions); backend that serves `…/providers/stripe/payments/paywall/access/` | `GET $PAY/products/?limit=1` → `200` connected, `400` no credential, `502` Stripe rejected the key, `404` old backend (`$PAY` defined in `/iblai-vibe-monetization-app-paywall` Step 1) |
+| B | A Stripe source on the org — an account linked with Connect with Stripe (the admin does it at `/paywall/setup`), or a `stripe` integration credential holding a restricted key and its publishable key; a backend that serves `…/providers/stripe/connect/` | `GET $CONNECT` → `source` is `connected` or `key` with a non-empty `publishable_key`; `404` old backend (`$CONNECT` defined in `/iblai-vibe-monetization-app-paywall` Step 1) |
 | C | `enable_monetization` on the org; Connect Express onboarding complete (`is_ready_for_payments`) | `/iblai-vibe-monetization-onboard` |
 
 Flags are set by an ibl.ai operator — there is no in-app toggle. If a flag is

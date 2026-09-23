@@ -1,9 +1,13 @@
-# Admin setup — curl by curl
+# Paywall setup — what the app calls, and the curl equivalents
 
-Everything here runs with the organization's **platform API key**
-(`Authorization: Api-Token $TOKEN`), acting as the admin themselves. The
-agent never handles the organization's Stripe key — it lives in the platform's
-credential store and every call below goes through the DM proxy.
+The installed app does all of this itself from `/paywall/setup`, on the signed-in admin's
+**own** session token (`Authorization: Token <dm_token>`) through its two admin routes,
+`app/api/paywall/admin/connect` and `app/api/paywall/admin/setup`; members pay on their own
+token (§4). This page is the reference behind that screen: every platform call it makes and
+what each answers — and, for CI or debugging only, the same calls as curls with the
+organization's **platform API key** (`Authorization: Api-Token $TOKEN`, acting as
+`$IBLAI_USERNAME`). Never collect a Stripe key: it lives in the platform's credential store,
+and every call below goes through the platform's proxy.
 
 ## 0. Shorthand
 
@@ -30,210 +34,188 @@ username and append `IBLAI_USERNAME=…` to `iblai.env`. Then:
 PAY="$DM/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/payments"
 CONNECT="$DM/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/connect/"
 META="$DM/api/core/orgs/$PLATFORM/metadata/"
+SLUG=my-app   # NEXT_PUBLIC_PAYWALL_APP_SLUG from .env.local
 ```
 
-## 1. Verify the organization's Stripe source (and the backend)
-
-> The installed app also ships `/paywall/setup` (`components/paywall-connect.tsx`), which
-> runs this whole section from the browser on the signed-in admin's **own** session token —
-> status, Connect with Stripe, disconnect — so the organization can relink without an
-> agent. Same endpoint, different credential: `Authorization: Token <dm_token>` and the
-> caller's `Ibl.Mentor/StripeConnect/*` instead of the platform key. The curls below stay
-> the agent's path.
+## 1. The organization's Stripe source — `GET $CONNECT`
 
 ```bash
 curl -s "$CONNECT" -H "$AUTH"
 ```
 
 Answers `{connected, available, key_credential_set, source, publishable_key,
-stripe_account}` plus, when connected, the account snapshot (`account_id`,
-`livemode`, `charges_enabled`, `details_submitted`, `business_name`, `email`,
-`connected_at`, `stale`). The snapshot is read from Stripe at most once a
-minute; `?refresh=1` reads it now.
+stripe_account}` plus, when connected, the account snapshot (`account_id`, `livemode`,
+`charges_enabled`, `details_submitted`, `business_name`, `email`, `connected_at`, `stale`),
+read from Stripe at most once a minute (`?refresh=1` reads it now — once, never in a loop).
 
-`available` answers one narrow question — whether a **new** Connect with Stripe
-can be started on this backend — so `available: false` with `connected: true` is
-a real combination and not an error: an organization whose account is already
-linked keeps its working payments proxy, and only starting over is unavailable.
-Read `source` for what the proxy runs on, and `available` only before offering
-the Connect button.
+- `source: "key"` → a pasted `stripe` credential runs the proxy (it wins over a connected
+  account); `publishable_key` is whatever that credential stores beside the key.
+  `source: "connected"` → the linked account runs it, with ibl.ai's own publishable key.
+- `source: null` → nothing yet, and `publishable_key` is `""` — which says nothing about the
+  key until there is a source. `available` answers one narrow question: can a **new** Connect
+  with Stripe start on this backend. `available: false` with `connected: true` is real: the
+  linked account keeps working, only starting over is unavailable.
+- A paid plan needs a source **with** a publishable key: embedded checkout is initialised with
+  it, and the platform refuses one without (the setup screen refuses the save first, naming
+  the fix).
 
-- `source: "key"` → a pasted `stripe` credential runs the proxy (it wins over
-  a connected account). `source: "connected"` → the linked account runs it.
-- `source: null` → nothing yet. Two ways, the admin's choice:
-  - **Connect with Stripe** (confirm with the user first — it opens Stripe):
-
-    ```bash
-    curl -s -X POST "$CONNECT" -H "$AUTH" -H 'Content-Type: application/json' \
-      -d '{"return_url":"http://localhost:3000/setup"}'
-    # → {"authorize_url":"https://connect.stripe.com/oauth/authorize?…"} — open it in the browser
-    curl -s "$CONNECT?refresh=1" -H "$AUTH"      # after the return: "connected": true
-    ```
-
-    `return_url` must be on one of the organization's deployed apps, its custom
-    domains, or localhost. The admin signs in to Stripe (or creates an
-    account there) and clicks Connect; Stripe sends the browser back through
-    the platform to `return_url?stripe_connect=connected`, or
-    `…?stripe_connect=error&reason=<code>` — `access_denied` (cancelled),
-    `invalid_grant` (link expired, or the instance's key and client id are
-    from different modes), `already_connected`, `account_linked_elsewhere`
-    (that Stripe account is linked to another organization), `not_configured`
-    (the instance has no Connect credential), `stripe_unreachable`. `409` on
-    the POST means an account is already connected; `503` (or
-    `available: false`) means the backend has nowhere to keep the OAuth state,
-    so it needs an operator (a migration, or a cache it can actually write to) —
-    tell the admin that, do not retry, and note that an already-linked
-    organization still works meanwhile (`connected: true`).
-    `DELETE $CONNECT` (204) deauthorizes at Stripe and forgets the link —
-    confirm with the user first; a `502` there means Stripe could not
-    confirm it and the link is kept (retry). Reconnect (another account, or
-    the same one after the admin revoked the app on Stripe) = `DELETE`, the
-    `POST` round trip again, then re-record the price (§3b) on the new
-    account.
-  - **A pasted key**: the admin adds an integration credential named `stripe`
-    in the platform credentials UI, holding a **restricted** key: Stripe
-    Dashboard → Developers → API keys → Create restricted key — write on
-    Products, Prices, Checkout Sessions, Customers; read on Subscriptions;
-    everything else None. Test-mode key first if they want a dry run. **Never
-    ask for or accept the key in chat.** Store the account's **publishable
-    key** (`pk_…`) in the same credential under `publishable_key` — it is a
-    public value, it is what `GET $CONNECT` then reports, and the in-app
-    checkout that §5 leaves on by default cannot run without it. A credential
-    holding only `key` forces `PAYWALL_EMBEDDED=0`.
-- `502` on any proxy call → Stripe rejected the source (wrong-mode key, or
-  the account was disconnected on Stripe's side) — the admin re-saves the
-  key, or reconnects.
-- `404` → the platform backend predates Connect with Stripe (ibl-dm-pro <
-  4.377.0; `GET $PAY/products/?limit=1` then tells a pasted-key setup apart:
-  200 ready, 400 no credential; a 404 there too means it predates the
-  proxy/paywall, PR #2977) or `$IBLAI_USERNAME` is not a member of
-  `$PLATFORM`. Fix before continuing.
-
-## 2. Create the product, tagged for this app
+### Connect with Stripe (the screen's button)
 
 ```bash
-curl -s -X POST "$PAY/products/" -H "$AUTH" -H 'Content-Type: application/json' \
-  -d '{"name":"<App> access","metadata":{"app":"<slug>"}}'
+curl -s -X POST "$CONNECT" -H "$AUTH" -H 'Content-Type: application/json' \
+  -d '{"return_url":"http://localhost:3000/paywall/setup/connect"}'
+# → {"authorize_url":"https://connect.stripe.com/oauth/authorize?…"}
 ```
 
-`metadata.app` is what the DM enforces at checkout — it must equal the app's
-`PAYWALL_APP_SLUG` exactly (a price on an untagged product cannot mint
-access).
+`return_url` must be on one of the organization's deployed apps, its custom domains, or
+localhost. The admin signs in to Stripe (or creates an account there) and clicks Connect;
+Stripe sends the browser back through the platform to `return_url?stripe_connect=connected`,
+or `…?stripe_connect=error&reason=<code>`:
 
-## 3. Create price(s)
+| `reason` | Meaning | What to do |
+|---|---|---|
+| `access_denied` | The admin cancelled on Stripe | Nothing, or connect again |
+| `invalid_grant` | Stripe refused the one-time code at the platform's token exchange — nothing the app sends reaches it. Either the code was spent (a replay) or, when it repeats, the instance's Connect credential (`auth_stripe`) has a client id and secret key from different modes (test vs live) or accounts | Try once more; if it repeats, ibl.ai support fixes the instance credential. A pasted restricted key plus its publishable key works meanwhile |
+| `already_connected` | The organization already has a linked account | `DELETE` first to link another |
+| `account_linked_elsewhere` | That Stripe account is linked to another organization | Use another account, or unlink it there |
+| `not_configured` | The instance has no Connect credential, or Stripe rejected it | ibl.ai support |
+| `stripe_unreachable` | Stripe did not answer | Retry |
+| `oauth_error` | Stripe came back without a code or an account id | Retry |
+| `platform_missing` | The organization was deleted mid-flow | — |
 
-One-time:
+`409` on the POST means an account is already connected. `503` (or `available: false`) means
+the backend has nowhere to keep the OAuth state — an operator's fix (a migration, or a cache it
+can actually write to); do not retry, and note that a pasted key and an already-linked account
+both keep working. `400` names an untrusted `return_url` or an instance without Connect.
+
+`DELETE $CONNECT` → `204` deauthorizes at Stripe and forgets the link; `404` = nothing was
+connected; `502` = Stripe could not confirm it, so the link is **kept** (retry). While a paid
+plan is recorded, unlinking locks **every** member out — the access check runs on the Stripe
+source before it looks at recorded payments — until an account is linked again; to stop
+charging, save **Free access** instead. Reconnect (another account, or the same one after the
+admin revoked ibl.ai on Stripe) is `DELETE`, the `POST` round trip, then a new save (§2) — the
+old price lives on the old account.
+
+### A pasted key (the other way, the admin's, never in chat)
+
+An integration credential named `stripe` in the platform's credentials, holding a
+**restricted** key under `key` — Stripe Dashboard → Developers → API keys → Create restricted
+key: write on Products, Prices, Checkout Sessions, Customers; read on Subscriptions;
+everything else None — and the account's **publishable key** (`pk_…`, a public value) under
+`publishable_key`: without it no paid plan can be saved. **Never ask for or accept either key in
+chat.**
+
+- `502` on any proxy call → Stripe rejected the source (a wrong-mode key, or an account
+  disconnected on Stripe's side): the admin re-saves the key, or reconnects.
+- `404` on `$CONNECT` → the backend predates Connect with Stripe (ibl-dm-pro < 4.377.0), or
+  `$IBLAI_USERNAME` is not a member of `$PLATFORM`.
+
+## 2. Save — what `POST /api/paywall/admin/setup` does
+
+The screen posts `{"access": "free" | "one_time" | "monthly", "amount": <cents>}` with an
+`Idempotency-Key`; the route runs these steps on the admin's own path and token, suffixing the
+key per Stripe write (`-archive`, `-product`, `-price`) so a retried save is safe. **Free runs
+only step e**, with `price_id: null` — zero Stripe or connect calls, ever.
+
+a. **The source**: `GET $CONNECT` — no `source` → 400 `Connect a Stripe account first`; no
+   `publishable_key` → 400 naming the fix for that source. Nothing is touched either way.
+
+b. **Retire the recorded price** (`apps.<slug>.stripe.price_id`, also on a record the previous
+   release wrote with no `access`):
+
+   ```bash
+   curl -s -X POST "$PAY/prices/price_old/" -H "$AUTH" -H 'Content-Type: application/json' \
+     -d '{"active":false}'      # 404 = nothing to retire: after a reconnect it lives elsewhere
+   ```
+
+c. **The product**: reuse the recorded one while `GET $PAY/products/<id>/` shows it `active`
+   and tagged `metadata.app == $SLUG`, else create one, named after the app — what Stripe's
+   checkout shows:
+
+   ```bash
+   curl -s -X POST "$PAY/products/" -H "$AUTH" -H 'Content-Type: application/json' \
+     -d "{\"name\":\"My App\",\"metadata\":{\"app\":\"$SLUG\"}}"
+   ```
+
+   `metadata.app` is what the platform enforces at checkout — a price on an untagged product
+   cannot mint access.
+
+d. **The price**, USD; monthly is a subscription (checkout mode follows the price type):
+
+   ```bash
+   curl -s -X POST "$PAY/prices/" -H "$AUTH" -H 'Content-Type: application/json' \
+     -d '{"product":"prod_…","unit_amount":2900,"currency":"usd","nickname":"Monthly access","recurring":{"interval":"month"}}'
+   ```
+
+e. **Record the choice** — every key, nulls included:
+
+   ```bash
+   curl -s -X PUT "$META" -H "$AUTH" -H 'Content-Type: application/json' -d "{\"metadata\":{\"apps\":{\"$SLUG\":{
+     \"version\":1,\"access\":\"monthly\",\"amount\":2900,\"currency\":\"usd\",
+     \"stripe\":{\"product_id\":\"prod_…\",\"price_id\":\"price_…\",\"publishable_key\":\"pk_…\",\"stripe_account\":\"acct_…\"},
+     \"updated_at\":\"$(date -u +%FT%TZ)\",\"updated_by\":\"$IBLAI_USERNAME\"}}}}"
+   ```
+
+   The platform **deep-merges** this write and cannot delete a key, so a field left out keeps
+   its old value — which is why free writes `price_id: null` rather than omitting it. It is a
+   **public read**: ids, amounts and the publishable key only, never a secret. The recorded
+   price is the contract: a member buying on their own path can buy only it (400 `no price
+   recorded` without one), and once recorded it binds every checkout.
+
+## 3. Who paid (admin reporting)
 
 ```bash
-curl -s -X POST "$PAY/prices/" -H "$AUTH" -H 'Content-Type: application/json' \
-  -d '{"product":"prod_...","unit_amount":2900,"currency":"usd"}'
+curl -s "$PAY/paywall/payments/?app=$SLUG" -H "$AUTH" | jq '{count, results: [.results[] | {username, user_email, user_full_name, mode, status, amount_total, currency}]}'
 ```
 
-Subscription — add `"recurring":{"interval":"month"}` (or `"year"`).
-Checkout mode (payment vs subscription) follows the price type
-automatically.
-
-## 3b. Record the price on the platform
-
-```bash
-curl -s -X PUT "$META" -H "$AUTH" -H 'Content-Type: application/json' \
-  -d '{"metadata":{"apps":{"<slug>":{"stripe":{"product_id":"prod_...","price_id":"price_...","publishable_key":"<publishable_key from $CONNECT>","stripe_account":"<stripe_account from $CONNECT, or null>"}}}}}'
-```
-
-A deep merge — the organization's other metadata keys survive — and a **public
-read**: ids and the publishable key only, never a secret. The recorded price
-is the contract: a caller buying on their **own** path (a member on the
-self-service rail, or the platform key's owner testing their own app) must
-have one and can buy only it, and once recorded it binds every checkout. One
-price per app: an app selling several prices through the server rail leaves
-this out and is tested with a member account.
-
-## 4. Capture display data
-
-```bash
-curl -s "$PAY/prices/<price_id>/" -H "$AUTH" | jq '{unit_amount, currency, recurring}'
-```
-
-Fill the `PRICES` constant in `app/paywall/page.tsx` from this (re-run steps
-3–4 whenever prices change — display data is deliberately duplicated).
-
-## 5. Write the app env
-
-Append to `.env.local`:
-
-```bash
-PAYWALL_PRICE_IDS=price_xxx,price_yyy
-PAYWALL_APP_SLUG=<slug>
-PAYWALL_EMBEDDED=0        # optional opt-out — see below
-```
-
-The checkout route asks for `ui_mode: "embedded"` by default, so Stripe's form renders
-inside `/paywall` instead of redirecting; the answer carries `client_secret`,
-`publishable_key` and `stripe_account` for `loadStripe(publishable_key, {stripeAccount})`,
-and `success_url`/`cancel_url` are neither sent nor validated. That needs
-`publishable_key` from §1 to be non-empty — without one the DM answers 400
-(`…has no publishable key, which embedded checkout needs…`) and nothing falls back to
-hosted. A **connected** account always has one: the instance's `auth_stripe` credential
-cannot resolve without `publishable_key`, so an organization that managed to connect has
-it. A **pasted key** has one only if the credential stores it alongside the restricted key
-(§1) — add it, or set `PAYWALL_EMBEDDED=0` for the redirect.
-
-## 6. Who paid (admin reporting)
-
-```bash
-curl -s "$PAY/paywall/payments/?app=<slug>" -H "$AUTH" | jq '{count, results: [.results[] | {username, user_email, user_full_name, mode, status, amount_total, currency}]}'
-```
-
-Filter a single buyer with `&username=<name>`. Rows are the DM's own
+Filter a single buyer with `&username=<name>`. Rows are the platform's own
 records — no Stripe calls; subscriptions carry the last observed status and
 refresh on every uncached access check. `username` is stored on the payment
 row so the record survives the buyer's deletion; `user_email` and
 `user_full_name` are read through the user and come back `null` once they are
 gone, rather than naming whoever holds that username next.
 
-## 7. Member self-service checkout (the browser, the member's own token)
+## 4. The member rail (what the pay modal does)
 
-The same two endpoints on the **member's own path** with the member's DM
-token — no platform key in the app:
+The same two paywall endpoints on the **member's own path** with the member's own token —
+no platform key in the app:
 
 ```bash
 ME="$DM/api/ai-mentor/orgs/$PLATFORM/users/<me>/providers/stripe/payments"
 curl -s -X POST "$ME/paywall/checkout/" -H "Authorization: Token <dm_token>" \
   -H 'Content-Type: application/json' \
-  -d '{"app":"<slug>","price_id":"price_...","ui_mode":"embedded","payment_method_types":["card"]}'
+  -d "{\"app\":\"$SLUG\",\"price_id\":\"price_…\",\"ui_mode\":\"embedded\",\"payment_method_types\":[\"card\"]}"
 # → {"client_secret":"cs_…","session_id":"cs_…","publishable_key":"pk_…","stripe_account":"acct_…"|null}
-curl -s "$ME/paywall/access/?app=<slug>&session_id=cs_..." -H "Authorization: Token <dm_token>"
+curl -s "$ME/paywall/access/?app=$SLUG&session_id=cs_…" -H "Authorization: Token <dm_token>"
 # → {"has_access": true, "mode": "payment", "checked_at": "…"}
 ```
 
-`ui_mode` omitted is hosted checkout (`success_url`/`cancel_url` →
-`checkout_url`). The browser renders the embedded session with Stripe.js
-(`loadStripe(publishable_key, {stripeAccount})` when `stripe_account` is
-set) and polls the access check with the `session_id` on completion. RBAC:
-`Ibl.Mentor/StripePaywallSelf/action` (Students role; `seed_rbac_data` on
-organizations seeded before it). The recorded price (§3b) is required here.
+The modal renders the session with Stripe.js (`loadStripe(publishable_key, {stripeAccount})`
+when `stripe_account` is set, then `createEmbeddedCheckoutPage`); Stripe never redirects, and
+on completion the modal polls the access check with the `session_id` every 3 s for up to a
+minute. Only `has_access: true` lets a member in. RBAC: `Ibl.Mentor/StripePaywallSelf/action`
+(the Students role; `seed_rbac_data` on organizations seeded before it). The access check runs
+on the organization's Stripe source, so with none it answers 400 for everyone.
 
 ## Error table
 
 | Status | Meaning | Fix |
 |---|---|---|
-| 400 | No Stripe source, or actionable input problem (wrong app tag, price not the recorded one, "no price recorded" on an own-path checkout, disallowed redirect host, bad body) | Read the body — no source means §1 (Connect with Stripe, or the admin pastes a key; never collect it in chat); "no price recorded" means §3b; anything else says exactly what to change |
-| 403 | Own-path call by a member without the Students verb, or a member on another user's path | `seed_rbac_data`; the browser rail is own-path only |
-| 404 | Backend predates the paywall endpoints (or, on `$CONNECT`, Connect with Stripe), or path user not a platform member | Upgrade ibl-dm-pro / fix `IBLAI_USERNAME` |
+| 400 | No Stripe source, or a source with no publishable key; an actionable input problem (wrong app tag, not the recorded price, `no price recorded`, a disallowed `return_url` host, a bad body) | Read the body — no source means §1 (Connect with Stripe, or the admin's pasted key); anything else says exactly what to change |
+| 403 | A member without the Students verb on their own path; a member on another user's path; a non-admin on the admin routes; a token for another organization than the path's | `seed_rbac_data`; the member rail is own-path only; the browser's `app_tenant` must name the app's organization |
+| 404 | Backend predates the paywall endpoints (or, on `$CONNECT`, Connect with Stripe), or the path user is not a member | Upgrade ibl-dm-pro / fix `IBLAI_USERNAME` |
 | 409 | `POST $CONNECT` while an account is connected | `GET $CONNECT` shows it; `DELETE` first to link another |
 | 429 | Stripe rate limit (passed through) | Wait `Retry-After` seconds, retry |
-| 502 | Stripe rejected the source (key or connected account) | Admin re-saves a valid restricted key, or reconnects |
-| 502 | `DELETE $CONNECT` while Stripe is unreachable or failing | Still connected; retry the disconnect |
-| 503 | `POST $CONNECT` when the backend cannot keep the OAuth state (`available: false`) | Ops; a pasted key, and an account already linked, both work meanwhile |
+| 500 | The app's own `NEXT_PUBLIC_PAYWALL_APP_SLUG` or `NEXT_PUBLIC_MAIN_TENANT_KEY` is missing or not a slug | Fix `.env.local` (and redeploy) |
+| 502 | Stripe rejected the source (key or connected account), or `DELETE $CONNECT` could not reach Stripe | Re-save a valid key or reconnect; after a failed disconnect the account is still connected — retry |
+| 503 | `POST $CONNECT` when the backend cannot keep the OAuth state (`available: false`) | Operator; a pasted key, and an account already linked, both work meanwhile |
 
 ## Setup verify
 
-- [ ] `GET $CONNECT` → `source` is `key` or `connected` (and, connected,
-      `charges_enabled: true`)
-- [ ] `GET $PAY/products/?limit=1` → 200
-- [ ] The product carries `metadata.app == <slug>` and is active
-- [ ] Each price in `PAYWALL_PRICE_IDS` is active (`GET $PAY/prices/<id>/`)
-- [ ] Both `PAYWALL_*` lines present in `.env.local`
-- [ ] `GET $META` shows `apps.<slug>.stripe.price_id` (single-price apps)
-- [ ] `GET $PAY/paywall/access/?app=<slug>` returns
-      `{"has_access": false, …}` for a fresh user — a JSON answer, not a 404
+- [ ] `GET $CONNECT` → `source` is `key` or `connected`, with a non-empty `publishable_key`
+      (and, connected, `charges_enabled: true`)
+- [ ] `GET $META` → `apps.$SLUG` carries `access`, `amount` and `stripe.price_id`
+- [ ] The recorded product carries `metadata.app == $SLUG` and is active
+      (`GET $PAY/products/<id>/`), and the recorded price is active (`GET $PAY/prices/<id>/`)
+- [ ] `grep NEXT_PUBLIC_PAYWALL_APP_SLUG .env.local` prints the slug
+- [ ] `GET $PAY/paywall/access/?app=$SLUG` answers a JSON verdict for the key's owner, not a 404

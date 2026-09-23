@@ -5,25 +5,26 @@ only puts the two rails side by side.
 
 ## Rail B — app paywall on the org's own Stripe key
 
-Base: `PAY=https://api.$DOMAIN/dm/api/ai-mentor/orgs/$PLATFORM/users/$IBLAI_USERNAME/providers/stripe/payments`
-Header: `Authorization: Api-Token $TOKEN` (the platform API token; the org's
-`stripe` credential is used server-side by the platform, never by the app).
+The app holds no platform key: the admin's setup page and the buyer's pay modal run on each
+person's own session token (`Authorization: Token <dm_token>`), on their own username path.
+Base: `…/dm/api/ai-mentor/orgs/{org}/users/{username}/providers/stripe/` — `payments/` (the
+Stripe proxy) and `connect/` (Connect with Stripe).
 
-| Step | Call | Notes |
-|---|---|---|
-| Probe Stripe connection | `GET $PAY/products/?limit=1` | `200` ok · `400` no `stripe` credential · `502` key rejected · `404` backend too old |
-| Create product | `POST $PAY/products/` `{"name":"<App> access","metadata":{"app":"<slug>"}}` | `metadata.app` must equal `PAYWALL_APP_SLUG` |
-| Create price | `POST $PAY/prices/` `{"product":"prod_…","unit_amount":2900,"currency":"usd"[,"recurring":{"interval":"month"}]}` | one-time without `recurring` |
-| Access check (app server, as the buyer) | `GET $PAY/paywall/access/?app=<slug>[&session_id=]` | cached grants 60 s / denies 15 s; `stale: true` during a Stripe outage |
-| Checkout | `POST $PAY/paywall/checkout/` | allowlisted `price_id` |
-| Who paid | `GET $PAY/paywall/payments/?app=<slug>` | ledger |
+| Step | Who, how | Call | Notes |
+|---|---|---|---|
+| Probe the Stripe source | admin | `GET connect/` | `source`: `key` (pasted `stripe` credential, wins) · `connected` · `null`; `publishable_key` |
+| Link Stripe | admin, `/paywall/setup` | `POST connect/` `{return_url}` → `authorize_url` | Stripe returns through the platform with `?stripe_connect=connected` or `=error&reason=` |
+| Create product + price | admin, the setup route | `POST payments/products/` (`metadata.app` = the app's slug), `POST payments/prices/` | the previous price is archived: `POST payments/prices/{id}/` `{"active": false}` |
+| Record the price | admin, the setup route | `PUT …/core/orgs/{org}/metadata/` `apps.<slug>` | public read; the recorded price is the only one a member can buy |
+| Checkout | member, the pay modal | `POST payments/paywall/checkout/` `{app, price_id, ui_mode: "embedded"}` | answers `client_secret`, `publishable_key`, `stripe_account` for Stripe.js |
+| Access check | member | `GET payments/paywall/access/?app=<slug>[&session_id=]` | cached grants 60 s / denies 15 s; `stale: true` during a Stripe outage |
+| Who paid | admin | `GET payments/paywall/payments/?app=<slug>` | ledger |
 
-Skill: `/iblai-vibe-monetization-app-paywall` (installs `lib/paywall.ts`, two
-route handlers, `PaywallGate`, `/paywall` pages, unit tests from
-`iblai-vibe-ops-init/assets/stripe-components/`). Also installs `/paywall/setup`
-— the admin links or unlinks the organization's Stripe account on their own
-session token (`…/providers/stripe/connect/`) — and renders checkout in the app
-rather than redirecting to Stripe, unless `PAYWALL_EMBEDDED=0`.
+Skill: `/iblai-vibe-monetization-app-paywall` (installs `/paywall/setup` — the question, free /
+one-time / monthly, and Connect with Stripe — `PaywallGate`, the `/paywall` page with Stripe's
+embedded checkout in a modal, two admin routes and unit tests, from
+`iblai-vibe-ops-init/assets/stripe-components/`). The agent never touches Stripe: the admin
+answers and connects in the app.
 
 ## Rail C — item-level monetization via Stripe Connect Express
 

@@ -249,10 +249,12 @@ curl -s -X POST "$base/dns/" -H "Authorization: Api-Token $IBLAI_API_KEY" \
   truncated; `vercel_alias` is the confirmed host without a scheme; `url` is
   `https://` + that alias while the latest build is READY. Never rebuild a URL from
   `vercel_project_name` — read `url`, `vercel_alias`, or `deployment.aliases[0]`.
-- **The deployed host is also the checkout redirect allowlist.** A Stripe paywall
-  redirect is accepted only for a confirmed hosting alias or an attached custom
-  domain of the same organization (plus localhost). A URL reconstructed from the
-  project name gets rejected. See `/iblai-vibe-monetization-app-paywall`.
+- **The deployed host is also the Stripe redirect allowlist.** A Stripe address the
+  platform sends a browser back to — the app paywall's Connect with Stripe
+  `return_url`, a hosted checkout's `success_url`/`cancel_url` — is accepted only for
+  a confirmed hosting alias or an attached custom domain of the same organization
+  (plus localhost). A URL reconstructed from the project name gets rejected. See
+  `/iblai-vibe-monetization-app-paywall`.
 - **`409` on deploy means a push is already in flight** for that project. Poll until
   terminal and retry; a stuck push clears itself after about 15 minutes, after which
   it reads as `failed` and a new deploy is accepted.
