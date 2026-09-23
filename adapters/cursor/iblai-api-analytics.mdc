@@ -170,6 +170,11 @@ serves three resources via the `resource` param; every `measures`, `aggregation`
   group by). `order_by` ∈ `timestamp` (default) | `name` | `username` |
   `session_id`; `direction` ∈ `asc` | `desc`. `&trace_id={id}` fetches one trace.
   Unlike observations, traces **are** agent-scopable via `mentor_unique_id`.
+  Each trace row carries the tracing backend's native `userId` (= username) plus
+  `userFullName` and `userEmail`, resolved server-side from the local user record
+  (camelCase to stay uniform with the backend's own `userId`/`sessionId`). Both
+  are `null` when the trace has no `userId` or the user isn't found. Enrichment is
+  **traces-only** — `metrics` (aggregate) and `observations` carry no `userId`.
 
 All three return the same envelope: `{ "resource": "…", "data": [...], "meta": {...} }`.
 `limit` caps at `1000`. A get-by-id (`trace_id` on traces, `observation_id` on
