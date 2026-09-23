@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.10.2] - 2026-09-23
+
+### Documentation
+
+- VM network policies, credential-backed secrets and runtime billing
+
 ## [2.10.1] - 2026-09-23
 
 ### Documentation
