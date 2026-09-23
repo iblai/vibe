@@ -47,11 +47,18 @@ when configuring an agent's basic identity and capabilities.
     "show_voice_call": "boolean",
     "show_voice_record": "boolean",
     "enable_claw": "boolean",
+    "enable_virtual_machine": "boolean",
+    "virtual_machine_egress": "none | registries | public | custom",
+    "virtual_machine_network_policy_id": "number | null (required when egress is custom)",
+    "virtual_machine_secret_ids": "number[] (egress must be public or custom)",
     "enable_memory_component": "boolean",
     "enable_multi_query_rag": "boolean",
     "forkable": "boolean"
   }
   ```
+  The three `virtual_machine_*` keys configure the agent's Linux VM sandbox;
+  the network policies and secrets they reference are managed per organization
+  — see `/iblai-vibe-agent-sandbox` ("Virtual machine network policies & secrets").
 - **POST** `…/users/{username}/mentors/{mentor}/fork/` — copy / duplicate agent:
   ```json
   {
