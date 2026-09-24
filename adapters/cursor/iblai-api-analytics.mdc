@@ -303,6 +303,19 @@ curl -s "$dm_url/api/analytics/content/?platform_key=$IBLAI_ORG&metric=courses&d
 - **Same endpoints, two scopes.** `mentor_unique_id` present ⇒ agent scope;
   absent ⇒ org-wide. `platform_key={platform}` is your workspace key throughout.
 - **`date_filter=custom`** requires both `start_date` and `end_date` (`yyyy-MM-dd`).
+- **Windowed `period_*` response fields.** `topics` (`metric=overview`), `users`
+  (`metric=currently_active`, plus the `active_users*` metrics), and `content`
+  return flat `period_*` figures computed over the `date_filter` window alongside
+  the existing all-time / month figures: each topics metric block adds
+  `period_total` / `period_previous` / `period_percentage_change`; `users`
+  `currently_active` adds `period_count` / `period_change`; `content`
+  `summary.totals` and `summary.averages` add `period_*` counterparts
+  (`period_total_enrollments`, `period_active_enrollments`, `period_total_learners`,
+  `period_total_time_spent`, `period_completion_rate`, `period_average_rating`,
+  `period_time_per_learner`). Every windowed response also echoes
+  `period_start_date` / `period_end_date`. These fields appear **only when a
+  window resolves** — `date_filter=all_time` omits them entirely, so treat them
+  as optional.
 - **Cost values are already user-facing** — the financial endpoints return
   platform-marked-up USD. Consume as-is; do not re-apply any markup.
 - **Costs are best-effort** (a separate datastore) — a null/empty cost block
