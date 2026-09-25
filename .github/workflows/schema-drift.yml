@@ -1,0 +1,73 @@
+name: schema-drift
+
+# Catches backend endpoint/field changes even when NO vibe PR is open. skills-ci
+# runs the same check on PRs (guards what we ship); this runs it on a daily cron
+# (guards against the backend drifting out from under already-shipped skills). A
+# renamed/removed endpoint or request field is surfaced within ~24h as a GitHub
+# issue, which the fix + next release + user re-sync then propagate.
+#
+# Deterministic, no LLM — just a schema fetch and a comparison.
+
+on:
+  schedule:
+    - cron: '37 6 * * *' # daily 06:37 UTC — odd minute to dodge scheduler pileups
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write # open/update the drift issue
+
+concurrency:
+  group: schema-drift
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch the live OpenAPI schema
+        run: |
+          curl -sS --retry 3 --retry-delay 5 -m 150 \
+            "https://api.iblai.app/dm/api/docs/schema/?format=json" \
+            -o "$RUNNER_TEMP/iblai_schema.json"
+
+      - name: Check api skills against the schema
+        id: check
+        run: |
+          IBLAI_SCHEMA_FILE="$RUNNER_TEMP/iblai_schema.json" \
+            node scripts/check-endpoint-schema.mjs 2>&1 | tee "$RUNNER_TEMP/drift.txt"
+
+      # Only when the check failed: make the drift actionable instead of a silent
+      # red run. One open issue at a time — reuse it, don't spam a new one daily.
+      - name: Open or update the drift issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Endpoint/field schema drift detected'
+        run: |
+          BODY="$(cat <<EOF
+          The daily \`schema-drift\` check found api skills documenting an endpoint
+          or request field that no longer matches the live OpenAPI schema.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          \`\`\`
+          $(tail -n 60 "$RUNNER_TEMP/drift.txt")
+          \`\`\`
+
+          Fix the affected skill(s), or (for a real schema gap) add an entry to
+          the relevant \`scripts/*-allow.json\` with a reason.
+          EOF
+          )"
+          EXISTING="$(gh issue list --state open --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || true)"
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
