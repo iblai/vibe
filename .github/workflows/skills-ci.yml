@@ -50,6 +50,18 @@ jobs:
       - name: Cross-repo links resolve
         run: node scripts/check-links.mjs
 
+      - name: API endpoints & request fields match the live schema
+        # Fetch once with retries (the schema is ~7.5MB) so a flaky network is a
+        # distinct, retryable step; the check itself runs deterministically
+        # against the file. Guards against api skills documenting an endpoint
+        # the backend renamed/removed, or a request field it no longer accepts.
+        run: |
+          curl -sS --retry 3 --retry-delay 5 -m 150 \
+            "https://api.iblai.app/dm/api/docs/schema/?format=json" \
+            -o "$RUNNER_TEMP/iblai_schema.json"
+          IBLAI_SCHEMA_FILE="$RUNNER_TEMP/iblai_schema.json" \
+            node scripts/check-endpoint-schema.mjs
+
       - name: Skill catalogue matches skills/ (CLAUDE.md + docs/catalogue.md)
         run: node scripts/check-skill-tables.mjs
 
