@@ -6,8 +6,12 @@
 
 > **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
-Add an account/organization settings page with tabs for Organization info,
-User Management, Integrations, Advanced settings, and Billing.
+Add an account/organization settings page whose sidebar groups its tabs
+under four headings: **Workspace** (Organization, Management,
+Integrations), **Finance** (Monetization, Billing), **AI & data**
+(Benchmarks, Memory) and **System** (Advanced). Every group whose tabs are
+all gated off disappears, so a small organization sees two or three
+headings, not four.
 
 ![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-page.png)
 
@@ -199,11 +203,17 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `advanced`, `billing`, `memory` (the org-wide Memory surface — see `/iblai-vibe-memory`) |
+| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `monetization`, `billing`, `datasets`, `memory`, `advanced` — a tab this viewer may not open falls back to their first visible one |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
-| `billingURL` | `string` | Stripe billing portal URL -- shows Billing tab |
-| `topUpURL` | `string` | Stripe top-up URL -- shows Billing tab |
+| `showBenchmarks` | `boolean` | Show the **Benchmarks** tab (default `false`; each app opts in) |
+| `showGradebookTab` | `boolean` | Show the Gradebook tab in the profile preview that Management → Users opens for a selected user |
+| `onTabChange` | `(tabId: string) => void` | Fires with `"billing"` / `"monetization"` when either opens and with `""` when you leave them — mirror it into your URL so those two tabs are linkable |
+| `userActiveApp` | `UserApp \| null` | The app whose plan Billing should show |
+| `currentPlan` | `string` | Current plan name, for the Billing header |
+| `defaultSupportPhone` | `string` | Initial support phone on the Organization tab when metadata has none |
+| `enableSupportPhone` | `boolean` | Show the support-phone field at all |
+| `onboardingBasePath` | `string` | Base URL for the copyable per-agent onboarding link (Management → Onboarding); defaults to the browser's origin |
 | `enableRbac` | `boolean` | Turn on RBAC permission checks for Management. **Only ever pass this together with `rbacPermissions`** — see the warning below |
 | `rbacPermissions` | `object` | The caller's effective permissions, from `POST /dm/api/core/rbac/permissions/check/`. Defaults to `{}` |
 | `onLoadGroupPermissions` | `(permissions: object) => void` | Optional; the Teams tab calls it with group-scoped permissions so you can merge them back in |
@@ -219,15 +229,69 @@ get_component_info("Account")
 > Single-org apps whose admin routes are already admin-gated should pass
 > neither: vibe-starter and the ibl.ai OS's own admin dialog both do.
 
+## Layout and navigation
+
+`Account` and `Profile` share one shell — a 280px sidebar (organization
+logo, name, key and role chip over grouped navigation) beside a content
+column with a fixed header carrying the active tab's title and description.
+Below `lg` the sidebar becomes a compact identity row and a scrolling strip
+of pills, the active one solid blue. See
+[`/iblai-vibe-profile`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/SKILL.md)
+for the same description from the profile side.
+
+Two things are specific to `Account`:
+
+- **The navigation is buttons, not ARIA tabs.** Each item is a plain
+  `<button>` carrying `aria-current="page"` when active, inside
+  `nav[aria-label="Organization settings"]` (the small-screen strip is
+  `"Organization settings (mobile)"`) — that is the selector to write e2e
+  tests against, since `Profile` uses `role="tab"` instead. Arrow keys,
+  `Home` and `End` still move between them.
+- **`targetTab` falls back.** Asking for a tab this viewer may not open —
+  a watcher sent to `organization`, say — lands on the first tab they can
+  actually see, and it re-runs once `tenants` arrives and the paywall and
+  permission checks settle.
+
 ## Tabs
 
-| Tab | Requires |
-|-----|---------|
-| **Organization** | `isAdmin === true` |
-| **Management** | `enableRbac` unset (any admin), or `enableRbac` **plus** a `rbacPermissions` object granting one of `/platforms/<org>/#can_manage_users`, `/groups/#list`, `/roles/#list`, `/policies/#list`, `/usergroups/#list`, `/watchedgroups/#list` |
-| **Integrations** | `isAdmin === true` |
-| **Advanced** | `isAdmin === true` |
-| **Billing** | `billingURL` or `topUpURL` prop set |
+| Tab | Group | `targetTab` id | Requires |
+|-----|-------|----------------|---------|
+| **Organization** | Workspace | `organization` | `isAdmin === true` |
+| **Management** | Workspace | `management` | `enableRbac` unset (any admin), or `enableRbac` **plus** a `rbacPermissions` object granting one of `/platforms/<org>/#can_manage_users`, `/groups/#list`, `/roles/#list`, `/policies/#list`, `/usergroups/#list`, `/watchedgroups/#list` |
+| **Integrations** | Workspace | `integrations` | `isAdmin === true` |
+| **Monetization** | Finance | `monetization` | `isAdmin === true`, the organization has monetization enabled **and** the caller holds `/platforms/<org>/#can_sell_items` (with RBAC off that check passes automatically) |
+| **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` |
+| **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — test-input suites for evaluating agents |
+| **Memory** | AI & data | `memory` | `isAdmin === true` — organization-wide global and per-agent memories (see `/iblai-vibe-memory`) |
+| **Advanced** | System | `advanced` | `isAdmin === true` |
+
+Every tab but Management and Billing needs `isAdmin`; those two answer to
+RBAC instead (Billing also to an admin). Integrations is itself split into
+**LLMs**, **Data Sources** and **APIs**, and the Memory tab into **Global**
+and **Agent** memories.
+
+### Management sub-tabs
+
+Management is itself tabbed — **Users**, **Groups**, **Roles**,
+**Policies**, **Teams**, **Alerts**, **Applications** and **Onboarding** —
+each shown when the matching permission is granted (`can_manage_users`,
+`/groups/#list`, `/roles/#list`, `/policies/#list`,
+`/usergroups/#list` or `can_invite`, `/watchedgroups/#list`). The Invite
+dialog reached from Users invites by user, by course or by program, and
+calls back through `onInviteClick`.
+
+Picking a user in **Users** opens their profile in a read-only preview — the
+same `Profile` component as `/iblai-vibe-profile`, minus Security, with the
+**Usage** tab showing *that* user's AI spend. `showGradebookTab` is the one
+customization this path forwards.
+
+| Shot | |
+|---|---|
+| Workspace | [Organization](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-organization.png) · [Advanced](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-advanced.png) |
+| Management | [Users](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users.png) · [Groups](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-groups.png) · [Roles](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-roles.png) · [Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-policies.png) · [Teams](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-teams.png) · [Alerts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-alerts.png) · [Applications](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-applications.png) · [Onboarding](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-onboarding.png) |
+| Invite dialog | [users](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-users.png) · [courses](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-courses.png) · [programs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-programs.png) |
+| Integrations | [LLMs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-llms.png) · [APIs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-apis.png) · [Datasources](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-datasources.png) |
+| Memory | [Global](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-memory-global.png) · [Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-memory-agent.png) |
 
 ## Step 5: Verify
 
@@ -240,6 +304,10 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
    pnpm dev &
    npx playwright screenshot http://localhost:3000/account /tmp/account.png
    ```
+4. In the browser, check the sidebar headings against what the organization
+   actually has — no **Finance** group unless it sells something, no
+   **Benchmarks** unless you passed `showBenchmarks` — then open each tab
+   the sidebar lists; none may 404 or come up blank.
 
 ## Important Notes
 
@@ -251,4 +319,9 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **SDK hardcoded styles**: The SDK Account component uses `bg-white` and
   `bg-gray-50` internally. Do NOT override these. Instead, wrap the component
   in a white container so it renders correctly against the gray page background.
+- **Give the wrapper a height**: the settings shell fills its parent
+  (`h-full`); the sidebar and the content panel only scroll independently
+  when that parent is bounded — `h-[80vh]` or `min-h-[640px]` is enough.
+- **Billing is not URL-driven**: it shows up when the organization's paywall
+  is on and the caller may see it, not because you passed a Stripe URL.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

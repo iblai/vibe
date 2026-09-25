@@ -468,3 +468,58 @@ These companion dialogs can be used alongside the tabs:
 | `ExperienceDialog` | `@iblai/iblai-js/web-containers` | Dialog for adding/editing experience entries |
 | `CompanyDialog` | `@iblai/iblai-js/web-containers` | Company selection dialog |
 | `InstitutionDialog` | `@iblai/iblai-js/web-containers` | Institution selection dialog |
+
+## Per-user LLM usage (the Usage tab)
+
+The profile's **Usage** tab reads one endpoint, always scoped to the profile
+on screen:
+
+| Surface | Request |
+|---|---|
+| KPI tiles, spend over time, by model / by service | `GET {dm_url}/api/analytics/llm-usage/?platform_key={org}&resource=metrics&username={user}&measures=total_cost,total_tokens,count&aggregation=sum&date_filter=30d[&granularity=day][&group_by=model]` |
+| Recent activity | `…?resource=traces&username={user}&order_by=timestamp&direction=desc&page=1&limit=10` |
+| The steps under one row | `…?resource=observations&trace_id={id}` |
+
+All three answer `{ "resource": …, "data": [...], "meta": {...} }`. `limit`
+caps at 1000; `session_id` and `mentor_unique_id` are rejected (`400`) on
+`observations`; a viewer who may not read this user's rows gets `403`, an
+unreachable tracing backend `502`. `date_filter` takes `today` / `7d` /
+`30d` / `90d` / `all_time`, or `custom` with `start_date` + `end_date`. Full
+parameter reference: [`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md).
+
+> **Send the username.** Without it an admin's request returns the whole
+> organization's spend, which is not what a profile should show.
+
+### Hooks (SDK exports)
+
+To build your own user-scoped usage UI instead of using the tab, the data
+layer exports hooks that carry those guard rails for you — username
+required, `limit` capped, the rejected params unrepresentable in the types,
+and the HTTP status preserved so you can tell a `403` from a `502`:
+
+```ts
+import {
+  useUserLlmUsageSummary,      // KPI tiles
+  useUserLlmSpendOverTime,     // chart series
+  useUserLlmCostByModel,
+  useUserLlmCostByService,
+  useUserLlmRecentActivity,    // paginated traces
+  useUserLlmTraceObservations, // steps for one trace
+} from "@iblai/data-layer";
+
+const { summary, isLoading, isEmpty, error, refetch } = useUserLlmUsageSummary({
+  platformKey: org,
+  username,
+  date_filter: "30d",          // "custom" additionally takes start_date/end_date
+});
+```
+
+Every one returns the same state — `rows`, `meta`, `isIdle` (no platform key
+or username yet, so nothing was requested), `isLoading`, `isFetching`,
+`isEmpty`, `error` (`forbidden` / `not_found` / `unauthorized` /
+`unavailable` / `invalid_params` / `unknown`, with the status attached) and
+`refetch` — plus their own shaped field: `summary`, `points`, `models`,
+`services`. `useUserLlmRecentActivity` additionally takes `page` and `limit`
+(10 by default). The unwrapped `useUserLlmUsageMetrics` / `…Traces` /
+`…Observations` take the raw params when none of the wrappers fit;
+`get_hook_info("useUserLlmUsageSummary")` has the full signatures.
