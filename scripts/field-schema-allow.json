@@ -1,0 +1,13 @@
+{
+  "_comment": "Exceptions for the field pass of scripts/check-endpoint-schema.mjs. `match` is `METHOD /canonical/path field` (canonical = param slots as {}). `reason` MUST say why: a permanent 'schema gap' (field is real but absent from the published schema) or a temporary 'drift' marker (the skill documents a field the API does not accept; remove once the skill is fixed). This list should shrink to zero drift entries.",
+  "allow": [
+    {
+      "match": "POST /api/reports/platforms/{}/new sentiment",
+      "reason": "drift: agent-history documents a 'sentiment' field in the report-create body, but POST /api/reports/platforms/{}/new accepts only [course_id, end_date, mentor, query, report_name, source, start_date, usergroup_ids]. Confirm with backend (sentiment/topics may be query filters on the LIST endpoint, not the report body), fix the skill, then remove."
+    },
+    {
+      "match": "POST /api/reports/platforms/{}/new topics",
+      "reason": "drift: agent-history documents a 'topics' field in the report-create body; not accepted by the endpoint (see the sentiment entry). Fix the skill, then remove."
+    }
+  ]
+}

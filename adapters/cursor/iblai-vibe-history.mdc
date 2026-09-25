@@ -1,5 +1,5 @@
 ---
-description: "Add the user profile History surface (review and export conversations with AI agents — Conversations tab with filters and a two-column transcript preview, an Exports tab of generated reports, and an admin/watcher view of other users' history) to your Next.js app"
+description: "Add the user profile History surface (review and export conversations with AI agents — Conversations tab with filters and a two-column transcript preview, an Exports tab of generated reports, attachments rendered as file cards, and an admin/watcher view of other users' history) to your Next.js app. Use when the user mentions their chat history, past conversations, or exporting their own transcripts. For one agent's conversations across all users see /iblai-vibe-agent-history; for the org-wide Transcripts tab see /iblai-vibe-analytics; for the REST endpoints see /iblai-api-analytics."
 globs:
 alwaysApply: false
 ---
@@ -25,7 +25,7 @@ conversations for one agent).
 
 ![History — Conversations tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history.png)
 
-![Conversations — transcript preview with per-conversation Download](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history-conversation.png)
+![Conversations — transcript preview with attachments and per-conversation Download](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history-conversation.png)
 
 ![History — Exports tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-history/iblai-vibe-history-exports.png)
 
@@ -135,6 +135,7 @@ SDK. These pieces are internal to the tab (not exported individually)
 | `ReportHistory` | `profile/chat-history/report-history.tsx` | The Exports table: state badge (Pending / Processing / Completed / Error / Cancelled / Expired), filters summary, expiry, re-download |
 | `useUserChatHistory` | `profile/chat-history/use-user-chat-history.ts` | Filter + pagination + data state (10 per page); exports `buildUserChatHistoryReportBody` mapping the UI filters onto the report POST body |
 | `useChatHistoryExport` | `profile/chat-history/use-chat-history-export.ts` | Server-side export flow: POST a report task, poll its status every 3s, then stream the finished file down as a browser save |
+| `TranscriptFileCards` | `chat/transcript-file-cards.tsx` | The attachment cards under a message — the same component the live chat uses. **Publicly exported**, so custom history UI can render attachments the same way |
 | `SearchSelect` | `spend-caps/search-select.tsx` | The shared debounced agent autocomplete used by the "Search Agents" filter (min 2 characters) |
 
 ## What each tab renders
@@ -155,7 +156,10 @@ SDK. These pieces are internal to the tab (not exported individually)
 - **Transcript preview** (right) — the selected conversation as
   alternating **You** / agent messages (the viewed user's email
   instead of "You" in the admin/watcher view) rendered as Markdown,
-  with the same date + time-ago header and the
+  **with the files and images the user attached** shown as file cards
+  under the message (the payload's presigned `url` opens each one; a
+  turn that was only an attachment has empty text), the same date +
+  time-ago header and the
   user's real avatar (edX profile image → Gravatar → initial) and the
   agent's avatar. A **Download** button saves just this conversation
   as a client-side CSV. When the list payload carried only session
@@ -180,6 +184,12 @@ From `@iblai/iblai-js/web-containers`:
 
 - `Profile` — the profile page hosting this surface as its History
   tab (`targetTab="chatHistory"`).
+- `TranscriptFileCards` (+ `TranscriptFileCardFile`) — the attachment
+  cards this surface renders under a message; take `{ name, contentType,
+  url }` per file.
+- `resolveUserIdentity` — the shared "what do we call this user" rule the
+  **admin** transcript surfaces use. This learner surface keeps its own
+  simpler rule (see below); reach for the helper when you build your own.
 
 From `@iblai/iblai-js/web-utils`:
 
@@ -202,7 +212,9 @@ uses, for custom UI on the same endpoints:
   state), `useGetUserChatHistoryReportsQuery` (the Exports list),
   `useLazyGetDownloadReportFromURLQuery` (stream the finished file)
 - Constants + types: `USER_CHAT_HISTORY_REPORT_ACTIVE_STATES`,
-  `UserChatHistorySession`, `UserChatHistoryMessage`,
+  `UserChatHistorySession`, `UserChatHistoryMessage` (carries
+  `human_files` / `ai_files`: `TranscriptFile[]` with a presigned `url`),
+  `TranscriptFile`,
   `UserChatHistoryReportListItem`, `UserChatHistoryReportState`,
   `CreateUserChatHistoryReportBody`
 
@@ -239,6 +251,17 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   server-side report (async task, polled every 3s, listed under
   Exports with an expiry); the preview's **Download** builds a CSV of
   that single conversation client-side — no report involved.
+- **Attachments**: a turn's `human_files` / `ai_files` render as file
+  cards with the payload's presigned `url` — those links expire, so
+  re-fetch rather than caching them. A turn that was only an attachment
+  carries empty text, which is why the card renders even with no message
+  body.
+- **Who the message is from**: on your own profile the human turns read
+  **You**; in the admin/watcher view they show the viewed user's email
+  (user metadata → the session payload's email → username). The admin
+  surfaces (`/iblai-vibe-agent-history`, the analytics Transcripts tab)
+  use the richer shared `resolveUserIdentity` rule instead, which prefers
+  a real full name.
 - **Message shape tolerance**: the list endpoint may serialize
   `messages` as a JSON string while the detail endpoint returns a
   proper array — custom consumers should accept both (the SDK

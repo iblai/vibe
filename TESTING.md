@@ -39,6 +39,17 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in p
 ## Tier 1.8 — composition (overlay clobbers)
 
 `scripts/test-skills-compose.mjs` catches the one composition conflict that is deterministic: an **overlay clobber** — two skills (or one skill twice) writing the same destination file, where the last write silently wins and the other is lost. The render tier tests each skill in its own scratch and so can never see this. Deterministic, **no LLM, no build**. It does NOT attempt a semantic "do the skills work together" build — most skills wire themselves through SKILL.md prose (editing `providers/index.tsx`, …) rather than machine-applicable overlays, so true composition needs the agent tier; this is the file-level half. Intended overrides (a feature skill's real implementation replacing a scaffold stub) are registered in `scripts/overlay-clobber-allow.json` with a `reason`; anything else fails, so a newly-added skill that silently overwrites another skill's file is caught.
+## Tier 1.7 — app boot smoke
+
+`scripts/test-skills-boot.mjs` proves the scaffolded app actually **renders**, not just typechecks — catching "compiles but the page is blank / crashes on mount" (a broken provider, layout, or hook) that `tsc` can't see. Deterministic, **no LLM, no secrets**. It builds vibe-starter in a scratch (same approach as the render tier), boots `next start` via Playwright's `webServer`, loads an **unauthenticated** route (`/setup` — the app mounts its React tree client-side before any auth redirect, since middleware is CSP-only), and asserts the tree mounted with no *render-breaking* errors. It ignores expected unauthenticated noise (network failures, 401s, CSP reports) and fails only on real render breakage — `Minified React error`, `Hydration failed`, `Element type is invalid`, `Cannot read properties of undefined`, hook-order violations, etc. (`scripts/boot-smoke/smoke.spec.ts`). Scope (v1): the base scaffold; per-skill boot is a heavier follow-up.
+## Tier 1.6 — endpoint & field schema drift
+
+`scripts/check-endpoint-schema.mjs` guards `iblai-api-*` skills against documenting an endpoint the backend renamed/removed, or a request field it no longer accepts — the "skill says a path/field the API no longer serves" drift that silently 404s or no-ops a headless integration. Deterministic, **no LLM**. It fetches the live OpenAPI schema (`api.iblai.app/dm/api/docs/schema/`, override with `IBLAI_SCHEMA_FILE=` for offline/CI). Two passes:
+
+- **Endpoints:** extract every callable `https://api.iblai.app/dm/...` URL a skill documents (those carrying a method — a bold `**VERB**`, a curl, or `-X`) and match each path **structurally** against the schema — a schema `{param}` absorbs any skill segment (`{param}`, `$SHELL_VAR`, or example value), while literal segments (`documents`, `train`) must match, so a renamed resource fails and param spelling never false-positives.
+- **Fields:** pair each write endpoint (POST/PUT/PATCH) with the `json` request-body block that follows it, and check its top-level fields against the schema operation's `requestBody` (following `$ref`/`allOf`). Skips bodies whose schema allows `additionalProperties` or can't be resolved — never guesses. Catches the `mentor_name → agent_name` class the endpoint pass can't see.
+
+Scope (v1): `/dm` REST only (not `/edx` or the asgi streaming host); request bodies, not response shapes. Known exceptions live in `scripts/endpoint-schema-allow.json` (paths) and `scripts/field-schema-allow.json` (fields), each with a `reason` — a permanent "schema gap" (real, absent from the published schema) or a temporary "drift" marker (skill wrong, remove once fixed). The same check runs nightly via `.github/workflows/schema-drift.yml`, which opens a GitHub issue on drift — so a backend change is caught within ~24h even with no open PR, then flows to installed skills through the fix → release → re-sync path.
 
 ## Tier 2 — agent-executed skills
 
@@ -62,6 +73,19 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 - Server output (`pnpm start`) goes to `.server.log`, never the console.
 - No artifact uploads from the live job (storage state under `e2e/.auth/` holds session cookies).
 - No `set -x` in any harness script.
+
+## Tier 4 — selection eval (local, subscription)
+
+`scripts/eval-skill-selection.mjs` checks that the model picks the **right** skill for a build goal — picking the wrong one builds the wrong thing (it compiles and runs, it's just not what was asked). This is the one reliability check that genuinely needs a model: a fixed rule can't judge that *"charge users to enter my app"* means the app paywall and not credits.
+
+Because it's model-driven (token cost, non-deterministic), it is **not** wired into blocking per-PR CI. Run it locally on a Claude subscription:
+
+```bash
+node scripts/eval-skill-selection.mjs         # shells out to `claude -p`
+SKILL_EVAL_CMD='<cmd>' node scripts/eval-skill-selection.mjs   # any model, or a stub
+```
+
+The command receives the prompt (catalogue + goal) on stdin and prints a JSON array of skill names. Fixtures live in `scripts/skill-eval/fixtures.json`: each case has a goal, `expectAny` (pass if at least one is picked — tolerates equivalent choices) and `forbid` (fail if a wrong-neighbour is picked). A preflight fails if any fixture names a skill that no longer exists, so fixtures can't rot. Add a case whenever two skills are easy to confuse.
 
 ## Layout
 

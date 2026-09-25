@@ -107,7 +107,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-embed`](../skills/agents/iblai-vibe-agent-embed/SKILL.md) | 🖥️ ui | Add the agent Embed tab (embed code, custom styling, shareable links) to your Next.js app |
 | [`/iblai-vibe-agent-evals`](../skills/agents/iblai-vibe-agent-evals/SKILL.md) | 🖥️ ui | Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to you… |
 | [`/iblai-vibe-agent-grader`](../skills/agents/iblai-vibe-agent-grader/SKILL.md) | 🖥️ ui | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-sync… |
-| [`/iblai-vibe-agent-history`](../skills/agents/iblai-vibe-agent-history/SKILL.md) | 🖥️ ui | Add the agent History tab (conversation history with filters and export) to your Next.js app |
+| [`/iblai-vibe-agent-history`](../skills/agents/iblai-vibe-agent-history/SKILL.md) | 🖥️ ui | Add the agent History tab (every user's conversations with this agent |
 | [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |
 | [`/iblai-vibe-agent-lti`](../skills/agents/iblai-vibe-agent-lti/SKILL.md) | 🖥️ ui | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app |
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
@@ -179,7 +179,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-credit`](../skills/billing/iblai-vibe-credit/SKILL.md) | 🖥️ ui | Add the ibl.ai credit balance widget. |
 | [`/iblai-vibe-monetization`](../skills/billing/iblai-vibe-monetization/SKILL.md) | 📖 guide | Reference and family index for ibl.ai's item-level monetization system |
 | [`/iblai-vibe-monetization-analytics`](../skills/billing/iblai-vibe-monetization-analytics/SKILL.md) | 🖥️ ui | Build custom Platform analytics surfaces |
-| [`/iblai-vibe-monetization-app-paywall`](../skills/billing/iblai-vibe-monetization-app-paywall/SKILL.md) | 🖥️ ui | Put a Stripe "pay to enter" gate on a whole app on the organization's OWN Stripe account via the DM Stripe proxy paywall endpoints |
+| [`/iblai-vibe-monetization-app-paywall`](../skills/billing/iblai-vibe-monetization-app-paywall/SKILL.md) | 🖥️ ui | Put a Stripe "pay to enter" gate on a whole app on the organization's OWN Stripe account |
 | [`/iblai-vibe-monetization-checkout`](../skills/billing/iblai-vibe-monetization-checkout/SKILL.md) | 🖥️ ui | Build the buyer-facing PaywallModal, access-check gate, Stripe checkout flow, and public/guest buy surface for ibl.ai's item-level moneti… |
 | [`/iblai-vibe-monetization-configure`](../skills/billing/iblai-vibe-monetization-configure/SKILL.md) | 🖥️ ui | Build the admin MonetizationTab inside the Account page |
 | [`/iblai-vibe-monetization-onboard`](../skills/billing/iblai-vibe-monetization-onboard/SKILL.md) | 🖥️ ui | Build the Stripe Connect Express onboarding surface for Platform sellers |
