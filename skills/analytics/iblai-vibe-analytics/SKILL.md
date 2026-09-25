@@ -249,7 +249,7 @@ export default function CostPage() {
 | `/analytics/programs` | `AnalyticsPrograms` | `basePath="/analytics"` → opens `programs/[programId]` |
 | `/analytics/programs/[programId]` | `AnalyticsProgramDetail` | `programId`, `onBack` |
 | `/analytics/topics` | `AnalyticsTopicsStats` | `usergroupIds` |
-| `/analytics/transcripts` | `AnalyticsTranscriptsStats` | `usergroupIds`; reads `?session_id=` |
+| `/analytics/transcripts` | `AnalyticsTranscriptsStats` | `usergroupIds`, `currentSPA`, `turnDetails` (slots); reads `?session_id=` |
 | `/analytics/memory` | `AnalyticsMemoryStats` | `userId` (required), `myMemory` (own memories only) |
 | `/analytics/financial` (label **Cost**) | `AnalyticsFinancialStats` | `userId`, `onOpenTranscript`. No `basePath`; `usergroupIds` is deprecated and ignored |
 | `/analytics/audit` | `AnalyticsAuditLogStats` | `userId` (required), `defaultScope`, `timezone`, `canViewPlatformAudit` |
@@ -270,7 +270,7 @@ silently ignored. `""` means org-wide; never pass `undefined` for `mentorId`.
 | Overview | Messages, Active Users, Topics, Conversations, **LLM spend** KPIs with sparklines; Sessions chart; top Topics | chat analytics + `llm-usage` (spend card) |
 | Users | Logged in now / past 30 days / registered; Active Users; Access Times heatmap; User Details table | `/api/analytics/users/…`, `time/` |
 | Topics | Topics / Conversations / Messages KPIs; Conversations over time; Topics Details | `/api/analytics/topics/…`, `conversations/` |
-| Transcripts | Avg messages / cost / rating; conversation list + transcript panel | `/api/analytics/messages/…` |
+| Transcripts | Avg messages / cost / rating; conversation list + transcript panel with attachments, retrieved documents, tool calls and per-turn details (model, temperature, request context) | `/api/analytics/messages/…`, `messages/details/` |
 | Memory | Memories per user; scope **Agent / All agents / Global**, agent search, user, content and date filters | `/api/ai-mentor/orgs/{org}/users/{username}/…memories…/` |
 | Cost → **Spend** | Weekly / Monthly / Total costs, Cost per Day, Cost by Provider / LLM, Cost per User (→ Traces) | ClickHouse: `/api/ai-analytics/orgs/{org}/users/{username}/{tenant-cost, agents/{id}/cost, costs/model, costs/peruser}/` |
 | Cost → **Usage & latency** | LLM spend, Tokens, LLM calls, Latency p95; spend over time by service; spend and p50/p95 latency by model | `/api/analytics/llm-usage/?resource=metrics` |
@@ -285,11 +285,60 @@ silently ignored. `""` means org-wide; never pass `undefined` for `mentorId`.
 
 ![Analytics — Topics details](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-4-topics-details.png)
 
+![Analytics — Transcripts: conversation list and transcript panel](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-8-transcripts.png)
+
+![Analytics — Transcripts: a turn's details (tools, metadata, request context)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-9-transcript-details.png)
+
 ![Analytics — Cost → Spend](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-5-cost-spend.png)
 
 ![Analytics — Cost → Usage & latency](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-6-cost-usage.png)
 
 ![Analytics — Cost → Usage & latency by model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-7-cost-usage-by-model.png)
+
+## Inside a transcript
+
+The Transcripts panel replays a conversation the way the chat rendered it,
+from the per-turn context the backend attaches on admin surfaces. Every
+piece is optional and renders only when the payload carries it:
+
+- **Attachments** — files and images exchanged on a turn, as the chat's
+  file cards (the presigned `url` opens them).
+- **Retrieved Documents** — the chunks the answer cited, with source,
+  snippet and relevance score, in the same dialog the chat opens.
+- **Used N tools** — the turn's tool calls (name, input, output).
+- **Show Details** — per AI turn: **Metadata** (model with the provider
+  logo, temperature, client) and **Request Context** (session, flow, org,
+  pathway, system prompt, file references …). Platform names are used, not
+  wire names: `enable_artifacts` → **Canvas**, `is_proactive` →
+  **Proactive Prompt**, `grading_context` → **Grader**, `document_filter`
+  → **Datasets**; unknown keys are humanised automatically.
+- **Row badges** — per conversation, how many documents and tool calls it
+  used.
+- The user on a row is named by the shared `resolveUserIdentity` rule
+  (full name → email → username → anonymous) and links to the profile
+  dialog; pass `currentSPA` so `'lms'` / `'skills'` hosts get its
+  Gradebook tab.
+
+To render documents or tool calls with **your own** chat components
+instead of the built-in ones, pass the `turnDetails` slots:
+
+```tsx
+<AnalyticsTranscriptsStats
+  tenantKey={tenantKey}
+  mentorId=""
+  turnDetails={{
+    renderDocuments: (documents) => <MyCitations documents={documents} />,
+    renderToolCalls: (toolCalls) => <MyToolLog calls={toolCalls} />,
+  }}
+/>
+```
+
+The same panel powers the agent History tab
+([`/iblai-vibe-agent-history`](../../agents/iblai-vibe-agent-history/SKILL.md)),
+and its components (`TranscriptTurnDetails`, `TranscriptRollupBadges`,
+`RetrievedDocumentsButton`, `ToolCallIndicator`, `TranscriptFileCards`,
+`LlmModelBadge`, `resolveUserIdentity`) are exported from
+`@iblai/iblai-js/web-containers` for custom transcript UI.
 
 ## Permissions and data caveats
 
