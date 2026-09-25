@@ -68,6 +68,19 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 - No artifact uploads from the live job (storage state under `e2e/.auth/` holds session cookies).
 - No `set -x` in any harness script.
 
+## Tier 4 — selection eval (local, subscription)
+
+`scripts/eval-skill-selection.mjs` checks that the model picks the **right** skill for a build goal — picking the wrong one builds the wrong thing (it compiles and runs, it's just not what was asked). This is the one reliability check that genuinely needs a model: a fixed rule can't judge that *"charge users to enter my app"* means the app paywall and not credits.
+
+Because it's model-driven (token cost, non-deterministic), it is **not** wired into blocking per-PR CI. Run it locally on a Claude subscription:
+
+```bash
+node scripts/eval-skill-selection.mjs         # shells out to `claude -p`
+SKILL_EVAL_CMD='<cmd>' node scripts/eval-skill-selection.mjs   # any model, or a stub
+```
+
+The command receives the prompt (catalogue + goal) on stdin and prints a JSON array of skill names. Fixtures live in `scripts/skill-eval/fixtures.json`: each case has a goal, `expectAny` (pass if at least one is picked — tolerates equivalent choices) and `forbid` (fail if a wrong-neighbour is picked). A preflight fails if any fixture names a skill that no longer exists, so fixtures can't rot. Add a case whenever two skills are easy to confuse.
+
 ## Layout
 
 `skills/<folder>/<name>/SKILL.md` — nine folders (`scripts/skill-categories.json`). `scripts/lib/skills.mjs` is the one discovery helper every script uses; `.claude/skills/` holds per-skill symlinks so local Claude Code sessions see the flat names.
