@@ -1,0 +1,55 @@
+{
+  "_comment": "Selection-eval fixtures: a natural-language build goal, and which skill(s) the model should pick. `expectAny` passes if the picked set includes AT LEAST ONE (tolerates equivalent choices); `forbid` fails if any of these are picked (the classic wrong-neighbour). Add cases whenever two skills are easy to confuse. Run with scripts/eval-skill-selection.mjs.",
+  "cases": [
+    {
+      "goal": "let me charge users to enter my whole app",
+      "expectAny": ["iblai-vibe-monetization-app-paywall"],
+      "forbid": ["iblai-vibe-credit", "iblai-vibe-monetization-checkout"]
+    },
+    {
+      "goal": "sell a single course to buyers",
+      "expectAny": ["iblai-vibe-monetization-checkout", "iblai-vibe-monetization-configure"],
+      "forbid": ["iblai-vibe-monetization-app-paywall", "iblai-vibe-credit"]
+    },
+    {
+      "goal": "give each user a rechargeable credit balance to spend on the AI",
+      "expectAny": ["iblai-vibe-credit"],
+      "forbid": ["iblai-vibe-monetization-app-paywall"]
+    },
+    {
+      "goal": "add sign in with ibl.ai to my app",
+      "expectAny": ["iblai-vibe-auth"],
+      "forbid": []
+    },
+    {
+      "goal": "let org admins manage users, roles and permissions",
+      "expectAny": ["iblai-vibe-admin", "iblai-vibe-rbac"],
+      "forbid": []
+    },
+    {
+      "goal": "add a chat with an AI agent to my app",
+      "expectAny": ["iblai-vibe-agent-chat"],
+      "forbid": []
+    },
+    {
+      "goal": "train an agent on my PDF documents so it answers from them",
+      "expectAny": ["iblai-vibe-agent-dataset", "iblai-api-agent-dataset"],
+      "forbid": []
+    },
+    {
+      "goal": "show usage and LLM cost analytics for my organization",
+      "expectAny": ["iblai-vibe-analytics", "iblai-api-analytics"],
+      "forbid": []
+    },
+    {
+      "goal": "create a brand new agent from a template",
+      "expectAny": ["iblai-vibe-agent-create", "iblai-api-agent-create"],
+      "forbid": []
+    },
+    {
+      "goal": "deploy and publish my app to the web",
+      "expectAny": ["iblai-vibe-ops-deploy"],
+      "forbid": []
+    }
+  ]
+}
