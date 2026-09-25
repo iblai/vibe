@@ -304,7 +304,12 @@ piece is optional and renders only when the payload carries it:
 - **Attachments** — files and images exchanged on a turn, as the chat's
   file cards (the presigned `url` opens them).
 - **Retrieved Documents** — the chunks the answer cited, with source,
-  snippet and relevance score, in the same dialog the chat opens.
+  snippet and relevance score. Literally the chat's own control
+  (`RetrievedDocumentsButton`, opening `DocumentSidebar` as a dialog):
+  in the live composer it fetches the session's vector results, here it is
+  handed the turn's — or the whole conversation's — documents instead. The
+  agent History tab shows the same dialog
+  ([screenshot](../../agents/iblai-vibe-agent-history/SKILL.md)).
 - **Used N tools** — the turn's tool calls (name, input, output).
 - **Show Details** — per AI turn: **Metadata** (model with the provider
   logo, temperature, client) and **Request Context** (session, flow, org,
@@ -335,10 +340,18 @@ instead of the built-in ones, pass the `turnDetails` slots:
 
 The same panel powers the agent History tab
 ([`/iblai-vibe-agent-history`](../../agents/iblai-vibe-agent-history/SKILL.md)),
-and its components (`TranscriptTurnDetails`, `TranscriptRollupBadges`,
-`RetrievedDocumentsButton`, `ToolCallIndicator`, `TranscriptFileCards`,
-`LlmModelBadge`, `resolveUserIdentity`) are exported from
-`@iblai/iblai-js/web-containers` for custom transcript UI.
+and its components are exported from `@iblai/iblai-js/web-containers`
+for custom transcript UI:
+
+| Export | What it renders |
+|---|---|
+| `TranscriptTurnDetails`, `TranscriptRollupBadges` | the Show Details panel and the list-row document/tool badges |
+| `RetrievedDocumentsButton`, `DocumentSidebar` | the Retrieved Documents dialog — pass `sessionId` for a live chat, `documents` for a transcript |
+| `ToolCallIndicator` (+ `getFriendlyToolName`, `getQueryLabel`, `formatResult`) | the tool-call record |
+| `TranscriptFileCards` | attachment cards (`name`, `contentType`, `url`) |
+| `LlmModelBadge` | the model chip with its provider logo |
+| `resolveUserIdentity` | the shared name-a-user rule |
+| `summarizeTranscriptTurns`, `conversationDocuments`, `toRetrievedDocuments`, `toToolCallInfos`, `toRollupCount` | payload → props helpers |
 
 ## Permissions and data caveats
 

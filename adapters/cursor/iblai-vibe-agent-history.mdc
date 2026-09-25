@@ -126,12 +126,14 @@ Import from `@iblai/iblai-js/web-containers/next`.
 Admin transcripts carry more than the text of the turn. The tab renders
 each piece with the same component the live chat uses, and shows nothing
 where the backend sent nothing — so an agent without RAG or tools reads as
-a plain transcript.
+a plain transcript. The org-wide Transcripts tab
+([`/iblai-vibe-analytics`](../../analytics/iblai-vibe-analytics/SKILL.md))
+renders the identical panel over the same payload.
 
 | In the transcript | What it is |
 |---|---|
 | **Attachments** | Files and images exchanged on a turn (`human_files` / `ai_files`), as the chat's file cards. The presigned `url` opens them; an attachment-only turn has empty text |
-| **Retrieved Documents** | The chunks the answer cited, in the same dialog the chat opens, with source, snippet and relevance score |
+| **Retrieved Documents** | The chunks the answer cited, with source, snippet and relevance score — the chat's own `RetrievedDocumentsButton` / `DocumentSidebar`, handed this turn's (or the conversation's) documents instead of a live session's |
 | **Used N tools** | The turn's tool calls, in the chat's tool-call record (name, input, output) |
 | **Show Details** | A collapsible panel per AI turn: **Metadata** (model — with the provider's logo — temperature, client) and **Request Context** (session, flow, org, pathway, system prompt, file references …) |
 | **Row badges** | On the conversation list, how many documents and tool calls the whole conversation used |
@@ -162,7 +164,10 @@ built from, for custom history UI on the same payloads:
   slots so a host can swap in its own chat UI, plus `tenantKey` + `mentorId`
   so the model badge can resolve its provider logo off the mentor SPA.
 - `RetrievedDocumentsButton`, `DocumentSidebar` — the retrieved-documents
-  dialog and rail.
+  dialog and rail. One component serves every surface: pass `sessionId` to
+  fetch a live chat's vector results, or `documents` to show a transcript's
+  (`toRetrievedDocuments` converts the payload); `label` swaps the button
+  text for a compact "Documents · N" chip.
 - `ToolCallIndicator`, `getFriendlyToolName`, `getQueryLabel`, `formatResult`
   — the tool-call record.
 - `TranscriptFileCards` — attachment cards (`name`, `contentType`, `url`).
