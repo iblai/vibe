@@ -1,0 +1,29 @@
+{
+  "_comment": "Exceptions for scripts/check-endpoint-schema.mjs. Each entry suppresses one finding. `match` is `METHOD /canonical/path` or `* /canonical/path` (canonical = param slots as {}). `reason` MUST say why. Two kinds: (1) 'schema gap' — endpoint is real (live 401) but missing from the published OpenAPI schema; permanent. (2) 'drift' — the skill's path is wrong; TEMPORARY, delete the entry once the skill is fixed. This list should shrink to zero drift entries.",
+  "allow": [
+    {
+      "match": "* /api/docs/schema",
+      "reason": "schema gap (permanent): the OpenAPI schema URL itself (api.iblai.app/dm/api/docs/schema/), cited by skills as the source of truth. A schema never lists its own docs endpoint among its data paths."
+    },
+    {
+      "match": "* /api/ai-index/documents/{}/settings",
+      "reason": "drift: agent-dataset documents a short path; live returns 404. Real path (verified 401): /api/ai-index/orgs/{}/users/{}/documents/{}/settings/. Fix the skill, then remove this entry."
+    },
+    {
+      "match": "* /api/ai-index/documents/{}",
+      "reason": "drift: agent-dataset documents a short path; live returns 404. Real path (verified 401): /api/ai-index/orgs/{}/users/{}/documents/{}/. Fix the skill, then remove this entry."
+    },
+    {
+      "match": "* /api/ai-mentor/orgs/{}/users/{}/memory/{}",
+      "reason": "drift: agent-history documents a memory path that 404s. Schema has /api/ai-mentor/orgs/{}/users/{}/sessions/{}/memory/ and /api/ai-prompt/orgs/{}/users/{}/memory/{}/. Confirm the intended one with backend, fix the skill, then remove."
+    },
+    {
+      "match": "* /api/ai-mentor/orgs/{}/mentors/{}/settings",
+      "reason": "drift: agent-tool documents a settings path without the users segment; live returns 404. Real path (verified 401): /api/ai-mentor/orgs/{}/users/{}/mentors/{}/settings/. Fix the skill, then remove this entry."
+    },
+    {
+      "match": "* /api/ai-mentor/orgs/{}/users/{}/mentor/llms",
+      "reason": "drift: iblai-api-integration documents /mentor/llms/ (two segments); live returns 404. Schema has /api/ai-mentor/orgs/{}/users/{}/mentor-llms/ (one segment) and /agent-llms/. Confirm intended one, fix the skill, then remove."
+    }
+  ]
+}
