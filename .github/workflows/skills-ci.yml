@@ -56,6 +56,9 @@ jobs:
       - name: Every skill declares a valid metadata.kind
         run: node scripts/check-skill-kinds.mjs
 
+      - name: No overlay clobbers between skills
+        run: node scripts/test-skills-compose.mjs
+
       - name: Adapters are regenerated
         run: |
           node scripts/build-adapters.mjs
