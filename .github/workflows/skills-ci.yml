@@ -65,6 +65,12 @@ jobs:
       - name: Render + typecheck skills against vibe-starter
         run: node scripts/test-skills-render.mjs --build
 
+      - name: App boot smoke (scaffold renders, not just typechecks)
+        # Builds vibe-starter and boots it under Playwright — proves the scaffold
+        # a user gets actually mounts, catching "compiles but blank/crashes on
+        # mount" that tsc can't see. Deterministic, no LLM, no secrets.
+        run: node scripts/test-skills-boot.mjs
+
   # ---------------------------------------------------------------- tier 2
   # Agent-executes only the skills the PR touches. Skipped for fork PRs
   # (no secrets) and when no skills changed.
