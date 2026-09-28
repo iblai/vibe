@@ -1,16 +1,26 @@
 # iblai-vibe-agent-history
 
-> Add the agent History tab (conversation history with filters and export) to your Next.js app
+> Add the agent History tab (every user's conversations with this agent — filters, export, and a transcript panel with attachments, retrieved documents, tool calls, and per-turn metadata such as the model, Canvas and Proactive Prompt). Use when the user mentions conversation history, transcripts, chat logs, what people asked an agent, or exporting conversations. For the signed-in user's own history see /iblai-vibe-history; for the org-wide Transcripts tab see /iblai-vibe-analytics; for the REST endpoints see /iblai-api-agent-history.
 
 # /iblai-vibe-agent-history
 
-Add the agent **History tab** -- conversation history with rating,
-summaries, topic tags, and filters (user, date range, sentiment, topics).
-Includes conversation preview, pagination slot, and optional export. This
-is one tab in the wider agent-settings family. All tabs share the same
+Add the agent **History tab** -- every user's conversations with this
+agent, with rating, summaries, topic tags, and filters (user, date range,
+sentiment, topics). The transcript panel shows the conversation the way the
+chat did: attachments the user and agent exchanged, the **Retrieved
+Documents** the answer cited, the tools it called, and a per-turn
+**Show Details** panel with the model, temperature and request context.
+Includes a pagination slot and an optional export. This is one tab in the
+wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
-![History Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-history/iblai-vibe-agent-history.png)
+![History Tab — conversation list with document and tool badges](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-history/iblai-vibe-agent-history.png)
+
+![Transcript — Show Details open: tools, metadata (model, temperature), request context](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-history/iblai-vibe-agent-history-2-turn-details.png)
+
+![Retrieved Documents — what the answer cited, with relevance scores](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-history/iblai-vibe-agent-history-3-retrieved-documents.png)
+
+![Transcript — an image the user attached, rendered as a file card](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-history/iblai-vibe-agent-history-4-attachments.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -107,12 +117,65 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled, disableNumberedButtons? }>` | No | Custom pagination. Without it no pagination UI renders |
 | `onExport` | `(filters: ChatHistoryFilter) => void` | No | Called with current filters when Export is clicked |
 | `isExporting` | `boolean` | No | Whether an export is in progress |
+| `currentSPA` | `string` | No | The SPA the host runs in, forwarded to the profile dialog a user link opens (`'lms'` / `'skills'` add the Gradebook tab there) |
+
+## What the transcript panel shows
+
+Admin transcripts carry more than the text of the turn. The tab renders
+each piece with the same component the live chat uses, and shows nothing
+where the backend sent nothing — so an agent without RAG or tools reads as
+a plain transcript. The org-wide Transcripts tab
+([`/iblai-vibe-analytics`](../../analytics/iblai-vibe-analytics/SKILL.md))
+renders the identical panel over the same payload.
+
+| In the transcript | What it is |
+|---|---|
+| **Attachments** | Files and images exchanged on a turn (`human_files` / `ai_files`), as the chat's file cards. The presigned `url` opens them; an attachment-only turn has empty text |
+| **Retrieved Documents** | The chunks the answer cited, with source, snippet and relevance score — the chat's own `RetrievedDocumentsButton` / `DocumentSidebar`, handed this turn's (or the conversation's) documents instead of a live session's |
+| **Used N tools** | The turn's tool calls, in the chat's tool-call record (name, input, output) |
+| **Show Details** | A collapsible panel per AI turn: **Metadata** (model — with the provider's logo — temperature, client) and **Request Context** (session, flow, org, pathway, system prompt, file references …) |
+| **Row badges** | On the conversation list, how many documents and tool calls the whole conversation used |
+
+Platform names, not wire names: `enable_artifacts` shows as **Canvas**,
+`is_proactive` as **Proactive Prompt**, `grading_context` as **Grader**,
+`document_filter` as **Datasets**. Unknown keys are humanised
+(`caller_verified` → "Caller Verified"), so a new backend field appears
+without an SDK release.
+
+The conversation owner's name comes from the shared identity rule
+(`resolveUserIdentity`): a real full name, else email, else username, else
+the anonymous label — so a row never reads as a raw id. Clicking it opens
+the same profile dialog the Management tab opens.
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
 - `HistoryTabLabels` -- type for the full label bundle.
+
+From `@iblai/iblai-js/web-containers` — the transcript pieces this tab is
+built from, for custom history UI on the same payloads:
+
+- `TranscriptTurnDetails` / `TranscriptRollupBadges` — the per-turn
+  Show Details panel and the list-row document/tool badges. `TranscriptTurnDetails`
+  takes `renderDocuments` / `renderToolCalls` / `renderModel` / `renderFiles`
+  slots so a host can swap in its own chat UI, plus `tenantKey` + `mentorId`
+  so the model badge can resolve its provider logo off the mentor SPA.
+- `RetrievedDocumentsButton`, `DocumentSidebar` — the retrieved-documents
+  dialog and rail. One component serves every surface: pass `sessionId` to
+  fetch a live chat's vector results, or `documents` to show a transcript's
+  (`toRetrievedDocuments` converts the payload); `label` swaps the button
+  text for a compact "Documents · N" chip.
+- `ToolCallIndicator`, `getFriendlyToolName`, `getQueryLabel`, `formatResult`
+  — the tool-call record.
+- `TranscriptFileCards` — attachment cards (`name`, `contentType`, `url`).
+- `LlmModelBadge` — the model chip with the provider logo.
+- `summarizeTranscriptTurns`, `conversationDocuments`, `toRetrievedDocuments`,
+  `toToolCallInfos`, `toRollupCount`, `humanizeFieldName`, `formatFileSize`
+  — the helpers that turn the API payload into those props.
+- `resolveUserIdentity` (+ `UserIdentitySource`, `ResolvedUserIdentity`) —
+  the shared "what do we call this user" rule.
+- `UserProfileLink`, `UserProfileDialog` — the profile viewer a user link opens.
 
 ## Step 5: Verify
 
@@ -135,4 +198,15 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
+- **The extra context is backend-driven**: attachments, documents, tool
+  calls and metadata come from the admin `chat-history/` payload. Nothing
+  renders when a field is null or empty, so older conversations (recorded
+  before the backend attached per-turn context) simply read as plain
+  transcripts — that is not a wiring bug.
+- **Presigned attachment URLs expire.** A file card opens the `url` the
+  payload carried; re-fetch the conversation rather than caching them.
+- **Related surfaces**: the signed-in user's own history is
+  [`/iblai-vibe-history`](../../users/iblai-vibe-history/SKILL.md) (one
+  user, every agent); the org-wide Transcripts tab with the same panel is
+  [`/iblai-vibe-analytics`](../../analytics/iblai-vibe-analytics/SKILL.md).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
