@@ -136,7 +136,7 @@ export function PayModal({
         showCloseButton={false}
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[min(1080px,calc(100%-2rem))]"
       >
-        <DialogTitle>Pay to continue</DialogTitle>
+        <DialogTitle className="sr-only">Pay to continue</DialogTitle>
         {/* Stripe's form names the product and the price itself. */}
         {state !== "checkout" && (
           <DialogDescription>

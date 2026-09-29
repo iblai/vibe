@@ -79,7 +79,7 @@ describe("dmConnectFetchAs", () => {
     await dmConnectFetchAs("dm-abc", "jane");
     await dmConnectFetchAs("dm-abc", "jane", {
       method: "POST",
-      body: JSON.stringify({ return_url: "http://localhost:3000/paywall/setup/connect" }),
+      body: JSON.stringify({ return_url: "http://localhost:3000/paywall/setup" }),
     });
 
     expect(mock.mock.calls.map(([url]) => String(url))).toEqual([
@@ -89,7 +89,7 @@ describe("dmConnectFetchAs", () => {
     expect(mock.mock.calls[0][1]?.method).toBeUndefined();
     expect(mock.mock.calls[1][1]).toMatchObject({
       method: "POST",
-      body: JSON.stringify({ return_url: "http://localhost:3000/paywall/setup/connect" }),
+      body: JSON.stringify({ return_url: "http://localhost:3000/paywall/setup" }),
       headers: { Authorization: "Token dm-abc", "Content-Type": "application/json" },
       cache: "no-store",
     });
