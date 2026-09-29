@@ -23,9 +23,10 @@ operator for one rather than substituting a personal token.
 > **Headless twin:** `/iblai-api-hosting` is the same hosting API as a plain REST reference — every deploy, poll and custom-domain call with its response fields and full error surface.
 
 **How it works:** zip the app, POST it to the platform's hosting endpoint,
-poll until the build is READY. An address usually comes back as `site_url` on
-the deploy response itself — either a subdomain the platform assigns the
-project automatically, or a custom domain configured for it. Public by default
+poll until the build is READY. The address comes back as `site_url` on the
+deploy response itself — the subdomain chosen for the project under the
+platform's shared domain (Step 3.6, like choosing a username), or a custom
+domain configured for it. Public by default
 (no Vercel SSO/password protection to disable). POST again with the same
 `project` slug to redeploy — content identical to what is already live is
 skipped automatically (Step 3.5).
@@ -211,6 +212,33 @@ Every edge degrades to deploying, which is today's behaviour:
 > source and dedupes reliably. Upgrade path if static dedupe matters: hash the
 > source tree *before* `pnpm build` and compare that instead.
 
+## Step 3.6: The address (first deploy only)
+
+The platform never invents an address. A project's subdomain under the
+platform's shared domain is chosen, like a username, and a first deploy that
+names none is refused with a `400` whose body has a `subdomain` key.
+
+```bash
+SUBDOMAIN=$(val SUBDOMAIN)
+# The address the project already has — empty on a first deploy
+ADDRESS=$(curl -s "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
+  | jq -r --arg p "$PROJECT" '.projects[]? | select(.name == $p) | (.site_url // "")' | head -1)
+SUBDOMAIN_ARG=
+[ -z "$ADDRESS" ] && [ -n "$SUBDOMAIN" ] && SUBDOMAIN_ARG="-F subdomain=$SUBDOMAIN"
+```
+
+When `ADDRESS` is empty and `SUBDOMAIN` is empty, ask the user ONE short
+question: the subdomain the site will live at — lowercase letters, digits and
+hyphens, like a username; the address becomes `<subdomain>.<the platform's
+shared domain>`. Suggest `$PROJECT`. Check the answer against
+`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`, append `SUBDOMAIN=<answer>` to
+`iblai.env` (`printf 'SUBDOMAIN=%s\n' "$SUBDOMAIN" >> iblai.env`), and set
+`SUBDOMAIN_ARG` as above. Send it **only while the project has no address**:
+a project that has one keeps it without being asked, and a recorded value
+re-sent on every redeploy would override a change made later through the
+domains route. A name that is already taken comes back as a `409` — see the
+error table.
+
 ## Step 4: Deploy + poll
 
 Both blocks are no-ops when Step 3.5 set `SKIP` — `APP_URL` is already the
@@ -220,11 +248,11 @@ live host, so Step 5 still runs.
 if [ -z "$SKIP" ]; then
   RESP=$(curl -s -X POST "$BASE/providers/vercel/hosting/deployment/" -H "$AUTH" \
     -F "file=@app.zip" -F "project=$PROJECT" -F "framework=$MODE" \
-    ${HASH:+-F "deployment_hash=$HASH"})
+    ${HASH:+-F "deployment_hash=$HASH"} $SUBDOMAIN_ARG)
   ID=$(echo "$RESP" | jq -r .id)
-  # The address the platform chose for this deployment — already final here,
-  # because it is a name the platform assigns, not one Vercel mints and later
-  # revises. NEVER build it from the project name.
+  # The address of this deployment — already final here, because it is a
+  # name that was chosen, not one Vercel mints and later revises. NEVER build
+  # it from the project name or the subdomain: read it.
   APP_URL=$(echo "$RESP" | jq -r '.site_url // empty')
 fi
 ```
@@ -232,11 +260,12 @@ fi
 A `202` returns the project row (`{id, name, vercel_project_name, site_url,
 shared_domain, url, vercel_alias, push_state, …}`), including who owns it:
 `username`, `user_email` and `user_full_name`. `shared_domain` is that host on
-its own when the platform assigned it automatically, and empty when the site is
-served at a custom domain. Anything else → see the error table.
+its own when it is the chosen subdomain under the platform's shared domain, and
+empty when the site is served at a custom domain. Anything else → see the error
+table.
 
 **Deploying to a custom domain.** Omit `domain` and the project keeps whatever
-address it already has, or is assigned one automatically. To pin a deployment
+address it already has (a first deploy needs `subdomain`, Step 3.6). To pin a deployment
 to a custom domain your organization has **already configured** (see
 [references/custom-domains.md](references/custom-domains.md)), add
 `-F "domain=app.example.com"`. A domain nobody has configured is a `400`.
@@ -273,7 +302,7 @@ echo "$STATE ${APP_URL:-'(no address reported)'}"
 `APP_URL` is set before the loop starts, so it is known while the build runs —
 the site simply does not serve until `READY`. If it is empty, read
 `.site_domain_error`: it says why. **Empty too? Then none was attempted** — use
-`url` once READY, or ask for one ([custom domains](references/custom-domains.md)).
+`url` once READY, or choose one ([custom domains](references/custom-domains.md)).
 
 On `PUSH_FAILED`, the printed `push_error` says why the upload never reached
 Vercel (fix it, rebuild the zip, POST again). On `ERROR`, print the build
@@ -301,13 +330,14 @@ If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
 | 400 | No Vercel credential stored for this organization, bad zip, or a malformed `deployment_hash` (server requires exactly 64 lowercase hex chars) | A platform admin adds a "Vercel" integration credential in the platform credentials UI (or the instance provides one); for zip errors check the size/file-count limits; for a hash error unset `HASH` and redeploy |
 | 400 | The `domain` you named is not configured for this organization, or another organization holds it and still serves it | Configure it first (see [references/custom-domains.md](references/custom-domains.md)). A domain held by an organization whose site no longer serves it is taken over automatically, so this means the other one is still live on it |
 | 400 | The `domain` you named is attached to another of your organization's projects | Detach it there first — a domain serves one project at a time |
-| 400 | The `domain` you named is reserved: the automatically assigned subdomain namespace, or a provider-owned host such as `*.vercel.app` | Deploy to a domain your organization owns and has configured |
+| 400 | The `domain` you named is reserved: the shared subdomain namespace (chosen with `subdomain`, not `domain`), or a provider-owned host such as `*.vercel.app` | Deploy to a domain your organization owns and has configured, or send `subdomain` |
+| 400 | The body has a `subdomain` key: the project has no address yet and none was chosen, the label is malformed, or `domain` and `subdomain` were both sent | The platform never invents an address — ask the user for a subdomain (Step 3.6), record it in `iblai.env`, redeploy |
 | 402 | Deploy credit cost unmet | Top up platform credits |
 | 403 | `TOKEN` is not the organization's platform API key, or it belongs to another `PLATFORM` — hosting is admin-only | Use the `TOKEN` your operator issued for this `PLATFORM`; a personal sign-in token cannot deploy |
-| 409 | A push for this project is already in flight, or name collision | Wait for the running push to finish, or pick another `project` slug |
+| 409 | A push for this project is already in flight; the `project` slug collides; or the `subdomain` is taken — `error` names the host and says so | Wait for the running push to finish; pick another `project` slug; or drop the `SUBDOMAIN=` line from `iblai.env`, ask the user for a different subdomain and redeploy |
 | 429 | Rate limited | Wait the `Retry-After` seconds, then retry |
 | 502 | Vercel rejected the organization's stored credential | Admin re-saves a valid credential in the credentials UI |
-| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain **is offered but unreachable**. When no shared domain is offered at all, the deploy is accepted (202) with `site_url: null` instead | Nothing was uploaded. Either configure a custom domain for the project (see the custom-domains reference) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
+| 503 | The deployment would have no address: this project has no custom domain of its own, and the platform's shared domain **is offered but unreachable** — or a `subdomain` was sent while no shared domain is on offer for this organization. When no shared domain is offered at all and none was sent, the deploy is accepted (202) with `site_url: null` instead | Nothing was uploaded. Either configure a custom domain for the project (see the custom-domains reference) and redeploy with `-F "domain=…"`, or ask your ibl.ai operator to fix the shared domain — the error names the setting |
 
 ## Custom Domain (optional)
 
