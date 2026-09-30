@@ -12,6 +12,7 @@ const TITLES = {
   users: ["Users", "Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding."],
   organizations: ["Organizations", "Org settings and custom metadata, branding, integrations and tokens, CRM."],
   billing: ["Billing", "How you are charged, spend caps, and the three ways to charge your users."],
+  monetization: ["Monetization", "Charge your users on the organization's own Stripe account: customers, products, prices, payment links, checkout, the app paywall, Connect with Stripe."],
   analytics: ["Analytics", "Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent."],
   content: ["Content", "Courses, catalog, credentials, admissions — and other LMSs."],
   ship: ["Ship", "Test, deploy, native builds, app stores, icons, polish, self-hosting."],

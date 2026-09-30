@@ -241,9 +241,9 @@ a Platform API Token (`TOKEN` in `iblai.env`, `IBLAI_API_KEY` in
 
 ## Skill catalogue by tier
 
-Skills live in `skills/<folder>/<name>/SKILL.md` — nine folders by what a
+Skills live in `skills/<folder>/<name>/SKILL.md` — ten folders by what a
 builder is doing (`start`, `agents`, `users`, `organizations`, `billing`,
-`analytics`, `content`, `ship`, `security`; `scripts/skill-categories.json`
+`monetization`, `analytics`, `content`, `ship`, `security`; `scripts/skill-categories.json`
 is the list). The generated, complete catalogue with one line per skill is
 [docs/catalogue.md](docs/catalogue.md); invoke any skill with `/` in Claude Code.
 Tier decides position and depth: Tier 0/1 skills get screenshots, the
@@ -330,6 +330,7 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | One agent | ★ `agent-setting`, ★ `agent-memory`, `agent-create`, `agent-prompt`, `agent-llm`, `agent-dataset`, `agent-tool`, `agent-access`, `agent-embed`, `agent-mcp`, `agent-safety`, `agent-privacy`, `agent-disclaimer`, `agent-history`, `agent-audit`, `agent-eval`, `agent-skill`, `agent-sandbox`, `agent-support` |
 | Talk to an agent | `agent-session` (REST/SSE/WebSocket), `agent-chat` (hosted MCP server), `inference` (OpenAI-compatible `/v1`) |
 | Organization | `org`, `management`, `rbac`, `invite`, `scim`, `token`, `integration`, `notification`, `feature`, `billing`, `spend-caps`, `crm`, `external-service-proxy` |
+| Charging your users | `stripe-payment-proxy` — the organization's own Stripe account: customers, products, prices, payment links, checkout sessions, the app paywall, Connect with Stripe (headless twin of `/iblai-vibe-monetization-app-paywall`) |
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
 | Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply`, `heygen` (avatar video, voice cloning, streaming avatars) |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |

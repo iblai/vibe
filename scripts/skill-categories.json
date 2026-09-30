@@ -5,6 +5,7 @@
     "users",
     "organizations",
     "billing",
+    "monetization",
     "analytics",
     "content",
     "ship",
@@ -192,6 +193,9 @@
       "iblai-vibe-monetization-app-paywall",
       "iblai-api-billing",
       "iblai-api-spend-caps"
+    ],
+    "monetization": [
+      "iblai-api-stripe-payment-proxy"
     ],
     "analytics": [
       "iblai-vibe-analytics",
