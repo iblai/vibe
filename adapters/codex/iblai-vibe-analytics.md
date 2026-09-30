@@ -389,6 +389,12 @@ const basePath = `/agents/${mentorId}/analytics`;
 
 The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`.
 
+**Monetization tab.** The strip also has a `monetization` tab, hidden until
+you pass `enableMonetization` (the org's `enable_monetization` flag) *and*
+the user holds `can_sell_items` on the org. It renders
+`AnalyticsMonetizationStats` (revenue, sales, paywalls, subscribers). Setup:
+`/iblai-vibe-monetization-analytics`.
+
 ## Verify
 
 ```bash

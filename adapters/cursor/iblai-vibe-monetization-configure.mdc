@@ -15,7 +15,7 @@ your job is to host it correctly and pass the right props.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../monetization/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
 
 ![Admin Monetization tab inside the Account page](./admin-monetization-tab.png)
 
@@ -54,11 +54,15 @@ page and exposing a URL the Connect onboard return can land on.
 |---|---|---|
 | Stripe Connect status card | Status badge, business info, connect / dashboard button | (covered by `/iblai-vibe-monetization-onboard`) |
 | Paywall config (disabled state) | Dashed-border card: "Connect Stripe first to configure paywalls" | [admin-monetization-sample-no-onboarding.png](./admin-monetization-sample-no-onboarding.png) |
-| Item search dropdown | Debounced 300 ms search across agents, courses, programs + a `+` button for custom items | [admin-monetization-sample-pricing-list.png](./admin-monetization-sample-pricing-list.png) |
-| Configured-items list | Paginated cards (8 per page), filter `All / Active / Disabled`, badge per item type | [admin-monetization-sample-pricing-list.png](./admin-monetization-sample-pricing-list.png) |
-| Item detail wizard | 2-step (existing) or 3-step (custom) step indicator | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
-| Paywall settings | `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `on_successful_payment` | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
-| Pricing tiers | CRUD list with create-form, edit-in-place, delete | [admin-monetization-sample-pricing-config.png](./admin-monetization-sample-pricing-config.png) |
+| Item search dropdown | Debounced 300 ms search across agents, courses, programs + a `+` button for custom items | [monetization-configurable-items.png](./monetization-configurable-items.png) |
+| Configured-items list | Paginated cards (8 per page), filter `All / Active / Disabled`, badge per item type | [monetization-items-list.png](./monetization-items-list.png) |
+| Item detail wizard | 2-step (existing) or 3-step (custom: Item Details → Paywall → Pricing) step indicator | [monetization-custom-item-configuration.png](./monetization-custom-item-configuration.png), [monetization-custom-item-update.png](./monetization-custom-item-update.png) |
+| Paywall settings | `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `on_successful_payment` | [monetization-custom-item-paywall-settings.png](./monetization-custom-item-paywall-settings.png) |
+| Pricing tiers | CRUD list with create-form, edit-in-place, delete | [monetization-item-pricing.png](./monetization-item-pricing.png), [monetization-item-pricing-list.png](./monetization-item-pricing-list.png), [monetization-item-pricing-list-2.png](./monetization-item-pricing-list-2.png) |
+
+![Configured items — search, the + button for a custom item, and the paginated list](./monetization-items-list.png)
+
+![A custom item's Pricing step — a one-time and a monthly tier](./monetization-item-pricing-list-2.png)
 
 ## Step 1: Validate the API schema
 

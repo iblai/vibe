@@ -263,9 +263,9 @@ organization yet: deploy first, or attach the domain.
 
 ## Related skills
 
-- [`/iblai-vibe-monetization`](../../billing/iblai-vibe-monetization/SKILL.md) — family index; item-level Connect rail overview
-- [`/iblai-vibe-monetization-checkout`](../../billing/iblai-vibe-monetization-checkout/SKILL.md) — sell individual items in-platform (Connect)
-- [`/iblai-vibe-monetization-onboard`](../../billing/iblai-vibe-monetization-onboard/SKILL.md) — Stripe Connect **Express** onboarding (item rail only; not the Connect with Stripe link above)
+- [`/iblai-vibe-monetization`](../../monetization/iblai-vibe-monetization/SKILL.md) — family index; item-level Connect rail overview
+- [`/iblai-vibe-monetization-checkout`](../../monetization/iblai-vibe-monetization-checkout/SKILL.md) — sell individual items in-platform (Connect)
+- [`/iblai-vibe-monetization-onboard`](../../monetization/iblai-vibe-monetization-onboard/SKILL.md) — Stripe Connect **Express** onboarding (item rail only; not the Connect with Stripe link above)
 - [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) — ships the app + `.env.production` via ibl.ai hosting
 - [`/iblai-vibe-ops-test`](../../ship/iblai-vibe-ops-test/SKILL.md) — validate before showing work
 - [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md) — SSO token wiring the gate depends on

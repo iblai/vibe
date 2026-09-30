@@ -240,7 +240,7 @@ Two non-obvious rules:
 | `/iblai-vibe-monetization-configure` | Build UI | Admin `MonetizationTab` inside `Account`, item search, configured-items list, wizard (Item Details → Paywall → Pricing), pricing tier CRUD |
 | `/iblai-vibe-monetization-checkout` | Build UI | `PaywallModal` + access-check (402-as-success) + Stripe checkout for authenticated buyers; public pricing + guest checkout for anonymous buy pages |
 | `/iblai-vibe-monetization-subscription` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
-| `/iblai-vibe-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
+| `/iblai-vibe-monetization-analytics` | Build UI | The SDK's Monetization analytics tab (`AnalyticsMonetizationStats`, gated on `enable_monetization` + `can_sell_items`), plus custom surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
 | `/iblai-vibe-monetization-app-paywall` | Build app gate | Whole-app "pay to enter" gate on the organization's OWN Stripe account (a pasted restricted key, or Connect with Stripe — OAuth, no key typed) via the DM Stripe proxy paywall endpoints — server routes + `PaywallGate` + `/paywall` pricing page, or the member's browser on their own token. No Express Connect, no commission |
 
 When in doubt, the natural sequence is:

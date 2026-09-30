@@ -241,9 +241,9 @@ a Platform API Token (`TOKEN` in `iblai.env`, `IBLAI_API_KEY` in
 
 ## Skill catalogue by tier
 
-Skills live in `skills/<folder>/<name>/SKILL.md` — nine folders by what a
+Skills live in `skills/<folder>/<name>/SKILL.md` — ten folders by what a
 builder is doing (`start`, `agents`, `users`, `organizations`, `billing`,
-`analytics`, `content`, `ship`, `security`; `scripts/skill-categories.json`
+`monetization`, `analytics`, `content`, `ship`, `security`; `scripts/skill-categories.json`
 is the list). The generated, complete catalogue with one line per skill is
 [docs/catalogue.md](docs/catalogue.md); invoke any skill with `/` in Claude Code.
 Tier decides position and depth: Tier 0/1 skills get screenshots, the
