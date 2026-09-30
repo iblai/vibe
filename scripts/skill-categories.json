@@ -5,6 +5,7 @@
     "users",
     "organizations",
     "billing",
+    "monetization",
     "analytics",
     "content",
     "ship",
@@ -183,15 +184,17 @@
       "iblai-vibe-pricing",
       "iblai-vibe-credit",
       "iblai-vibe-billing",
+      "iblai-api-billing",
+      "iblai-api-spend-caps"
+    ],
+    "monetization": [
       "iblai-vibe-monetization",
       "iblai-vibe-monetization-onboard",
       "iblai-vibe-monetization-configure",
       "iblai-vibe-monetization-checkout",
       "iblai-vibe-monetization-subscription",
       "iblai-vibe-monetization-analytics",
-      "iblai-vibe-monetization-app-paywall",
-      "iblai-api-billing",
-      "iblai-api-spend-caps"
+      "iblai-vibe-monetization-app-paywall"
     ],
     "analytics": [
       "iblai-vibe-analytics",

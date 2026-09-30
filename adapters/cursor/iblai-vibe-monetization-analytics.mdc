@@ -1,30 +1,35 @@
 ---
-description: "Build custom Platform analytics surfaces — revenue dashboards, subscriber lists, paywalls overview, and a self-service subscription cancel helper on top of ibl.ai's item monetization. The in-tab MonetizationTab does NOT render revenue or subscriber data today, so these hooks are the building blocks for custom dashboards, leaderboards, and admin tools. Use when the user mentions analytics, revenue, subscribers, sales volume, sales count, commission, dashboard, paywalls list, cancel subscription, or \"monetization metrics\". See /iblai-vibe-monetization for the family index, /iblai-vibe-monetization-onboard for Stripe Connect status + commission, /iblai-vibe-monetization-configure for paywall setup, /iblai-vibe-monetization-subscription for the user-side counterpart, /iblai-vibe-auth for token wiring, and /iblai-vibe-rbac for the IsPlatformAdmin gate."
+description: "Add revenue analytics for ibl.ai's item monetization — the SDK's Monetization tab in AnalyticsLayout (AnalyticsMonetizationStats — revenue, sales, active paywalls, subscribers, status and item-type charts, subscribers and paywalls tables), or custom dashboards, subscriber lists, paywall overviews, and a self-service subscription cancel helper built from the same hooks. Use when the user mentions analytics, revenue, subscribers, sales volume, sales count, commission, dashboard, paywalls list, cancel subscription, or \"monetization metrics\". See /iblai-vibe-monetization for the family index, /iblai-vibe-monetization-onboard for Stripe Connect status + commission, /iblai-vibe-monetization-configure for paywall setup, /iblai-vibe-monetization-subscription for the user-side counterpart, /iblai-vibe-auth for token wiring, and /iblai-vibe-rbac for the IsPlatformAdmin gate."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-vibe-monetization-analytics
 
-Build custom Platform admin surfaces on top of the four monetization
-analytics endpoints — revenue, all-Platform subscribers, per-item
-subscribers, paywalls list — plus the `CancelSubscription` self-service
-helper that cancels the **caller's own** subscription on a given
-`(item_type, item_id)`.
+Show sellers what their paywalls earn. The fastest path is the SDK's
+**Monetization** tab in `AnalyticsLayout`, rendered by
+`AnalyticsMonetizationStats`: four KPI cards, two donut charts, and
+paginated subscribers and paywalls tables. When you need something the
+tab does not show, build it from the four analytics endpoints (revenue,
+Platform-wide subscribers, per-item subscribers, paywalls list) and the
+`CancelSubscription` helper, which cancels the **caller's own**
+subscription on a given `(item_type, item_id)`.
+
+![Monetization tab — Total Revenue, Total Sales, Active Paywalls, Total Subscribers, and the two donut charts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-main-cards.png)
 
 > **A true admin override (cancel-on-behalf-of-user) does not exist.**
 > The cancel endpoint is hard-locked to `request.user`; there is no
 > `user_id` parameter. To force-cancel another user's subscription, an
 > operator must do so directly in the Stripe Dashboard.
 
-> **Important:** `MonetizationTab` (see `/iblai-vibe-monetization-configure`)
-> does NOT render revenue or subscriber data. The SDK ships the
-> data-layer hooks and one self-service component, but no out-of-the-box
-> analytics UI — this skill is the playbook for assembling that yourself.
+> **Two different tabs.** `MonetizationTab` in the Account page
+> (`/iblai-vibe-monetization-configure`) *configures* paywalls and shows no
+> revenue. The analytics **Monetization** tab (`AnalyticsMonetizationStats`,
+> below) *reports* on them.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md).
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (`{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. See [/iblai-vibe-monetization → references/schema-validation.md](../../monetization/iblai-vibe-monetization/references/schema-validation.md).
 
 ## Prerequisites
 
@@ -43,13 +48,16 @@ helper that cancels the **caller's own** subscription on a given
   the flag is off) — this applies equally to the per-item subscribers
   endpoint, not just the Platform-wide ones. The flag ships in the SDK's
   `tenants` array.
-  See [/iblai-vibe-monetization → references/platform-flags.md](../../billing/iblai-vibe-monetization/references/platform-flags.md).
+  See [/iblai-vibe-monetization → references/platform-flags.md](../../monetization/iblai-vibe-monetization/references/platform-flags.md).
 - **Stripe Connect onboarded** with `is_ready_for_payments === true`.
   Without it, revenue is empty and subscribers contains only free /
   grandfathered rows. Wire `/iblai-vibe-monetization-onboard` first.
 
 ## What you'll build
 
+0. **The shipped Monetization tab** — one prop on the `AnalyticsLayout`
+   you already have, plus a route. Start here; build 1–5 only for what it
+   does not cover.
 1. **Revenue card** — `useGetRevenueQuery` → `sales_volume`,
    `sales_count`, `currency`. Optionally pair with
    `useGetStripeConnectStatusQuery` for commission percentages.
@@ -65,6 +73,72 @@ helper that cancels the **caller's own** subscription on a given
    own** subscription on a given `(item_type, item_id)`. NOT an admin
    override; the endpoint resolves the subscription via `request.user`.
    To cancel another user's subscription, use the Stripe Dashboard.
+
+## Step 0: Turn on the Monetization analytics tab
+
+`AnalyticsLayout` ships a `monetization` tab, hidden by default. It shows
+only when **both** hold (no admin bypass):
+
+- the host passes `enableMonetization` — wire it to the org's
+  `enable_monetization` flag;
+- the user holds `can_sell_items` on the org
+  (`/platforms/{org}/#can_sell_items`), the same check the sidebar and the
+  Account page's Monetization entry use. Read it yourself with
+  `canViewMonetizationAnalytics(rbacPermissions, currentTenant)` from
+  `@iblai/iblai-js/web-utils`.
+
+Otherwise the trigger is not rendered, and a deep link to
+`{basePath}/monetization` redirects to the first tab the user may open. A
+pure watcher never sees it. In vibe-starter, add the prop to
+`app/(app)/admin/analytics/layout.tsx`:
+
+```tsx
+const { currentTenant } = useCurrentTenant(); // @iblai/iblai-js/web-utils
+
+<AnalyticsLayout
+  currentPath={pathname}
+  basePath={basePath}
+  onTabChange={(tab: string) => router.push(tab ? `${basePath}/${tab}` : basePath)}
+  enableMonetization={Boolean(currentTenant?.enable_monetization)}
+>
+```
+
+and give the tab a route, `app/(app)/admin/analytics/monetization/page.tsx`:
+
+```tsx
+"use client";
+
+import { AnalyticsMonetizationStats } from "@iblai/iblai-js/web-containers";
+import { useCurrentTenant } from "@iblai/iblai-js/web-utils";
+
+export default function Page() {
+  const { currentTenant } = useCurrentTenant();
+  if (!currentTenant?.key) return null;
+  return <AnalyticsMonetizationStats tenantKey={currentTenant.key} mentorId="" />;
+}
+```
+
+What it renders (`useMonetization` composes `useGetRevenueQuery`,
+`useListPaywallsQuery`, `useListSubscribersQuery`):
+
+| Section | Source |
+|---|---|
+| **Total Revenue** — `sales_volume`, two decimals, no locale grouping | revenue |
+| **Total Sales**, **Active Paywalls**, **Total Subscribers** | `sales_count`, paywalls `count`, subscribers `count` |
+| **Subscribers by Status**, **Paywalls by Type** donuts | current page of each list, shared chart palette |
+| **Subscribers** table (12 per page, status filter): User, Item, Type, Plan, Amount, Subscribed, Status | subscribers |
+| **Configured Paywalls** table (8 per page, All / Agent / Course filter): Item, Type, Prices (active count), Status | paywalls |
+
+The **User** column shows the email (username as fallback) as a
+`UserProfileLink` that opens the profile viewer; pass `currentSPA` to
+forward your SPA to it. **Subscribed** is the day the subscription started
+(`created_at`); **Amount** is blank for `grandfathered` rows. `mentorId`,
+`selectedMentorId`, and `usergroupIds` are accepted but unused — the tab is
+always org-wide, so the agent picker and date range do not filter it.
+
+![Subscribers table — User, Item, Type, Plan, Amount, Subscribed, Status](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-subscribers-list.png)
+
+![Configured Paywalls table with the type filter and pagination](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-configured-paywalls.png)
 
 ## Step 1: Validate the API schema
 
@@ -150,50 +224,14 @@ aggregate by `price.currency` from the subscribers list yourself.
 
 ## Step 3: Commission interpretation
 
-The commission ibl.ai takes per item type is on the Stripe Connect
-status endpoint, NOT on the revenue response.
-
-```tsx
-import { useGetStripeConnectStatusQuery } from '@iblai/iblai-js/data-layer';
-
-function CommissionTable({ platformKey }: { platformKey: string }) {
-  const { data } = useGetStripeConnectStatusQuery({ platform_key: platformKey });
-  // Treat as Record<string, number> — three layers disagree on which keys exist (see note below)
-  const commission = (data?.commission_percent ?? {}) as Record<string, number>;
-  const entries = Object.entries(commission);
-  if (entries.length === 0) return null;
-  return (
-    <ul className="text-sm space-y-1">
-      {entries.map(([itemType, pct]) => (
-        <li key={itemType}>
-          {itemType === 'mentor' ? 'Agent' : itemType}: {pct}%
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
-`commission_percent` has a **3-way divergence** — treat it as
-`Record<string, number>` and iterate `Object.entries` defensively rather
-than reading hardcoded keys:
-
-| Layer | Keys declared |
-|---|---|
-| Backend wire | `mentor`, `course`, `program`, `pathway` (4) |
-| OpenAPI schema component `ItemTypeCommission` | `mentor`, `course`, `program` (3 — no pathway) |
-| SDK TypeScript type | `mentor`, `course` (2) |
-
-The backend reads each percentage from per-Platform `Config` keys
-(`STRIPE_ITEM_COMMISSION_PERCENT_MENTOR`, `_COURSE`, `_PROGRAM`,
-`_PATHWAY`), so at runtime you may see up to four keys; never assume
-exactly four are present. Render `mentor` as **"Agent"** to stay aligned
-with the SDK's `displayItemType` helper —
-see [/iblai-vibe-monetization → references/item-types.md](../../billing/iblai-vibe-monetization/references/item-types.md).
-
-**Display informationally only.** Commission flows back to ibl.ai
-automatically via Stripe Connect destination charges; do NOT subtract
-from `sales_volume` to compute a "net" number unless explicitly asked.
+The commission ibl.ai takes per item type is on the Stripe Connect status
+endpoint (`useGetStripeConnectStatusQuery` → `commission_percent`), not on
+the revenue response. Treat it as `Record<string, number>` and iterate
+`Object.entries` — backend, OpenAPI, and SDK types disagree on which keys
+exist (up to `mentor`, `course`, `program`, `pathway`). Render `mentor` as
+**"Agent"**. Display it informationally; never subtract it from
+`sales_volume`. Component and the key-divergence table:
+[`references/commission.md`](./references/commission.md).
 
 ## Step 4: Subscribers — Platform-wide
 
@@ -321,46 +359,13 @@ no second roundtrip per row to draw the entry-level price.
 
 ## Step 7: Self-service CancelSubscription helper
 
-The SDK ships a stand-alone `CancelSubscription` component, but it is
-**not currently re-exported** from `@iblai/iblai-js/web-containers` (the
-public `exports` map only declares `.`, `./next`, `./sso`, `./styles`).
-To use it standalone, either wait for the SDK to add an export, or copy
-`packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx`
-from `iblai/ibl-web-frontend` into your app.
-
-```tsx
-import CancelSubscription from '@/components/monetization/cancel-subscription';
-
-<CancelSubscription platformKey={currentTenant.key} />
-```
-
-The component renders an inline form: pick `item_type`
-(`mentor` | `course` | `program` | `pathway`), enter an `item_id`, click
-**Look Up**, and the matching subscription card appears with a
-confirm-typing gate. Under the hood it uses
-`useLazyGetItemSubscriptionQuery` for the lookup and
-`useCancelSubscriptionMutation` — the same mutation the user-side
-`PurchasesTab` uses.
-
-**This cancels the CALLER's own subscription, not someone else's.**
-`ItemSubscriptionCancelView` (`billing/views.py:1885`) is hard-locked to
-`request.user`; there is no `user_id` parameter and no admin override.
-Spoofing `(item_type, item_id)` only changes which of the caller's own
-subscriptions is resolved. To force-cancel another user's subscription,
-use the Stripe Dashboard.
-
-**Branch on the response.** Recurring (`price.interval === 'month' | 'year'`)
-returns `{portal_url}` — the caller must follow that URL to finish the
-cancel in Stripe's portal. Non-recurring returns the full subscription
-record with `status: 'canceled'` immediately. Copy this branch verbatim:
-
-```ts
-if (result.portal_url) {
-  // open Stripe portal — recurring path
-} else if (result.status === 'canceled') {
-  // immediate cancel — show success
-}
-```
+The SDK's `CancelSubscription` component (not re-exported from
+`@iblai/iblai-js/web-containers`; copy it locally) looks up and cancels the
+**caller's own** subscription on an `(item_type, item_id)` — never another
+user's; use the Stripe Dashboard for that. Recurring prices return
+`{portal_url}` (finish in Stripe's portal); one-time prices return the
+record with `status: 'canceled'`. Branch on both. Walkthrough:
+[`references/cancel-subscription.md`](./references/cancel-subscription.md).
 
 ## Verify
 
@@ -370,8 +375,11 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 2. Drive the dashboard:
    ```bash
    pnpm dev &
-   npx playwright screenshot http://localhost:3000/admin/monetization /tmp/dash.png
+   npx playwright screenshot http://localhost:3000/admin/analytics/monetization /tmp/dash.png
    ```
+   As a user with `can_sell_items` the Monetization tab is in the strip;
+   without it (or with `enable_monetization` off) the tab is absent and
+   the URL redirects to another tab.
 3. Revenue card shows `sales_count >= 1` on a Platform with at least one
    completed paid checkout, formatted in the Platform's currency.
 4. Subscribers list paginates: incrementing `page` updates `next_page` to
@@ -432,6 +440,11 @@ Query the data-layer MCP for hook param shapes, filters, and cache tags:
 ## Files in this skill's scope
 
 Frontend (read via `gh api repos/iblai/ibl-web-frontend/contents/<path>`):
+
+- `packages/web-containers/src/components/analytics/{analytics-monetization-stats.tsx,use-monetization.ts,analytics-layout.tsx}` —
+  the shipped tab, its data hook, and the `enableMonetization` gate.
+- `packages/web-utils/src/utils/analytics-access.ts` —
+  `canViewMonetizationAnalytics`, `getMonetizationRbacResource`.
 
 - `packages/data-layer/src/features/monetization/{custom-api-slice,types,constants}.ts` —
   query defs, response/param types, and endpoint paths.

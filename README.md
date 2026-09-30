@@ -184,7 +184,8 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 56 |
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 9 |
-| [`billing/`](skills/billing) | How you are charged, spend caps, three ways to charge your users | 12 |
+| [`billing/`](skills/billing) | How you are charged, credits, spend caps, choosing a pricing rail | 5 |
+| [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 7 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
 | [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores | 12 |
