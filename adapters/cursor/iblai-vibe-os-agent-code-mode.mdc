@@ -1,43 +1,202 @@
 ---
-description: "Add the OS app's Code mode to a vibe Next.js + Tauri app — a \"Code\" pill in the chat composer that turns the agent into an agentic coding tool (opencode over ACP) editing files, running commands, and committing in a workspace on the user's machine, with per-operation Allow/Deny permission cards, a loopback proxy that never hands the agent the real token, per-agent skills synced from the platform, and phone access by pairing a mobile build to a desktop. Ships the Tauri Rust modules from src-tauri plus the OS chat pieces. Use when the user mentions 'code mode', 'coding mode', 'opencode', 'agentic coding', 'let the agent edit my files', 'run commands from chat', or 'use Code from my phone'. Needs /iblai-vibe-ops-build first; for on-device models see /iblai-vibe-local-llm."
+description: "Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app. A Code pill under the chat box turns the agent into a coding helper that edits files, runs commands and saves its work in a folder on your computer, asking before every change unless you say otherwise; it runs on ibl.ai, on Codex with a ChatGPT plan, or on Claude Code with a Claude plan, and a phone paired to the computer can drive it. Ships the Tauri Rust modules and the OS chat pieces. Use when the user mentions 'code mode', 'coding mode', 'Codex', 'Claude Code', 'sign in with ChatGPT', 'use my Claude subscription', 'opencode', 'let the agent edit my files', 'run commands from chat', or 'use Code from my phone'. Needs /iblai-vibe-ops-build first; for on-device models see /iblai-vibe-local-llm."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-vibe-os-agent-code-mode
 
-Add **Code mode** — the OS app's agentic coding tool — to a vibe Next.js +
-Tauri app. With the **Code** pill on in the chat composer, a chat turn no
-longer goes to the hosted agent: the Tauri backend spawns
-[opencode](https://github.com/sst/opencode) as a per-chat subprocess, drives
-it over the Agent Client Protocol, and points its model calls at ibl.ai's
-OpenAI-compatible API through a loopback proxy. The agent edits files, runs
-shell commands, and commits changes in a git-backed **workspace** on the
-user's machine, and every operation it wants surfaces as a **permission
-card** inside the reply the user Allows or Denies (or, once chosen, approves
-automatically). A mobile build can't spawn binaries, so a phone **pairs** to
-a desktop over the LAN by QR and runs the same turns against it.
+**Code** is the ibl.ai desktop app's coding helper. Turn it on under the
+message box and the agent stops only answering: it edits files, runs
+commands and saves its work in a folder on your computer, and it asks you
+before it changes anything unless you tell it not to. It can do the work
+itself, or hand it to Codex or Claude Code on your own ChatGPT or Claude
+plan, and a phone paired to the computer can drive it from anywhere in the
+house. The first half of this page is how to use it; the second half adds
+it to an app of your own.
 
-![Desktop — the Code pill's popover: Approvals, Workspace (Open in Finder / Select / New), and Phone Access with the pairing QR, address, and password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-1-code-pill.png)
-
-![Phone, not yet paired — Your Computer: Scan QR Code or enter the desktop's address and password manually](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
-
-![Phone, paired — Connected To the desktop, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
-
-![Phone, Code on — picking one of the desktop's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
-
-> **Ships code, not a contract.** Unlike [`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md),
-> this skill carries the OS app's actual implementation: the Rust modules
-> in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/) (copy into your
-> `src-tauri/`, same layout as `/iblai-vibe-ops-build`'s templates, no
-> `.j2` to render) and the chat pieces in [`assets/nextjs/`](assets/nextjs/).
-> The mechanics, every command and event, and the wiring are in
-> [`references/`](references/).
+![The Code panel under the chat box: the on/off switch, Approvals, the Agent choice (ibl.ai, Codex, Claude Code) with its sign-in line, the Workspace folder, and Phone Access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
 
 > **Common setup (brand, conventions, env files, verification):** see
 > [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-## Prerequisites
+## Using Code in the ibl.ai desktop app
+
+### 1. Turn it on
+
+Click **Code** under the message box: its panel opens, and the switch at
+the top turns Code on. The first time, Code asks **How should Code ask for
+approval?**
+
+- **Ask me each time** — every edit and every command shows up as a card
+  in the reply that you allow or deny. Start here.
+- **Approve automatically** — Code works without asking. The panel's own
+  warning applies: *use it only in folders you trust*.
+
+There is no default; you choose, and you can change it any time under
+**Approvals** in the panel. On first use Code also asks you to choose a
+folder and downloads what it needs. The pill spins for a moment while it
+picks up the agent's skills.
+
+### 2. Choose who does the work
+
+The **Agent** row picks who runs Code. The line under it tells you what is
+still missing before you can send.
+
+| Agent | What you need | What it runs on |
+|---|---|---|
+| **ibl.ai** | Nothing to sign in to | Your organization's models and credits, with the app's skills. The only choice on a phone. |
+| **Codex** | A ChatGPT plan, or an OpenAI API key | OpenAI's Codex, on your plan |
+| **Claude Code** | A Claude plan, or an Anthropic Console account | Anthropic's Claude Code, on your plan |
+
+What the line under the row means:
+
+- **Not installed** / **Installing…** — the app installs Codex and Claude
+  Code by itself when it starts; if that failed, **Install** tries again.
+- **Not signed in** — sign in, next step.
+- A grey dot with your account (or **Ready**) — good to go.
+- **Not available on this computer** — Windows, or the Mac App Store
+  build; see *When something's off* below.
+
+While Code runs on Codex or Claude Code, the picker at the top left shows
+that agent and its model ("Codex · GPT-6-Luna", "Claude Code · Default" in
+the pictures). Change the model there. The choice is saved on this
+computer only.
+
+### 3. Sign in to Codex
+
+Choose **Codex**. The line reads **Not signed in**:
+
+![Agent set to Codex, "Not signed in", with the Sign in with ChatGPT button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
+
+1. Click **Sign in with ChatGPT**. The line says *Continue in your
+   browser…* and a browser tab opens on ChatGPT:
+
+   ![The ChatGPT "Log in or sign up" page the button opens](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-6-chatgpt-login.png)
+
+2. Sign in there with the account that has your plan, then come back to
+   the app. The line now shows how you are signed in:
+
+   ![Agent set to Codex, signed in: the line reads "Logged in using an API key"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-8-agent-codex-signed-in.png)
+
+Already using the Codex app in a terminal? Its own sign-in works too:
+run `codex`, pick **Sign in with ChatGPT**, **Sign in with Device Code**
+or **Provide your own API key**; the ibl.ai app picks that sign-in up
+the next time you open the panel. (Codex comes from
+[openai.com/codex](https://openai.com/codex).)
+
+![The Codex terminal sign-in menu: ChatGPT, device code, or your own API key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-7-codex-terminal-login.png)
+
+If you send a message before signing in, a small notice says **Codex isn’t
+signed in** with the same **Sign in with ChatGPT** button; once you are
+in it says *Signed in — send your message again*.
+
+### 4. Sign in to Claude Code
+
+Choose **Claude Code**. Claude Code signs in from a terminal, so the line
+reads *Run `claude` in a terminal to sign in.* with a **Check Again**
+button:
+
+![Agent set to Claude Code, the terminal hint and the Check Again button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-9-agent-claude-signed-out.png)
+
+1. Open a terminal and run `claude`. If the command is not found, install
+   Claude Code first from [claude.ai/code](https://claude.ai/code).
+2. Pick **Claude account with subscription** (or the Console account if
+   you pay per use) and finish in the browser it opens:
+
+   ![The Claude Code terminal welcome with "Select login method"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-10-claude-terminal-login.png)
+
+3. Back in the app, click **Check Again**. The line shows your account:
+
+   ![Agent set to Claude Code, signed in: a grey dot and the account's email](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-11-agent-claude-signed-in.png)
+
+If you send a message first, the notice **Claude Code isn’t signed in**
+repeats the terminal hint.
+
+### 5. Pick the workspace
+
+The **Workspace** is the folder Code works in. The app makes one for you
+under `~/.local/share/iblai/workspaces/` with a name like
+`gentle-delta-fba5`; **New Workspace** makes another, **Select Workspace**
+points Code at a folder of your own, and **Open in Finder** (or *Open in
+…* with whatever opens folders on your computer) shows you what is in it.
+Every change Code makes is saved there as a step you can go back to.
+
+### 6. Approve what Code wants to do
+
+With **Ask Me** on, each thing Code wants to do appears in its reply as a
+card titled **Code needs your permission**, naming the action (read,
+write, exec, delete, move, search, fetch) and the file or command, with
+**Allow** and **Deny**. A card left alone for about three minutes counts
+as Deny. On Codex, Ask Me also asks before it reaches the internet. With
+**Automatic** on, no cards appear on any agent.
+
+### 7. Code from your phone
+
+Your phone cannot run Code by itself; it runs it on your computer, over
+your home or office network.
+
+On the computer, open the Code panel and click **Enable** next to
+**Phone Access**. A QR code, an address and a password appear:
+
+![The Code panel with Phone Access enabled: the pairing QR code, the address and the password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-1-code-pill.png)
+
+On the phone, open Code. Under **Your Computer**, tap **Scan QR Code**, or
+type the address and password:
+
+![Phone, not yet paired: Your Computer with Scan QR Code, or the address and password typed by hand](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
+
+Once paired, the panel says **Connected To** your computer and shows its
+workspace; pick another with **Select Workspace** or start a **New
+Workspace**, then send your message as usual:
+
+![Phone, paired: Connected To the computer, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
+
+![Phone, Code on: choosing one of the computer's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
+
+Good to know:
+
+- Both devices must be on the same network. If the phone asks to find
+  devices on your local network, tap **Allow**.
+- The phone runs Code with the ibl.ai agent; Codex and Claude Code are
+  choices on the computer.
+- **Disconnect** on the phone, or **Disable** on the computer, ends it.
+  Closing the desktop app ends it too, and the next **Enable** makes a
+  new password.
+
+### When something's off
+
+| The panel says | What to do |
+|---|---|
+| **Not available on this computer** | Code needs a Mac or Linux build from ibl.ai; Windows and the Mac App Store build cannot run it. |
+| **Code needs bubblewrap (bwrap)** | Linux only. Install it with your package manager, then reopen the app. |
+| **Skills couldn’t be synced — Code will run without them** | Code still works; it just does not know the ibl.ai skills this time. Check your connection and turn Code off and on. |
+| **Codex isn’t signed in** / **Claude Code isn’t signed in** | Steps 3 and 4 above. |
+| *… isn’t available for Code — turns will fail* | You are on an on-device model that cannot use tools. Pick another model at the top left; see [`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md). |
+| **Your computer isn't reachable** | The desktop app is closed, Phone Access is off, or the two devices are on different networks. |
+
+## Adding Code to your own app
+
+> **The Agent row (Codex, Claude Code) ships with the OS app.** The copies
+> below are the OS app's own implementation of Code on the ibl.ai agent:
+> the Rust modules in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/)
+> (copy into your `src-tauri/`, same layout as `/iblai-vibe-ops-build`'s
+> templates, no `.j2` to render) and the chat pieces in
+> [`assets/nextjs/`](assets/nextjs/). Codex and Claude Code land here once
+> that OS work merges. The mechanics, every command and event, and the
+> wiring are in [`references/`](references/).
+
+How it works, in one paragraph: with the Code pill on, a chat turn no
+longer goes to the hosted agent. The Tauri backend spawns
+[opencode](https://github.com/sst/opencode) as a per-chat subprocess,
+drives it over the Agent Client Protocol, and points its model calls at
+ibl.ai's OpenAI-compatible API through a loopback proxy that injects the
+user's token. The agent edits files, runs shell commands and commits in a
+git-backed workspace; every operation it wants surfaces as a permission
+card the user answers. A mobile build cannot spawn binaries, so a phone
+pairs to a desktop over the LAN and runs the same turns against it.
+
+### Prerequisites
 
 1. **Tauri shell** via [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
    — `src-tauri/` with the template `lib.rs`, plus the Rust toolchain.
@@ -60,7 +219,7 @@ a desktop over the LAN by QR and runs the same turns against it.
    consciously choose `auto` approvals (see Security).
 5. Ask the user for a real agent UUID for testing. Do NOT invent one.
 
-## Step 1: Rust — drop in the modules
+### Step 1: Rust — drop in the modules
 
 ```bash
 cp -R <skill>/assets/tauri/src-tauri/src/*            src-tauri/src/
@@ -97,7 +256,7 @@ touches them.
 cd src-tauri && cargo check          # must compile before touching the frontend
 ```
 
-## Step 2: Frontend — the transport is already in the SDK
+### Step 2: Frontend — the transport is already in the SDK
 
 `useChatV2` (in `@iblai/web-utils`, used by the SDK `<Chat>` and by the OS
 chat) routes a turn to `opencode_chat_stream` whenever **both** hold:
@@ -114,7 +273,7 @@ skills), calls the command with the DM token, and listens on `ollama:token`
 streaming message. Stop → `opencode_stop`; chat closed → `opencode_close`.
 Nothing per-surface to wire for the transport.
 
-## Step 3: Frontend — host the OS chat pieces
+### Step 3: Frontend — host the OS chat pieces
 
 Copy [`assets/nextjs/`](assets/nextjs/) into your app and adapt the `@/…`
 imports. These are the OS app's components (paths in the OS repo shown),
@@ -155,7 +314,7 @@ pnpm add @tauri-apps/plugin-os @tauri-apps/plugin-dialog @tauri-apps/plugin-open
 pnpm add @tauri-apps/plugin-barcode-scanner   # mobile builds only
 ```
 
-## Step 4: Use MCP tools for the SDK side
+### Step 4: Use MCP tools for the SDK side
 
 ```
 get_hook_info("useChatV2")
