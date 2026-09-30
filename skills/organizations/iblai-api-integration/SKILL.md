@@ -58,6 +58,11 @@ Third-party model provider keys. DM base: `/api/ai-account/…`.
     "platform": "{org} (required)"
   }
   ```
+- **POST** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/use-default-llm-key/` — platform admins only: let the org borrow ibl.ai's LLM keys or stop it:
+  ```json
+  { "enable": true }
+  ```
+  or `{ "disable": true }` (one is required, else `400`). `enable` switches an existing row back on; `disable` works for an org with no row yet (creates one, off). Unknown org → `404 {"error": "Organization not found"}`. Read the state with **GET** `…/orgs/{org}/users/{username}/default-llm-key-usage`.
 - **DELETE** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/credential/` — remove an LLM provider. Destructive — confirm with the user first.
   ```json
   {
@@ -105,6 +110,17 @@ Platform API keys. Same endpoints used to mint tokens elsewhere — see
   }
   ```
 - **DELETE** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — revoke a token. Destructive — confirm with the user first.
+
+### Gateways and credential names
+
+A model can be served by several **gateways** (endpoints that host models).
+Each reads one tenant credential by name: `openrouter` -> `iblai`, `vertex` ->
+`google` (service account), `azure_foundry` -> `gateway_azure_foundry`,
+`bedrock` -> `bedrock`, `openai` -> `openai`, `google_genai` ->
+`gemini_google_api_key`, `anthropic` -> `anthropic`; `groq`, `xai`, `deepseek`,
+`perplexity`, `nvidia` use their own name. Of the gateways that serve the model,
+the tenant's own key is used first, then ibl.ai's key if the tenant may borrow it
+(see `use-default-llm-key`).
 
 ## Example
 
