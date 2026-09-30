@@ -244,6 +244,7 @@ Two non-obvious rules:
 | `/iblai-vibe-monetization-subscription` | Build UI | User `PurchasesTab` inside `Profile`, subscription list + detail + cancel flow (portal_url vs immediate), grandfathered "Legacy" badge |
 | `/iblai-vibe-monetization-analytics` | Build UI | Custom analytics surfaces — revenue, Platform-wide + per-item subscribers, paywalls list. Includes the shipped `CancelSubscription` component (which cancels the caller's own subscription — there is no admin-on-behalf-of endpoint) |
 | `/iblai-vibe-monetization-app-paywall` | Build app gate | Whole-app "pay to enter" gate on the organization's OWN Stripe account (a pasted restricted key, or Connect with Stripe — OAuth, no key typed) via the DM Stripe proxy paywall endpoints — server routes + `PaywallGate` + `/paywall` pricing page, or the member's browser on their own token. No Express Connect, no commission |
+| `/iblai-api-stripe-payment-proxy` | Headless twin | The organization's own Stripe account over REST — customers, products, prices, payment links, checkout sessions, the app paywall and Connect with Stripe — for servers, scripts and agents; the endpoint reference behind `/iblai-vibe-monetization-app-paywall` |
 
 When in doubt, the natural sequence is:
 1. **Onboard** — Platform owner connects Stripe Connect (`/iblai-vibe-monetization-onboard`)

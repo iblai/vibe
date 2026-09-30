@@ -69,6 +69,6 @@ REST reference: [<family>](https://raw.githubusercontent.com/iblai/vibe/refs/hea
 
 - `/iblai-vibe-<sibling>` — <why>
 
-<!-- Save this as `skills/<category>/iblai-vibe-<feature>/SKILL.md` — every skill lives under one of the nine category directories listed in `scripts/skill-categories.json` (start, agents, users, organizations, billing, analytics, content, ship, security). Installed skills are flattened to `.claude/skills/<name>/`, so never write the category into a `.claude/skills/…` path. -->
+<!-- Save this as `skills/<category>/iblai-vibe-<feature>/SKILL.md` — every skill lives under one of the ten category directories listed in `scripts/skill-categories.json` (start, agents, users, organizations, billing, monetization, analytics, content, ship, security). Installed skills are flattened to `.claude/skills/<name>/`, so never write the category into a `.claude/skills/…` path. -->
 
 <!-- Budget: ≤ 400 lines (★ core families ≤ 500). Move long tables, troubleshooting, and brownfield notes to references/. Keep every code fence compilable — the render gate typechecks it. -->

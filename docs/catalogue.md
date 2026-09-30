@@ -14,6 +14,7 @@ six data families almost every app reads or writes (the section right below).
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
+| [`monetization/`](#monetization) | Charge your users on the organization's own Stripe account: customers, products, prices, payment links, checkout, the app paywall, Connect with Stripe. | 1 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
 | [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 26 |
 | [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 12 |
@@ -186,6 +187,14 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-monetization-subscription`](../skills/billing/iblai-vibe-monetization-subscription/SKILL.md) | 🖥️ ui | Build the user-facing PurchasesTab inside the Profile page |
 | [`/iblai-vibe-pricing`](../skills/billing/iblai-vibe-pricing/SKILL.md) | 📖 guide | Decide how money works for an ibl.ai app |
 
+## Monetization
+
+`skills/monetization/` — Charge your users on the organization's own Stripe account: customers, products, prices, payment links, checkout, the app paywall, Connect with Stripe.
+
+| Skill | Kind | What it does |
+|---|---|---|
+| [`/iblai-api-stripe-payment-proxy`](../skills/monetization/iblai-api-stripe-payment-proxy/SKILL.md) | 🔌 api | Drive an ibl.ai organization's own Stripe account through the platform's Stripe payment proxy |
+
 ## Analytics
 
 `skills/analytics/` — Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent.
@@ -262,4 +271,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 154 skills.
+Total: 155 skills.
