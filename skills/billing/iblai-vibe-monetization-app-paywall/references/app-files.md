@@ -896,7 +896,6 @@ import {
   OnboardingShell,
   StepHeader,
   onboardingPrimaryButtonClass,
-  onboardingSecondaryButtonClass,
 } from "@iblai/iblai-js/web-containers";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Input } from "@/components/ui/input";
@@ -917,8 +916,6 @@ import {
   type ConnectStatus,
 } from "@/lib/paywall-client";
 
-export type SetupStep = "access" | "connect";
-
 const OPTIONS: { value: Access; title: string; detail: string }[] = [
   { value: "free", title: "Free access", detail: "Anyone signed in can use the app." },
   { value: "one_time", title: "One-time fee", detail: "Pay once, keep access." },
@@ -936,10 +933,10 @@ const cardClass = (selected: boolean) =>
 
 const CONNECT_ROUTE = "/api/paywall/admin/connect";
 const SETUP_ROUTE = "/api/paywall/admin/setup";
+/** The one setup screen; Stripe's consent page returns here too. */
+const SETUP_PATH = "/paywall/setup";
 /** The answer in progress survives the round trip to Stripe here; cleared after the save. */
 const PENDING_KEY = "paywall_setup_pending";
-const stepPath = (step: SetupStep) =>
-  step === "connect" ? "/paywall/setup/connect" : "/paywall/setup";
 /** The platform checks every member's access on the Stripe source, so unlinking locks them out. */
 const LOCKOUT =
   "Members can’t get into the app until a Stripe account is linked again. To stop charging instead, choose Free access and save.";
@@ -963,16 +960,16 @@ function readPending(): Pending | null {
 }
 
 /**
- * The paywall's own setup, two steps in one component: how people get in (free,
- * a one-time fee or a monthly fee, USD) and — for a paid answer while the
- * organization has no Stripe source — Connect with Stripe (the platform's own
- * OAuth: the admin signs in on Stripe and comes back to /paywall/setup/connect).
- * Nothing is typed or copied. Save lets /api/paywall/admin/setup create the
- * product and price on that account and record the choice. Every call runs on
- * the admin's own token; the platform answers 403 to anyone else, and this
- * screen says so first.
+ * The paywall's own setup, one screen: how people get in (free, a one-time fee
+ * or a monthly fee, USD). For a paid answer while the organization has no
+ * Stripe source the button is Connect with Stripe (the platform's own OAuth:
+ * the admin signs in on Stripe and comes back here), and the answer saves
+ * itself on the return. Nothing is typed or copied. Save lets
+ * /api/paywall/admin/setup create the product and price on that account and
+ * record the choice. Every call runs on the admin's own token; the platform
+ * answers 403 to anyone else, and this screen says so first.
  */
-export function PaywallSetup({ step }: { step: SetupStep }) {
+export function PaywallSetup() {
   const router = useRouter();
   // Read once on the client: the providers hold this tree until mounted.
   const [admin] = useState(isTenantAdmin);
@@ -1018,21 +1015,21 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
   // Stripe — the outcome, saving the answer in progress when it connected.
   useEffect(() => {
     if (!admin) return;
-    // The answer in progress, stashed before leaving for the step next door or
-    // for Stripe. Consumed on the question, kept on the Stripe step: that one
-    // still needs it when the consent page returns.
+    // The answer in progress, stashed before leaving for Stripe. Consumed here:
+    // an abandoned answer must not outlive the visit and preselect itself over
+    // what is actually saved.
     const pending = readPending();
     if (pending) {
       setAccess(pending.access);
       setAmount(pending.amount);
-      if (step === "access") sessionStorage.removeItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
     }
     // Back from Stripe's consent page: drop the query so a reload does not replay it.
-    if (returned) router.replace(stepPath(step));
+    if (returned) router.replace(SETUP_PATH);
     if (returned?.result === "error") setError(connectFailure(returned.reason));
     void (async () => {
       try {
-        const [catalogue, source] = await Promise.all([fetchCatalogue(), loadStatus()]);
+        const [catalogue] = await Promise.all([fetchCatalogue(), loadStatus()]);
         setSelling(catalogue.paywall);
         if (!pending && catalogue.settings) {
           setAccess(catalogue.settings.access);
@@ -1040,17 +1037,15 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
         }
         if (returned?.result === "connected" && pending && pending.access !== "free")
           await save(pending.access, pending.amount);
-        // A source and nothing waiting to be saved: the question is where to go on.
-        else if (step === "connect" && source.source) router.replace(stepPath("access"));
       } catch (e) {
         setError(errorMessage(e));
       } finally {
-        // Whatever happened, the step may now be drawn — spinning forever would
-        // hide the error that was just set.
+        // Whatever happened, the screen may now be drawn — spinning forever
+        // would hide the error that was just set.
         setLoaded(true);
       }
     })();
-    // Once, on mount: `step`, `returned`, `admin` and `router` do not change.
+    // Once, on mount: `returned`, `admin` and `router` do not change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1059,7 +1054,7 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
   const cents = Math.round(Number(amount) * 100);
   const priceValid = !paid || (Number.isFinite(cents) && cents > 0);
 
-  /** Keep the answer in progress across the step next door, and the trip to Stripe. */
+  /** Keep the answer in progress across the trip to Stripe. */
   const stashPending = () => {
     if (access)
       sessionStorage.setItem(PENDING_KEY, JSON.stringify({ access, amount } satisfies Pending));
@@ -1073,9 +1068,10 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
       return;
     }
     setError("");
+    // No Stripe source yet: the button reads Connect with Stripe, and that is
+    // what it does — the answer rides along and saves itself on the return.
     if (connectMissing) {
-      stashPending();
-      router.push(stepPath("connect"));
+      await startConnect();
       return;
     }
     await save(access, amount);
@@ -1089,10 +1085,9 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
     try {
       const { authorize_url } = await paywallFetch<{ authorize_url?: string }>(CONNECT_ROUTE, {
         method: "POST",
-        // Stripe's consent returns to the step that sent them there: this one
-        // holds the retry button, and a failure has to show where it can be
-        // acted on.
-        json: { return_url: `${window.location.origin}${stepPath("connect")}` },
+        // Stripe's consent returns to this one screen: it holds the retry
+        // button, and a failure has to show where it can be acted on.
+        json: { return_url: `${window.location.origin}${SETUP_PATH}` },
       });
       if (!authorize_url) throw new Error("The platform answered without Stripe’s address.");
       window.location.href = authorize_url;
@@ -1154,11 +1149,6 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
     await startConnect();
   };
 
-  const back = () => {
-    setError("");
-    router.push(stepPath("access"));
-  };
-
   if (!admin)
     return (
       <OnboardingShell totalSteps={1} currentStep={1}>
@@ -1181,137 +1171,110 @@ export function PaywallSetup({ step }: { step: SetupStep }) {
   const account = status?.business_name || status?.email || status?.account_id;
 
   return (
-    <OnboardingShell
-      totalSteps={step === "connect" || connectMissing ? 2 : 1}
-      currentStep={step === "connect" ? 2 : 1}
-    >
+    <OnboardingShell totalSteps={1} currentStep={1}>
       {/* Saving = creating the product and price; redirecting = leaving for
           Stripe: the page is busy and nothing here should be touched. */}
       {busy && <LoadingScreen overlay message={busy} />}
-      {step === "access" && (
-        <form onSubmit={onQuestionSubmit}>
-          <StepHeader
-            title="How should people get in?"
-            subtitle="Free, or charge for access. You can change this any time."
-          />
-          <fieldset className="space-y-3">
-            <legend className="sr-only">Access</legend>
-            {OPTIONS.map((option) => {
-              const selected = access === option.value;
-              return (
-                <label key={option.value} className={cardClass(selected)}>
-                  <input
-                    type="radio"
-                    name="access"
-                    value={option.value}
-                    checked={selected}
-                    onChange={() => setAccess(option.value)}
-                    className="sr-only"
-                  />
-                  <span className="text-sm font-medium text-gray-900">{option.title}</span>
-                  <span className="text-sm text-gray-500">{option.detail}</span>
-                </label>
-              );
-            })}
-          </fieldset>
-
-          {paid && (
-            <div className="mt-5 space-y-2">
-              <Label htmlFor="price">
-                {access === "monthly" ? "Price per month" : "Price"} (USD)
-              </Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground">
-                  $
-                </span>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0.5"
-                  step="0.01"
-                  inputMode="decimal"
-                  className="pl-7"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+      <form onSubmit={onQuestionSubmit}>
+        <StepHeader
+          title="How should people get in?"
+          subtitle="Free, or charge for access. You can change this any time."
+        />
+        <fieldset className="space-y-3">
+          <legend className="sr-only">Access</legend>
+          {OPTIONS.map((option) => {
+            const selected = access === option.value;
+            return (
+              <label key={option.value} className={cardClass(selected)}>
+                <input
+                  type="radio"
+                  name="access"
+                  value={option.value}
+                  checked={selected}
+                  onChange={() => setAccess(option.value)}
+                  className="sr-only"
                 />
-              </div>
-            </div>
-          )}
+                <span className="text-sm font-medium text-gray-900">{option.title}</span>
+                <span className="text-sm text-gray-500">{option.detail}</span>
+              </label>
+            );
+          })}
+        </fieldset>
 
-          {errorLine}
-          <button
-            type="submit"
-            disabled={!access || !!busy || (paid && !status)}
-            className={`mt-6 ${onboardingPrimaryButtonClass}`}
-          >
-            {connectMissing ? "Continue" : "Save"}
-          </button>
-          {status?.source === "connected" && (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Stripe account connected · {account}
-              {status.livemode === false ? " (test mode)" : ""}
-              {" · "}
-              <button
-                type="button"
-                className="underline-offset-4 hover:underline"
-                onClick={reconnect}
-              >
-                Reconnect
-              </button>
-              {" · "}
-              <button
-                type="button"
-                className="underline-offset-4 hover:underline"
-                onClick={disconnect}
-              >
-                Disconnect
-              </button>
-            </p>
-          )}
-          {status?.source === "connected" && status.charges_enabled === false && (
-            <p className="mt-2 text-center text-xs text-muted-foreground">
-              Stripe has not enabled payments on this account yet; finish setting it up in Stripe.
-            </p>
-          )}
-          {status?.source === "key" && (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Payments use this organization’s own Stripe key, set on ibl.ai.
-            </p>
-          )}
-          {warning && (
-            <p role="alert" className="mt-2 text-center text-xs text-destructive">
-              {warning}
-            </p>
-          )}
-          {status && !status.source && !status.available && (
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Connect with Stripe is not available on this platform yet.
-            </p>
-          )}
-        </form>
-      )}
-      {step === "connect" && (
-        <div>
-          <StepHeader
-            title="Monetize Your App"
-            subtitle="Connect your Stripe account. Payments go straight to it; nothing to copy."
-          />
-          {errorLine}
-          <div className="mt-6 space-y-3">
+        {paid && (
+          <div className="mt-5 space-y-2">
+            <Label htmlFor="price">
+              {access === "monthly" ? "Price per month" : "Price"} (USD)
+            </Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground">
+                $
+              </span>
+              <Input
+                id="price"
+                type="number"
+                min="0.5"
+                step="0.01"
+                inputMode="decimal"
+                className="pl-7"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {errorLine}
+        <button
+          type="submit"
+          disabled={!access || !!busy || (paid && !status)}
+          className={`mt-6 ${onboardingPrimaryButtonClass}`}
+        >
+          {connectMissing ? "Connect with Stripe" : "Save"}
+        </button>
+        {status?.source === "connected" && (
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Stripe account connected · {account}
+            {status.livemode === false ? " (test mode)" : ""}
+            {" · "}
             <button
               type="button"
-              disabled={!!busy}
-              className={onboardingPrimaryButtonClass}
-              onClick={startConnect}
+              className="underline-offset-4 hover:underline"
+              onClick={reconnect}
             >
-              Connect with Stripe
+              Reconnect
             </button>
-            <button type="button" className={onboardingSecondaryButtonClass} onClick={back}>
-              Back
+            {" · "}
+            <button
+              type="button"
+              className="underline-offset-4 hover:underline"
+              onClick={disconnect}
+            >
+              Disconnect
             </button>
-          </div>
-        </div>
-      )}
+          </p>
+        )}
+        {status?.source === "connected" && status.charges_enabled === false && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Stripe has not enabled payments on this account yet; finish setting it up in Stripe.
+          </p>
+        )}
+        {status?.source === "key" && (
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Payments use this organization’s own Stripe key, set on ibl.ai.
+          </p>
+        )}
+        {warning && (
+          <p role="alert" className="mt-2 text-center text-xs text-destructive">
+            {warning}
+          </p>
+        )}
+        {status && !status.source && !status.available && (
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Connect with Stripe is not available on this platform yet.
+          </p>
+        )}
+      </form>
     </OnboardingShell>
   );
 }
@@ -1458,7 +1421,7 @@ export function PayModal({
         showCloseButton={false}
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[min(1080px,calc(100%-2rem))]"
       >
-        <DialogTitle>Pay to continue</DialogTitle>
+        <DialogTitle className="sr-only">Pay to continue</DialogTitle>
         {/* Stripe's form names the product and the price itself. */}
         {state !== "checkout" && (
           <DialogDescription>
@@ -1614,27 +1577,11 @@ import { PaywallSetup } from "@/components/paywall-setup";
  * screen says so, and the platform refuses everyone else on every call.
  */
 export default function PaywallSetupPage() {
-  return <PaywallSetup step="access" />;
+  return <PaywallSetup />;
 }
 ```
 
-## 10. `app/paywall/setup/connect/page.tsx`
-
-```tsx
-"use client";
-
-import { PaywallSetup } from "@/components/paywall-setup";
-
-/**
- * Connect with Stripe, for a paid answer while the organization has no Stripe
- * source yet. Stripe's consent page returns here, where the retry button is.
- */
-export default function PaywallConnectPage() {
-  return <PaywallSetup step="connect" />;
-}
-```
-
-## 11. `app/(app)/layout.tsx` — 3-line edit
+## 10. `app/(app)/layout.tsx` — 3-line edit
 
 Add the import, then wrap the layout's `{children}`:
 
@@ -1644,7 +1591,7 @@ import { PaywallGate } from "@/components/paywall-gate";
 <PaywallGate>{children}</PaywallGate>
 ```
 
-## 12. `middleware.ts` (or `proxy.ts`) — 4-line CSP edit
+## 11. `middleware.ts` (or `proxy.ts`) — 4-line CSP edit
 
 The SDK's default policy allows `js.stripe.com`, `api.stripe.com` and `hooks.stripe.com`, not
 Stripe's embedded checkout; without these lines the pay modal stays empty on a production
@@ -1663,7 +1610,7 @@ build (`pnpm dev` only reports the violation). Add them to the existing `applyCs
   });
 ```
 
-## 13. `app/(app)/account/page.tsx` — the quiet way back to the question
+## 12. `app/(app)/account/page.tsx` — the quiet way back to the question
 
 Add the import, then the link above the `Account` card, for admins only — nothing new in the
 navbar:
@@ -1685,7 +1632,7 @@ import Link from "next/link";
       <div className="rounded-lg border border-[var(--border-color)] bg-white overflow-hidden">
 ```
 
-## 14. `.env.local` addition (the deploy skill copies every `NEXT_PUBLIC_*` into `.env.production`)
+## 13. `.env.local` addition (the deploy skill copies every `NEXT_PUBLIC_*` into `.env.production`)
 
 ```bash
 NEXT_PUBLIC_PAYWALL_APP_SLUG=my-app   # pinned once, never changed: payments are recorded under it

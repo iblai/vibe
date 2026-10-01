@@ -154,9 +154,12 @@ registered description suggests. The table is what the server does.
   | `project` | string | **yes** | `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`, ≤64 chars |
   | `framework` | enum | no | `static` (default) or `nextjs` |
   | `deployment_hash` | string | no | 64 lowercase hex chars, or blank |
+  | `subdomain` | string | first deploy | `^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$` — the label the project is served at under the instance's shared domain, like a username. Required when the project has no address yet and a shared domain is on offer (`400` with a `subdomain` key otherwise); never with `domain` |
+  | `domain` | string | no | A custom domain the organization has already configured; never with `subdomain` |
 
   Returns **`202 Accepted`** with the project object (`push_state: "pending"`,
-  `url: null`) — nothing has reached the hosting provider yet. Poll
+  `url: null`, `site_url` already final — the address chosen, never derived
+  from the name) — nothing has reached the hosting provider yet. Poll
   `GET {base}/deployment/{pk}/` from here.
 
   The archive is checked synchronously. `.git/`, `node_modules/`, `__MACOSX/` and
@@ -180,9 +183,12 @@ registered description suggests. The table is what the server does.
 
 ### Domains
 
-- **POST** `{base}/dns/` — attach a custom domain. Body `{"project": {pk}, "domain":
-  "app.example.com"}`. Returns `201` with the same shape as the domain detail read,
-  including `required_records[]`.
+- **POST** `{base}/dns/` — attach a custom domain, or choose the project's subdomain
+  under the instance's shared domain. Body `{"project": {pk}, "domain":
+  "app.example.com"}` **or** `{"project": {pk}, "subdomain": "smallsite"}` — exactly
+  one; neither is a `400`. Returns `201` with the same shape as the domain detail read,
+  including `required_records[]`; a subdomain the project already has answers `200`,
+  a taken one `409`.
   The domain is reserved across **all** ibl.ai app domains, not just hosting ones, so
   a clash with another app's domain fails here without touching the provider. A
   provider-side failure rolls the reservation back, so a failed attach leaves nothing
