@@ -14,7 +14,7 @@
   },
   "iblai-vibe-agent-virtual-machine": {
     "fences": [0],
-    "reason": "SDK pin gap: the Virtual Machine feature (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) is not in @iblai/iblai-js 2.9.8 at all — unskip when the starter's SDK pin picks up the release that ships it"
+    "reason": "SDK v2 d.ts gap: the Virtual Machine exports (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) exist at runtime in @iblai/iblai-js 2.28.1 (dist/web-containers/source/index.esm.js) but are missing from the web-containers typings — unskip when the SDK ships the types"
   },
   "iblai-vibe-agent-skills": {
     "fences": [1],
@@ -50,6 +50,6 @@
   },
   "iblai-vibe-virtual-machine": {
     "fences": [1],
-    "reason": "SDK pin gap: the Virtual Machine feature (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) is not in @iblai/iblai-js 2.9.8 at all — unskip when the starter's SDK pin picks up the release that ships it"
+    "reason": "SDK v2 d.ts gap: the Virtual Machine exports (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) exist at runtime in @iblai/iblai-js 2.28.1 (dist/web-containers/source/index.esm.js) but are missing from the web-containers typings — unskip when the SDK ships the types"
   }
 }
