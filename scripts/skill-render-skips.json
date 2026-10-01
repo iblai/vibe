@@ -12,6 +12,10 @@
     "fences": [1, 3],
     "reason": "SDK v2 d.ts gap: useGetMentorSettingsQuery / useEditMentorJsonMutation exist at runtime but are missing from data-layer typings"
   },
+  "iblai-vibe-agent-virtual-machine": {
+    "fences": [0],
+    "reason": "SDK pin gap: the Virtual Machine feature (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) is not in @iblai/iblai-js 2.9.8 at all — unskip when the starter's SDK pin picks up the release that ships it"
+  },
   "iblai-vibe-agent-skills": {
     "fences": [1],
     "reason": "SDK v2 d.ts gap: slashSkillsEnabled prop exists at runtime (dist js) but not in the Chat props typings"
@@ -43,5 +47,9 @@
   "iblai-vibe-analytics": {
     "targets": ["app/(app)/analytics/layout.tsx", "app/(app)/analytics/financial/page.tsx"],
     "reason": "SDK pin gap: AnalyticsLayout showPicker and AnalyticsFinancialStats userId ship in @iblai/web-containers 1.21.0, but @iblai/iblai-js 2.12.2 resolves 1.16.0 — unskip when the starter's SDK pin picks up web-containers >= 1.21.0"
+  },
+  "iblai-vibe-virtual-machine": {
+    "fences": [1],
+    "reason": "SDK pin gap: the Virtual Machine feature (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) is not in @iblai/iblai-js 2.9.8 at all — unskip when the starter's SDK pin picks up the release that ships it"
   }
 }
