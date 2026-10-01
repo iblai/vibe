@@ -24,6 +24,13 @@ the agent's runtime behaviour. Push pulls the current configuration
 onto the connected sandbox; Auto Push on Save pushes after every
 edit.
 
+With **Virtual Machine Shell** selected, a **Network Access** section
+appears under the card — the VM's egress profile, its network policy
+and its secrets. That section has its own skill:
+`/iblai-vibe-agent-virtual-machine` (and
+`/iblai-vibe-virtual-machine` for the organization-wide policies and
+secrets it draws on).
+
 Agent Skills are managed independently of the sandbox — see
 `/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
 per-agent assignment, skill resources, and the chat `/` picker).
@@ -433,62 +440,27 @@ are documented in `/iblai-vibe-agent-skills`.
 ### Virtual machine network policies & secrets
 
 The **Virtual Machine Shell** kind runs each chat in an isolated Linux VM
-with no network by default. `virtual_machine_egress` on the agent settings
-picks the network profile:
+with no network by default. What it may reach is chosen per agent through
+three settings fields — `virtual_machine_egress`
+(`none` | `registries` | `public` | `custom`),
+`virtual_machine_network_policy_id` and `virtual_machine_secret_ids` — and
+the organization-wide network policies and VM secrets they point at live
+under `/api/ai-account/orgs/{org}/`.
 
-| Value | Reachability |
-|---|---|
-| `none` (default) | No network |
-| `registries` | Package registries only (PyPI, npm, apt, apk) |
-| `public` | Public internet; private ranges, loopback and cloud metadata denied |
-| `custom` | Deny-by-default; only the hosts of the bound **network policy** |
+That whole surface has its own skills:
 
-**Network policies** are named `host:port` allowlists an organization admin
-reuses across agents (never across organizations). Entries are exact
-`host:port` strings (no wildcards, at most 100; loopback, link-local and
-metadata addresses are refused).
-
-| Method | Path | Body / notes |
-|---|---|---|
-| GET | `virtual-machine-network-policy/` | List `{ id, name, allowed_hosts, description, created_at, updated_at }` |
-| POST | `virtual-machine-network-policy/` | `{ "name": "Acme APIs", "allowed_hosts": ["api.acme.com:443"], "description": "" }` → 201 |
-| PATCH | `virtual-machine-network-policy/` | `{ "id": 12, "allowed_hosts": [...] }` (any of `name`, `allowed_hosts`, `description`) |
-| DELETE | `virtual-machine-network-policy/` | `{ "id": 12 }` → 204; `400` while an agent still uses it |
-
-Bind one with the agent settings PUT:
-`{ "virtual_machine_egress": "custom", "virtual_machine_network_policy_id": 12 }`
-(`400` if `custom` is chosen without a policy; `null` clears the binding).
-The settings GET returns `virtual_machine_network_policy` as
-`{ id, name, allowed_hosts }` or `null`.
-
-**VM secrets** are credentials the VM can use without the agent ever reading
-them: inside the VM the env var holds a placeholder, and the real value is
-substituted on TLS requests to `allow_hosts` only. A secret carries either its
-own `value` or points at one field of an organization **integration
-credential** (`source_credential_id` + `source_field`), so a key that already
-exists is reused rather than retyped and follows the credential when rotated.
-
-| Method | Path | Body / notes |
-|---|---|---|
-| GET | `virtual-machine-secret/` | List `{ id, name, env_var, allow_hosts, source_credential_id, source_field, ... }` — never a value |
-| POST | `virtual-machine-secret/` | `{ "name", "env_var": "ACME_KEY", "allow_hosts": ["api.acme.com:443"], "value": "…" }` **or** `{ ..., "source_credential_id": 7, "source_field": "api_key" }` (exactly one form) |
-| PATCH | `virtual-machine-secret/` | keyed by `env_var`; sending `value` or a `source_credential_id` switches the form |
-| DELETE | `virtual-machine-secret/` | `{ "env_var": "ACME_KEY" }` → 204 |
-
-Bind secrets with `virtual_machine_secret_ids` on the settings PUT. Egress must
-be `public` or `custom`; under `custom` every host of every bound secret must
-appear in the network policy (`400` otherwise, and lowering egress while
-secrets stay bound is refused).
-
-RBAC verbs (organization admins hold them by default; not in the learner
-baseline): `Ibl.Mentor/VirtualMachineNetworkPolicies/{list,write,delete}` and
-`Ibl.Mentor/VirtualMachineSecrets/{list,write,delete}`. Binding a secret to an
-agent additionally needs `VirtualMachineSecrets/write`.
+- **`/iblai-vibe-agent-virtual-machine`** — the Sandbox tab's **Network
+  Access** section: egress profile, policy picker, secrets multi-select,
+  the rules the UI enforces before saving, and the agent settings fields.
+- **`/iblai-vibe-virtual-machine`** — organization settings → **Virtual
+  Machine**: the network policy and VM secret tables, their dialogs,
+  validation limits, RBAC verbs and the REST endpoints.
 
 **Billing:** VM lifetime is charged to the chatting user's credits at
 `SANDBOX_COST_USD_PER_10_MINUTES` (global configuration, default `$1`,
 overridable per organization), prorated per second and recorded on the
 `sandbox_session` observation in Langfuse.
+
 
 ### Common errors
 

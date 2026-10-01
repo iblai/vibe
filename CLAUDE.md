@@ -32,6 +32,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
+| "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, policy, secrets), `/iblai-vibe-virtual-machine` (the org's policies + secrets) |
 | "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
@@ -273,7 +274,8 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-agent` | Family index for all 24 agent settings tabs |
 | `/iblai-vibe-profile` ★ | Profile dropdown + settings page |
 | `/iblai-vibe-user-metadata` ★ | Custom per-user data on the platform |
-| `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory) |
+| `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory, Virtual Machine) |
+| `/iblai-vibe-virtual-machine` | Org Virtual Machine settings: the network policies and VM secrets agents' sandboxes draw on |
 | `/iblai-vibe-org-metadata` | Custom org data; GET-merge-PUT; where branding lives |
 | `/iblai-vibe-admin` | User/Admin mode and the admin area |
 | `/iblai-vibe-invite` | Invitation dialogs |

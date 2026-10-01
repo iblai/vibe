@@ -181,9 +181,9 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](skills/start) | The first conversation, connecting your organization, sign-in, the starter | 11 |
-| [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 56 |
+| [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 57 |
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
-| [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 9 |
+| [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
 | [`billing/`](skills/billing) | How you are charged, spend caps, three ways to charge your users | 12 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
