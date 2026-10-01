@@ -381,8 +381,8 @@ prefixed with `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
 
 | Method | Path | Body |
 |---|---|---|
-| GET | `mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw`, `enable_virtual_machine`, and `enable_computational_runtime` (booleans) |
-| PUT | `mentors/{mentor_unique_id}/settings/` | e.g. `{ "enable_virtual_machine": true, "enable_claw": false, "enable_computational_runtime": false }` |
+| GET | `users/{username}/mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw`, `enable_virtual_machine`, and `enable_computational_runtime` (booleans) |
+| PUT | `users/{username}/mentors/{mentor_unique_id}/settings/` | e.g. `{ "enable_virtual_machine": true, "enable_claw": false, "enable_computational_runtime": false }` |
 
 The kinds are mutually exclusive by convention, enforced client-side:
 when enabling one flag, send the other two as `false` in the same
