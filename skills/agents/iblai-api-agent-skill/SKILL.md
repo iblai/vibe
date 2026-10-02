@@ -23,8 +23,6 @@ which skills an agent has assigned, and manage the catalog itself (create / edit
 - **Assignment paths:** `…/orgs/{org}/agents/{mentor}/skills/` is the
   canonical spelling; `…/orgs/{org}/mentors/{mentor}/skills/` is a
   deprecated alias with the same behavior.
-- Verified against the live schema
-  (`https://api.iblai.app/dm/api/docs/schema/`, version 4.411.0) on 2026-10-02.
 - Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
   `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
 
@@ -65,11 +63,15 @@ which skills an agent has assigned, and manage the catalog itself (create / edit
     "version": "string",
     "category": "string",
     "instruction": "string",
-    "mentor": "uuid | null (set = private to that agent)",
+    "mentor": "uuid | null (set = private to that agent; see below)",
     "metadata": "object",
     "enabled": "boolean"
   }
   ```
+  A skill with `mentor` set applies to that agent directly and cannot be
+  assigned: `POST …/agents/{mentor}/skills/` with it returns 400 "Object with
+  unique_id=… does not exist". It therefore never shows in the agent's
+  `skills/` list.
 - **PATCH** `…/orgs/{org}/agent-skills/{id}/` — update the catalog skill (partial).
 - **DELETE** `…/orgs/{org}/agent-skills/{id}/` — delete the catalog skill (no body). Destructive — confirm with the user first.
 - **POST** `…/orgs/{org}/agent-skill-resources/` — attach a file to a catalog skill: `{ "skill": id, "file_type": "reference | script", "filename": "string", "content": "string" }` for text; multipart with `file` for `file_type: "asset"`.
