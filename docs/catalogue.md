@@ -116,7 +116,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app |
 | [`/iblai-vibe-agent-sandbox`](../skills/agents/iblai-vibe-agent-sandbox/SKILL.md) | 🖥️ ui | Add the agent Sandbox tab (sandbox type selection |
 | [`/iblai-vibe-agent-search`](../skills/agents/iblai-vibe-agent-search/SKILL.md) | 🖥️ ui | Add the agent search/browse page (starred, featured, custom, and default agents) to your Next.js app |
-| [`/iblai-vibe-agent-skills`](../skills/agents/iblai-vibe-agent-skills/SKILL.md) | 🖥️ ui | Add the agent Skills tab (AgentSkillsTab |
+| [`/iblai-vibe-agent-skills`](../skills/agents/iblai-vibe-agent-skills/SKILL.md) | 🖥️ ui | Add the agent Skills tab (AgentSkillsTab: reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dial… |
 | [`/iblai-vibe-agent-support`](../skills/agents/iblai-vibe-agent-support/SKILL.md) | 🖥️ ui | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to y… |
 | [`/iblai-vibe-agent-task`](../skills/agents/iblai-vibe-agent-task/SKILL.md) | 🖥️ ui | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) to your Next.js app |
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
