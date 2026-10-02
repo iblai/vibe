@@ -1,50 +1,66 @@
 # iblai-vibe-agent-billing
 
-> Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert thresholds) to your Next.js app
+> Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block or alert-only enforcement, and near-limit alert thresholds) to your Next.js app. Use when the user mentions spend caps, spend limits, an agent's AI budget, per-user limits, usage limits, or blocking requests over budget. For the REST contract see /iblai-api-spend-caps; for the organization-wide limit see /iblai-vibe-billing.
 
 # /iblai-vibe-agent-billing
 
-Add the agent **Billing tab** -- set LLM spend limits for this agent
-and its users, and see how much has been used. Two sub-tabs match the
-backend's agent-level scopes: **This Agent** (the agent's own spend
-cap) and **Per User** (explicit per-user limits on this agent, with
-the user picked through a platform-user search). Each limit has an
-enable toggle, a usage bar (spent / % used / remaining), a spend
-amount with a reset interval (day/week/month/year), an enforcement
-mode (**Block Requests** or **Alert Only**), and comma-separated
-alert thresholds at which admins get a near-limit alert. Enforcement
-is server-side — a blocked request is refused with a `429` /
-`spend_cap_exceeded` error until the period resets. This is one tab
-in the wider agent-settings family. All tabs share the same
-`AgentSettingsProvider` wrapper.
+Add the agent **Billing tab** (`AgentSpendCapsTab`) -- LLM spend limits for
+this agent and for specific users of it, with how much has been used.
+**Scope: per agent.** Two sub-tabs match the agent-level scopes: **This
+Agent** (one limit for everything spent on the agent) and **Per User**
+(a limit per user on this agent). The organization-wide limit lives in
+organization settings (`/iblai-vibe-billing`). The tightest limit that
+applies wins. This is one tab in the agent-settings family indexed by
+`/iblai-vibe-agent`; it shares the `AgentSettingsProvider` wrapper with every
+other tab.
 
-![Billing Tab — This Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing.png)
+**This Agent** -- the switch (on means the limit counts and is enforced),
+a usage strip once a limit is saved (Spent, % of limit used, Remaining; the
+bar turns amber at 80% and red when exceeded), and the form: **Spend Limit
+(USD)**, **Resets Every** (Day / Week / Month / Year), **When the Limit Is
+Reached** (**Block Requests** or **Alert Only**), **Alert At (% of Limit)**
+(comma-separated, default `80, 95`), **Delete Limit** and **Save**. Before the
+first save it says "No spend limit configured yet".
 
-![Billing Tab — Per User](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-per-user.png)
+![Billing tab -- This Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-1-agent.png)
 
-![Per User — Row Actions (Edit / Delete)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-actions.png)
+**Per User** -- one row per user (email, limit and period, a status switch
+that saves at once, Exceeded / Alert Only badges) and **Add User Limit**.
 
-![New User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-new-user-limit.png)
+![Billing tab -- Per User](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-2-per-user.png)
 
-![Edit User Limit Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-edit-user-limit.png)
+**New User Limit** -- pick the user by searching the organization's users
+(at least 2 characters; emails only, no free-text usernames), then the same
+form. **Edit** opens it without the picker.
+
+![Billing tab -- New User Limit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-3-new-user-limit.png)
+
+**Row actions** -- **Edit** and **Delete** per user.
+
+![Billing tab -- row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-4-actions.png)
+
+**Delete Spend Limit** -- asks for confirmation; spending is no longer
+limited or tracked against that limit. **Delete Limit** on This Agent asks
+the same.
+
+![Billing tab -- Delete Spend Limit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/iblai-vibe-agent-billing-5-delete.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
-  Step 2 if not already set up)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
-- The spend-cap endpoints are RBAC-gated admin endpoints — a user
-  without access sees a friendly "no access" panel per sub-tab (403).
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
+  `pnpm why @iblai/web-containers`.
+- A real agent UUID. Ask the user; never invent one.
+- Platform-admin rights: the spend-cap endpoints are admin-only. A user
+  without them sees a "no access" panel in each sub-tab.
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
@@ -66,10 +82,31 @@ export default function AgentBillingPage() {
 }
 ```
 
-`AgentSpendCapsTab` reads `tenantKey` and `mentorId` from
-`AgentSettingsProvider`. No props are required for the standard mount.
+The tab reads `tenantKey` and `mentorId` from `AgentSettingsProvider` (each
+can be passed as a prop instead) and does its own fetching and saving. No
+grants need loading: the server answers 403 for non-admins, and the tab
+shows its no-access panel.
+
+### Show users how close they are (optional)
+
+`SpendCapUsage` is the learner-safe companion for chat screens: zones and
+percentages only, never dollars, a warning near a limit and a banner once a
+blocking limit is hit. It renders nothing while everything is fine unless
+`showWhenOk` is set:
+
+```tsx
+import { SpendCapUsage } from "@iblai/iblai-js/web-containers/next";
+
+export function ChatSpendNotice(props: { org: string; username: string; agentId: string }) {
+  return <SpendCapUsage tenantKey={props.org} userId={props.username} mentorId={props.agentId} />;
+}
+```
 
 ## Step 3: Customize Labels (Optional)
+
+The tab renders with the default agent-facing copy
+(`AGENT_SPEND_CAPS_TAB_LABELS`, localized through the SDK's i18n). Pass a
+partial `labels` object to change any string:
 
 ```tsx
 import { AgentSpendCapsTab } from "@iblai/iblai-js/web-containers/next";
@@ -81,6 +118,13 @@ import { AgentSpendCapsTab } from "@iblai/iblai-js/web-containers/next";
   }}
 />;
 ```
+
+Label groups (`SpendCapsTabLabels`): `header` (`title`, `description`),
+`capability` (the switch), `subTabs` (`agent`, `users`), `tenantSections`
+(used by the organization Billing surface), `form` (field labels, interval
+and enforcement options and help, `noCapHint`, buttons), `usage` (the usage
+strip and badges), `users` (the Per User table, `addButton`, the user
+picker), `denied` (the no-access panel), `deleteModal`, and `toasts`.
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -97,230 +141,77 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `labels` | `DeepPartial<SpendCapsTabLabels>` | No | Override user-visible strings |
-| `tenantKey` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
-| `mentorId` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
-| `headerClassName` | `string` | No | Extra classes on the tab header (wide-dialog hosts widen padding) |
+| `tenantKey` | `string` | No | Organization key; defaults to `AgentSettingsProvider` |
+| `mentorId` | `string` | No | Agent UUID; defaults to `AgentSettingsProvider` |
+| `headerClassName` | `string` | No | Extra classes on the tab header (e.g. wider padding in a wide dialog) |
 | `bodyClassName` | `string` | No | Extra classes on the scrollable body |
-
-## What the tab renders
-
-- **Header** — "Billing" title and "Set spend limits for this agent
-  and its users, and see how much has been used."
-- **This Agent / Per User sub-tabs** — the two agent-level scopes. The
-  tab ratchets its height so switching sub-tabs never shrinks the
-  dialog it is hosted in.
-- **No-access state** — when the current user lacks permission for a
-  scope's endpoints (403), that sub-tab's content is replaced by a
-  "no access" notice.
-
-### Shared spend-cap editor (both scopes)
-
-Both sub-tabs edit a cap through the same `SpendCapForm`:
-
-- **Enable toggle** — "Put a ceiling on AI spend…" capability gate.
-  While on, everything the limit covers counts toward the amount;
-  fields collapse when toggled off. The flag rides along on save.
-- **Usage strip** (saved caps only) — "Daily/Weekly/Monthly/Yearly
-  Usage" with a progress bar (blue, amber at ≥80%, red when
-  exceeded) and Spent / % of limit used / Remaining figures, plus
-  Disabled / Alert only / Exceeded badges as applicable.
-- **Spend Limit (USD)** — positive decimal; sent as a 2-decimal
-  string.
-- **Resets Every** — Day / Week / Month / Year.
-- **When the Limit Is Reached** — `Block Requests` (new chat and
-  training requests are refused until the period resets) or
-  `Alert Only` (requests continue; admins are alerted).
-- **Alert At (% of Limit)** — comma-separated percentages (default
-  `80, 95`) at which admins get a near-limit alert.
-- **Delete Limit** (saved caps only) — confirmation dialog before
-  removal. **Save** creates the cap on first save and updates it
-  after (the PUT is an upsert).
-- Until a cap exists the form shows "No spend limit configured yet —
-  set an amount and save to create one."
-
-### This Agent sub-tab
-
-The agent's own singleton spend cap — everything spent on this agent
-by anyone counts toward it.
-
-### Per User sub-tab
-
-Explicit (user, agent) limits — "Limit what specific users can spend
-on this agent."
-
-- **Table** — User (email-first, linked to the same profile viewer as
-  the Management tab; clicking the row opens it too), Limit
-  (`$2.00 / Week`), Status (direct enable toggle that saves
-  immediately, plus Exceeded / Alert-only badges), and a per-row
-  actions menu (**Edit** / **Delete**).
-- **Add User Limit** — opens the New User Limit modal: pick the user
-  through a debounced platform-user search (min 2 characters,
-  email-only options — no free-text usernames), then fill the same
-  spend-cap form. Edit mode skips the picker and goes straight to
-  the form for the cap's user.
-- **Delete** — confirmation dialog showing the user's email.
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
 - `AGENT_SPEND_CAPS_TAB_LABELS` -- the default label bundle.
-- `SpendCapsTabLabels` -- type for the full label bundle.
-- `AgentSpendCapsTabProps` -- props type for the tab.
 - `SPEND_CAPS_SUB_TABS` -- the sub-tab keys (`agent`, `users`).
-- `useSpendCaps` -- the tab's data hook (caps + save/delete per
-  scope), for custom UI on the same endpoints.
-- `SpendCapUsage`, `SpendCapUsageProps` -- **learner-safe** usage
-  indicator for chat surfaces: renders progress zones and percentages
-  only (never dollar amounts), a warning banner near a limit, and a
-  blocked banner once a hard-block cap is exceeded. Renders nothing
-  while everything is in the "ok" zone unless `showWhenOk` is set.
+- `SpendCapUsage` (`SpendCapUsageProps`) -- the learner-safe usage notice
+  (Step 2).
+- `AgentSpendCapsTabProps`, `SpendCapsTabLabels` -- types.
 
-From `@iblai/iblai-js/data-layer` -- the RTK Query hooks and types the
-tab uses, for custom UI built on the same endpoints:
+## How it saves
 
-- Agent cap: `useGetAgentSpendCapQuery`,
-  `useUpsertAgentSpendCapMutation`, `useDeleteAgentSpendCapMutation`
-- Per-user caps: `useListAgentUserSpendCapsQuery`,
-  `useGetUserSpendCapQuery`, `useUpsertUserSpendCapMutation`,
-  `useDeleteUserSpendCapMutation`
-- Organization cap (workspace-wide singleton):
-  `useGetTenantSpendCapQuery`, `useUpsertTenantSpendCapMutation`,
-  `useDeleteTenantSpendCapMutation`
-- Organization-wide agent-cap list: `useListAgentSpendCapsQuery`
-  (optional `mentor` filter)
-- User-safe status: `useGetSpendCapStatusQuery`
-- Types: `SpendCap`, `SpendCapUpsertRequest`, `SpendCapIntervalType`,
-  `SpendCapEnforcement`, `SpendCapScope`, `SpendCapStatusSummary`,
-  `SpendCapStatusItem`, `SpendCapStatusZone`,
-  `SpendCapExceededErrorBody`
-- `SPEND_CAP_EXCEEDED_ERROR_CODE` -- the `spend_cap_exceeded` error
-  code carried by blocked requests (HTTP 429 body / WebSocket frame),
-  distinguishing a spend-cap block from a genuine provider rate limit.
+Paths are under `/api/ai-mentor/orgs/{org}/`.
+
+| Action | Request |
+|---|---|
+| Load This Agent | `GET agents/{uuid}/spend-cap/` (404 means no limit yet) |
+| **Save** This Agent | `PUT agents/{uuid}/spend-cap/` -- an upsert: `201` the first time, `200` after |
+| **Delete Limit** | `DELETE agents/{uuid}/spend-cap/` |
+| Load Per User | `GET agents/{uuid}/spend-caps/users/` |
+| **Save** / status switch for a user | `PUT agents/{uuid}/spend-caps/users/{username}/` (the switch re-sends the limit with `enabled` flipped) |
+| **Delete** a user limit | `DELETE agents/{uuid}/spend-caps/users/{username}/` |
+
+Every save sends `interval_type` (`day` \| `week` \| `month` \| `year`),
+`max_cost_usd` (a 2-decimal string), `enforcement` (`block` \|
+`alert_only`), `alert_thresholds` (numbers) and `enabled`. Spent, remaining
+and exceeded are computed by the server and only displayed. Per-user limits
+are keyed by username; the tab shows emails.
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetAgentSpendCapQuery`, `useUpsertAgentSpendCapMutation`, `useDeleteAgentSpendCapMutation` | This Agent |
+| `useListAgentUserSpendCapsQuery`, `useGetUserSpendCapQuery`, `useUpsertUserSpendCapMutation`, `useDeleteUserSpendCapMutation` | Per User |
+| `useGetSpendCapStatusQuery` | Learner-safe status (used by `SpendCapUsage`) |
+
+All from `@iblai/iblai-js/data-layer`, with the `SpendCap`,
+`SpendCapUpsertRequest`, `SpendCapIntervalType`, `SpendCapEnforcement` and
+`SpendCapExceededErrorBody` types and `SPEND_CAP_EXCEEDED_ERROR_CODE`. The
+organization scope has its own hooks (`useGetTenantSpendCapQuery`, …), used
+by `/iblai-vibe-billing`. REST twin:
+[`/iblai-api-spend-caps`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-api-spend-caps/SKILL.md).
 
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/billing /tmp/agent-billing.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an org admin, open `/agents/<uuid>/billing`: This
+   Agent shows the form; save an **Alert Only** limit -- the usage strip
+   appears. Delete it again.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/billing /tmp/agent-billing.png`
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
-- **First-run 404 is normal**: the singleton GETs 404 until a cap is
-  first saved — that is the documented "no cap configured" state, not
-  an error. The first Save creates the row.
-- **Counters are read-only**: `current_spend_usd`, `remaining_usd`,
-  and `is_exceeded` are reconciled server-side and only rendered —
-  never submitted. Admins write `interval_type`, `max_cost_usd`
-  (decimal **string**), `enforcement`, `alert_thresholds`, `enabled`.
-- **PUT is an upsert**: the status toggles in the tables save
-  immediately by re-submitting the cap's current fields with the
-  flipped `enabled` flag.
-- **Username key, email display**: per-user caps are keyed by
-  `username` in the API; the UI deliberately shows the email
-  everywhere. The user is picked via search — no free-text usernames.
-  A cap read echoes `username`, `email` and `user_full_name`, so the
-  table renders the person without a second request.
-- **Enforcement is server-side**: with `block`, an exceeded cap makes
-  chat/training requests fail with HTTP 429 (or a WebSocket error
-  frame) whose body carries `error_code: "spend_cap_exceeded"`.
-  Handle it in custom chat UI, or mount `SpendCapUsage` to warn users
-  before they hit it.
-- **Three scopes**: organization (workspace-wide), agent, and per-user-per-
-  agent — the tightest applicable cap governs. This tab manages the
-  two agent-level scopes; the workspace-wide limit belongs to the
-  organization settings Billing surface (`/iblai-vibe-billing`, which also
-  lists every agent's cap in one place).
-- **RBAC**: each scope's endpoints are gated separately; a 403 renders
-  the denied panel for that sub-tab only.
+- **Block means blocked**: with **Block Requests**, an exceeded limit makes
+  chat and training requests fail with HTTP 429 (or a WebSocket error
+  frame) carrying `error_code: "spend_cap_exceeded"`. Match on that code,
+  not the status: a provider rate limit is also 429. Use **Alert Only**
+  while testing.
+- **Usage is shared**: everything anyone spends on the agent counts toward
+  This Agent; a user's own spend on it counts toward their Per User limit.
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout
+  level (`/iblai-vibe-agent` §1); do not wrap each tab.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
-
-## Spend Caps REST API
-
-For custom UI beyond the tab. All endpoints are prefixed with
-`${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Auth: `Authorization: Token <token>`.
-Use the canonical `agents/` spelling — `mentors/` is a deprecated
-alias.
-
-### Agent spend cap (singleton per agent)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `agents/{mentor_unique_id}/spend-cap/` | Read (404 = no cap configured) |
-| PUT | `agents/{mentor_unique_id}/spend-cap/` | Upsert — create or update |
-| DELETE | `agents/{mentor_unique_id}/spend-cap/` | Remove the cap |
-
-**Upsert body:**
-
-```json
-{
-  "interval_type": "day",
-  "max_cost_usd": "10.00",
-  "enforcement": "block",
-  "alert_thresholds": [80, 95],
-  "enabled": true
-}
-```
-
-`interval_type`: `day` | `week` | `month` | `year`.
-`enforcement`: `block` | `alert_only`. `max_cost_usd` is a decimal
-string. Responses add the read-only counters (`current_spend_usd`,
-`remaining_usd`, `is_exceeded`, `period_started_at`,
-`last_reconciled_at`).
-
-### Per-user limits on an agent
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `agents/{mentor_unique_id}/spend-caps/users/` | List this agent's user caps |
-| GET | `agents/{mentor_unique_id}/spend-caps/users/{username}/` | Read one (404 = none) |
-| PUT | `agents/{mentor_unique_id}/spend-caps/users/{username}/` | Upsert (same body as above) |
-| DELETE | `agents/{mentor_unique_id}/spend-caps/users/{username}/` | Remove |
-
-The list may come back as a bare array or a DRF limit/offset
-envelope depending on deployment — the SDK slice normalizes both.
-
-### Organization scope + organization-wide listing
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET/PUT/DELETE | `spend-caps/tenant/` | Workspace-wide singleton cap |
-| GET | `spend-caps/agents/` | Every configured agent cap in the organization (`?mentor=<uuid>` filter) |
-
-### User-safe status
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `spend-caps/status/{user_id}/` | Zones + fill percentages for the caps covering this user (`?mentor=<uuid>` to include an agent's caps) — never dollar amounts. Non-admins may only read their own |
-
-### Enforcement error
-
-A hard-block cap that is exceeded makes chat/training requests fail
-with HTTP 429 (or a WebSocket error frame):
-
-```json
-{
-  "error_code": "spend_cap_exceeded",
-  "error": "...",
-  "message": "...",
-  "details": { "scope": "agent", "interval_type": "day", "mentor_unique_id": "..." }
-}
-```
-
-Match on `error_code === "spend_cap_exceeded"`
-(`SPEND_CAP_EXCEEDED_ERROR_CODE`) — a genuine provider rate limit
-also uses status 429.
