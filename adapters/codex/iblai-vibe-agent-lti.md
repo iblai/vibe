@@ -1,48 +1,79 @@
 # iblai-vibe-agent-lti
 
-> Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app
+> Add the agent LTI tab (put the agent inside an LMS course with LTI 1.3 -- the launch switch, the agent's LTI link, the organization's signing keys and LMS tools, and the endpoints to register) to your Next.js app. Use when the user mentions LTI, Canvas, Brightspace, Blackboard, Moodle, deep linking, or adding the agent to an LMS course. For the agent's other settings see /iblai-vibe-agent.
 
 # /iblai-vibe-agent-lti
 
-Add the agent **LTI tab** -- let the agent be added to a Learning
-Management System (Canvas, Brightspace, Blackboard or Moodle) so students
-can open it right inside their course. A master "LTI launches" toggle
-gates four sub-tabs: **Links** (the LTI link that launches this agent),
-**Keys** (platform-wide RSA signing keys), **Tools** (integrations with
-external LTI platforms), and **Tool Endpoints** (the fixed URLs to share
-with the LMS). This is one tab in the wider agent-settings family. All
-tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **LTI tab** -- let an LMS (Canvas, Brightspace, Blackboard,
+Moodle) launch the agent inside a course with LTI 1.3. **Scope: mixed.** The
+switch and the **Links** sub-tab belong to this agent; **Keys** and **Tools**
+are shared by the whole organization; **Tool Endpoints** are fixed for the
+organization. This is one tab in the agent-settings family indexed by
+`/iblai-vibe-agent`; it shares the `AgentSettingsProvider` wrapper with every
+other tab.
 
-![LTI Tab — Links (async build status + Refresh)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-links.png)
+**Links** -- the switch (the agent's `is_lti_accessible` setting; while off,
+the sub-tabs stay visible but grayed out) and the agent's LTI link: Name,
+Target Link URI (with copy), Status and an edit action. An agent has one
+link: **Create LTI Link** shows only while there is none. A new link builds
+in the background -- Pending or Building with a spinner and a **Refresh**
+button, then Ready or Failed (with **Retry**).
 
-![LTI Tab — Keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-keys.png)
+![LTI tab -- Links](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-1-links.png)
 
-![LTI Key Detail Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-key-detail.png)
+**Edit LTI Link** -- one field, the name shown when a teacher picks this
+agent during deep linking. Only Ready links can be edited.
 
-![LTI Tab — Tools](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tools.png)
+![LTI tab -- Edit LTI Link](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-2-link-edit.png)
 
-![Create LTI Tool Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-create.png)
+**Keys** -- the organization's RSA signing keys (name and public key), with
+**Create LTI Key** (name only; the key pair is generated) and an
+Edit / Delete menu per row.
 
-![LTI Tab — Tool Endpoints](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-tool-endpoints.png)
+![LTI tab -- Keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-3-keys.png)
+
+**LTI Key** -- rename the key and copy its **Public Key (PEM)** or **Public
+JWK**. A key still used by a tool cannot be deleted.
+
+![LTI tab -- LTI Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-4-key-detail.png)
+
+**Tools** -- the organization's LMS registrations (Name, Issuer, Client ID)
+with **Create LTI Tool** and an edit action.
+
+![LTI tab -- Tools](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-5-tools.png)
+
+**Create LTI Tool** -- the values the LMS gives you: Name, Issuer, Client
+ID, Auth Login URL, Auth Token URL, Auth Audience (optional), the LMS public
+keys (a **JWKS URL**, recommended, or **Raw JWKS JSON**), a **Signing Key**
+from the Keys sub-tab, and **Deployment IDs** (one per line or
+comma-separated).
+
+![LTI tab -- Create LTI Tool](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-6-tool-create.png)
+
+**Tool Endpoints** -- the four URLs to paste into the LMS, each with copy:
+Redirect URI, Login Initiations Endpoint, Deep Linking Endpoint and JWKS
+Endpoint. They are built from `lmsDomain` (Step 2).
+
+![LTI tab -- Tool Endpoints](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-lti/iblai-vibe-agent-lti-7-endpoints.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
-  Step 2 if not already set up)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
-- Ask the user for their **LMS domain** (e.g. `https://learn.example.org`)
-  for the `lmsDomain` prop — it is deployment-specific and the Tool
-  Endpoints sub-tab builds its fixed URLs from it. Do NOT invent one.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
+  `pnpm why @iblai/web-containers`.
+- A real agent UUID. Ask the user; never invent one.
+- An organization admin signed in: Links, Keys and Tools are admin-only, so
+  an agent's owners and editors get 403 here.
+- The organization's edX LMS host for `lmsDomain`. vibe-starter has it as
+  `config.legacyLmsUrl()`; elsewhere ask the user, never invent one.
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
@@ -54,33 +85,50 @@ template and fill in your values:
 "use client";
 
 import { AgentLtiTab } from "@iblai/iblai-js/web-containers/next";
+import config from "@/lib/iblai/config";
 
 export default function AgentLtiPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentLtiTab lmsDomain="https://learn.example.org" />
+      <AgentLtiTab lmsDomain={config.legacyLmsUrl()} />
     </div>
   );
 }
 ```
 
-`AgentLtiTab` reads `tenantKey`, `mentorId`, `username`, and `enableRBAC`
-from `AgentSettingsProvider`. Only `lmsDomain` needs to be supplied by
-the host since it is deployment-specific.
+The tab reads `tenantKey`, `mentorId` and `username` from
+`AgentSettingsProvider` (each can be passed as a prop instead) and does its
+own fetching and saving. Pass `lmsDomain` -- the edX LMS host (`learn.*`),
+not the API base: without it the Tool Endpoints are bare paths. The JWKS
+endpoint uses the organization's code from the platform info; pass
+`orgShortName` to override it.
 
 ## Step 3: Customize Labels (Optional)
 
+The tab renders with the default agent-facing copy (`AGENT_LTI_TAB_LABELS`,
+localized through the SDK's i18n). Pass a partial `labels` object to change
+any string:
+
 ```tsx
 import { AgentLtiTab } from "@iblai/iblai-js/web-containers/next";
+import config from "@/lib/iblai/config";
 
 <AgentLtiTab
-  lmsDomain="https://learn.example.org"
+  lmsDomain={config.legacyLmsUrl()}
   labels={{
-    header: { title: "LMS Integration" },
-    subTabs: { agentLinks: "Launch Links" },
+    header: { title: "LMS integration" },
+    subTabs: { agentLinks: "Launch link" },
   }}
 />;
 ```
+
+Label groups (`LtiTabLabels`): `header` (`title`, `description`),
+`capability` (the switch and its toasts), `subTabs` (`agentLinks`, `keys`,
+`tools`, `toolEndpoints`), `common` (shared buttons, column headings and form copy),
+`links` (the links table, status badges, refresh and retry, the link
+dialog), `keys` (the keys table, create, detail and delete dialogs),
+`tools` (the tools table and the tool dialog fields), `endpoints` (the four
+endpoint names and descriptions), and `toasts`.
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -95,153 +143,72 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
+| `lmsDomain` | `string` | Recommended | The edX LMS host the Tool Endpoints are built on, e.g. `config.legacyLmsUrl()` |
+| `orgShortName` | `string` | No | Organization code in the JWKS URL. Defaults to the platform info's `org`, then the organization key |
 | `labels` | `DeepPartial<LtiTabLabels>` | No | Override user-visible strings |
-| `lmsDomain` | `string` | Recommended | LMS domain used to build the fixed Tool Endpoints URLs (e.g. `https://learn.example.org`). Deployment-specific — supplied by the host. |
-| `orgShortName` | `string` | No | Org short name for the JWKS endpoint. Defaults to the org resolved from the platform info query, falling back to the organization key. |
-| `tenantKey` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
-| `mentorId` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
-| `username` | `string` | No | Identity override; defaults to `AgentSettingsProvider` |
-| `enableRBAC` | `boolean` | No | Identity override; defaults to `AgentSettingsProvider` |
-
-## What the tab renders
-
-- **Header** — "LTI" title and description.
-- **"LTI launches" capability toggle** — the agent's `is_lti_accessible`
-  setting. Off hides the sub-tabs and shows a hint; on reveals the four
-  sub-tabs below. The switch updates optimistically and rolls back with
-  an error toast on failure.
-
-### Links sub-tab
-
-The LTI link that lets this agent be launched from an LMS. Table shows
-**Name**, **Target Link URI** (with copy button), **Status**, and a
-per-row action. Create/Edit modal collects a single required **Name**,
-displayed when selecting this agent during deep linking content
-selection. The link is created with the agent's stable id
-(`mentor_config.mentor`) and the organization's `platform_key`. Creating a
-link while the LTI toggle is off enables `is_lti_accessible`
-automatically.
-
-**Creation is asynchronous.** The synchronous build provisions an edX
-course and regularly outlives the 20s proxy timeout, so the data layer
-sends `async_create: true` on the POST — the backend answers `202`
-immediately with `{ id, status: "pending" }` and builds the link in
-the background:
-
-- **Status badge** — `Pending` / `Building` (amber, with a spinner),
-  `Ready` (green), `Failed` (red, with a hint tooltip). The Target
-  Link URI shows `—` until the build completes.
-- **Refresh button** — shown while any link is still
-  pending/building; re-fetches the list to pick up the latest status.
-- **Retry** — a failed row swaps its edit action for a **Retry**
-  button, which deletes the failed entity and re-posts the original
-  payload as a fresh async create.
-- **Edit is gated** — a link is only editable once it is `Ready`;
-  in-progress and failed rows can't be renamed.
-
-### Keys sub-tab
-
-Platform-wide RSA keys used to sign LTI messages. Table shows **Name**
-and a truncated **Public Key**, with a per-row actions menu (**Edit** /
-**Delete**):
-
-- **Create LTI Key** — name only; the RSA key pair is generated
-  automatically server-side.
-- **Key detail modal** — rename the key and view/copy the **Public Key
-  (PEM)** and **Public JWK**.
-- **Delete** — confirmation modal. A key can only be deleted while it is
-  not associated with any LTI tool; the backend error detail is surfaced
-  when deletion is blocked.
-
-### Tools sub-tab
-
-Platform-wide integrations with external LTI platforms (values come from
-the LTI platform). Table shows **Name**, **Issuer**, and **Client ID**
-with an edit action. Create/Edit modal collects:
-
-| Field | Notes |
-|---|---|
-| Name | Required. Name of the integration. |
-| Issuer | Required. e.g. `https://platform.example.com` |
-| Client ID | Required. Provided by the LTI platform. |
-| Auth Login URL | Required. OIDC login endpoint. |
-| Auth Token URL | Required. OIDC token endpoint. |
-| Auth Audience | Optional. Usually can be left blank. |
-| Public Keys (JWKS) | Required. **JWKS URL** (recommended) or **Raw JWKS JSON**. |
-| Signing Key | Required. Select an LTI key (create one in the Keys sub-tab first). |
-| Deployment IDs | Provided by the LTI platform. One per line (or comma-separated). |
-
-### Tool Endpoints sub-tab
-
-Read-only endpoints to share with the LTI platform when registering the
-deployment. They are fixed for the organization and built from `lmsDomain`:
-
-| Endpoint | URL |
-|---|---|
-| Redirect URI | `{lmsDomain}/lti/1p3/launch/` |
-| Login Initiations Endpoint | `{lmsDomain}/lti/1p3/login/` |
-| Deep Linking Endpoint | `{lmsDomain}/lti/1p3/deep-linking/launch/` |
-| JWKS Endpoint | `{lmsDomain}/lti/1p3/pub/orgs/{orgShortName}/jwks/` |
-
-Each row has a copy button. All list sub-tabs paginate at 10 rows per
-page.
+| `tenantKey` | `string` | No | Organization key; defaults to `AgentSettingsProvider` |
+| `mentorId` | `string` | No | Agent UUID; defaults to `AgentSettingsProvider` |
+| `username` | `string` | No | Signed-in username; defaults to `AgentSettingsProvider` |
+| `enableRBAC` | `boolean` | No | Accepted for parity; SDK 2.26 gates no LTI control on it |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_LTI_TAB_LABELS` -- the default agent-facing label bundle.
-- `LtiTabLabels` -- type for the full label bundle.
-- `AgentLtiTabProps` -- props type for the tab.
+- `AGENT_LTI_TAB_LABELS` -- the default label bundle.
+- `AgentLtiTabProps`, `LtiTabLabels` -- types.
 
-From `@iblai/iblai-js/data-layer` -- the RTK Query hooks the tab uses, for custom
-UI built on the same endpoints:
+## How it saves
 
-- Links: `useGetLtiMentorsQuery`, `useCreateLtiMentorMutation`
-  (sends `async_create: true`), `useUpdateLtiMentorMutation`,
-  `useDeleteLtiMentorMutation`, `useGetLtiMentorDetailQuery` (poll a
-  single link by id until its `status` is `ready` or `failed`), plus
-  the `LtiAgentLink` / `LtiAgentLinkStatus` types
-- Keys: `useGetLtiKeysQuery`, `useCreateLtiKeyMutation`,
-  `useUpdateLtiKeyMutation`, `useDeleteLtiKeyMutation`
-- Tools: `useGetLtiToolsQuery`, `useCreateLtiToolMutation`,
-  `useUpdateLtiToolMutation`
-- Toggle + endpoints: `useGetMentorSettingsQuery`,
-  `useEditMentorMutation`, `useGetPlatformInfoQuery`
+| Action | Request |
+|---|---|
+| The switch | `PUT /api/ai-mentor/orgs/{org}/users/{username}/mentors/{uuid}/settings/` with `is_lti_accessible` |
+| Create a link | `POST /api/core/lti/1p3/provider/lti-mentors/` with the name, the agent and `platform_key`, plus `async_create: true` -- answers `202` with `{ id, status: "pending" }` |
+| Edit / Retry a link | `PUT …/lti-mentors/{id}/`; Retry deletes the failed link and creates it again |
+| Keys | `GET` / `POST` (name) on `/api/core/lti/1p3/provider/lti-keys/`; `PUT` / `DELETE` on `…/lti-keys/{id}/` |
+| Tools | `GET` / `POST` on `/api/core/lti/1p3/provider/lti-tools/`; `PUT` on `…/lti-tools/{id}/`, with `launch_gate` (the tab sends `{ "allow_all_within_org": true }`) |
+| Tool Endpoints | Read-only: `{lmsDomain}/lti/1p3/launch/`, `…/login/`, `…/deep-linking/launch/`, `…/pub/orgs/{org code}/jwks/` |
+
+Single-item `GET`, `PUT` and `DELETE` exist only on the `{id}/` routes.
+Every call needs `platform_key`: in the query on `GET` and `DELETE`, in the
+body on `POST` and `PUT`. Tools also require `launch_gate`. The tab asks for
+`page_size=10`, but the API forwards only the organization and the agent to
+the LMS, so pages follow the LMS's own defaults.
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetMentorSettingsQuery` / `useEditMentorMutation` | The switch |
+| `useGetLtiMentorsQuery`, `useCreateLtiMentorMutation`, `useUpdateLtiMentorMutation`, `useDeleteLtiMentorMutation`, `useGetLtiMentorDetailQuery` | The agent's link (poll the detail until `ready` or `failed`) |
+| `useGetLtiKeysQuery`, `useCreateLtiKeyMutation`, `useUpdateLtiKeyMutation`, `useDeleteLtiKeyMutation` | Keys |
+| `useGetLtiToolsQuery`, `useCreateLtiToolMutation`, `useUpdateLtiToolMutation` | Tools |
+| `useGetPlatformInfoQuery` | The organization code for the JWKS URL |
+
+All from `@iblai/iblai-js/data-layer`, with the `LtiAgentLink` and
+`LtiAgentLinkStatus` types. There is no `iblai-api-*` REST twin for LTI
+yet; the endpoints above are in the live schema.
 
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/lti /tmp/agent-lti.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an org admin, open `/agents/<uuid>/lti`: the switch
+   and four sub-tabs render, and Tool Endpoints shows full `https://` URLs
+   on your LMS host.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/lti /tmp/agent-lti.png`
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
-- **`lmsDomain` is host-supplied**: Without it the Tool Endpoints
-  sub-tab cannot build its URLs. Ask the user for their LMS domain.
-- **Keys and Tools are platform-wide**: They are shared across the whole
-  organization, not scoped to this agent. Only the Links sub-tab is
-  agent-specific.
-- **Delete order**: A key associated with an LTI tool cannot be deleted
-  -- remove or re-key the tool first.
-- **Async link creation**: `POST lti-mentors/` is sent with
-  `async_create: true` and returns `202` with
-  `{ id, status: "pending" }` — the course build finishes out of band.
-  Custom UI should poll `useGetLtiMentorDetailQuery` (or re-fetch the
-  list) until `status` is `ready`/`failed` instead of awaiting the
-  POST; the SDK tab offers a manual **Refresh** button while a build
-  is in progress and a **Retry** (delete + re-create) on failure.
+- **Keys and Tools are organization-wide**: changing them here changes them
+  for every agent. Only the link is per agent.
+- **Link creation is slow**: it builds an LMS course in the background; wait
+  for Ready before sharing the Target Link URI.
+- **Delete order**: remove or re-key a tool before deleting its key.
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout
+  level (`/iblai-vibe-agent` §1); do not wrap each tab.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
