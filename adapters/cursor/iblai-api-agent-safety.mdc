@@ -28,7 +28,8 @@ twin is [`/iblai-vibe-agent-safety`](https://raw.githubusercontent.com/iblai/vib
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — load moderation/safety prompts, responses, and enable flags.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/?mentor={mentor}&page={n}&page_size={n}&search={q}&target_system={Moderation System|Safety System}&start_time={iso}&end_time={iso}&ordering={field}` — list flagged prompts. Rows carry `id`, `prompt`, `reason` (why it was flagged), `target_system`, `date_created` and `mentor` (the agent's numeric id). `username={u}` filters to the user who was flagged, not the caller. Each row names who was flagged with `username`, `email` and `user_full_name`; the last two are `null` for a row whose user has since been deleted, which a log row is expected to outlive. The `safety-logs/` twin (same path, `…/safety-logs/`) returns the same shape.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/?mentor={mentor}&page={n}&page_size={n}&search={q}&start_time={iso}&end_time={iso}&ordering={field}` — list the user messages the **Moderation Prompt** stopped. It only ever returns `Moderation System` rows. Rows carry `id`, `prompt`, `reason` (why it was flagged), `target_system`, `date_created` and `mentor` (the agent's numeric id). `username={u}` filters to the user who was flagged, not the caller. Each row names who was flagged with `username`, `email` and `user_full_name`; the last two are `null` for a row whose user has since been deleted, which a log row is expected to outlive.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/safety-logs/?mentor={mentor}&page={n}&page_size={n}` — the agent replies the **Safety Prompt** blocked (`Safety System` rows). Same query parameters and row shape as `moderation-logs/`; no SDK data-layer hook reads it yet.
 
 ## Writes
 
@@ -43,7 +44,7 @@ twin is [`/iblai-vibe-agent-safety`](https://raw.githubusercontent.com/iblai/vib
     "safety_response": "string"
   }
   ```
-- **DELETE** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/{id}/` — delete a flagged log (no body). Destructive — confirm with the user first.
+- **DELETE** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/{id}/` — delete a flagged log (no body); `…/safety-logs/{id}/` deletes a safety log. Destructive — confirm with the user first.
 
 ## Example
 
@@ -64,13 +65,12 @@ curl -X PUT \
 - A field left out of the PUT is left unchanged — never resend the whole object.
 - Safety and moderation prompts/responses/flags all persist through the same
   `settings/` endpoint as the rest of the agent's configuration.
-- `target_system` filters flagged prompts by which system tripped — either
-  `Moderation System` or `Safety System`; combine with `search`, `start_time`,
-  and `end_time` to narrow an audit.
+- Each system has its own log: `moderation-logs/` for Moderation System
+  catches, `safety-logs/` for Safety System catches. Narrow either with
+  `search`, `start_time`, and `end_time`.
 - Deleting a moderation log only removes the audit record — it does not change
   the agent's safety configuration.
 - The moderation check runs on the user's message before the agent sees it;
   the safety check runs on the agent's reply. A message caught by moderation
-  is logged here and answered with `moderation_response`.
-- Verified against the live schema (4.411.0) and a live flagged prompt
-  (raised from chat, read, deleted) on 2026-10-02.
+  is answered with `moderation_response`, and logged in `moderation-logs/`
+  while the agent's `save_flagged_prompts` is on (the default).
