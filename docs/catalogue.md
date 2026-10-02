@@ -113,7 +113,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
 | [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions, entity-type selection, and AI-response filtering) … |
 | [`/iblai-vibe-agent-prompt`](../skills/agents/iblai-vibe-agent-prompt/SKILL.md) | 🖥️ ui | Add the agent Prompts tab (system prompts and suggested prompts) to your Next.js app |
-| [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app |
+| [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (the moderation check on user messages, the safety check on agent replies, the reply each one sends, and a host-… |
 | [`/iblai-vibe-agent-sandbox`](../skills/agents/iblai-vibe-agent-sandbox/SKILL.md) | 🖥️ ui | Add the agent Sandbox tab (sandbox type selection |
 | [`/iblai-vibe-agent-search`](../skills/agents/iblai-vibe-agent-search/SKILL.md) | 🖥️ ui | Add the agent search/browse page (starred, featured, custom, and default agents) to your Next.js app |
 | [`/iblai-vibe-agent-skills`](../skills/agents/iblai-vibe-agent-skills/SKILL.md) | 🖥️ ui | Add the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill… |
