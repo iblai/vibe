@@ -1,0 +1,128 @@
+---
+description: "Read and write an ibl.ai agent's voice settings via the platform API — the text-to-speech voice source and voice (browser, OpenAI, Google, ibl.ai), voice instructions, dictation language and transcription hints, the voice-call and dictation switches, and the agent's call configuration (call style, language, AI provider, call voice, screen sharing and its two prompts). Also lists the voice catalog. Use when configuring how an agent sounds, how voice calls and screen sharing behave, or what voices exist."
+globs:
+alwaysApply: false
+---
+
+# iblai-api-agent-voice
+
+> **With a screen:** `/iblai-vibe-agent-voice` (Voice tab) and
+> `/iblai-vibe-agent-screenshare` (Screen tab) mount the same data — this
+> skill is their headless twin.
+
+Configure how an agent speaks and listens. **Scope: per agent** — every field
+here applies to every user of the agent. Two resources hold it:
+
+- **Agent settings** (`…/mentors/{mentor}/settings/`): the chat voice
+  (`voice_provider` + `openai_voice` / `google_voice` / `iblai_voice`),
+  `voice_instructions`, `transcription_language`,
+  `transcription_instructions`, and the `show_voice_call` /
+  `show_voice_record` switches.
+- **Call configuration** (`…/call-configurations/`, one row per agent): call
+  style, language, AI provider, call voice, and screen sharing
+  (`enable_video` + two prompts).
+
+Endpoints verified against the live schema
+(`https://api.iblai.app/dm/api/docs/schema/`, version 4.411.0) on 2026-10-02.
+
+## Auth & conventions
+
+- **Base URL:** `https://api.iblai.app`
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
+- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
+  `{mentor}` = the agent's unique id.
+- **Prefix:** every path below starts with
+  `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}` (written `…`).
+- Call configurations are admin-only (organization admins).
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
+  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+
+## Reads
+
+- **GET** `…/mentors/{mentor}/settings/` — current voice fields. The response
+  also embeds the agent's `call_configuration` object (or `null`). Voice
+  fields come back as voice **names** (e.g. `"alloy"`), not ids.
+- **GET** `…/voices/` — the voice catalog. Query: `provider`
+  (`browser | openai | google | iblai | elevenlabs`), `search`, `page`,
+  `page_size`, `ordering`. Each voice: `{ id, name, provider, language,
+  description, audio_url }` (`audio_url` is a playable sample).
+- **GET** `…/voices/{id}/` — one voice.
+- **GET** `…/call-configurations/?mentor={mentor}` — the agent's call
+  configuration (an array; use the first item). Also filters by `mode`,
+  `search`, `ordering`.
+- **GET** `…/call-configurations/{id}/` — one call configuration.
+
+## Writes
+
+- **PUT** `…/mentors/{mentor}/settings/` — voice fields
+  (`multipart/form-data`; send only the changed keys, as in
+  `/iblai-api-agent-setting`):
+  ```json
+  {
+    "voice_provider": "browser | openai | google | iblai",
+    "openai_voice": "number (voice id from /voices/?provider=openai)",
+    "google_voice": "number (voice id)",
+    "iblai_voice": "number (voice id; empty = the organization's default)",
+    "voice_instructions": "string (tone, pace, emotion; \"\" clears)",
+    "transcription_language": "string (ISO 639-1, e.g. \"es\"; \"\" = auto-detect)",
+    "transcription_instructions": "string (jargon, names; \"\" clears)",
+    "show_voice_call": "boolean (voice calls on/off)",
+    "show_voice_record": "boolean (dictation microphone on/off)"
+  }
+  ```
+  `voice_provider` picks which `*_voice` field applies; `browser` uses the
+  listener's device and no voice id. `voice_instructions` reaches OpenAI as
+  speech `instructions` and Google as a synthesis `prompt`; other providers
+  ignore it.
+- **POST** `…/call-configurations/` — create the agent's call configuration
+  (only when the GET returns none):
+  ```json
+  {
+    "mentor": "uuid (required)",
+    "mode": "realtime | inference",
+    "language": "string (e.g. \"en\", max 10)",
+    "llm_provider": "openai | google | azure_openai | iblai",
+    "tts_provider": "openai | google | elevenlabs | azure_openai",
+    "stt_provider": "openai | google | deepgram | cartesia | azure_openai",
+    "openai_voice_id": "number | null",
+    "google_voice_id": "number | null",
+    "use_function_calling_for_rag": "boolean",
+    "enable_video": "boolean (screen sharing; realtime mode only)",
+    "screensharing_system_prompt": "string",
+    "screensharing_proactive_prompt": "string"
+  }
+  ```
+- **PATCH** `…/call-configurations/{id}/` — change any of the fields above
+  (send only the changed keys).
+- **PUT** `…/call-configurations/{id}/` — replace the row (send `mentor` too).
+
+There is no DELETE for call configurations.
+
+## Example
+
+Turn screen sharing on and set the opener for an agent whose call
+configuration already exists:
+
+```bash
+API="https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME"
+ID=$(curl -s "$API/call-configurations/?mentor=$MENTOR" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" | jq '.[0].id')
+curl -X PATCH "$API/call-configurations/$ID/" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"enable_video": true, "screensharing_proactive_prompt": "I can see your screen now. What would you like help with first?"}'
+```
+
+## Notes
+
+- **Names out, ids in:** settings return voice names; writes take voice ids.
+  Resolve a name with `GET …/voices/?provider=<p>&search=<name>`.
+- **Absent = unchanged:** leaving a field out of the settings PUT keeps it.
+  Clear `voice_instructions` / `transcription_instructions` with `""`, never
+  `null`.
+- **Screen sharing needs a live call:** `enable_video` only works in
+  `realtime` mode, and only when `show_voice_call` is on.
+- **Default screen prompt:** a new call configuration starts with the
+  platform's screen-guidance text in `screensharing_system_prompt`.
+- **Pricier OpenAI speech:** non-empty `voice_instructions` switches OpenAI
+  synthesis to an instruction-capable model that costs more.
