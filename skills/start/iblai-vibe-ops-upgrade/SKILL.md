@@ -71,6 +71,13 @@ if [ -f package.json ] && [ -n "$OLD_SDK" ]; then
 fi
 ```
 
+Projects scaffolded from an older vibe-starter pin `@iblai/web-containers`
+to `1.16.0` under `overrides:` in `pnpm-workspace.yaml`. The update above
+leaves that pin in place, so the LLM, Evals, and analytics mounts in newer
+skills fail to compile. If `pnpm why @iblai/web-containers` shows 1.16.0,
+delete the `@iblai/web-containers` override in `pnpm-workspace.yaml` (and the
+`overrides:` key if it is now empty), then run `pnpm install`.
+
 Run a quick sanity check afterward:
 
 ```bash
