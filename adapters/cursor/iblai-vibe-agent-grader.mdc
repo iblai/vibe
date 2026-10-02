@@ -8,7 +8,8 @@ alwaysApply: false
 
 Add the agent **Grader tab** -- let the agent score work against a rubric you
 define. **Scope: per agent.** A **Grading** switch attaches or detaches the
-Grading tool on the agent; with it on, three sub-tabs open: **Grading Setup**
+Grading tool on the agent; with it on, three sub-tabs open (off, they still
+render, grayed out and inert): **Grading Setup**
 (what gets graded, how much feedback is shared, the grading instructions),
 **Rubric** (criteria and points), and **Results** (every grade the agent
 issued, with overrides pushed back to the LMS). This is one tab in the
@@ -17,8 +18,9 @@ agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 
 **Grading Setup** -- **What Gets Graded** (A Submission / The Conversation),
 **Feedback Shared with the Person** (Overall only / per Criterion / Overall +
-per Criterion), and the required **Grading Instructions**. The first save
-creates the setup; later saves update it. An amber warning shows while
+per Criterion), and the required **Grading Instructions**. Turning the
+Grading tool on creates the setup server-side and the tab refetches it, so
+**Save** updates it. An amber warning shows while
 grading is on but the setup or the rubric is still missing -- grading only
 runs when all three are in place.
 
@@ -26,8 +28,8 @@ runs when all three are in place.
 
 **Rubric** -- one row per criterion (Name, Criteria, Points) with an
 **Edit** / **Delete** menu. The footer shows the total; the overall score is
-points earned out of that total. **Add Criterion** stays disabled until the
-setup is saved.
+points earned out of that total. **Add Criterion** is enabled as soon as the
+setup exists (right after the Grading switch is turned on).
 
 ![Grader tab -- Rubric](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-grader/iblai-vibe-agent-grader-2-rubric.png)
 
@@ -43,7 +45,7 @@ deleted while grading is set up; add another first.
 
 **Results** -- filter by user (the History tab's user list), status
 (Pending / Published / Failed) and date range; 10 rows per page with
-Learner, Score (percent), Status, Override and Graded. Each row has an
+columns **Learner**, **Score** (percent), **Status**, **Override** and **Graded**. Each row has an
 **Override** button that opens **Override Grade**: the AI score, **Override
 Points** (0 up to the rubric total, capped at 100) and optional **Override
 Feedback**; **Clear** restores the AI score. (The shot shows the empty
@@ -92,17 +94,18 @@ The tab reads `tenantKey`, `mentorId`, `username`, `enableRBAC` and
 `rbacPermissions` from `AgentSettingsProvider`; each can be passed as a prop
 instead. With `enableRBAC={false}` (the `/iblai-vibe-agent` layout) every
 control shows and the server's 403s are the only gate -- no grants need
-loading. A 403 on the setup or rubric replaces the tab with "No access to
-grading settings".
+loading. A 403 on the setup or rubric replaces the tab body (the header stays)
+with "No Access to Grading Settings".
 
 With `enableRBAC` on, each action is checked as `/mentors/<agent db id>/#<action>`:
 `read_grader_config`, `create_grader_config`, `write_grader_config`,
 `view_grader_criteria`, `create_grader_criteria`, `write_grader_criteria`,
 `delete_grader_criteria`, `view_grade_results`, `override_grade_results`.
-Load them with `useGetRbacPermissionsMutation` for the resource
-`/mentors/<agent db id>/` (the pattern is in `/iblai-vibe-agent-disclaimer`
-Step 2). If the grants hold no entry for the agent, everything stays
-visible.
+Load them with `useGetRbacPermissionsMutation` (`requestBody: { platform_key,
+resources: ["/mentors/<agent db id>/"] }`; the db id is `mentor_id` on the
+agent's settings) and pass the result as `rbacPermissions`, on the provider or
+as the tab's prop. The tab reads only that, never the store's `state.rbac`.
+If the grants hold no entry for the agent, everything stays visible.
 
 ## Step 3: Customize Labels (Optional)
 
@@ -169,18 +172,21 @@ the hooks under Platform data, plus the types `MentorGraderConfiguration`,
 
 ## How it saves
 
-Paths are under `/api/ai-mentor/orgs/{org}/`.
+Paths are under `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/`. The
+grader paths use the canonical `agents/` prefix; the tab calls the
+`mentors/` alias for the setup and rubric, and both are served.
 
 | Action | Request |
 |---|---|
-| **Grading** switch | `PUT mentors/{uuid}/settings/` with `tool_slugs` (the Grading tool added or removed) and `can_use_tools` |
-| **Save** the setup | First time `POST mentors/{uuid}/grader-config/`, then `PATCH` it, with `grading_mode`, `feedback_mode`, `grader_instructions` |
-| Add / edit / delete a criterion | `POST mentors/{uuid}/grader-config/criteria/`; `PATCH` / `DELETE …/criteria/{id}/` (`name`, `criteria`, `points`) |
+| **Grading** switch | `PUT users/{username}/mentors/{uuid}/settings/` with `tool_slugs` (the Grading tool added or removed) and `can_use_tools`; turning it on creates the setup server-side |
+| **Save** the setup | `PATCH agents/{uuid}/grader-config/` with `grading_mode`, `feedback_mode`, `grader_instructions` (`POST` only if no setup exists yet; a `POST` when one exists returns 400 "already exists") |
+| Add / edit / delete a criterion | `POST agents/{uuid}/grader-config/criteria/`; `PATCH` / `DELETE …/criteria/{id}/` (`name`, `criteria`, `points`) |
 | Results | `GET agents/{uuid}/grader-results/?email=&status=&graded_at_after=&graded_at_before=&page=&page_size=10` |
 | **Override** / **Clear** | `PATCH agents/{uuid}/grader-results/{id}/` with `override_points` (or `null` to clear) and `override_feedback` |
 
-A missing setup (404) is the normal first-run state. Turning grading off
-keeps the setup and rubric; there is no way to delete the setup.
+A custom UI should turn the Grading tool on first, then refetch the setup and
+`PATCH` it. Turning grading off keeps the setup and rubric; there is no way
+to delete the setup.
 
 ## Platform data
 
@@ -212,6 +218,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   same list as the Tools tab (`/iblai-vibe-agent-tool`).
 - **Overrides reach the LMS**: an override is pushed back to the LMS the
   grade came from, as points ÷ rubric total.
+- **Redux store**: the grading endpoints ship inside `mentorReducer` /
+  `mentorMiddleware`, which vibe-starter's store already includes.
 - **Setup is permanent**: it survives turning grading off and cannot be
   deleted. Try it on a test agent.
 - **Shared provider**: mount `AgentSettingsProvider` once at the layout
