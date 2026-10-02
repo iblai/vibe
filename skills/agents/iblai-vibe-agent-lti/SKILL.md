@@ -70,6 +70,8 @@ Endpoint. They are built from `lmsDomain` (Step 2).
 - `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
+- An organization admin signed in: Links, Keys and Tools are admin-only, so
+  an agent's owners and editors get 403 here.
 - The organization's edX LMS host for `lmsDomain`. vibe-starter has it as
   `config.legacyLmsUrl()`; elsewhere ask the user, never invent one.
 
@@ -127,7 +129,7 @@ import config from "@/lib/iblai/config";
 
 Label groups (`LtiTabLabels`): `header` (`title`, `description`),
 `capability` (the switch and its toasts), `subTabs` (`agentLinks`, `keys`,
-`tools`, `toolEndpoints`), `common` (shared buttons and pagination copy),
+`tools`, `toolEndpoints`), `common` (shared buttons, column headings and form copy),
 `links` (the links table, status badges, refresh and retry, the link
 dialog), `keys` (the keys table, create, detail and delete dialogs),
 `tools` (the tools table and the tool dialog fields), `endpoints` (the four
@@ -166,13 +168,17 @@ From `@iblai/iblai-js/web-containers/next`:
 | Action | Request |
 |---|---|
 | The switch | `PUT /api/ai-mentor/orgs/{org}/users/{username}/mentors/{uuid}/settings/` with `is_lti_accessible` |
-| Create a link | `POST /api/core/lti/1p3/provider/lti-mentors/` with the name, the agent and `platform_key`, plus `async_create: true` -- answers `202` with `{ id, status: "pending" }`; turns the switch on if it was off |
+| Create a link | `POST /api/core/lti/1p3/provider/lti-mentors/` with the name, the agent and `platform_key`, plus `async_create: true` -- answers `202` with `{ id, status: "pending" }` |
 | Edit / Retry a link | `PUT …/lti-mentors/{id}/`; Retry deletes the failed link and creates it again |
-| Keys | `GET`, `POST` (name), `PUT`, `DELETE` on `/api/core/lti/1p3/provider/lti-keys/` |
-| Tools | `GET`, `POST`, `PUT` on `/api/core/lti/1p3/provider/lti-tools/` |
+| Keys | `GET` / `POST` (name) on `/api/core/lti/1p3/provider/lti-keys/`; `PUT` / `DELETE` on `…/lti-keys/{id}/` |
+| Tools | `GET` / `POST` on `/api/core/lti/1p3/provider/lti-tools/`; `PUT` on `…/lti-tools/{id}/`, with `launch_gate` (the tab sends `{ "allow_all_within_org": true }`) |
 | Tool Endpoints | Read-only: `{lmsDomain}/lti/1p3/launch/`, `…/login/`, `…/deep-linking/launch/`, `…/pub/orgs/{org code}/jwks/` |
 
-Every list pages at 10 rows.
+Single-item `GET`, `PUT` and `DELETE` exist only on the `{id}/` routes.
+Every call needs `platform_key`: in the query on `GET` and `DELETE`, in the
+body on `POST` and `PUT`. Tools also require `launch_gate`. The tab asks for
+`page_size=10`, but the API forwards only the organization and the agent to
+the LMS, so pages follow the LMS's own defaults.
 
 ## Platform data
 
