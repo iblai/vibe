@@ -40,16 +40,11 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 
 > **On vibe-starter?** The dashboard already lives at `/admin/analytics`
 > (one `AnalyticsPage` switch in `components/admin/analytics-page.tsx`;
-> `?agent=<uuid>` scopes it). Two things to fix:
->
-> 1. Its `pnpm-workspace.yaml` pins `@iblai/web-containers` to `1.16.0`
->    (an old workaround). That pin predates the revamp, so delete the
->    `overrides:` entry (data-layer ≥ 1.14.1 ships the exports it worked
->    around), then run `pnpm install`.
-> 2. It only has Overview, Users, Topics, Transcripts, Financial and Reports
->    routes, but the SDK strip also lists Courses, Programs, Audit and
->    Memory, so those tabs 404. Add the `memory` and `audit` routes below,
->    and pass `excludeTabs={["courses", "programs"]}` to its layout.
+> `?agent=<uuid>` scopes it). One thing to fix: it only has Overview, Users,
+> Topics, Transcripts, Financial and Reports routes, but the SDK strip also
+> lists Courses, Programs, Audit and Memory, so those tabs 404. Add the
+> `memory` and `audit` routes below, and pass
+> `excludeTabs={["courses", "programs"]}` to its layout.
 >
 > Read `/analytics` as `/admin/analytics` throughout.
 
