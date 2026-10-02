@@ -1,13 +1,14 @@
 # iblai-api-agent-disclaimer
 
-> Manage an ibl.ai agent's disclaimers via the platform API — the Advisory text (saved through the agent settings endpoint) and the User Agreement (create/update/activate). Use when adding legal or advisory notices users must see or accept.
+> Manage an ibl.ai agent's disclaimers via the platform API — the Advisory text (saved through the agent settings endpoint), the User Agreement (create/update/activate), and the record of who accepted it. Use when adding legal or advisory notices users must see or accept, or auditing acceptances.
 
 # iblai-api-agent-disclaimer
 
 Manage an agent's disclaimers via the API: the Advisory text (a single field on
-the agent's `settings/`) and the User Agreement (its own create / update /
-activate lifecycle). Use when adding legal or advisory notices users must see or
-accept.
+the agent's `settings/`), the User Agreement (its own create / update /
+activate lifecycle), and the agreements users record when they accept it. Use
+when adding legal or advisory notices users must see or accept. The UI twin is
+[`/iblai-vibe-agent-disclaimer`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-disclaimer/SKILL.md).
 
 ## Auth & conventions
 
@@ -21,7 +22,8 @@ accept.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — Advisory text lives in the `disclaimer` field.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/disclaimers/?mentor_id={mentor}&scope=mentor` — User Agreement list (read `results[0]` for the active agreement).
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/disclaimers/?mentor_id={mentor}&scope=mentor` — User Agreement list (read `results[0]` for the agent's agreement). Rows carry `id`, `content`, `title`, `active`, `scope`, `mentors[]`, `has_agreed` (whether the caller accepted it), `created_at`, `updated_at`. Other filters: `active`, `search`, `ordering`, `page`, `page_size`.
+- **GET** `…/users/{username}/disclaimer-agreements/?disclaimer={id}&mentor_id={mentor}` — who accepted the agreement: `id`, `disclaimer`, `agreed_at`, `user_id`, `user_email`, `user_full_name`. Filter one user with `username`; paginate with `page` / `page_size`. Admins see every user; others see only their own.
 
 ## Writes
 
@@ -53,6 +55,15 @@ accept.
   }
   ```
 
+- **POST** `…/users/{username}/disclaimers/{id}/add-mentor/` /
+  `…/remove-mentor/` — attach or detach one more agent (body `{"mentor_id": "uuid"}`,
+  admins only). Removing the last agent fails with 400.
+- **POST** `…/users/{username}/disclaimer-agreements/` — accept an agreement as
+  the caller (`{"disclaimer": id}`). **DELETE** `…/disclaimer-agreements/{id}/`
+  withdraws one (admins may delete any user's).
+
+There is no DELETE for a User Agreement: switch it off with `active: false`.
+
 ## Example
 
 Create and activate a User Agreement for an agent:
@@ -78,3 +89,5 @@ curl -X POST \
   per agent via `active: true`, and deactivate others with a PATCH `active: false`.
 - The disclaimers list endpoint is filtered with `mentor_id` + `scope=mentor`; the
   current agreement is the first item in `results`.
+- A POST without `active` creates the agreement already active.
+- Verified against the live schema (4.411.0) and a live create on 2026-10-02.

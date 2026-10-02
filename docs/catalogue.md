@@ -103,7 +103,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-chat`](../skills/agents/iblai-vibe-agent-chat/SKILL.md) | 🖥️ ui | Add the in-process Chat SDK component (full agent surface |
 | [`/iblai-vibe-agent-chat-sidebar`](../skills/agents/iblai-vibe-agent-chat-sidebar/SKILL.md) | 🖥️ ui | Wrap the Chat surface with the SDK's AppSidebar |
 | [`/iblai-vibe-agent-dataset`](../skills/agents/iblai-vibe-agent-dataset/SKILL.md) | 🖥️ ui | Add the agent Datasets tab (searchable dataset table with upload) to your Next.js app |
-| [`/iblai-vibe-agent-disclaimer`](../skills/agents/iblai-vibe-agent-disclaimer/SKILL.md) | 🖥️ ui | Add the agent Disclaimers tab (user agreement and advisory) to your Next.js app |
+| [`/iblai-vibe-agent-disclaimer`](../skills/agents/iblai-vibe-agent-disclaimer/SKILL.md) | 🖥️ ui | Add the agent Disclaimers tab (a User Agreement users must accept before chatting, an Advisory note shown in the chat, and the list of wh… |
 | [`/iblai-vibe-agent-embed`](../skills/agents/iblai-vibe-agent-embed/SKILL.md) | 🖥️ ui | Add the agent Embed tab (embed code, custom styling, shareable links) to your Next.js app |
 | [`/iblai-vibe-agent-evals`](../skills/agents/iblai-vibe-agent-evals/SKILL.md) | 🖥️ ui | Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to you… |
 | [`/iblai-vibe-agent-grader`](../skills/agents/iblai-vibe-agent-grader/SKILL.md) | 🖥️ ui | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-sync… |
