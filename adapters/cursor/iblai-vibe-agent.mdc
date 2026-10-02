@@ -1,5 +1,5 @@
 ---
-description: "Family index for configuring one ibl.ai agent from your app — the AgentSettingsProvider layout every tab needs, the suggested route layout, and the map of all 24 agent settings tabs (settings, prompts, LLM, datasets, memory, tools, access, API, billing, embed, evals, grader, history, LTI, MCP, privacy, safety, sandbox, skills, support, tasks, voice, audit, disclaimers) with the skill that mounts each. Use when the user wants to edit, configure, or manage an agent, or asks which agent tab does what. For creating an agent see /iblai-vibe-agent-create; for chatting see /iblai-vibe-agent-chat; for browsing agents see /iblai-vibe-agent-search."
+description: "Family index for configuring one ibl.ai agent from your app — the AgentSettingsProvider layout every tab needs, the suggested route layout, and the map of all 25 agent settings tabs (settings, prompts, LLM, datasets, memory, tools, access, analytics, API, billing, embed, evals, grader, history, LTI, MCP, privacy, safety, sandbox, skills, support, tasks, voice, audit, disclaimers) with the skill that mounts each. Use when the user wants to edit, configure, or manage an agent, or asks which agent tab does what. For creating an agent see /iblai-vibe-agent-create; for chatting see /iblai-vibe-agent-chat; for browsing agents see /iblai-vibe-agent-search."
 globs:
 alwaysApply: false
 ---
@@ -73,6 +73,7 @@ Start with the **core six** (bold). Add the others only when the user asks.
 | **Memory** | enable memory; manage memories and categories | `/iblai-vibe-agent-memory` (guide: `/iblai-vibe-memory-guide`) | [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md) |
 | **Tools** | enable/disable the agent's tools | `/iblai-vibe-agent-tool` | [agent-tool](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-tool/SKILL.md) |
 | Access | RBAC sharing: editor / chat / analytics roles for users and groups | `/iblai-vibe-agent-access` | [agent-access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-access/SKILL.md) |
+| Analytics | report cards (overview, users, topics, transcripts, costs, …) that open your analytics pages for this agent | `/iblai-vibe-agent-analytics` | [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md) |
 | API | API keys for this agent | `/iblai-vibe-agent-api` | [agent-embed](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-embed/SKILL.md) |
 | Billing | spend cap for the agent and per user | `/iblai-vibe-agent-billing` | [spend-caps](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-api-spend-caps/SKILL.md) |
 | Embed | embed code, styling, shareable links | `/iblai-vibe-agent-embed` | [agent-embed](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-embed/SKILL.md) |
@@ -100,7 +101,7 @@ Every tab skill has screenshots of the surface it mounts — open the skill befo
 | Create an agent from the app | `/iblai-vibe-agent-create` |
 | Chat with an agent | `/iblai-vibe-agent-chat` (+ `/iblai-vibe-agent-chat-sidebar`) |
 | Browse / star agents | `/iblai-vibe-agent-search` |
-| Agent-scoped analytics | `/iblai-vibe-analytics` with `mentor_unique_id` |
+| Agent-scoped analytics dashboards (the pages the Analytics tab opens) | `/iblai-vibe-analytics` ("One agent instead of the org") |
 
 ## Verify
 

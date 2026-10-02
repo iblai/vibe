@@ -23,14 +23,14 @@ the platform team considers most important — they get the deepest skills.
 | What | Data | SDK | `ui` skill | `api` skill |
 |---|---|---|---|---|
 | Create | from a template → `unique_id` | server route (`/api/admin/agents` in vibe-starter) | `/iblai-vibe-agent-create` ★ | `/iblai-api-agent-create` |
-| **Settings** | name, description, image, category, visibility (`viewable_by_tenant_admins` / `_students` / `viewable_by_anyone`), capability flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, forkable); fork; delete | `AgentSettingsProvider` + `AgentSettingsTab`; `useGetMentorSettingsQuery`, `useEditMentorMutation` (one multipart PUT of changed fields) | `/iblai-vibe-agent-setting` ★ (+ 23 tabs via `/iblai-vibe-agent`) | `/iblai-api-agent-setting` ★ |
+| **Settings** | name, description, image, category, visibility (`viewable_by_tenant_admins` / `_students` / `viewable_by_anyone`), capability flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, forkable); fork; delete | `AgentSettingsProvider` + `AgentSettingsTab`; `useGetMentorSettingsQuery`, `useEditMentorMutation` (one multipart PUT of changed fields) | `/iblai-vibe-agent-setting` ★ (+ 24 tabs via `/iblai-vibe-agent`) | `/iblai-api-agent-setting` ★ |
 | Behavior | prompts, LLM, tools, datasets (RAG), MCP connectors, skills, sandbox, voice | the matching `Agent*Tab` | `/iblai-vibe-agent-{prompt,llm,tool,dataset,mcp,skills,sandbox,voice}` | `/iblai-api-agent-{prompt,llm,tool,dataset,mcp,skill,sandbox}` |
 | Guardrails | safety, privacy (PII), disclaimers | `AgentSafetyTab`, `AgentPrivacyTab`, `AgentDisclaimerTab` | `/iblai-vibe-agent-{safety,privacy,disclaimer}` | `/iblai-api-agent-{safety,privacy,disclaimer}` |
 | **Memory** | per-user × agent memories by category (extraction prompts); shared agent knowledge | `AgentMemoryTab`; memory hooks | `/iblai-vibe-agent-memory` ★ | `/iblai-api-agent-memory` ★ |
 | Access and reach | editor / chat / analytics roles; embed; API keys; LTI | `AgentAccessTab`, `AgentEmbedTab`, `AgentApiTab`, `AgentLtiTab` | `/iblai-vibe-agent-{access,embed,api,lti}` | `/iblai-api-agent-{access,embed}`, `/iblai-api-token` |
 | Conversations | chat, sessions, history, support tickets | `Chat`, `AgentSearch`, history and support tabs | `/iblai-vibe-agent-chat`, `-search`, `-history`, `-support` | `/iblai-api-agent-session`, `-chat` (MCP), `-history`, `-support`, `/iblai-api-inference` |
 | Quality and cost | evals, grader, audit log, spend cap | `AgentEvalsTab`, `AgentGraderTab`, `AgentAuditTab`, `AgentBillingTab` | `/iblai-vibe-agent-{evals,grader,audit,billing}` | `/iblai-api-agent-{eval,audit}`, `/iblai-api-spend-caps` |
-| Analytics about an agent | usage, topics, transcripts, costs (`mentor_unique_id`) | `AnalyticsLayout` tabs with `mentorId` | `/iblai-vibe-analytics` ★ | `/iblai-api-analytics` ★ |
+| Analytics about an agent | usage, topics, transcripts, costs (`mentor_unique_id`) | `AnalyticsLayout` tabs with `mentorId`; `AgentAnalyticsTab` (hub) | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-analytics` | `/iblai-api-analytics` ★ |
 
 ## Organizations
 

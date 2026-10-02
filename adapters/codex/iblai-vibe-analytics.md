@@ -364,13 +364,14 @@ for custom transcript UI:
 ## One agent instead of the org
 
 For analytics on a single agent (e.g.
-`app/(app)/agents/[mentorId]/analytics/`), pass the route's `mentorId` to
+`app/(app)/agents/[mentorId]/dashboards/`; keep `…/analytics/` free for the
+agent Analytics tab's hub), pass the route's `mentorId` to
 every tab and **omit `showPicker`**: the page already knows its agent. Also
 drop the groups filter, and hide Audit unless the viewer holds
 `/mentors/{mentorDbId}/#view_audit_logs` (`/iblai-vibe-rbac`):
 
 ```tsx
-const basePath = `/agents/${mentorId}/analytics`;
+const basePath = `/agents/${mentorId}/dashboards`;
 
 <AnalyticsLayout
   currentPath={pathname}
@@ -382,7 +383,9 @@ const basePath = `/agents/${mentorId}/analytics`;
 </AnalyticsLayout>
 ```
 
-The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`.
+The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`. To
+link an agent's settings to these pages, add the agent **Analytics** tab
+(`AgentAnalyticsTab`, a hub of report cards): `/iblai-vibe-agent-analytics`.
 
 ## Verify
 

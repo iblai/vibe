@@ -133,13 +133,13 @@ links its headless twin, the `iblai-api-*` skill for the same data).
 | 1 | Sign-in, session, org resolution | `AuthProvider`, `TenantProvider`, `SsoLogin`, `useUserData`, `useIsAdmin` | `/iblai-vibe-auth` (starter) |
 | 2 | Home that chats with the app's agent | `Chat` (`/next`), `AppSidebar`, `NavBar` | `/iblai-vibe-agent-chat` (starter `/`) |
 | 3 | Find / pick agents | `AgentSearch` | `/iblai-vibe-agent-search` (starter `/agents`) |
-| 4 ★ | Create + configure an agent | server route; `AgentSettingsProvider` + `AgentSettingsTab` (+23 tabs) | `/iblai-vibe-agent-create`, `/iblai-vibe-agent-setting`, `/iblai-vibe-agent` |
+| 4 ★ | Create + configure an agent | server route; `AgentSettingsProvider` + `AgentSettingsTab` (+24 tabs) | `/iblai-vibe-agent-create`, `/iblai-vibe-agent-setting`, `/iblai-vibe-agent` |
 | 5 ★ | The user's own profile | `Profile`, `UserProfileDropdown`, `useGetUserMetadataQuery` | `/iblai-vibe-profile` (starter) |
 | 6 ★ | Custom per-user data | `useGetUserPlatformMetadataQuery`, `useUpdateUserPlatformMetadataMutation` | `/iblai-vibe-user-metadata` (starter) |
 | 7 ★ | Org settings + custom org data | `Account` → `OrganizationTab`; `useGetTenantMetadataQuery`, `useUpdateTenantMetadataMutation` | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` (starter) |
 | 8 | Users vs admins: directory, invites, roles, User/Admin mode | `Admin`, `UsersTab`, `RolesTab`, `PoliciesTab`, `InviteUserDialog`, `checkRbacPermission` | `/iblai-vibe-admin` (starter), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |
 | 9 ★ | Memory: user-global, per-agent, agent knowledge | `useGetGlobalMemoriesQuery`, `useGetUserMemorySettingsQuery`, `AgentMemoryTab`, `Account targetTab="memory"` | `/iblai-vibe-memory-guide`, `/iblai-vibe-memory` (starter), `/iblai-vibe-agent-memory` |
-| 10 ★ | Analytics, transcripts, costs, audit, reports | `AnalyticsLayout` + tabs, `AgentAnalyticsTab` | `/iblai-vibe-analytics` (starter), `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
+| 10 ★ | Analytics, transcripts, costs, audit, reports | `AnalyticsLayout` + tabs, `AgentAnalyticsTab` | `/iblai-vibe-analytics` (starter), `/iblai-vibe-agent-analytics`, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | 11 | Notifications | `NotificationDropdown`, `NotificationDisplay` | `/iblai-vibe-notification` (starter) |
 | 12 | Money: credits, spend caps, your own pricing | `CreditBalance`, `BillingTab`, spend-cap hooks; paywall assets | `/iblai-vibe-pricing`, `/iblai-vibe-credit`, `/iblai-vibe-billing`, `/iblai-vibe-agent-billing`, `/iblai-vibe-monetization-app-paywall` |
 | + | Ship everywhere | — | `/iblai-vibe-ops-deploy`, `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
@@ -204,7 +204,8 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   `AnalyticsLayout`, `AnalyticsOverview`, `AnalyticsUsersStats`,
   `AnalyticsFinancialStats`, `AnalyticsTranscriptsStats`,
   `AnalyticsReports`, `AnalyticsAuditLogStats`, `AgentAnalyticsTab`.
-  Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`. The live
+  Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-analytics`,
+  `/iblai-vibe-agent-audit`. The live
   schema is the contract: `https://api.iblai.app/dm/api/docs/schema/`.
   REST: [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
 - **Profile** — the signed-in user’s own record: account fields (name, bio,
@@ -271,7 +272,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-agent-search` | Agent browser (starred, featured, custom, all) |
 | `/iblai-vibe-agent-create` ★ | Create an agent from the app (server route + setup screen) |
 | `/iblai-vibe-agent-setting` ★ | Agent identity, visibility, copy, delete |
-| `/iblai-vibe-agent` | Family index for all 24 agent settings tabs |
+| `/iblai-vibe-agent` | Family index for all 25 agent settings tabs |
 | `/iblai-vibe-profile` ★ | Profile dropdown + settings page |
 | `/iblai-vibe-user-metadata` ★ | Custom per-user data on the platform |
 | `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory, Virtual Machine) |
@@ -296,7 +297,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-api` | REST without a component: server route + `Api-Token`; map to the `iblai-api-*` twin |
 
 **Tier 2 — agent configuration** (after you have an agent): `/iblai-vibe-agent`
-indexes the 24 tabs — `access`, `api`, `audit`, `billing`, `dataset`,
+indexes the 25 tabs — `access`, `analytics`, `api`, `audit`, `billing`, `dataset`,
 `disclaimer`, `embed`, `evals`, `grader`, `history`, `llm`, `lti`, `mcp`,
 `memory`, `privacy`, `prompt`, `safety`, `sandbox`, `setting`, `skills`,
 `support`, `task`, `tool`, `voice` — each `/iblai-vibe-agent-<tab>`.
