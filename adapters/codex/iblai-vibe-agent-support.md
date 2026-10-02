@@ -129,8 +129,8 @@ Import from `@iblai/iblai-js/web-containers/next`.
 From `@iblai/iblai-js/web-containers/next`:
 
 - `AGENT_HUMAN_SUPPORT_TAB_LABELS` -- the default label bundle.
-- `SupportTicketsFilter` -- the status and requester filter state.
-- `AgentHumanSupportTabProps`, `HumanSupportTabLabels` -- types.
+- `AgentHumanSupportTabProps`, `HumanSupportTabLabels`,
+  `SupportTicketsFilter` (the status and requester filter state) -- types.
 
 ## How it saves
 
@@ -142,8 +142,8 @@ Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/`.
 | Open a ticket | `GET support-ticket-messages/?ticket={id}` |
 | **Send Reply** | `POST support-ticket-messages/` with the ticket and the message |
 | Status Open / In Progress | `PATCH support-tickets/{id}/` with `status` |
-| Status Closed | `POST support-tickets/{id}/close/` (also stamps `resolved_at`) |
-| The switch | `PUT mentors/{uuid}/settings/` with the agent's `tool_slugs`, adding or removing the human support tool |
+| Status Closed | `POST support-tickets/{id}/close/` |
+| The switch | `PUT mentors/{uuid}/settings/` with the agent's `tool_slugs` (the human support tool added or removed) and `can_use_tools` |
 
 There is no create here: the agent files tickets during chats. The tab has
 no delete either; the REST twin has one.
