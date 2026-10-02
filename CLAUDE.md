@@ -204,7 +204,8 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   `AnalyticsLayout`, `AnalyticsOverview`, `AnalyticsUsersStats`,
   `AnalyticsFinancialStats`, `AnalyticsTranscriptsStats`,
   `AnalyticsReports`, `AnalyticsAuditLogStats`, `AgentAnalyticsTab`.
-  Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`. The live
+  Skills: `/iblai-vibe-analytics`, `/iblai-vibe-agent-analytics`,
+  `/iblai-vibe-agent-audit`. The live
   schema is the contract: `https://api.iblai.app/dm/api/docs/schema/`.
   REST: [analytics](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
 - **Profile** — the signed-in user’s own record: account fields (name, bio,

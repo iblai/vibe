@@ -30,7 +30,7 @@ the platform team considers most important — they get the deepest skills.
 | Access and reach | editor / chat / analytics roles; embed; API keys; LTI | `AgentAccessTab`, `AgentEmbedTab`, `AgentApiTab`, `AgentLtiTab` | `/iblai-vibe-agent-{access,embed,api,lti}` | `/iblai-api-agent-{access,embed}`, `/iblai-api-token` |
 | Conversations | chat, sessions, history, support tickets | `Chat`, `AgentSearch`, history and support tabs | `/iblai-vibe-agent-chat`, `-search`, `-history`, `-support` | `/iblai-api-agent-session`, `-chat` (MCP), `-history`, `-support`, `/iblai-api-inference` |
 | Quality and cost | evals, grader, audit log, spend cap | `AgentEvalsTab`, `AgentGraderTab`, `AgentAuditTab`, `AgentBillingTab` | `/iblai-vibe-agent-{evals,grader,audit,billing}` | `/iblai-api-agent-{eval,audit}`, `/iblai-api-spend-caps` |
-| Analytics about an agent | usage, topics, transcripts, costs (`mentor_unique_id`) | `AnalyticsLayout` tabs with `mentorId` | `/iblai-vibe-analytics` ★ | `/iblai-api-analytics` ★ |
+| Analytics about an agent | usage, topics, transcripts, costs (`mentor_unique_id`) | `AnalyticsLayout` tabs with `mentorId`; `AgentAnalyticsTab` (hub) | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-analytics` | `/iblai-api-analytics` ★ |
 
 ## Organizations
 
