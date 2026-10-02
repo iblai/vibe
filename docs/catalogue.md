@@ -119,7 +119,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-skills`](../skills/agents/iblai-vibe-agent-skills/SKILL.md) | 🖥️ ui | Add the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill… |
 | [`/iblai-vibe-agent-support`](../skills/agents/iblai-vibe-agent-support/SKILL.md) | 🖥️ ui | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to y… |
 | [`/iblai-vibe-agent-task`](../skills/agents/iblai-vibe-agent-task/SKILL.md) | 🖥️ ui | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) to your Next.js app |
-| [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
+| [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (switch the agent's tools on and off -- web search, code interpreter, image generation, MCP, and more) to your Ne… |
 | [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
