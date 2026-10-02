@@ -111,7 +111,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |
 | [`/iblai-vibe-agent-lti`](../skills/agents/iblai-vibe-agent-lti/SKILL.md) | 🖥️ ui | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app |
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
-| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions, entity-type selection, and AI-response filtering) … |
+| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab (PII filtering -- detect names, emails, phone numbers and more in chat messages and allow, redact, mask or bloc… |
 | [`/iblai-vibe-agent-prompt`](../skills/agents/iblai-vibe-agent-prompt/SKILL.md) | 🖥️ ui | Add the agent Prompts tab (system prompts and suggested prompts) to your Next.js app |
 | [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app |
 | [`/iblai-vibe-agent-sandbox`](../skills/agents/iblai-vibe-agent-sandbox/SKILL.md) | 🖥️ ui | Add the agent Sandbox tab (sandbox type selection |

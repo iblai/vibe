@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-privacy
-description: Configure an ibl.ai agent's Privacy Router via the platform API — enable PII detection, choose redact/mask/block action, select entity types (PERSON, EMAIL_ADDRESS, US_SSN, …), set the privacy response, and toggle output filtering (saved through the agent settings endpoint) — and review the tenant's PII/PHI detection audit log (privacy-flags). Use when controlling how the agent handles personal data or auditing what sensitive data flowed through the agents.
+description: Configure an ibl.ai agent's Privacy Router via the platform API — enable PII detection, choose the allow/redact/mask/block action, select entity types (PERSON, EMAIL_ADDRESS, US_SSN, …), set the privacy response, and toggle output filtering (saved through the agent settings endpoint) — and review the tenant's PII/PHI detection audit log (privacy-flags). Use when controlling how the agent handles personal data or auditing what sensitive data flowed through the agents.
 metadata:
   kind: api
 ---
@@ -8,11 +8,12 @@ metadata:
 # iblai-api-agent-privacy
 
 Configure an agent's Privacy Router via the API: enable PII detection, pick the
-redact / mask / block action and the entity types to watch, set the response
+allow / redact / mask / block action and the entity types to watch, set the response
 returned when PII is caught, and toggle output filtering — all saved through the
 single `settings/` endpoint — plus review the tenant's read-only PII/PHI
 detection audit log (`privacy-flags`). Use when controlling how the agent handles
-personal data or auditing what sensitive data flowed through the agents.
+personal data or auditing what sensitive data flowed through the agents. The UI
+twin is [`/iblai-vibe-agent-privacy`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/SKILL.md).
 
 ## Auth & conventions
 
@@ -21,8 +22,10 @@ personal data or auditing what sensitive data flowed through the agents.
 - **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
   `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
 - **Settings writes** go through one endpoint —
-  **PUT** `…/users/{username}/mentors/{mentor}/settings/` with
-  `multipart/form-data` — sending **only the changed field(s)**.
+  **PUT** `…/users/{username}/mentors/{mentor}/settings/` — sending **only the
+  changed field(s)**. It accepts JSON, `multipart/form-data` and form-encoded
+  bodies; prefer JSON, which keeps `privacy_entities` a plain array (the
+  Privacy tab sends JSON).
 - Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
   `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
 
@@ -30,16 +33,16 @@ personal data or auditing what sensitive data flowed through the agents.
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — load the current privacy fields.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/public-settings/` — privacy-router state for anonymous (unauthenticated) requests.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/privacy-flags/?mentor={mentor}&rail={pii|phi}&action_taken={redact|mask|block|allow}&source={text_prompt|file_text|file_image|file_pdf|llm_response|memory_retrieval}&session_id={id}&username={u}&start_time={iso}&end_time={iso}&search={q}&page={n}&page_size={n}` — list every PII/PHI detection recorded across the tenant (read-only audit log). Each row reports the `rail` that fired (`pii`/`phi`), the `action_taken`, the `source`, and `detected_entities` — the entity **types** only (e.g. `["EMAIL_ADDRESS", "US_SSN"]`), never the raw detected values. File-sourced rows also carry `file_name`, `file_content_type`, `file_size`, and `file_reference`. The actor is named by `username`, `email`, and `user_full_name` (all three are `null` for a since-deleted user, since identity resolves through the user relation). `search` matches `username`, `session_id`, and `file_name`.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/privacy-flags/?mentor={mentor}&rail={pii|phi}&action_taken={redact|mask|block|allow}&source={text_prompt|file_text|file_image|file_pdf|llm_response|memory_retrieval}&session_id={id}&username={u}&start_time={iso}&end_time={iso}&search={q}&ordering={field}&page={n}&page_size={n}` — list every PII/PHI detection recorded across the tenant (read-only audit log). Each row reports the `rail` that fired (`pii`/`phi`), the `action_taken`, the `source`, and `detected_entities` — the entity **types** only (e.g. `["EMAIL_ADDRESS", "US_SSN"]`), never the raw detected values. File-sourced rows also carry `file_name`, `file_content_type`, `file_size`, and `file_reference`. The actor is named by `username`, `email`, and `user_full_name` (all three are `null` for a since-deleted user, since identity resolves through the user relation). `search` matches `username`, `session_id`, and `file_name`.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/privacy-flags/{id}/` — retrieve a single detection.
 
 ## Writes
 
-- **PUT** `…/mentors/{mentor}/settings/` — update privacy fields (`multipart/form-data`, send only changed keys):
+- **PUT** `…/mentors/{mentor}/settings/` — update privacy fields (send only changed keys):
   ```json
   {
     "enable_privacy_router": "boolean",
-    "privacy_action": "redact|mask|block",
+    "privacy_action": "allow|redact|mask|block",
     "privacy_entities": "string[] (PERSON, EMAIL_ADDRESS, US_SSN, …)",
     "privacy_response": "string",
     "enable_privacy_output_filter": "boolean"
@@ -55,22 +58,28 @@ response and output filtering on (only the changed fields are sent):
 curl -X PUT \
   "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/$MENTOR/settings/" \
   -H "Authorization: Api-Token $IBLAI_API_KEY" \
-  -F "enable_privacy_router=true" \
-  -F "privacy_action=redact" \
-  -F "privacy_entities=PERSON" \
-  -F "privacy_entities=EMAIL_ADDRESS" \
-  -F "privacy_entities=US_SSN" \
-  -F "privacy_response=I can't process personal information. Please remove it and try again." \
-  -F "enable_privacy_output_filter=true"
+  -H "Content-Type: application/json" \
+  -d '{
+    "enable_privacy_router": true,
+    "privacy_action": "redact",
+    "privacy_entities": ["PERSON", "EMAIL_ADDRESS", "US_SSN"],
+    "privacy_response": "Please remove personal information and try again.",
+    "enable_privacy_output_filter": true
+  }'
 ```
 
 ## Notes
 
 - A field left out of the PUT is left unchanged — never resend the whole object.
-- `privacy_action` is one of `redact`, `mask`, or `block`; `block` stops the turn
-  and returns `privacy_response`, while `redact`/`mask` rewrite the detected PII.
-- `privacy_entities` is a list of detector names (`PERSON`, `EMAIL_ADDRESS`,
-  `US_SSN`, …) — repeat the `-F` key per entity in `multipart/form-data`.
+- `privacy_action` is one of `allow`, `redact`, `mask`, or `block` (default
+  `redact`); `block` stops the turn and returns `privacy_response`,
+  `redact`/`mask` rewrite the detected PII, and `allow` leaves the message as
+  is (detections are still recorded in `privacy-flags`).
+- `privacy_entities` is a list of detector names: `PERSON`, `EMAIL_ADDRESS`,
+  `PHONE_NUMBER`, `US_SSN`, `CREDIT_CARD`, `LOCATION`, `DATE_TIME`,
+  `US_PASSPORT`, `US_DRIVER_LICENSE`, `IP_ADDRESS`, `IBAN_CODE`,
+  `MEDICAL_LICENSE`, `US_BANK_NUMBER`. An empty list uses the defaults. In
+  `multipart/form-data`, repeat the key per entity.
 - `enable_privacy_output_filter` applies the same detection to the agent's
   output, not just the user's input.
 - Use the `public-settings/` read to confirm the state applied to anonymous
@@ -82,3 +91,5 @@ curl -X PUT \
 - Privacy flags store entity **types** only, so a detection is still audited even
   on a private turn where the raw prompt is withheld — `detected_entities` never
   contains the personal data itself.
+- Verified against the live schema (4.411.0) and a live round-trip of every
+  field on 2026-10-02.
