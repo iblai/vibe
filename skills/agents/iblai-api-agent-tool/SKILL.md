@@ -19,18 +19,18 @@ agent can use.
 - **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
   `{mentor}` = the agent's unique id (e.g. `d17dc729-60fd-4363-81a0-f67d9318b03e`).
 - **Tool writes** go through the agent settings endpoint —
-  **PUT** `…/mentors/{mentor}/settings/` — sending the tool slug set.
+  **PUT** `…/users/{username}/mentors/{mentor}/settings/` — sending the tool slug set.
 - Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
   `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
 
 ## Reads
 
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/available-tools/` — toggleable tools.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/mentors/{mentor}/settings/` — currently enabled tool slugs.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/available-tools/` — toggleable tools. Each row has `slug` (the value `tool_slugs` takes), `display_name`, `description`, `category`, and `is_allowed`.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — currently enabled tools, as `mentor_tools[]` (read each `slug`).
 
 ## Writes
 
-- **PUT** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/mentors/{mentor}/settings/` — enable/disable tools:
+- **PUT** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — enable/disable tools:
   ```json
   {
     "tool_slugs": "string[]",
@@ -40,19 +40,22 @@ agent can use.
 
 ## Example
 
-Enable web search and calculator tools for an agent:
+Enable web search and the code interpreter for an agent:
 
 ```bash
 curl -X PUT \
-  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/mentors/$MENTOR/settings/" \
+  "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/users/$IBLAI_USERNAME/mentors/$MENTOR/settings/" \
   -H "Authorization: Api-Token $IBLAI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"tool_slugs": ["web_search", "calculator"], "can_use_tools": true}'
+  -d '{"tool_slugs": ["web-search", "code-interpreter"], "can_use_tools": true}'
 ```
 
 ## Notes
 
 - `tool_slugs` is the full enabled set — slugs left out of the array are disabled.
-- Pull valid slugs from the `available-tools/` endpoint before writing.
+- Pull valid slugs from the `available-tools/` endpoint before writing (live
+  examples: `web-search`, `code-interpreter`, `deep-research`, `mcp`,
+  `screen-share`).
 - Set `can_use_tools` to `false` to turn tools off entirely without clearing the
   slug set.
+- Verified against the live schema (4.411.0) on 2026-10-02.
