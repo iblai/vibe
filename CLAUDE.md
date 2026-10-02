@@ -466,6 +466,14 @@ conventions: [docs/screenshots/README.md](docs/screenshots/README.md).
 `scripts/check-skill-tables.mjs` fails when a skill directory is missing from
 this catalogue or vice versa.
 
+## Reviewing pull requests
+
+To review or re-review a PR on this repo, use the `iblai-vibe-pr-review` skill.
+It is for maintainers: a real directory in `.claude/skills/` (the other entries
+there link into `skills/`), marked `metadata.internal` so installers skip it,
+and outside the catalogue. Name it without a leading slash in this file:
+`check-skill-tables.mjs` reads every slash-prefixed `iblai-` name as a product skill.
+
 ## Deployment
 
 ### ibl.ai hosting (Vercel)
