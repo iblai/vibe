@@ -37,7 +37,9 @@ saves it at once (no confirm step) and toasts "LLM updated successfully".
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
 - `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
-  `pnpm why @iblai/web-containers`.
+  `pnpm why @iblai/web-containers`. If it shows 1.16.0, the project still pins
+  it: delete the `@iblai/web-containers` override in `pnpm-workspace.yaml`,
+  then `pnpm install`.
 - A real agent UUID. Ask the user; never invent one.
 - Provider keys are organization settings, not part of this tab. A provider
   without a key stays grayed out; adding keys is an admin task
@@ -75,14 +77,36 @@ map to pass: the old `getLLMProviderDetails` prop and `LLMProviderDetails`
 type are gone.
 
 To reuse the tab outside the settings page -- for example a "switch model"
-dialog opened from the chat header -- drop the header and point it at the
-agent in the chat:
+dialog opened from the chat header -- drop the header and wrap it in its own
+`AgentSettingsProvider`. The tab always reads the org, username, and RBAC
+switch from the provider and throws without one (vibe-starter's chat page has
+none); the `mentorId` prop only overrides the agent.
 
 ```tsx
-import { AgentLLMTab } from "@iblai/iblai-js/web-containers/next";
+import {
+  AgentLLMTab,
+  AgentSettingsProvider,
+} from "@iblai/iblai-js/web-containers/next";
 
-export function SwitchModel({ agentId }: { agentId: string }) {
-  return <AgentLLMTab showConfigurationHeader={false} mentorId={agentId} />;
+export function SwitchModel({
+  agentId,
+  tenantKey,
+  username,
+}: {
+  agentId: string;
+  tenantKey: string;
+  username: string;
+}) {
+  return (
+    <AgentSettingsProvider
+      tenantKey={tenantKey}
+      mentorId={agentId}
+      username={username}
+      enableRBAC={false}
+    >
+      <AgentLLMTab showConfigurationHeader={false} />
+    </AgentSettingsProvider>
+  );
 }
 ```
 
@@ -179,6 +203,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Per agent, not per user**: everyone who chats with the agent gets the
   model chosen here.
 - **No confirm step**: clicking a model saves it. Explore on a test agent.
+- **RBAC**: with `enableRBAC` on, a user without write permission on
+  `llm_provider` sees the provider cards but clicks do nothing.
 - **On-device models**: in the ibl.ai desktop app (Tauri) the picker also
   lists downloadable on-device models (`/iblai-vibe-local-llm`); on the web it
   shows cloud models only.
