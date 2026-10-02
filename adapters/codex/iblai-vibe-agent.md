@@ -1,6 +1,6 @@
 # iblai-vibe-agent
 
-> Family index for configuring one ibl.ai agent from your app — the AgentSettingsProvider layout every tab needs, the suggested route layout, and the map of all 24 agent settings tabs (settings, prompts, LLM, datasets, memory, tools, access, API, billing, embed, evals, grader, history, LTI, MCP, privacy, safety, sandbox, skills, support, tasks, voice, audit, disclaimers) with the skill that mounts each. Use when the user wants to edit, configure, or manage an agent, or asks which agent tab does what. For creating an agent see /iblai-vibe-agent-create; for chatting see /iblai-vibe-agent-chat; for browsing agents see /iblai-vibe-agent-search.
+> Family index for configuring one ibl.ai agent from your app — the AgentSettingsProvider layout every tab needs, the suggested route layout, and the map of all 25 agent settings tabs (settings, prompts, LLM, datasets, memory, tools, access, API, billing, embed, evals, grader, history, LTI, MCP, privacy, safety, sandbox, screen sharing, skills, support, tasks, voice, audit, disclaimers) with the skill that mounts each. Use when the user wants to edit, configure, or manage an agent, or asks which agent tab does what. For creating an agent see /iblai-vibe-agent-create; for chatting see /iblai-vibe-agent-chat; for browsing agents see /iblai-vibe-agent-search.
 
 # /iblai-vibe-agent
 
@@ -82,10 +82,11 @@ Start with the **core six** (bold). Add the others only when the user asks.
 | Privacy | PII detection: redact / mask / block | `/iblai-vibe-agent-privacy` | [agent-privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-privacy/SKILL.md) |
 | Safety | moderation prompts, flagged content | `/iblai-vibe-agent-safety` | [agent-safety](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-safety/SKILL.md) |
 | Sandbox | computing runtime / VM shell / Claw instances | `/iblai-vibe-agent-sandbox` | [agent-sandbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-sandbox/SKILL.md) |
+| Screen | screen sharing on voice calls: on/off, in-call instructions, opening line | `/iblai-vibe-agent-screenshare` | [agent-voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-voice/SKILL.md) |
 | Skills | reusable Agent Skills, per-agent assignment, chat `/` picker | `/iblai-vibe-agent-skills` | [agent-skill](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-skill/SKILL.md) |
 | Support | human support ticket inbox | `/iblai-vibe-agent-support` | [agent-support](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-support/SKILL.md) |
 | Tasks | scheduled periodic agent tasks with run logs | `/iblai-vibe-agent-task` | — |
-| Voice | voice selection and voice-call configuration | `/iblai-vibe-agent-voice` | — |
+| Voice | voice calls on/off; chat voice and voice instructions; call style, language, provider; dictation | `/iblai-vibe-agent-voice` | [agent-voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-voice/SKILL.md) |
 | Audit | who changed what and when | `/iblai-vibe-agent-audit` | [agent-audit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-audit/SKILL.md) |
 | Disclaimers | user agreement and advisory text | `/iblai-vibe-agent-disclaimer` | [agent-disclaimer](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-disclaimer/SKILL.md) |
 
