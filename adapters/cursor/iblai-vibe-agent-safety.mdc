@@ -27,8 +27,8 @@ it to the agent.
 ![Safety tab -- Edit Safety Prompt](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-safety/iblai-vibe-agent-safety-2-edit-prompt.png)
 
 **Flagged prompts** -- the modal your app supplies. This one is the
-minimal modal from Step 2: who sent the message, which system caught it,
-when, the message, and the reason.
+minimal modal from Step 2: the user messages the Moderation Prompt stopped,
+with who sent each, when, the message, and the reason.
 
 ![Safety tab -- flagged prompts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-safety/iblai-vibe-agent-safety-3-flagged-prompts.png)
 
@@ -56,16 +56,15 @@ template and fill in your values:
 
 The four cards need nothing but the provider: `<AgentSafetyTab />`. The
 flagged-prompts list is not part of the SDK tab -- the host injects it.
-These are the pieces a full mount wires (the ibl.ai OS mounts it the same
-way):
+These are the pieces a full mount wires:
 
 - `FlaggedPromptsModal` -- your modal; it gets `isOpen`, `onClose`,
   `mentorId`, `tenantKey`, `username`.
 - `showFlaggedPrompts` -- whether to show the button. Gate it on the
   `/mentors/<agent db id>/#view_moderation_logs` grant.
 - `renderPromptContent` -- how the cards render prompt text (plain text by
-  default, so line breaks and Markdown are lost). The OS passes its
-  Markdown renderer.
+  default, so line breaks and Markdown are lost). Pass a Markdown renderer
+  to keep them.
 - `executeGatedAction` on the provider -- wraps the two Active switches,
   for a paywall or free-trial check. Prompt edits are not gated.
 
@@ -129,7 +128,7 @@ export function FlaggedPromptsModal({
         <DialogHeader>
           <DialogTitle>Flagged prompts</DialogTitle>
           <DialogDescription>
-            {data?.count ?? 0} messages stopped by the moderation or safety system.
+            {data?.count ?? 0} messages stopped by the Moderation Prompt.
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-3 overflow-y-auto">
@@ -159,8 +158,11 @@ export function FlaggedPromptsModal({
 `userId` is the signed-in user (the path segment). SDK 2.26 types the
 hook's argument without it, but the request needs it -- hence the
 `@ts-expect-error`; `username` in that type filters to the flagged user
-instead. `mentor` filters to this agent. Add search, a system filter (`targetSystem`: `Moderation System` or
-`Safety System`), a date range and paging the same way.
+instead. `mentor` filters to this agent. Add search, a date range and
+paging the same way. This list holds Moderation System rows only: replies
+the Safety Prompt blocked are served by `…/safety-logs/` (same query and row
+shape), which has no data-layer hook in SDK 2.26 -- call it from a server
+route (`/iblai-api-agent-safety`).
 
 The page loads the agent's grants, gates the button, and passes the
 paywall gate through a nested provider:
@@ -181,6 +183,10 @@ import {
 } from "@iblai/iblai-js/data-layer";
 import { checkRbacPermission } from "@iblai/iblai-js/web-utils";
 import { FlaggedPromptsModal } from "./flagged-prompts-modal";
+
+// Module scope: the provider memoizes on this function, so an inline arrow
+// would rebuild the context on every render.
+const executeGatedAction = (action: () => unknown) => action();
 
 export default function AgentSafetyPage() {
   const settings = useAgentSettings();
@@ -210,7 +216,7 @@ export default function AgentSafetyPage() {
       <AgentSettingsProvider
         {...settings}
         rbacPermissions={grants}
-        executeGatedAction={(action) => action()}
+        executeGatedAction={executeGatedAction}
       >
         <AgentSafetyTab
           FlaggedPromptsModal={FlaggedPromptsModal}
@@ -228,8 +234,8 @@ export default function AgentSafetyPage() {
 }
 ```
 
-Replace `(action) => action()` with your paywall or trial check (run
-`action` once the user may proceed). The grant path uses the agent's numeric
+Replace `executeGatedAction` with your paywall or trial check (run `action`
+once the user may proceed), defined outside the component or memoized. The grant path uses the agent's numeric
 `mentor_id`, not the UUID. Without a `FlaggedPromptsModal` the button never
 shows, whatever `showFlaggedPrompts` says (it defaults to `true`).
 
@@ -301,6 +307,7 @@ Every change is one field on
 The flagged-prompts modal above reads
 `GET /api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/?mentor=<uuid>`
 (rows: `prompt`, `reason`, `target_system`, `date_created`, and who sent it).
+Safety Prompt catches are at `…/safety-logs/?mentor=<uuid>` instead.
 
 ## Platform data
 
