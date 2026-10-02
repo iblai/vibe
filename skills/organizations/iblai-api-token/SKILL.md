@@ -24,15 +24,17 @@ A token's RBAC authority is controlled by its **`mode`**:
 ## Auth & conventions
 
 - **Base URL:** `https://api.iblai.app`
-- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
-- **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`.
+- **Header:** `Authorization: Token $DM_TOKEN` -- the session token
+  (`dm_token` in `login.iblai.app` localStorage) of a signed-in org admin.
+  These endpoints reject every `Api-Token`, valid or not, with `401`; see
+  `/iblai-api-login` step 2 for reading `dm_token`.
+- **Path vars:** `{org}` = `$IBLAI_ORG`.
 - **Host:** these endpoints live under `…/dm/api/core/…`.
-- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
-  `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
+- Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`.
 
 ## Reads
 
-- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/?platform_key={org}&page={n}&page_size={size}` — list API keys. Pagination is opt-in: send `page_size` to get `{count, next, previous, results}`; without it the endpoint returns the full, unpaged list. The list view omits `policies`/`groups`.
+- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/?platform_key={org}&page={n}&page_size={size}` — list API keys. Pagination is opt-in: send `page_size` to get `{count, next_page, previous_page, results}`, where `next_page` / `previous_page` are page numbers (or `null`), not URLs; the published OpenAPI schema says `next` / `previous`, which is wrong. Without `page_size` the endpoint returns the full, unpaged list. The list view omits `policies`/`groups`.
 - **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — retrieve a single token, including its currently associated `policies` and `groups`.
 - **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/field-permissions/?platform_key={org}` — report which RBAC-gated fields (`mode`, `policies_to_add`, `policies_to_remove`, `groups_to_add`, `groups_to_remove`) the caller may write. Returns `{field: {"write": bool}}`. Useful for building the create form. Gated on create access.
 
@@ -41,18 +43,18 @@ A token's RBAC authority is controlled by its **`mode`**:
 - **POST** `https://api.iblai.app/dm/api/core/platform/api-tokens/` — create a token (returns the secret only once):
   ```json
   {
-    "username": "string (required)",
     "name": "string (required)",
-    "key": "",
     "platform_key": "{org} (required)",
-    "created": "ISO datetime (required)",
-    "expires": "'' or seconds-string (required)",
-    "expires_in": "seconds-string | undefined",
+    "expires_in": "duration, e.g. \"2592000\" seconds or \"30 00:00:00\" (optional; omit for no expiry)",
     "mode": "owner | token_policies (optional, default 'owner')",
     "policies_to_add": "[int] policy IDs (optional, mode=token_policies only)",
     "groups_to_add": "[int] group IDs (optional, mode=token_policies only)"
   }
   ```
+  `username`, `key`, `created`, and `expires` are read-only: the server sets
+  them and ignores them on input. Expiry is set only through `expires_in`
+  (`[DD] [HH:[MM:]]ss[.uuuuuu]`); a body that sends only `expires` mints a key
+  that never expires.
 - **PATCH** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — update a token's `mode` and its policy/group associations:
   ```json
   {
@@ -84,43 +86,40 @@ create/update access. Constraints the server enforces:
 
 ## Examples
 
-Create a basic (owner-mode) Platform API Token named `prod-integration` (capture the
-secret from the response — it is shown only once):
+Create a basic (owner-mode) Platform API Token named `prod-integration`. The
+secret (`key`) is shown only once; write it straight to `.env.local` so it
+never lands in the terminal or a transcript:
 
 ```bash
-curl -X POST \
+curl -s -X POST \
   "https://api.iblai.app/dm/api/core/platform/api-tokens/" \
-  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Authorization: Token $DM_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "'"$IBLAI_USERNAME"'",
     "name": "prod-integration",
-    "key": "",
-    "platform_key": "'"$IBLAI_ORG"'",
-    "created": "2026-06-12T00:00:00Z",
-    "expires": ""
-  }'
+    "platform_key": "'"$IBLAI_ORG"'"
+  }' \
+  | python3 -c 'import json,sys; print("IBLAI_API_KEY=" + json.load(sys.stdin)["key"])' \
+  >> .env.local
 ```
 
 Create an RBAC-scoped token for the organization — its own policies/groups decide what it
 can do, independent of the creator:
 
 ```bash
-curl -X POST \
+curl -s -X POST \
   "https://api.iblai.app/dm/api/core/platform/api-tokens/" \
-  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Authorization: Token $DM_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "'"$IBLAI_USERNAME"'",
     "name": "scoped-service-token",
-    "key": "",
     "platform_key": "'"$IBLAI_ORG"'",
-    "created": "2026-06-12T00:00:00Z",
-    "expires": "",
     "mode": "token_policies",
     "policies_to_add": [12, 34],
     "groups_to_add": [5]
-  }'
+  }' \
+  | python3 -c 'import json,sys; print("SCOPED_API_KEY=" + json.load(sys.stdin)["key"])' \
+  >> .env.local
 ```
 
 Re-scope an existing token's policies:
@@ -128,7 +127,7 @@ Re-scope an existing token's policies:
 ```bash
 curl -X PATCH \
   "https://api.iblai.app/dm/api/core/platform/api-tokens/scoped-service-token?platform_key=$IBLAI_ORG" \
-  -H "Authorization: Api-Token $IBLAI_API_KEY" \
+  -H "Authorization: Token $DM_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "mode": "token_policies",
@@ -139,8 +138,9 @@ curl -X PATCH \
 
 ## Notes
 
-- The create response returns the token secret **only once** — store it
-  immediately; it cannot be retrieved again afterward.
+- The create response returns the token secret (`key`) **only once** —
+  write it straight to a gitignored server-side env file (`.env.local`),
+  never print it; it cannot be retrieved again afterward.
 - `/iblai-api-login` uses this same `POST …/platform/api-tokens/` endpoint to mint
   the Api-Token it stores as `IBLAI_API_KEY`.
 - Retrieve, update, and delete are by token **name** (not id), and are scoped to the
@@ -149,4 +149,3 @@ curl -X PATCH \
   not in the list view.
 - The agent **API** tab (`/iblai-vibe-agent-api`) is a UI over these same
   org-wide tokens: list (10 per page), create, and delete by name.
-- Verified against the live schema (4.411.0) on 2026-10-02.
