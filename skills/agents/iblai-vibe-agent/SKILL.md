@@ -15,7 +15,7 @@ Everything about **configuring an agent** lives behind one provider and one
 route layout. Set the provider up once (§1), then mount only the tabs your app
 needs (§2). Most apps need five or six; the rest are there when asked for.
 
-![Settings tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
+![Settings tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-1-basic.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
