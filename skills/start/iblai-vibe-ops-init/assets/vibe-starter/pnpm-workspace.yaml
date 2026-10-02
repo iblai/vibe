@@ -7,7 +7,7 @@ ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
 minimumReleaseAgeExclude:
-  - '@iblai/*'
+  - "@iblai/*"
 # `@iblai/web-containers` 1.16.1 was published against an unreleased
 # `@iblai/data-layer` -- it imports `useGetApiKeyQuery`,
 # `useUpdateApiKeyMutation`, `useGetApiKeyFieldPermissionsQuery` and
@@ -19,4 +19,9 @@ minimumReleaseAgeExclude:
 # on the latest iblai-js. Drop this override once data-layer ships those
 # exports; iblai-js 2.3.1..2.3.3 are all affected.
 overrides:
-  '@iblai/web-containers': 1.16.0
+  "@iblai/web-containers": 1.16.0
+  # Security floors for exact pins upstream; drop each once its pinner moves past it.
+  axios@1: ^1.20.0 # @iblai/iblai-js, @iblai/web-utils pin 1.13.6
+  dompurify@3: ^3.4.16 # @iblai/web-containers pins 3.3.3
+  "@tiptap/core@3": ^3.30.5 # @iblai/web-containers pins 3.20.4
+  prismjs@1: ^1.30.0 # refractor@3 asks ~1.27.0
