@@ -20,14 +20,13 @@ The list and the buttons need the user's `/apitokens/` grants (Step 2).
 
 ![API tab -- keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-1-keys.png)
 
-**Create API Key** -- a name (letters, numbers and hyphens) and an optional
+**Create API Key** -- a name (letters, numbers, hyphens and underscores) and an optional
 expiry date.
 
 ![API tab -- Create API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-2-create.png)
 
 **API Key** -- **Submit** shows the secret once, with a copy button. It
-cannot be retrieved again; the list then jumps back to page 1. (This shot
-used a stubbed create response, so no real key was minted.)
+cannot be retrieved again; the list then jumps back to page 1.
 
 ![API tab -- new key shown once](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-3-reveal.png)
 
@@ -162,7 +161,7 @@ From `@iblai/iblai-js/web-containers/next`:
 | Action | Request |
 |---|---|
 | Load | `GET /api/core/platform/api-tokens/?platform_key={org}&page=…&page_size=10` |
-| **Submit** (create) | `POST /api/core/platform/api-tokens/` with `name`, `platform_key`, `username`, and `expires` / `expires_in` (seconds until the chosen date; empty for no expiry) |
+| **Submit** (create) | `POST /api/core/platform/api-tokens/` with `name`, `platform_key`, and `expires_in` (seconds until the chosen date, rounded up to whole days; omitted for no expiry). The tab also sends `username`, `key`, `created`, and `expires`, which the server ignores |
 | **Delete** | `DELETE /api/core/platform/api-tokens/{name}?platform_key={org}` |
 
 Keys are addressed by name. Deleting the last key on a page steps back a
@@ -197,11 +196,13 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   Platform API Token for the whole organization, and deleting one breaks
   every app that uses it, whichever agent it calls.
 - **Shown once**: the secret appears only in the reveal dialog; store it
-  then.
+  then, server-side only (e.g. `IBLAI_API_KEY` in `.env.local`), never in
+  client code or git.
 - **No table or button?** The `/apitokens/` grants are missing (Step 2).
 - **Shared provider**: mount `AgentSettingsProvider` once at the layout
-  level (`/iblai-vibe-agent` §1); the nested provider in Step 2 only adds
-  grants.
+  level (`/iblai-vibe-agent` §1). The nested provider in Step 2 replaces
+  `rbacPermissions` for this tab with the `/apitokens/` grants; spread in the
+  layout's grants if you have any.
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
   (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
