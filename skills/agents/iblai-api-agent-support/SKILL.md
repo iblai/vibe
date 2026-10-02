@@ -11,7 +11,8 @@ Manage an agent's human-support tickets through the API: list and filter the
 tickets users raised with an agent, read a ticket's reply thread, respond as
 the support team, move tickets through their lifecycle, and close or delete
 them. Use when triaging or responding to support requests escalated from
-agent chats.
+agent chats. The UI twin is
+[`/iblai-vibe-agent-support`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/SKILL.md).
 
 ## Auth & conventions
 
@@ -140,3 +141,5 @@ curl -X POST \
 
 **Message object** (`TicketMessage`): `id` (ro), `ticket` (ticket id), `sender`
 (numeric user id or null for system messages), `message`, `timestamp` (ro, ISO 8601).
+- Verified against the live schema (4.411.0) and a live ticket (raised from
+  chat, replied to, closed, deleted) on 2026-10-02.
