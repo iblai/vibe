@@ -143,6 +143,7 @@
       "iblai-api-agent-skill",
       "iblai-api-agent-sandbox",
       "iblai-api-agent-support",
+      "iblai-api-agent-voice",
       "iblai-api-agent-session",
       "iblai-api-agent-chat",
       "iblai-api-agent-memory",
