@@ -105,7 +105,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-dataset`](../skills/agents/iblai-vibe-agent-dataset/SKILL.md) | 🖥️ ui | Add the agent Datasets tab (searchable dataset table with upload) to your Next.js app |
 | [`/iblai-vibe-agent-disclaimer`](../skills/agents/iblai-vibe-agent-disclaimer/SKILL.md) | 🖥️ ui | Add the agent Disclaimers tab (user agreement and advisory) to your Next.js app |
 | [`/iblai-vibe-agent-embed`](../skills/agents/iblai-vibe-agent-embed/SKILL.md) | 🖥️ ui | Add the agent Embed tab (embed code, custom styling, shareable links) to your Next.js app |
-| [`/iblai-vibe-agent-evals`](../skills/agents/iblai-vibe-agent-evals/SKILL.md) | 🖥️ ui | Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to you… |
+| [`/iblai-vibe-agent-evals`](../skills/agents/iblai-vibe-agent-evals/SKILL.md) | 🖥️ ui | Add the agent Evals tab (run the agent against a benchmark of test questions, score the answers with LLM-as-Judge reviews or manual score… |
 | [`/iblai-vibe-agent-grader`](../skills/agents/iblai-vibe-agent-grader/SKILL.md) | 🖥️ ui | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-sync… |
 | [`/iblai-vibe-agent-history`](../skills/agents/iblai-vibe-agent-history/SKILL.md) | 🖥️ ui | Add the agent History tab (every user's conversations with this agent |
 | [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |

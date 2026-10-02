@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-evals
-description: Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to your Next.js app
+description: Add the agent Evals tab (run the agent against a benchmark of test questions, score the answers with LLM-as-Judge reviews or manual scores, export CSV) to your Next.js app. Use when the user mentions evals, evaluations, benchmarks, test sets, LLM-as-Judge, scoring agent answers, or measuring agent quality. For the REST contract see /iblai-api-agent-eval.
 globs:
 alwaysApply: false
 metadata:
@@ -9,145 +9,188 @@ metadata:
 
 # /iblai-vibe-agent-evals
 
-Add the agent **Evals tab** -- run your agent against a benchmark (a set
-of test questions) and score every response, so you can catch weak spots
-and track improvements as you refine the agent. The tab bundles several
-surfaces into one component: a benchmark picker, an evaluations table
-with status badges and a per-row actions menu (View results / New review /
-Check status / Export CSV / Delete), a **New Evaluation** dialog, an
-embedded **Manage benchmarks** dialog (create benchmarks, add Q&A pairs
-manually or via CSV upload), a results modal showing every trace with its
-scores and LLM-as-Judge reviews, and an **Evaluate** (new review) modal
-with an LLM provider/model picker. This is one tab in the wider
-agent-settings family (`access`, `api`, `datasets`, `disclaimers`,
-`embed`, `evals`, `history`, `llm`, `memory`, `prompts`, `safety`,
-`settings`, `tasks`, `tools`). Each tab is a separate skill. All tabs
-share the same `AgentSettingsProvider` wrapper -- set it up once and mount
-as many tabs as you need.
+Add the agent **Evals tab** -- run the agent against a benchmark (a set of
+test questions with expected answers) and score every answer, so you can
+catch weak spots and track improvements. **Scope: benchmarks belong to the
+organization; evaluations belong to the agent.** One benchmark can be run
+against many agents, and the table only lists runs of this agent. This is one
+tab in the agent-settings family indexed by `/iblai-vibe-agent`; it shares the
+`AgentSettingsProvider` wrapper with every other tab.
 
-![Evals tab with benchmark picker and evaluations table](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-1-list.png)
-![Manage benchmarks dialog (search, New Benchmark)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-3-manage-benchmarks.png)
-![Results modal (traces, scores, reviews)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-8-results.png)
-![Evaluate modal (criteria, score name, concurrency, LLM)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-10-new-review.png)
+**Evaluations** -- a benchmark picker (the first benchmark is selected),
+**Manage benchmarks**, **New Evaluation**, and a table of this agent's runs
+(Evaluation, Status, Initiated by, Created), 10 per page. Runs work in the
+background: the status badge is green when COMPLETED, red when FAILED, blue
+otherwise.
+
+![Evals tab -- evaluations](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-1-evaluations.png)
+
+**Row actions** -- **View results**, **New review**, **Check status** (refetch
+one run and toast its state), **Export CSV**, and **Delete**. View results, New
+review and Export CSV stay disabled until the run completes.
+
+![Evals tab -- row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-2-actions.png)
+
+**Manage benchmarks** -- the organization's benchmarks with search,
+**New Benchmark**, and an eye icon that opens a benchmark's questions.
+
+![Evals tab -- Manage benchmarks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-3-manage-benchmarks.png)
+
+**New Benchmark** -- a name (used in URLs, so keep it slug-like) and a
+description. Benchmarks cannot be renamed or deleted afterwards.
+
+![Evals tab -- New Benchmark](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-4-new-benchmark.png)
+
+**Add Q&A** -- question/answer rows typed in (**Manual**), or a **CSV
+Upload**: UTF-8, a required `input` column, an optional `expected_output`
+column, at most 10 MB / 10,000 rows; rows with a blank question are skipped.
+
+![Evals tab -- Add Q&A](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-5-add-qa.png)
+
+**Benchmark questions** -- each question and expected answer, with a delete
+icon per row.
+
+![Evals tab -- benchmark questions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-6-benchmark-items.png)
+
+**New Evaluation** -- the selected benchmark and an optional name
+(generated when blank). **Start Evaluation** sends every question to this
+agent in the background.
+
+![Evals tab -- New Evaluation](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-7-new-evaluation.png)
+
+**Results** -- the number of traces (one per question), the **Reviews**
+(LLM-as-Judge runs, with status, criteria and model), and one card per
+question with its score count. The dialog refreshes itself while traces or
+reviews are still running.
+
+![Evals tab -- results](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-8-results.png)
+
+**A trace** -- input, expected output, the agent's actual output, its scores
+(each removable), and **Add a score**: a name, a value from 0 to 1, and an
+optional comment.
+
+![Evals tab -- one trace](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-9-trace.png)
+
+**Evaluate** (New review) -- criteria for the judge, a score name, max
+concurrency (default 4), and the judge model.
+
+![Evals tab -- Evaluate](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-10-new-review.png)
+
+**Select LLM** -- the provider grid (names and logos come from the API);
+picking a provider opens its models.
+
+![Evals tab -- Select LLM](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-11-llm-picker.png)
+
+**Delete Evaluation** -- asks for confirmation; the run and its scores go.
+
+![Evals tab -- Delete Evaluation](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-12-delete.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
-  Step 2 if not already set up)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
+  `pnpm why @iblai/web-containers`.
+- A real agent UUID. Ask the user; never invent one.
+- Evals are for admins: learners get nothing (Step 2).
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Step 2: Mount `AgentEvaluationTab`
 
-`AgentEvaluationTab` has one required prop: `getLLMProviderDetails`. This
-maps a provider name to display info (logo URL, display name) for the LLM
-picker inside the Evaluate (new review) modal. The host app provides this
-because logos and display names are host-specific -- same contract as the
-LLM tab (`/iblai-vibe-agent-llm`); if that tab is already mounted, reuse
-the same function.
-
 ```tsx
 // app/(app)/agents/[mentorId]/evals/page.tsx
 "use client";
 
-import {
-  AgentEvaluationTab,
-  type LLMProviderDetails,
-} from "@iblai/iblai-js/web-containers/next";
-
-function getLLMProviderDetails(
-  providerName: string,
-  llmName?: string,
-): LLMProviderDetails {
-  const providers: Record<string, LLMProviderDetails> = {
-    openai: { name: "OpenAI", logo: "/logos/openai.svg" },
-    anthropic: { name: "Anthropic", logo: "/logos/anthropic.svg" },
-    google: { name: "Google", logo: "/logos/google.svg" },
-  };
-  return (
-    providers[providerName] ?? {
-      name: providerName,
-      logo: "/logos/default.svg",
-    }
-  );
-}
+import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentEvalsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentEvaluationTab getLLMProviderDetails={getLLMProviderDetails} />
+      <AgentEvaluationTab />
     </div>
   );
 }
 ```
 
-`AgentEvaluationTab` reads `tenantKey`, `mentorId`, and `username` from
-`AgentSettingsProvider` (via `useAgentSettings()`) and handles all of its
-own data fetching and mutations (benchmarks, runs, reviews, scores,
-export, delete).
+The tab reads `tenantKey`, `mentorId`, and `username` from
+`AgentSettingsProvider` and does its own fetching and saving. No props are
+required. The judge's model picker gets provider names and logos from the
+API, so there is no logo map to pass: the old `getLLMProviderDetails` prop and
+`LLMProviderDetails` type are gone.
 
-### With custom pagination
-
-The evaluations table paginates (10 per page). Without a
-`PaginationComponent` the built-in web-containers `AdvancedPagination` is
-used. Inject your own to match the host app's pagination UI:
+The tab renders nothing for learners. It reads `userIsStudent` from the
+provider; pass it on the tab to override:
 
 ```tsx
+import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
+
+export function AdminOnlyEvals({ isLearner }: { isLearner: boolean }) {
+  return <AgentEvaluationTab userIsStudent={isLearner} />;
+}
+```
+
+### Custom pagination (optional)
+
+When there is more than one page of runs, the tab shows the SDK's
+`AdvancedPagination`. Pass `PaginationComponent` to use your own:
+
+```tsx
+import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
+
 <AgentEvaluationTab
-  getLLMProviderDetails={getLLMProviderDetails}
   PaginationComponent={({ currentPage, totalPages, onPageChange, disabled }) => (
-    <MyPagination
-      page={currentPage}
-      total={totalPages}
-      onChange={onPageChange}
-      disabled={disabled}
-    />
+    <nav className="flex gap-2">
+      <button disabled={disabled || currentPage <= 1} onClick={() => onPageChange(currentPage - 1)}>
+        Previous
+      </button>
+      <span>
+        {currentPage} / {totalPages}
+      </span>
+      <button
+        disabled={disabled || currentPage >= totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+      >
+        Next
+      </button>
+    </nav>
   )}
 />;
 ```
 
 ## Step 3: Customize Labels (Optional)
 
-`AgentEvaluationTab` renders with the default agent-facing copy
-(`AGENT_EVALUATION_TAB_LABELS`). Override any string via the `labels`
-prop. Pass a full `EvaluationTabLabels` bundle (for a full re-skin) or a
-partial object (for one-off edits).
+The tab renders with the default agent-facing copy
+(`AGENT_EVALUATION_TAB_LABELS`, localized through the SDK's i18n). Pass a
+partial `labels` object to change any string:
 
 ```tsx
-import {
-  AgentEvaluationTab,
-  type EvaluationTabLabels,
-  AGENT_EVALUATION_TAB_LABELS,
-} from "@iblai/iblai-js/web-containers/next";
+import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
 
 <AgentEvaluationTab
-  getLLMProviderDetails={getLLMProviderDetails}
   labels={{
-    header: {
-      title: "Benchmarks",
-      description: "Score this agent against your test sets.",
-    },
+    header: { title: "Benchmarks" },
     actions: { newExperiment: "Run benchmark" },
   }}
 />;
 ```
 
-The label bundle is grouped by surface: `header`, `benchmarkPicker`,
-`actions`, `checkStatusToast`, `table`, `startExperimentModal`,
-`manageBenchmarksModal`, `detailModal`, `evaluateModal`, and
-`deleteModal`. Override only the keys you need.
+Label groups (`EvaluationTabLabels`): `header` (`title`, `description`,
+`infoBox`), `benchmarkPicker`, `actions` (button and row-menu labels,
+`notReadyHint`, `rowMenuAriaLabel`), `checkStatusToast`, `table` (column
+headings, `emptyState`), `emptyBenchmarks`, `exportErrorToast`,
+`startExperimentModal`, `manageBenchmarksModal` (`title`, `description`),
+`detailModal` (traces, reviews, scores, the Add-a-score form), `evaluateModal`
+(the review form and its LLM picker), and `deleteModal`. The Manage
+benchmarks dialog's own copy comes from the SDK's i18n, not from `labels`.
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -156,169 +199,84 @@ get_component_info("AgentEvaluationTab")
 get_component_info("AgentSettingsProvider")
 ```
 
-## Tab surfaces
-
-`AgentEvaluationTab` is a single mounted component, but it renders several
-distinct surfaces. The corresponding web-containers source (under
-`web-containers/.../edit-mentor-modal/tabs/evaluation-tab`) is listed for
-reference -- these pieces are internal to `AgentEvaluationTab` and are not
-mounted separately.
-
-| Surface | Screenshot | Source component | What it shows |
-|---------|-----------|------------------|---------------|
-| **Evaluations list** | [list](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-1-list.png) / [actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-2-actions.png) | `index` (tab root) / `benchmark-combobox` | Info box, benchmark combobox, Manage benchmarks + New Evaluation buttons, and a table of runs (Evaluation / Status / Initiated by / Created) with a per-row menu: View results, New review, Check status, Export CSV, Delete |
-| **New Evaluation dialog** | -- | `start-experiment-modal` | Benchmark (read-only) + optional evaluation name (auto-generated if blank); starts a background run of the agent over every benchmark item |
-| **Manage benchmarks dialog** | [benchmarks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-3-manage-benchmarks.png) / [new](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-4-new-benchmark.png) | `profile/benchmarks` (embedded `BenchmarksTab`) | Organization-wide benchmark list with search, a New Benchmark dialog (name + description), and per-benchmark view |
-| **Benchmark Q&A items** | [items](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-5-benchmark-items.png) / [manual](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-6-add-qa-manual.png) / [csv](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-7-add-qa-csv.png) | `profile/benchmarks/benchmark-items-modal` | Question/answer pairs used to evaluate agents; Add Q&A supports manual rows or CSV upload (required `input` column, optional `expected_output`, max 10 MB / 10,000 rows) |
-| **Results modal** | [results](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-8-results.png) / [review details](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-9-review-details.png) | `experiment-detail-modal` | Trace count, a Reviews section (LLM-as-Judge runs with status pill, criteria, and scores produced), and every trace with Input / Expected output / Actual output, its score chips (removable), and an Add-a-score form (name, 0-1 value, comment) |
-| **Evaluate modal (new review)** | [evaluate](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-10-new-review.png) / [llm picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-11-llm-picker.png) | `llm-judge-modal` / `evaluate-llm-picker` | Criteria textarea, score name, max concurrency, and a provider-then-model LLM picker; kicks off an LLM-as-Judge run that scores every trace |
-| **Delete confirmation** | [delete](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-12-delete.png) | `delete-experiment-modal` | Confirm-then-delete for an evaluation run; cannot be undone |
-
-Evaluations run in the background: the table shows a status badge
-(COMPLETED green / FAILED red / anything else blue) and **Check status**
-refetches a single run and pushes the fresh status into the table.
-**View results**, **New review**, and **Export CSV** are disabled until
-the run completes.
-
 ## `<AgentEvaluationTab>` Props
 
 Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `getLLMProviderDetails` | `(providerName: string, llmName?: string) => LLMProviderDetails` | Yes | Maps a provider name to display info (logo, display name) for the review-modal LLM picker |
 | `labels` | `DeepPartial<EvaluationTabLabels>` | No | Override user-visible strings |
-| `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled }>` | No | Custom pagination for the evaluations table. Defaults to the web-containers `AdvancedPagination` |
+| `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled }>` | No | Pagination for the runs table. Defaults to the SDK's `AdvancedPagination` |
+| `userIsStudent` | `boolean` | No | Render nothing when `true`. Defaults to the provider's `userIsStudent` |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_EVALUATION_TAB_LABELS` -- the default agent-facing label bundle.
-- `EvaluationTabLabels` -- type for the full label bundle.
-- `AgentEvaluationTabProps` -- props type for the tab.
-- `LLMProviderDetails` -- type for the return value of
-  `getLLMProviderDetails` (shared with `/iblai-vibe-agent-llm`).
+- `AGENT_EVALUATION_TAB_LABELS` -- the default label bundle.
+- `AgentEvaluationTabProps`, `EvaluationTabLabels` -- types.
 
-From `@iblai/data-layer` (the same RTK Query hooks the tab uses, for
-custom UI): `useListEvalDatasetsQuery`, `useListEvalRunsQuery`,
-`useStartEvalRunMutation`, `useGetEvalRunQuery`,
-`useEvaluateEvalRunMutation`, `useListEvalRunJudgesQuery`,
-`useCreateEvalScoreMutation`, `useDeleteEvalScoreMutation`,
-`useExportEvalRunMutation`, `useDeleteEvalRunMutation`, plus the
-`EvalDataset`, `EvalDatasetRun`, `EvalDatasetRunDetail`, `EvalJudgeTask`,
-`EvalScore` payload types.
+## How it saves
+
+Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/evaluations/`.
+
+| Action | Request |
+|---|---|
+| Load | `GET datasets/?page=1&limit=200`, then `GET datasets/{name}/runs/?page=&limit=10` for the selected benchmark |
+| **Create** a benchmark | `POST datasets/` with `name`, `description` |
+| **Add** Q&A | `POST datasets/{name}/items/` with `items: [{input, expected_output}]`; CSV: `POST datasets/{name}/items/upload/` (multipart `file`) |
+| Delete a question | `DELETE datasets/{name}/items/{id}/` |
+| **Start Evaluation** | `POST datasets/{name}/runs/` with `mentor_unique_id` and `run_name` |
+| **View results** | `GET datasets/{name}/runs/{run}/` and `GET datasets/{name}/runs/{run}/evaluate/` |
+| **Evaluate** | `POST datasets/{name}/runs/{run}/evaluate/` with `criteria`, `score_name`, `llm_provider`, `llm_name`, `max_concurrency` |
+| **Add** / remove a score | `POST scores/` with `trace_id`, `name`, `value`, `comment`, `dataset_run_id`; `DELETE scores/{id}/` |
+| **Export CSV** | `GET datasets/{name}/runs/{run}/export/` (downloads `<benchmark>_<run>_results.csv`) |
+| **Delete** | `DELETE datasets/{name}/runs/{run}/` |
+
+The table keeps a run when its `metadata.mentor_unique_id` is this agent, or
+when it is still pending and the current user started it.
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useListEvalDatasetsQuery` | Benchmarks |
+| `useListEvalRunsQuery`, `useLazyGetEvalRunQuery` | Runs, and Check status |
+| `useStartEvalRunMutation` | Start an evaluation |
+| `useEvaluateEvalRunMutation`, `useListEvalRunJudgesQuery` | Start and list reviews |
+| `useCreateEvalScoreMutation`, `useDeleteEvalScoreMutation` | Manual scores |
+| `useExportEvalRunMutation`, `useDeleteEvalRunMutation` | Export and delete a run |
+| `useGetLlmsQuery` | The judge's provider and model list |
+
+All from `@iblai/iblai-js/data-layer`. REST twin:
+[`/iblai-api-agent-eval`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-eval/SKILL.md)
+(also score configs and items seeded from chat traces, which this tab does
+not expose).
 
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/evals /tmp/agent-evals.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an org admin, open `/agents/<uuid>/evals`: the
+   benchmark picker and runs table render. Start an evaluation; once it is
+   COMPLETED, View results lists one trace per question.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/evals /tmp/agent-evals.png`
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware` --
-  the evaluations API slice (datasets / runs / judges / scores) ships
-  inside those bundles.
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
-- **Benchmarks are organization-wide, runs are agent-scoped**: a benchmark can
-  be evaluated against multiple agents. The tab filters runs client-side
-  to the current agent via `metadata.mentor_unique_id`; pending runs
-  without populated metadata are kept only when the current user initiated
-  them (their freshly-started evaluation).
-- **Manual scores are 0-1**: the Add-a-score form requires a numeric
-  value between 0 and 1. Score writes are ingested asynchronously by the
-  eval store -- the modal patches its cache optimistically and the real
-  record appears on the next refresh.
-- **CSV format** (benchmark Q&A upload): UTF-8, required `input` column,
-  optional `expected_output` column, max 10 MB / 10,000 rows; rows with a
-  blank question are skipped.
-- **First benchmark auto-selected**: the combobox picks the first
-  benchmark automatically; New Evaluation stays disabled until a
-  benchmark exists (use Manage benchmarks to create one).
+- **Benchmarks are permanent**: there is no rename or delete, in the tab or
+  the API, and every agent in the organization sees them. Name them with
+  care.
+- **Runs cost model calls**: an evaluation sends every question to the
+  agent, and each review sends every trace to the judge model.
+- **A judge that cannot answer scores 0**: when the judge model call fails,
+  the review still completes, with a 0 and the comment "LLM judge call
+  failed" for each trace. Check the comments before trusting a low score.
+- **Manual scores are 0-1**, and they appear after the next refresh.
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout
+  level (`/iblai-vibe-agent` §1); do not wrap each tab.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
-
-## Evaluations REST API
-
-For custom UI beyond `<AgentEvaluationTab>`. All endpoints are prefixed
-with `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/evaluations`
-where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`.
-
-### Benchmarks (datasets)
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `datasets/` | List benchmarks (params: `page`, `limit`, `name`, `user_email`) |
-| POST | `datasets/` | Create a benchmark (`{ "name", "description" }`) |
-| GET | `datasets/{name}/` | Get one benchmark |
-| GET | `datasets/{name}/items/` | List Q&A items (params: `page`, `limit`, `include_trace`) |
-| POST | `datasets/{name}/items/` | Add Q&A items |
-| POST | `datasets/{name}/items/upload/` | Upload items CSV (multipart) |
-| PUT | `datasets/{name}/items/{item_id}/` | Update an item |
-| DELETE | `datasets/{name}/items/{item_id}/` | Delete an item |
-
-### Evaluation runs
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `datasets/{name}/runs/` | List runs for a benchmark |
-| POST | `datasets/{name}/runs/` | Start a run |
-| GET | `datasets/{name}/runs/{run}/` | Run detail (traces + scores) |
-| DELETE | `datasets/{name}/runs/{run}/` | Delete a run |
-| GET | `datasets/{name}/runs/{run}/export/` | Export results as CSV (text response) |
-
-**Start-run body** (bind the run to the agent being evaluated):
-
-```json
-{
-  "mentor_unique_id": "agent-uuid",
-  "run_name": "qa-eval-v1"
-}
-```
-
-`run_name` is optional -- the backend auto-generates one (e.g.
-`run-091c4937`) when omitted.
-
-### LLM-as-Judge reviews
-
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `datasets/{name}/runs/{run}/evaluate/` | Start a review (LLM scores every trace) |
-| GET | `datasets/{name}/runs/{run}/evaluate/` | List reviews for a run (params: `page`, `limit`, `status`) |
-| GET | `judges/` | List reviews across runs (params: `dataset_name`, `status`) |
-
-**Review body:**
-
-```json
-{
-  "criteria": "Evaluate the response on accuracy",
-  "score_name": "accuracy",
-  "llm_provider": "openai",
-  "llm_name": "gpt-5",
-  "max_concurrency": 4
-}
-```
-
-### Scores
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `scores/` | List scores (params: `dataset_run_id`, `trace_id`, `name`) |
-| POST | `scores/` | Add a manual score (`{ "trace_id", "name", "value", "comment"?, "dataset_run_id"? }`, value 0-1) |
-| DELETE | `scores/{score_id}/` | Remove a score |
-| GET | `score-configs/` | List score configs |
-| POST | `score-configs/` | Create a score config |
-
-Task status polling (used by Check status) goes through
-`/api/ai-mentor/orgs/{org}/users/{user_id}/tasks/{task_id}`.
