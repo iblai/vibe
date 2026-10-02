@@ -442,7 +442,7 @@ The canonical SKILL.md files ARE the Claude Code format — no separate
 adapter needed for Claude. Use `templates/skill-template.md` as the
 starting point when authoring a new skill.
 
-**Skill validation & testing** (details in [TESTING.md](TESTING.md); CI runs the first three on PRs labeled `run-tests` — not merge-required):
+**Skill validation & testing** (details in [TESTING.md](TESTING.md); CI runs the first three on PRs labeled `run-tests`, a label every PR needs — skills-ci's `deterministic` check must pass to merge):
 
 ```bash
 bash scripts/validate-skills.sh           # spec conformance: name/description/frontmatter, ≤500 lines, off-spec dirs
