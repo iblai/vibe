@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-support
-description: Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to your Next.js app
+description: Add the agent Support tab (let chat users hand the conversation to a human, then review, reply to and resolve the tickets they raise) to your Next.js app. Use when the user mentions human support, handing a chat over to a person, escalation, a support inbox, or support tickets for an agent. For the REST contract see /iblai-api-agent-support.
 globs:
 alwaysApply: false
 metadata:
@@ -9,37 +9,57 @@ metadata:
 
 # /iblai-vibe-agent-support
 
-Add the agent **Support tab** -- human support ticket management for the
-agent. Support lets people chatting with the agent hand the conversation
-over to a human; each request shows up as a ticket that admins can
-review, reply to, and resolve. The tab has an availability toggle, user
-and status filters, a paginated ticket inbox, and a ticket detail pane
-with status control and a reply thread. This is one tab in the wider
-agent-settings family. All tabs share the same `AgentSettingsProvider`
-wrapper.
+Add the agent **Support tab** -- a human-support inbox for one agent. When
+a user asks the agent for a person, the agent files a ticket; admins
+review, reply to and resolve it here. **Scope: per agent.** The switch turns
+the hand-over on for this agent, and the inbox lists only this agent's
+tickets. This is one tab in the agent-settings family indexed by
+`/iblai-vibe-agent`; it shares the `AgentSettingsProvider` wrapper with every
+other tab.
 
-![Support Tab — Ticket Inbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-1-tickets.png)
+**Tickets** -- the switch (the agent's human support tool, the same one as
+in the Tools tab), a user filter (search the organization's users), a
+status filter (All / Open / In Progress / Closed), and the inbox: when,
+requester email, subject, a status badge (Open green, In Progress amber,
+Closed gray) and a preview, 10 per page.
 
-![Support Tab — Ticket Detail](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-2-ticket-detail.png)
+![Support tab -- tickets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-1-tickets.png)
 
-![Support Tab — Conversation and Reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-3-reply.png)
+**A ticket** -- subject, requester, status, the **Request** the agent wrote
+(HTML and Markdown render sanitized), the **Conversation**, and a reply box.
+Below the `md` breakpoint the ticket opens in a dialog instead.
+
+![Support tab -- a ticket](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-2-ticket.png)
+
+**Reply** -- **Send Reply** adds the message to the conversation, oldest
+first. (In this shot the admin is also the requester, so both lines show
+the same email.)
+
+![Support tab -- reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-3-reply.png)
+
+**Status** -- Open, In Progress or Closed. A closed ticket replaces the
+reply box with "This ticket is closed. Set it back to Open or In Progress to
+reply."
+
+![Support tab -- status](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-4-status.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
-  Step 2 if not already set up). This tab reads its identity from the
-  provider only — there are no identity prop overrides.
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1). The tab
+  throws without it: it has no identity props.
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
+  `pnpm why @iblai/web-containers`.
+- A real agent UUID. Ask the user; never invent one.
+- The organization's tool catalogue needs the **human support** tool, or the
+  switch is hidden (the inbox still works).
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
@@ -61,22 +81,37 @@ export default function AgentSupportPage() {
 }
 ```
 
-`AgentHumanSupportTab` reads `tenantKey`, `mentorId`, and `username` from
-`AgentSettingsProvider`. Pagination renders out of the box via the
-built-in `IblPagination` — no host wiring needed.
+The tab reads `tenantKey`, `mentorId`, and `username` from
+`AgentSettingsProvider` and does its own fetching and saving. No props are
+required. To use your own pagination under the inbox, pass
+`PaginationComponent` (it gets `currentPage`, `totalPages`, `onPageChange`,
+`disabled`, `disableNumberedButtons`; the default is the SDK's
+`IblPagination`).
 
 ## Step 3: Customize Labels (Optional)
+
+The tab renders with the default agent-facing copy
+(`AGENT_HUMAN_SUPPORT_TAB_LABELS`, localized through the SDK's i18n). Pass a
+partial `labels` object to change any string:
 
 ```tsx
 import { AgentHumanSupportTab } from "@iblai/iblai-js/web-containers/next";
 
 <AgentHumanSupportTab
   labels={{
-    header: { title: "Help Desk" },
+    header: { title: "Help desk" },
     detail: { sendReply: "Reply" },
   }}
 />;
 ```
+
+Label groups (`HumanSupportTabLabels`): `header` (`title`, `description`,
+`infoBox`), `toggle` (`enable`, `updated`, `error`), `filters` (`searchUser`,
+`allUsers`, `allStatuses`), `status` (`open`, `inProgress`, `closed`), `list`
+(`noTickets`, `untitled`), `detail` (`selectPrompt`, `statusLabel`,
+`requestSection`, `conversationSection`, `supportTeam`, `noMessages`,
+`replyPlaceholder`, `sendReply`, `sending`, `closedNotice`), and `toasts`
+(`replySent`, `replyError`, `statusUpdated`, `statusError`).
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -92,82 +127,65 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `labels` | `DeepPartial<HumanSupportTabLabels>` | No | Override user-visible strings |
-| `PaginationComponent` | `React.ComponentType<{ currentPage, totalPages, onPageChange, disabled, disableNumberedButtons }>` | No | Replace the built-in `IblPagination` used under the ticket list |
-
-## What the tab renders
-
-- **Header** — "Support" title and description.
-- **Info box + availability toggle** — explains the hand-over-to-a-human
-  flow. The switch is the agent's **human support tool** (the same
-  toggle shown in the Tools tab, surfaced here where the feature
-  lives). Existing tickets stay fully actionable even while the option
-  is switched off for users.
-- **Filters** — a searchable user combobox (type to search the organization's
-  users, debounced; shows emails and filters tickets by that requester,
-  with an "All Users" reset) and a status select (All Statuses / Open /
-  In Progress / Closed).
-- **Ticket inbox (left column)** — 10 tickets per page, each row showing
-  time-ago, requester email, subject, a status badge (Open = green,
-  In Progress = amber, Closed = gray), and a one-line body preview.
-  Pagination appears when there is more than one page.
-- **Ticket detail (right column)** — on desktop; below the `md`
-  breakpoint clicking a ticket opens the detail in a dialog instead.
-  Shows the subject, requester, time, and:
-  - **Status dropdown** — Open / In Progress / Closed. Setting Closed
-    calls the dedicated close endpoint; the others patch the ticket.
-  - **Request** — the original ticket body. Agent-authored bodies may be
-    HTML or Markdown; both render sanitized, and plain text renders
-    as-is.
-  - **Conversation** — the reply thread, oldest first, distinguishing
-    the requester from the Support Team.
-  - **Reply box** — textarea + **Send Reply**. Closed tickets show a
-    notice instead ("Set it back to Open or In Progress to reply.").
+| `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled, disableNumberedButtons }>` | No | Pagination under the inbox. Defaults to the SDK's `IblPagination` |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_HUMAN_SUPPORT_TAB_LABELS` -- the default agent-facing label bundle.
-- `HumanSupportTabLabels` -- type for the full label bundle.
-- `AgentHumanSupportTabProps` -- props type for the tab.
-- `SupportTicketsFilter` -- type of the status/username filter state.
+- `AGENT_HUMAN_SUPPORT_TAB_LABELS` -- the default label bundle.
+- `AgentHumanSupportTabProps`, `HumanSupportTabLabels`,
+  `SupportTicketsFilter` (the status and requester filter state) -- types.
 
-From `@iblai/iblai-js/data-layer` -- the RTK Query hooks and types the tab uses,
-for custom UI built on the same endpoints:
+## How it saves
 
-- `useGetSupportTicketsQuery`, `useGetSupportTicketMessagesQuery`,
-  `useCreateSupportTicketMessageMutation`,
-  `usePatchSupportTicketMutation`, `useCloseSupportTicketMutation`,
-  `usePlatformUsersQuery`
-- `SupportTicket`, `SupportTicketMessage`, `SupportTicketStatus`
+Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/`.
+
+| Action | Request |
+|---|---|
+| Load | `GET support-tickets/?mentor_id=<uuid>&page=&page_size=10` (plus `status` and `username` from the filters) |
+| Open a ticket | `GET support-ticket-messages/?ticket={id}` |
+| **Send Reply** | `POST support-ticket-messages/` with the ticket and the message |
+| Status Open / In Progress | `PATCH support-tickets/{id}/` with `status` |
+| Status Closed | `POST support-tickets/{id}/close/` |
+| The switch | `PUT mentors/{uuid}/settings/` with the agent's `tool_slugs` (the human support tool added or removed) and `can_use_tools` |
+
+There is no create here: the agent files tickets during chats. The tab has
+no delete either; the REST twin has one.
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetSupportTicketsQuery` | The inbox (paged) |
+| `useGetSupportTicketMessagesQuery` / `useCreateSupportTicketMessageMutation` | The conversation and replies |
+| `usePatchSupportTicketMutation` / `useCloseSupportTicketMutation` | Status changes |
+| `usePlatformUsersQuery` | The user filter |
+
+All from `@iblai/iblai-js/data-layer`, with the `SupportTicket`,
+`SupportTicketMessage` and `SupportTicketStatus` types. REST twin:
+[`/iblai-api-agent-support`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-support/SKILL.md).
 
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/support /tmp/agent-support.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an org admin, open `/agents/<uuid>/support`: the
+   switch and filters render. Turn the switch on, ask the agent in chat to
+   hand you to a human -- a ticket appears in the inbox.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/support /tmp/agent-support.png`
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level — this tab throws without it (it uses the required
-  context, not the optional one). See `/iblai-vibe-agent-setting` Step 2
-  for the full snippet.
-- **Availability is a tool toggle**: Turning support on/off toggles the
-  agent's `human support` tool slug — the same state as the Tools tab
-  (`/iblai-vibe-agent-tool`). If the tool is not available on the
-  platform, the switch is hidden but the inbox still works.
-- **Ticket scoping**: Tickets are scoped to this agent via its
-  `mentor_unique_id` (resolved from the agent's public settings).
+- **The switch is a tool**: it edits the agent's tools, the same list as
+  the Tools tab (`/iblai-vibe-agent-tool`). Turning it off hides the
+  hand-over from users; existing tickets stay workable.
+- **Admins see everything**: org admins see every ticket for the agent;
+  other users see only their own.
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout
+  level (`/iblai-vibe-agent` §1); do not wrap each tab.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
