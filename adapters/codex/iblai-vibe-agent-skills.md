@@ -1,119 +1,181 @@
 # iblai-vibe-agent-skills
 
-> Add the agent Skills tab (reusable Agent Skills catalog with per-agent assignment, private skills, file resources, and the chat `/` skill picker) to your Next.js app
+> Add the agent Skills tab (AgentSkillsTab: reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dialogs with file resources, and the chat `/` skill picker) to your Next.js app. Use when the user mentions agent skills, playbooks, 'attach a skill to my agent', skill resources, or the `/` skill picker in chat. For the REST contract see /iblai-api-agent-skill; for sandboxes see /iblai-vibe-agent-sandbox.
 
 # /iblai-vibe-agent-skills
 
-Add the agent **Skills tab** -- reusable playbooks a Base Agent can
-discover and follow. An Agent Skill is a written instruction bundle
-(plus optional reference files) for one job, like researching a topic
-on the web or reviewing code. The agent reads a skill only when it's
-relevant, so an agent can carry many capabilities without bloating
-every conversation. The surface has two tabs — **Agent Skills** (the
-agent's own set, with enable/disable toggles) and **Available Skills**
-(the organization catalog, with one-click "Add to Agent") — plus New/Edit
-skill dialogs (with a **Resources** file manager) and the chat **`/`
-skill picker** that lets users invoke a skill from the composer.
+Add the agent **Skills tab** (`AgentSkillsTab`) -- reusable playbooks a Base
+Agent can discover and follow. An Agent Skill is a written instruction bundle
+(plus optional reference files) for one job, like summarizing a meeting or
+searching the web. The agent reads a skill only when it is relevant, so it can
+carry many without bloating every conversation. **Scope:** skills are defined
+**per organization** (or private to one agent); the tab manages which of them
+are attached to **this agent**. It has two sub-tabs, **Agent Skills** and
+**Available Skills**, a **New Skill** button, and Edit dialogs with a
+**Resources** file manager. Users invoke a skill from the chat composer with
+`/` (Step 4). Skills need no sandbox.
 
-Skills are managed independently of the Claw sandbox — no sandbox
-instance is required. (They were previously documented as a section of
-`/iblai-vibe-agent-sandbox`.)
+**Agent Skills** -- the skills attached to this agent, each with its `/slug`,
+an on/off switch (the assignment's `enabled`), and **Remove**.
 
-![Skills — Agent Skills tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills.png)
+![Skills -- Agent Skills](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-1-agent-skills.png)
 
-![Skills — Available Skills tab (Added badges)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-available.png)
+**Available Skills** -- the organization's catalog, paged 10 at a time:
+name, version, category and **Only This Agent** badges, description, and
+**Add** (or a green **Added** chip once attached).
 
-![Skills — Per-row actions (Remove from Agent / Edit / Delete)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-actions.png)
+![Skills -- Available Skills](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-2-available.png)
 
-![New Skill dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-new-skill.png)
+**Row actions** -- each catalog row has a switch (the skill's own
+`enabled`) and a menu with **Edit** and **Delete**, shown only for skills the
+organization owns.
 
-![Edit Skill dialog — General tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-edit-general.png)
+![Skills -- row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-3-actions.png)
 
-![Edit Skill dialog — Resources tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-edit-resources.png)
+**New Skill** -- **Only This Agent**, Name, Slug, Version, Category,
+Description, and Instruction (a rich-text playbook).
 
-![Chat composer — `/` skill picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-slash-picker.png)
+![Skills -- New Skill dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-4-new-skill.png)
 
-![Chat page — `/` picker open above the composer](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-chat-picker.png)
+**Edit Skill -> Resources** -- files the agent can use with the skill:
+`reference` and `script` (text) or `asset` (upload), each with a menu.
+
+![Skills -- Edit Skill, Resources](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-5-edit-resources.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
-- Agent Skills only apply to **Base Agent** agents (template slug
-  `base-agent`, or its legacy aliases `ai-mentor` / `ai-agent`). Use
-  `isBaseAgentMentor()` from `@iblai/iblai-js/data-layer` if you need
-  to gate the tab per agent type.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32).
+- A real agent UUID. Ask the user; never invent one.
+- The signed-in user is an organization admin (or holds the agent's
+  skill-assignment roles). The tab renders nothing for `userIsStudent`.
+- Agent Skills apply to **Base Agent** agents only (template slug
+  `base-agent`, or the legacy `ai-mentor` / `ai-agent`). For another agent
+  type the tab shows "Skills are only available to Base Agents."
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentSkills`
+## Step 2: Mount `AgentSkillsTab` and load its permissions
 
-`AgentSkills` is an independent component — it does not read from
-`AgentSettingsProvider`. It takes `platformKey` and `mentorUniqueId`
-as required props and manages everything else (fetching, dialogs,
-pagination, toasts) internally.
+`AgentSkillsTab` resolves the agent from `AgentSettingsProvider`, then gates
+every read and write on the agent's RBAC grants **in the Redux store**
+(`state.rbac`, key `/mentors/{mentorDbId}/`): `view_skill_assignments`
+(the list), `create_skill_assignment` (Available Skills, **Add**, New Skill),
+`write_skill_assignment` (the switch), `delete_skill_assignment`
+(**Remove**). Nothing fills that store for you -- without the grants the tab
+shows only "No skills enabled for this agent yet." The chat `/` picker
+(Step 4) reads the same grant, so put the loader in a hook:
+
+```tsx
+// lib/iblai/use-agent-grants.ts
+"use client";
+
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import {
+  useGetMentorSettingsQuery,
+  useGetRbacPermissionsMutation,
+} from "@iblai/iblai-js/data-layer";
+import { updateRbacPermissions } from "@iblai/iblai-js/web-utils";
+
+/** Loads the agent's `/mentors/{dbId}/` grants into `state.rbac`. */
+export function useAgentGrants(tenantKey: string, mentorId: string) {
+  const dispatch = useDispatch();
+  const [getRbacPermissions] = useGetRbacPermissionsMutation();
+  const { data: settings } = useGetMentorSettingsQuery(
+    { mentor: mentorId, org: tenantKey },
+    { skip: !tenantKey || !mentorId },
+  );
+  const mentorDbId = settings?.mentor_id;
+
+  useEffect(() => {
+    if (!mentorDbId) return;
+    getRbacPermissions({
+      requestBody: { platform_key: tenantKey, resources: [`/mentors/${mentorDbId}/`] },
+    })
+      .unwrap()
+      .then((permissions) => dispatch(updateRbacPermissions(permissions)))
+      .catch((error) => console.error("Could not load the agent's permissions", error));
+  }, [mentorDbId, tenantKey, getRbacPermissions, dispatch]);
+}
+```
 
 ```tsx
 // app/(app)/agents/[mentorId]/skills/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { AgentSkills } from "@iblai/iblai-js/web-containers";
+import { AgentSkillsTab, useAgentSettings } from "@iblai/iblai-js/web-containers/next";
+import { useAgentGrants } from "@/lib/iblai/use-agent-grants";
 
 export default function AgentSkillsPage() {
-  const { mentorId } = useParams<{ mentorId: string }>();
-  const [platformKey, setPlatformKey] = useState("");
-
-  useEffect(() => {
-    try {
-      const resolvedTenant =
-        localStorage.getItem("app_tenant") ??
-        (() => {
-          try {
-            return JSON.parse(localStorage.getItem("current_tenant") ?? "{}").key;
-          } catch { return undefined; }
-        })() ??
-        localStorage.getItem("tenant") ??
-        "";
-      setPlatformKey(resolvedTenant);
-    } catch {}
-  }, []);
-
-  if (!platformKey) return null;
+  const { tenantKey, mentorId } = useAgentSettings();
+  useAgentGrants(tenantKey, mentorId);
 
   return (
-    <div className="flex h-full flex-col bg-white p-6">
-      <AgentSkills platformKey={platformKey} mentorUniqueId={mentorId} />
+    <div className="flex h-full flex-col bg-white">
+      <AgentSkillsTab />
     </div>
   );
 }
 ```
 
-Skills work without any sandbox connection — org-level skills and the
-agent's assignments both resolve on their own, so the component always
-renders its full UI.
+The settings query has the same arguments as the tab's, so it is a cache
+read. The store must include the `rbac` reducer (vibe-starter's
+`store/iblai-store.ts` does).
 
-## Step 3: Enable the chat `/` skill picker
+### Lower level: `AgentSkills`
 
-The chat composer ships a `/` skill combobox (see the last screenshot):
-typing `/` as the first word opens a popup listing the agent's skills
-(name + `/slug`, arrow keys + Enter/Tab to select, Esc to dismiss).
-Selecting inserts `/slug ` into the composer. It is **off by default**
-— opt in with one prop on `<Chat>` (from `/iblai-vibe-agent-chat`):
+`AgentSkillsTab` wraps `AgentSkills` (still exported from
+`@iblai/iblai-js/web-containers`) with the header, the Base Agent check, and
+the student guard. Mount `AgentSkills` directly only for a custom shell. It
+takes `platformKey`, `mentorUniqueId`, and optional `mentorDbId`; with
+`mentorDbId` it applies the same RBAC gating, without it nothing is gated.
+
+```tsx
+import { AgentSkills } from "@iblai/iblai-js/web-containers";
+
+<AgentSkills platformKey="acme-demo" mentorUniqueId="<agent-uuid>" />;
+```
+
+## Step 3: Customize Labels (Optional)
+
+```tsx
+import { AgentSkillsTab } from "@iblai/iblai-js/web-containers/next";
+
+<AgentSkillsTab labels={{ header: { title: "Playbooks" } }} />;
+```
+
+Label groups (`SkillsTabLabels`): `header` (`title`, `description`),
+`notBaseAgent`, and `loading`. The rows, dialogs, and toasts inside come from
+the SDK's i18n and are not part of the bundle.
+
+## Step 4: Enable the chat `/` skill picker
+
+The chat composer ships a `/` skill combobox: typing `/` as the first word
+opens a popup listing the agent's skills (name + `/slug`, arrow keys +
+Enter/Tab to select, Esc to dismiss). Selecting inserts `/slug ` into the
+composer. It is **off by default**. Opt in with `slashSkillsEnabled` on
+`<Chat>` (from `/iblai-vibe-agent-chat`) **and** load the agent's grants on
+the chat page: the composer fetches the agent's skills only when `state.rbac`
+holds `/mentors/{dbId}/#view_skill_assignments` for that agent, and with no
+grant data it skips the fetch, so the picker never opens. vibe-starter loads
+only organization-level grants, so call the Step 2 hook in `app/(app)/page.tsx`:
 
 ```tsx
 import { Chat } from "@iblai/iblai-js/web-containers/next";
+import { useAgentGrants } from "@/lib/iblai/use-agent-grants";
+
+// inside AgentChat, which already has mentorId:
+useAgentGrants(resolveAppTenant(), mentorId);
 
 <Chat
   // ...existing chat config...
@@ -121,111 +183,88 @@ import { Chat } from "@iblai/iblai-js/web-containers/next";
 />;
 ```
 
-With `slashSkillsEnabled`, the composer lazily fetches the agent's
-skills from the per-agent skills endpoint on the first `/` keystroke
-(20 per page, loading more as the list scrolls; errors degrade to an
-inactive picker). To supply the list yourself instead, pass
-`slashSkills` (an `EffectiveAgentSkill[]`) and `slashSkillsLoading`
-while resolving it — a host-supplied list bypasses fetching entirely.
-The same three props exist on `ChatInputForm` for custom chat
-surfaces.
+With the grant loaded, the composer lazily fetches the agent's skills on the
+first `/` keystroke (20 per page, loading more as the list scrolls; errors
+degrade to an inactive picker). Users without the grant (usually non-admin
+members) get no picker. To supply the list yourself, pass
+`slashSkills` (an `EffectiveAgentSkill[]`) and `slashSkillsLoading` while
+resolving it; that skips the internal fetch and its grant check. The same three props exist on `ChatInputForm`. For a fully
+custom composer use `useSlashSkills`, `useSlashSkillPicker`,
+`SlashSkillPicker`, and `isSlashCommandToken`.
 
-For a fully custom composer, the pieces are exported individually:
-`useSlashSkills` (lazy paged fetch), `useSlashSkillPicker` (open/close
-+ keyboard state machine), `SlashSkillPicker` (the listbox popup), and
-`isSlashCommandToken` (is the composer text a `/` token).
+![Chat composer -- `/` skill picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-slash-picker.png)
 
-## Step 4: Use MCP Tools for Customization
+![Chat page -- `/` picker open above the composer](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-skills/iblai-vibe-agent-skills-chat-picker.png)
+
+## Step 5: Use MCP Tools for Customization
 
 ```
+get_component_info("AgentSkillsTab")
 get_component_info("AgentSkills")
 get_component_info("Chat")
 ```
 
 ## Component Props
 
+### `<AgentSkillsTab>` (from `@iblai/iblai-js/web-containers/next`)
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `labels` | `DeepPartial<SkillsTabLabels>` | No | Override the header, Base Agent note, and loading copy |
+| `tenantKey` | `string` | No | Identity override. Falls back to `AgentSettingsProvider` |
+| `mentorId` | `string` | No | Identity override (agent UUID). Falls back to `AgentSettingsProvider` |
+| `username` | `string` | No | Identity override. Falls back to `AgentSettingsProvider` |
+| `userIsStudent` | `boolean` | No | `true` renders nothing (skills are admin-only). Falls back to `AgentSettingsProvider` |
+
 ### `<AgentSkills>` (from `@iblai/iblai-js/web-containers`)
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `platformKey` | `string` | Yes | Organization key (org slug) |
+| `platformKey` | `string` | Yes | Org key |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
+| `mentorDbId` | `number \| string` | No | Agent DB id; turns on RBAC gating against `/mentors/{id}/` |
 
 ### `<Chat>` / `<ChatInputForm>` slash-picker props
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `slashSkillsEnabled` | `boolean` | No | Turns the `/` picker on (default `false`). Fetches the agent's skills lazily |
-| `slashSkills` | `EffectiveAgentSkill[]` | No | Host-supplied list — overrides the internal fetch |
-| `slashSkillsLoading` | `boolean` | No | True while the host is still resolving `slashSkills` — the popup shows a loading row |
+| `slashSkillsEnabled` | `boolean` | No | Turns the `/` picker on (default `false`) |
+| `slashSkills` | `EffectiveAgentSkill[]` | No | Host-supplied list; skips the internal fetch |
+| `slashSkillsLoading` | `boolean` | No | Shows a loading row while the host resolves `slashSkills` |
 
-## What the component renders
+## What the tab does
 
-- **Header note + New Skill** — "Skills added or removed here apply to
-  new chat sessions only. Edits to a skill's instructions apply
-  immediately, including in conversations already in progress." plus
-  the gradient **New Skill** button.
-
-### Agent Skills tab
-
-The agent's *effective* set: its skill assignments plus its own
-private skills, deduped by slug and paged 10 per row-page.
-
-- **Rows** — name, version, badges (category, Native, Featured,
-  Private), description, enable/disable **Switch**, kebab menu.
-- **Toggle** — for an assigned skill, PATCHes the assignment's
-  `enabled`; for a private skill, PATCHes the skill itself.
-- **Kebab menu** — **Remove from Agent** (deletes the assignment;
-  only for assigned skills), **Edit**, **Delete** (edit/delete only
-  for skills the organization owns — featured skills from the `main`
-  platform are read-only).
-
-### Available Skills tab
-
-The organization's full skill catalog, paged server-side 10 at a time.
-
-- **Rows** — same name/version/badges/description block.
-- **Add to Agent** — creates a `MentorSkillAssignment` (enabled) for
-  the agent. Rows already covered by the agent's set — attached, or
-  shadowed by a same-slug private skill — show a green **Added** chip
-  instead. Another agent's private skills are not attachable.
-
-### New / Edit Skill dialog
-
-- **Only This Agent** toggle — "Private skills are available to this
-  agent only and take precedence over platform skills with the same
-  slug." Sets `mentor` to the agent's UUID (null = platform-wide).
-- **Fields** — Name, Slug (both required), Version (default `1.0.0`),
-  Category (e.g. web, code, data), Description, and Instruction (a
-  `RichTextEditor` — the playbook the agent follows).
-- The Edit dialog has **General** and **Resources** sub-tabs; files
-  can be attached after the skill is created.
-
-### Resources sub-tab (skill files)
-
-Optional files the agent can use with the skill:
-
-- **Types** — `reference` and `script` are text files (filename +
-  content in a textarea); `asset` is a binary upload (multipart).
-- **Rows** — filename + type chip + kebab (**Download** for assets,
-  **Edit** for text files, **Delete** with confirmation). Paged 20
-  per page.
-
-### Chat `/` skill picker
-
-- Opens while the composer holds a single `/`-prefixed word and at
-  least one **enabled** skill matches (name or slug, case-insensitive).
-- ArrowUp/ArrowDown browse, Enter/Tab select (inserts `/slug `), Esc
-  dismisses until the token is cleared — plain text starting with `/`
-  is never blocked.
-- Skills load lazily on the first `/` keystroke and page in as the
-  list scrolls; the popup shows spinner rows while loading.
+- **Header note + New Skill** -- "Skills added or removed here apply to new
+  chat sessions only. Edits to a skill's instructions apply immediately,
+  including in conversations already in progress."
+- **Agent Skills** lists the agent's skill **assignments**, paged 10 per
+  page. The switch PATCHes the assignment's `enabled`; **Remove** deletes
+  the assignment (the skill itself stays in the catalog).
+- **Available Skills** lists the whole catalog, paged 10, including disabled
+  skills so they can be re-enabled. **Add** creates an enabled assignment;
+  rows already assigned show **Added**. The switch PATCHes the skill.
+  **Edit** / **Delete** appear only for skills the organization owns;
+  featured skills from the `main` organization are read-only.
+- **New / Edit Skill** -- `Only This Agent` sets `mentor` to this agent's
+  UUID (private; takes precedence over a featured `main` skill with the same
+  slug). The tab then tries to attach the private skill to the agent, which
+  the backend rejects (see Important Notes). Edit adds the
+  **General** / **Resources** sub-tabs; a skill private to another agent
+  keeps its owner (the toggle is locked).
+- **Resources** -- `reference` and `script` are text (filename + content);
+  `asset` is a multipart upload. Row menu: **Download** (assets), **Edit**
+  (text), **Delete** (with confirmation). Paged 20 per page.
 
 ## Related Exports
 
+From `@iblai/iblai-js/web-containers/next`:
+
+- `AgentSkillsTab` — the tab (header, Base Agent check, student guard).
+- `AGENT_SKILLS_TAB_LABELS`, `SkillsTabLabels`, `AgentSkillsTabProps`.
+
 From `@iblai/iblai-js/web-containers`:
 
-- `AgentSkills` — the Skills surface.
+- `AgentSkills` — the manager inside the tab.
 - `SlashSkillPicker`, `SlashSkillPickerProps` — the `/` popup listbox.
 - `useSlashSkillPicker`, `isSlashCommandToken` — composer keyboard /
   open-state machine.
@@ -254,21 +293,42 @@ From `@iblai/iblai-js/data-layer`:
 - `filterSlashSkills` — enabled-only name/slug filter used by the
   picker.
 - `isBaseAgentMentor`, `BASE_AGENT_TEMPLATE_SLUGS` — Base Agent gate.
+- `useGetRbacPermissionsMutation` — loads the grants the tab gates on
+  (dispatch the result with `updateRbacPermissions` from
+  `@iblai/iblai-js/web-utils`).
 - `MENTOR_SKILL_ASSIGNMENTS_PAGE_SIZE` — the picker's page size (20).
 - `AgentSkill`, `AgentSkillResource`, `MentorSkillAssignment`,
   `EffectiveAgentSkill` — payload types.
 
-## Step 5: Verify
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetMentorSkillAssignmentsQuery` + create/update/delete mutations | The agent's assignments (Agent Skills sub-tab) |
+| `useGetAgentSkillsQuery` + create/update/delete mutations | The organization catalog (Available Skills, New/Edit) |
+| `useGetAgentSkillResourcesQuery` + resource mutations | Skill files (Resources) |
+| `useGetRbacPermissionsMutation` | The agent's skill-assignment grants |
+
+REST twin: [`/iblai-api-agent-skill`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-skill/SKILL.md);
+the endpoint summary is also at the end of this page.
+
+## Step 6: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/skills /tmp/agent-skills.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an organization admin, open
+   `/agents/<uuid>/skills`: **Agent Skills** and **Available Skills** both
+   show and **New Skill** is visible. If only "No skills enabled for this
+   agent yet" renders with no **Available Skills** sub-tab, the RBAC grants
+   were not loaded (Step 2).
+4. **Add** a skill from **Available Skills**; it appears under **Agent
+   Skills** with its `/slug`.
+5. If you enabled the picker, open `/`, type `/` in the composer: the
+   popup lists that skill. No popup means the chat page did not load the
+   agent's grants (Step 4).
+6. `npx playwright screenshot http://localhost:3000/agents/<uuid>/skills /tmp/agent-skills.png`
 
 ## Important Notes
 
@@ -277,9 +337,18 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Base Agent only**: Agent Skills apply to Base Agent agents only.
-  Gate the tab with `isBaseAgentMentor({ mentorSlug, templateMentorSlug })`
-  when your app hosts other agent types.
+- **Base Agent only**: `AgentSkillsTab` shows a note for other agent types;
+  hide the tab yourself with `isBaseAgentMentor({ mentorSlug,
+  templateMentorSlug })` when you can.
+- **Private skills are not assigned**: the backend applies a skill created
+  with **Only This Agent** to its agent directly and, by design, rejects
+  assigning it (400 "Object with unique_id=… does not exist"). The tab still
+  tries to attach it after creating it, so it toasts "Failed to create
+  skill" although the skill was created and is live. What is lost is
+  visibility: the skill is not listed under **Agent Skills**, and the `/`
+  picker (which lists assignments) does not offer it.
+- **RBAC grants in the store**: see Step 2. A missing grant hides the
+  matching control rather than showing an error.
 - **Session behaviour**: adding/removing a skill applies to **new chat
   sessions only**; editing a skill's instructions applies immediately,
   including to conversations already in progress. The component
@@ -288,11 +357,12 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   `unique_id`, not the integer id. Custom UI joining skills to
   assignments must key on `skill.unique_id`. (Skill *resources* key on
   the integer `skill.id` instead.)
-- **Private-skill precedence**: a skill created with **Only This
-  Agent** shadows platform skills with the same slug for that agent
-  (`resolveEffectiveAgentSkills` ranks private > organization > featured).
+- **Private-skill precedence**: slugs are unique per organization, so
+  only a featured skill from `main` can share a private skill's slug; the
+  private one shadows it for that agent (`resolveEffectiveAgentSkills`
+  ranks private > organization > featured).
 - **Featured skills are read-only**: featured skills come from the
-  `main` platform; the API 404s organization writes against them, so the
+  `main` organization; the API 404s organization writes against them, so the
   component hides their Edit/Delete actions. Mirror that in custom UI.
 - **Enabled is an AND**: an effective skill is enabled only when the
   catalog skill AND its assignment are both enabled; the `/` picker
@@ -303,7 +373,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 For custom UI beyond the component. All endpoints are prefixed with
 `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Auth: `Authorization: Token <token>`.
+`${NEXT_PUBLIC_API_BASE_URL}/dm` (vibe-starter's `config.dmUrl()`). Auth: `Authorization: Token <token>`.
 
 ### Skill catalog (platform-level)
 
@@ -316,7 +386,7 @@ For custom UI beyond the component. All endpoints are prefixed with
 | DELETE | `agent-skills/{id}/` | Delete |
 
 `mentor` (agent UUID) makes the skill private to that agent; `null`
-makes it platform-wide. Featured skills (`is_featured`) are served
+makes it organization-wide. Featured skills (`is_featured`) are served
 read-only to organizations.
 
 ### Skill resources (files)

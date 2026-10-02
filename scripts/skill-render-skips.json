@@ -17,8 +17,8 @@
     "reason": "SDK pin gap: the Virtual Machine feature (VirtualMachineNetworkSection, VirtualMachineAdminTab, the virtual-machine data-layer slice) is not in @iblai/iblai-js 2.9.8 at all — unskip when the starter's SDK pin picks up the release that ships it"
   },
   "iblai-vibe-agent-skills": {
-    "fences": [1],
-    "reason": "SDK v2 d.ts gap: slashSkillsEnabled prop exists at runtime (dist js) but not in the Chat props typings"
+    "fences": [4],
+    "reason": "Partial snippet: shows only the useAgentGrants call and the slashSkillsEnabled prop on <Chat>, whose required props (config, username, …) come from /iblai-vibe-agent-chat"
   },
   "iblai-vibe-profile": {
     "fences": [6],
