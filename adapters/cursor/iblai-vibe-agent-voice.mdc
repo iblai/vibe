@@ -1,60 +1,77 @@
 ---
-description: "Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app"
+description: "Add the agent Voice tab (voice calls on/off, the voice the agent reads replies in, voice instructions, voice-call style/language/provider, and dictation) to your Next.js app. Use when the user mentions agent voice, text-to-speech, voice calls, call style, the voice picker, voice instructions, dictation, or transcription language. For screen sharing on calls see /iblai-vibe-agent-screenshare; for the REST contract see /iblai-api-agent-voice."
 globs:
 alwaysApply: false
 ---
 
 # /iblai-vibe-agent-voice
 
-Add the agent **Voice tab** -- pick the voice your agent uses to read out
-chat replies, and configure how live voice calls work. The tab has two
-sub-tabs: **Voice** (choose a voice source -- Browser, OpenAI, or Google --
-then pick a specific voice from a searchable, previewable picker, and
-optionally write **Voice instructions**, a style prompt for how the voice
-should deliver replies) and **Voice call** (call style, spoken language,
-AI provider, and the voice used on calls). This is one tab in the wider agent-settings family (`access`,
-`api`, `datasets`, `disclaimers`, `embed`, `history`, `llm`, `memory`,
-`prompts`, `safety`, `settings`, `tools`, `voice`). Each tab is a separate
-skill. All tabs share the same `AgentSettingsProvider` wrapper -- set it up
-once and mount as many tabs as you need.
+Add the agent **Voice tab** (`AgentVoiceTab`) -- how the agent sounds and
+listens. **Scope: per agent**; every user of the agent gets the same voice
+and call settings. A **voice calls** switch sits at the top (it used to live
+in Settings -> Capabilities); below it, three sub-tabs: **Voice** (the voice
+that reads chat replies), **Voice Call** (how live calls behave), and
+**Settings** (dictation, the speech-to-text side). This is one tab in the
+agent-settings family indexed by `/iblai-vibe-agent`; it shares the
+`AgentSettingsProvider` wrapper with every other tab.
 
-> **Enable voice calls first.** The call features only do something once
-> voice calls are turned on for the agent. Toggle **Enable voice calls** in
-> the agent's **Settings** tab -> **Capabilities** (under "Voice & calls")
-> before configuring this tab. See `/iblai-agent-setting`.
+**Voice** -- the voice-calls switch, then the voice source (**Browser**,
+**Google**, **ibl.ai**, **OpenAI**), the voice, and for OpenAI and Google the
+**Voice Instructions** card (here filled from the "Warm and encouraging"
+example). **Save voice** sits below the examples.
 
-![Enable voice calls in Settings -> Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-1-capabilities.png)
-![Voice sub-tab: choose a voice source and pick a voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png)
-![Voice picker: search, browse, and preview a sample](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png)
-![Voice instructions: style prompt card with Edit / Copy, character counter, and example presets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png)
-![Edit Voice Instructions modal (rich-text editor)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png)
-![Voice call sub-tab: call style, language, provider, and call voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png)
+![Voice tab -- Voice sub-tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-1-voice.png)
 
-You MUST run `/iblai-ops-test` before telling the user the work is ready.
+**Voice picker** -- the voice trigger opens a searchable list of the
+provider's voices, each with a play button for a sample.
+
+![Voice tab -- voice picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice-picker.png)
+
+**Voice Call** -- call style (Live conversation / Step-by-step), spoken
+language, AI provider, and the voice used on calls, with **Reset** and
+**Save changes**.
+
+![Voice tab -- Voice Call sub-tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-call.png)
+
+**Settings** -- **Dictation** (the chat-box microphone), the spoken language
+for transcription (unset = detect automatically), and transcription hints,
+with a pinned **Save dictation**.
+
+![Voice tab -- Settings sub-tab (dictation)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-dictation.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-agent-setting`
-  Step 2 if not already set up)
-- **Enable voice calls** for the agent in the **Settings** tab ->
-  **Capabilities** (the Voice tab configures voice; the Settings tab turns
-  the capability on)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32, which
+  has the in-tab switch, the ibl.ai source, and the Settings sub-tab).
+- A real agent UUID. Ask the user; never invent one.
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount `AgentVoiceTab`
+## Step 2: Copy the provider logos
+
+The Google, ibl.ai, and OpenAI cards load their logos from your app's
+`public/` root, and the SDK ships them in its own `public/`. Copy them once
+(pnpm layout shown; with npm the folder is
+`node_modules/@iblai/web-containers/public`):
+
+```bash
+cp node_modules/.pnpm/@iblai+web-containers@*/node_modules/@iblai/web-containers/public/llm-* public/
+```
+
+Expect `public/llm-google-provider.svg`, `public/llm-iblai-provider.png`, and
+`public/llm-openai-provider-2.svg`. Without them the cards show broken images.
+
+## Step 3: Mount `AgentVoiceTab`
 
 ```tsx
 // app/(app)/agents/[mentorId]/voice/page.tsx
@@ -71,92 +88,52 @@ export default function AgentVoicePage() {
 }
 ```
 
-`AgentVoiceTab` reads `tenantKey`, `mentorId`, and `username` from
-`AgentSettingsProvider` (via `useAgentSettings()`) and handles its own
-fetching and saving. No props are required.
-
-### Deep-link to a sub-tab
-
-The tab opens on **Voice** by default. To land on the **Voice call**
-sub-tab (e.g. from a host URL scheme), pass `defaultSubTab`:
+The tab reads `tenantKey`, `mentorId`, `username`, and `enableRBAC` from
+`AgentSettingsProvider` and does its own fetching and saving. No props are
+required. To land on another sub-tab (for example from a URL), pass
+`defaultSubTab`:
 
 ```tsx
+import { AgentVoiceTab } from "@iblai/iblai-js/web-containers/next";
+
 <AgentVoiceTab defaultSubTab="callConfig" />;
 ```
 
-### With Markdown rendering for the screen-sharing prompt
+## Step 4: Customize Labels (Optional)
 
-The Voice call sub-tab can show a screen-sharing prompt. Render it as rich
-text by passing `renderPromptContent` (mirrors `AgentPromptsTab` so one
-renderer can serve every prompt card in the modal):
-
-```tsx
-import ReactMarkdown from "react-markdown";
-
-<AgentVoiceTab
-  renderPromptContent={(content) => <ReactMarkdown>{content}</ReactMarkdown>}
-/>;
-```
-
-## Step 3: Customize Labels (Optional)
-
-`AgentVoiceTab` renders with the default agent-facing copy
-(`AGENT_VOICE_TAB_LABELS`). Override any string via the `labels` prop. Pass
-a full `VoiceTabLabels` bundle (for a full agent re-skin) or a partial
-object (for one-off edits).
+The tab renders with the default agent-facing copy (`AGENT_VOICE_TAB_LABELS`,
+localized through the SDK's i18n). Pass a partial `labels` object to change
+any string:
 
 ```tsx
-import {
-  AgentVoiceTab,
-  type VoiceTabLabels,
-  AGENT_VOICE_TAB_LABELS,
-} from "@iblai/iblai-js/web-containers/next";
+import { AgentVoiceTab } from "@iblai/iblai-js/web-containers/next";
 
 <AgentVoiceTab
   labels={{
-    header: {
-      title: "Voice",
-      description: "Pick the voice your agent speaks with.",
-    },
-    subTabs: { callConfig: "Calls" },
+    header: { description: "Pick the voice your agent speaks with." },
+    subTabs: { callConfig: "Calls", settings: "Dictation" },
   }}
 />;
 ```
 
-The label bundle is grouped by surface: `header`, `subTabs`, `mentorVoice`
-(the voice-source / picker copy), `callConfig` (the Voice call form), and
-`toasts`. Override only the keys you need.
+Label groups (`VoiceTabLabels`):
 
-## Step 4: Use MCP Tools for Customization
+| Group | Covers |
+|---|---|
+| `header` | `title`, `description` |
+| `capability` | the voice-calls switch: `title` (accessible name), `description`, `offHint` |
+| `subTabs` | `voice`, `callConfig`, `settings` |
+| `mentorVoice` | Voice sub-tab: `description`, `providerLabel`, `providerTooltip`, `providerOptions.{browser,google,iblai,openai}`, `voicePickerLabel`, picker strings (`searchPlaceholder`, `emptyState`, `errorState`, `previewAria`), `saveButton`, `savingButton`, `instructions` (`label`, `tooltip`, `placeholder`, `helpText`, `presetsLabel`, `presets.{warm,calm,energetic}`) |
+| `callConfig` | Voice Call sub-tab: `description`, `info`, `fields.{mode,language,llmProvider,ttsProvider,sttProvider,useFunctionCalling,enableVideo}`, `resetButton`, `saveCreate`, `saveUpdate`, `savingButton` |
+| `transcription` | Settings sub-tab: `toggle`, `language`, `instructions`, `saveButton`, `savingButton` |
+| `toasts` | `voiceSaved`, `voiceError`, `callConfigSaved`, `callConfigError`, `transcriptionSaved`, `transcriptionError` |
+
+## Step 5: Use MCP Tools for Customization
 
 ```
 get_component_info("AgentVoiceTab")
 get_component_info("AgentSettingsProvider")
 ```
-
-## Tab surfaces
-
-`AgentVoiceTab` is a single mounted component that renders two sub-tabs plus
-a voice picker. The corresponding web-containers source (under
-`web-containers/.../edit-mentor-modal/tabs/voice-tab`) is listed for
-reference -- these pieces are internal to `AgentVoiceTab` and are not
-mounted separately.
-
-| Surface | Screenshot | Source component | What it shows |
-|---------|-----------|------------------|---------------|
-| **Voice sub-tab** | [voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-2-voice.png) | `voice-tab` (Voice sub-tab) | Voice source cards -- **Browser** (the listener's own device, no setup), **OpenAI**, and **Google** -- plus a "Select a voice" trigger when OpenAI or Google is chosen, and a **Save voice** button |
-| **Voice picker** | [picker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-3-voice-picker.png) | `voice-picker-modal` / `voice-picker` | A searchable list of the provider's voices (e.g. OpenAI: Alloy, Ash, Coral, Echo, Fable, Nova, Onyx, Sage, Shimmer) with a play button to preview a sample before picking |
-| **Voice instructions** | [instructions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-5-instructions.png) / [edit modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png) | `voice-tab` (Voice sub-tab) | A free-form style prompt for how the voice delivers replies (e.g. "Speak slowly in a warm, encouraging tone, like a patient tutor."): a prompt card with **Edit** (rich-text modal) and **Copy**, an info tooltip, a `0/1000` character counter, and one-click example presets (Warm and encouraging / Calm and measured / Energetic and upbeat) |
-| **Voice call sub-tab** | [voice call](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png) | `call-config-section` | Call style (Live conversation / Step-by-step), spoken language, AI provider, and the voice used on calls, with **Reset** and **Save changes** |
-
-The **Browser** source speaks through the user's own device (no API voice).
-**OpenAI** and **Google** use a custom voice you pick from the voice picker.
-A voice is only sent to the backend on save when the user picks one this
-session -- leaving it untouched preserves the existing server-side value.
-The same "absent = keep" contract applies to **Voice instructions**: the
-field is only included in the save payload when it changed, and clearing
-it sends an empty string (`""`) — an absent field means "no change" on
-the backend.
 
 ## `<AgentVoiceTab>` Props
 
@@ -165,53 +142,70 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `labels` | `DeepPartial<VoiceTabLabels>` | No | Override user-visible strings |
-| `defaultSubTab` | `'voice' \| 'callConfig'` | No | Which sub-tab to open on. Defaults to `'voice'` |
-| `renderPromptContent` | `(content: string) => ReactNode` | No | Render the screen-sharing prompt as rich text. Defaults to plain text |
+| `defaultSubTab` | `'voice' \| 'callConfig' \| 'settings'` | No | Sub-tab to open on. Defaults to `'voice'` |
+| `renderPromptContent` | `(content: string) => ReactNode` | No | Kept for compatibility; unused since the screen-sharing prompts moved to `/iblai-vibe-agent-screenshare` |
 | `tenantKey` | `string` | No | Identity override. Falls back to `AgentSettingsProvider` |
 | `mentorId` | `string` | No | Identity override (agent UUID). Falls back to `AgentSettingsProvider` |
 | `username` | `string` | No | Identity override. Falls back to `AgentSettingsProvider` |
-| `enableRBAC` | `boolean` | No | Toggle field-level gated-action prompts. Falls back to `AgentSettingsProvider` |
+| `enableRBAC` | `boolean` | No | Field-level permission gating. Falls back to `AgentSettingsProvider` |
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_VOICE_TAB_LABELS` -- the default agent-facing label bundle.
-- `VoiceTabLabels` -- type for the full label bundle.
+- `AGENT_VOICE_TAB_LABELS` -- the default label bundle.
+- `VoiceTabLabels`, `AgentVoiceTabProps` -- types.
 
-## Step 5: Verify
+## How it saves
 
-Run `/iblai-ops-test` before telling the user the work is ready:
+| Control | Saves | When |
+|---|---|---|
+| Voice-calls switch | `show_voice_call` on the agent's settings | Immediately (rolls back on error) |
+| **Save voice** | `voice_provider`, the picked `*_voice`, `voice_instructions` | On click; a voice is sent only when picked this session, instructions only when changed |
+| **Save changes** (Voice Call) | The agent's call configuration (`mode`, `language`, `llm_provider`, call voice) | On click; creates the row if missing |
+| **Dictation** switch | `show_voice_record` | Immediately |
+| **Save dictation** | `transcription_language`, `transcription_instructions` | On click; blocked over 1000 characters |
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/voice /tmp/agent-voice.png
-   ```
+Clearing instructions or hints sends `""`; an absent field means "no change".
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetMentorSettingsQuery` | Voice fields plus the embedded `call_configuration` |
+| `useEditMentorMutation` | Voice, dictation, and switch saves on the agent's settings |
+| `useCreateCallConfigurationMutation`, `useUpdateCallConfigurationMutation` | Voice Call sub-tab |
+
+REST twin: [`/iblai-api-agent-voice`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-voice/SKILL.md)
+(settings voice fields, call configurations, and the voice catalog).
+
+## Step 6: Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in, open `/agents/<uuid>/voice`: the switch and the
+   three sub-tabs render, the four source cards show their logos, and the
+   voice picker lists voices with working previews.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/voice /tmp/agent-voice.png`
 
 ## Important Notes
 
-- **Enable voice calls**: The Voice tab configures voice; the capability is
-  turned on in the **Settings** tab -> **Capabilities** -> "Enable voice
-  calls". Without it, the call features have no effect.
-- **Voice sources**: **Browser** uses the listener's own device (no API
-  voice and no picker). **OpenAI** and **Google** require picking a voice.
-- **Voice instructions** (`voice_instructions` on the agent's settings):
-  a style prompt forwarded to the TTS provider on every synthesis —
-  OpenAI voices receive it as speech `instructions`, Google voices as a
-  synthesis `prompt`; other sources (including Browser) ignore it. Leave
-  it blank for the provider's default delivery. Setting instructions
-  switches OpenAI synthesis to a pricier, instruction-capable speech
-  model — that trade-off is deliberate and surfaced in the help text.
-  The 1000-character cap is a UI guardrail (the backend column is
-  unbounded); the Save button blocks while over it.
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`.
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-agent-setting` Step 2 for the full snippet.
+- **Two switches, two directions**: voice calls (`show_voice_call`) is the
+  agent speaking on a call; dictation (`show_voice_record`) is the user
+  speaking into the chat box. An agent can have either without the other.
+  Both count as on for older agents that lack the field.
+- **Voice sources**: **Browser** speaks on the listener's device (no voice to
+  pick). **ibl.ai** falls back to the organization's default voice.
+  **OpenAI** and **Google** need a voice and accept **Voice Instructions**.
+- **Voice instructions cost more on OpenAI**: any instructions switch OpenAI
+  to an instruction-capable speech model; the help text says so. The
+  1000-character cap is a UI guardrail.
+- **Screen sharing** lives on its own tab (`/iblai-vibe-agent-screenshare`)
+  and always uses Live conversation.
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout level
+  (`/iblai-vibe-agent` §1); do not wrap each tab.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

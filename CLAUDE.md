@@ -329,7 +329,7 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | Area | Skills (`/iblai-api-<name>`) |
 |---|---|
 | Setup | `login` — org key, username, Platform API Token → `.env` + `iblai.env`; org secrets for CI |
-| One agent | ★ `agent-setting`, ★ `agent-memory`, `agent-create`, `agent-prompt`, `agent-llm`, `agent-dataset`, `agent-tool`, `agent-access`, `agent-embed`, `agent-mcp`, `agent-safety`, `agent-privacy`, `agent-disclaimer`, `agent-history`, `agent-audit`, `agent-eval`, `agent-skill`, `agent-sandbox`, `agent-support` |
+| One agent | ★ `agent-setting`, ★ `agent-memory`, `agent-create`, `agent-prompt`, `agent-llm`, `agent-dataset`, `agent-tool`, `agent-access`, `agent-embed`, `agent-mcp`, `agent-safety`, `agent-privacy`, `agent-disclaimer`, `agent-history`, `agent-audit`, `agent-eval`, `agent-skill`, `agent-sandbox`, `agent-support`, `agent-voice` |
 | Talk to an agent | `agent-session` (REST/SSE/WebSocket), `agent-chat` (hosted MCP server), `inference` (OpenAI-compatible `/v1`) |
 | Organization | `org`, `management`, `rbac`, `invite`, `scim`, `token`, `integration`, `notification`, `feature`, `billing`, `spend-caps`, `crm`, `external-service-proxy` |
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |

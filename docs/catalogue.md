@@ -10,7 +10,7 @@ six data families almost every app reads or writes (the section right below).
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
-| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 57 |
+| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 58 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
@@ -93,6 +93,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-agent-skill`](../skills/agents/iblai-api-agent-skill/SKILL.md) | 🔌 api | Manage an ibl.ai agent's skills via the platform API |
 | [`/iblai-api-agent-support`](../skills/agents/iblai-api-agent-support/SKILL.md) | 🔌 api | Manage an ibl.ai agent's human-support tickets via the platform API |
 | [`/iblai-api-agent-tool`](../skills/agents/iblai-api-agent-tool/SKILL.md) | 🔌 api | Enable or disable an ibl.ai agent's tools via the platform API |
+| [`/iblai-api-agent-voice`](../skills/agents/iblai-api-agent-voice/SKILL.md) | 🔌 api | Read and write an ibl.ai agent's voice settings via the platform API |
 | [`/iblai-api-inference`](../skills/agents/iblai-api-inference/SKILL.md) | 🔌 api | Run inference against an ibl.ai deployment through its OpenAI-compatible API |
 | [`/iblai-api-search`](../skills/agents/iblai-api-search/SKILL.md) | 🔌 api | Discover agents and learning content in an ibl.ai organization via the platform API |
 | [`/iblai-vibe-agent`](../skills/agents/iblai-vibe-agent/SKILL.md) | 📖 guide | Family index for configuring one ibl.ai agent from your app |
@@ -121,7 +122,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-task`](../skills/agents/iblai-vibe-agent-task/SKILL.md) | 🖥️ ui | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) to your Next.js app |
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
 | [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
-| [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
+| [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (voice calls on/off, the voice the agent reads replies in, voice instructions, voice-call style/language/provider… |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
 | [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Add the OS app's Code mode to a vibe Next.js + Tauri app |
 | [`/iblai-vibe-project`](../skills/agents/iblai-vibe-project/SKILL.md) | 🖥️ ui | Add the in-process Projects surface (project landing page |
@@ -264,4 +265,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 156 skills.
+Total: 157 skills.

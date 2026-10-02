@@ -90,7 +90,7 @@ Start with the **core six** (bold). Add the others only when the user asks.
 | Skills | reusable Agent Skills, per-agent assignment, chat `/` picker | `/iblai-vibe-agent-skills` | [agent-skill](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-skill/SKILL.md) |
 | Support | human support ticket inbox | `/iblai-vibe-agent-support` | [agent-support](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-support/SKILL.md) |
 | Tasks | scheduled periodic agent tasks with run logs | `/iblai-vibe-agent-task` | — |
-| Voice | voice selection and voice-call configuration | `/iblai-vibe-agent-voice` | — |
+| Voice | voice calls on/off; chat voice and voice instructions; call style, language, provider; dictation | `/iblai-vibe-agent-voice` | [agent-voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-voice/SKILL.md) |
 | Audit | who changed what and when | `/iblai-vibe-agent-audit` | [agent-audit](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-audit/SKILL.md) |
 | Disclaimers | user agreement and advisory text | `/iblai-vibe-agent-disclaimer` | [agent-disclaimer](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-disclaimer/SKILL.md) |
 
