@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-api
-description: Add the agent API tab (API key management) to your Next.js app
+description: Add the agent API tab (list, create and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app. Use when the user mentions agent API keys, programmatic access to an agent, creating or revoking an API key, or the API tab. For the REST contract see /iblai-api-token.
 globs:
 alwaysApply: false
 metadata:
@@ -9,60 +9,131 @@ metadata:
 
 # /iblai-vibe-agent-api
 
-Add the agent **API tab** -- manage API keys for programmatic access to the
-agent. Displays existing keys in a table (name, created, expires) with
-create and delete actions. This is one tab in the wider agent-settings
-family. All tabs share the same `AgentSettingsProvider` wrapper.
+Add the agent **API tab** -- the API keys an app uses to call the agent from
+code. **Scope: per organization.** The tab sits in the agent's settings, but
+the keys are the organization's Platform API Tokens (`platform_key`-scoped):
+the same list shows on every agent, and a key works for any agent the key's
+owner can use. The tab is a paged table (10 keys per page) with **Create
+New** and a delete action per row. This is one tab in the agent-settings
+family indexed by `/iblai-vibe-agent`; it shares the `AgentSettingsProvider`
+wrapper with every other tab.
 
-![API Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api.png)
+**Keys** -- name, created and expiry dates ("N/A" when a key never expires).
+The list and the buttons need the user's `/apitokens/` grants (Step 2).
+
+![API tab -- keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-1-keys.png)
+
+**Create API Key** -- a name (letters, numbers and hyphens) and an optional
+expiry date.
+
+![API tab -- Create API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-2-create.png)
+
+**API Key** -- **Submit** shows the secret once, with a copy button. It
+cannot be retrieved again; the list then jumps back to page 1. (This shot
+used a stubbed create response, so no real key was minted.)
+
+![API tab -- new key shown once](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-3-reveal.png)
+
+**Delete API Key** -- the trash icon asks for confirmation. Anything using
+the key stops working at once.
+
+![API tab -- Delete API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-4-delete.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 
-- Auth must be set up first (`/iblai-vibe-auth`)
-- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
-  Step 2 if not already set up)
-- Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
+- Auth set up (`/iblai-vibe-auth`, or vibe-starter).
+- `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
+- `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32). Check with
+  `pnpm why @iblai/web-containers`.
+- A real agent UUID. Ask the user; never invent one.
+- The signed-in user needs the organization's API-token grants (org admins
+  have them).
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
+Look for `iblai.env` in the project root with `PLATFORM`, `DOMAIN`, and
+`TOKEN`. If it is missing, tell the user:
 "You need an `iblai.env` with your platform configuration. Download the
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Step 2: Mount `AgentApiTab`
 
+The table and buttons are gated on the RBAC grants `/apitokens/#list` and
+`/apitokens/#create`, read from the provider's `rbacPermissions` -- even with
+`enableRBAC={false}`. Without them the tab says "You do not have permission
+to view API keys" (or "No API keys found") and **Create New** never shows.
+Load the grants and pass them to a nested provider:
+
 ```tsx
 // app/(app)/agents/[mentorId]/api/page.tsx
 "use client";
 
-import { AgentApiTab } from "@iblai/iblai-js/web-containers/next";
+import { useEffect, useState } from "react";
+import {
+  AgentApiTab,
+  AgentSettingsProvider,
+  useAgentSettings,
+} from "@iblai/iblai-js/web-containers/next";
+import { useGetRbacPermissionsMutation } from "@iblai/iblai-js/data-layer";
 
 export default function AgentApiPage() {
+  const settings = useAgentSettings();
+  const [grants, setGrants] = useState<object>({});
+  const [getRbacPermissions] = useGetRbacPermissionsMutation();
+
+  useEffect(() => {
+    getRbacPermissions({
+      requestBody: {
+        platform_key: settings.tenantKey,
+        resources: ["/apitokens/"],
+      },
+    })
+      .unwrap()
+      .then((permissions) => setGrants({ ...permissions }))
+      .catch(() => {});
+  }, [settings.tenantKey, getRbacPermissions]);
+
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentApiTab />
+      <AgentSettingsProvider {...settings} rbacPermissions={grants}>
+        <AgentApiTab />
+      </AgentSettingsProvider>
     </div>
   );
 }
 ```
 
+If your layout already loads `/apitokens/` grants into the provider, mount
+`<AgentApiTab />` directly. To put create and delete behind a paywall or
+trial check, pass `executeGatedAction` on the provider; the tab runs both
+through it.
+
 ## Step 3: Customize Labels (Optional)
+
+The tab renders with the default agent-facing copy (`AGENT_API_TAB_LABELS`,
+localized through the SDK's i18n). Pass a partial `labels` object to change
+any string:
 
 ```tsx
 import { AgentApiTab } from "@iblai/iblai-js/web-containers/next";
 
 <AgentApiTab
   labels={{
-    header: { title: "Mentor API keys" },
+    header: { title: "API keys" },
+    actions: { createNew: "New key" },
   }}
 />;
 ```
+
+Label groups (`ApiTabLabels`): `header` (`title`, `description`), `infoBox`,
+`disclaimer` (`lineOne`, `lineTwo`), `table` (column headings, `emptyState`,
+`noPermission`, `deleteAriaLabel`, `notAvailable`), `actions.createNew`,
+`createModal` (title, field labels, validation messages, buttons, toasts),
+`deleteModal` (`title`, `confirmation`, `warning`, buttons, toasts), and
+`apiKeyModal` (the one-time reveal: title, descriptions, copy button labels).
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -79,32 +150,61 @@ Import from `@iblai/iblai-js/web-containers/next`.
 |------|------|----------|-------------|
 | `labels` | `DeepPartial<ApiTabLabels>` | No | Override user-visible strings |
 
+Identity, grants and the gate come from `AgentSettingsProvider` (`tenantKey`,
+`username`, `rbacPermissions`, `executeGatedAction`).
+
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `AGENT_API_TAB_LABELS` -- the default agent-facing label bundle.
-- `ApiTabLabels` -- type for the full label bundle.
+- `AGENT_API_TAB_LABELS` -- the default label bundle.
+- `AgentApiTabProps`, `ApiTabLabels`, `ApiKey` -- types.
+
+## How it saves
+
+| Action | Request |
+|---|---|
+| Load | `GET /api/core/platform/api-tokens/?platform_key={org}&page=…&page_size=10` |
+| **Submit** (create) | `POST /api/core/platform/api-tokens/` with `name`, `platform_key`, `username`, and `expires` / `expires_in` (seconds until the chosen date; empty for no expiry) |
+| **Delete** | `DELETE /api/core/platform/api-tokens/{name}?platform_key={org}` |
+
+Keys are addressed by name. Deleting the last key on a page steps back a
+page.
+
+## Platform data
+
+| Hook | Purpose |
+|---|---|
+| `useGetApiKeysQuery` | The paged key list |
+| `useCreateApiKeyMutation` | Create a key (returns the secret once) |
+| `useDeleteApiKeyMutation` | Delete a key by name |
+| `useGetRbacPermissionsMutation` | Load the `/apitokens/` grants (Step 2) |
+
+REST twin: [`/iblai-api-token`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-token/SKILL.md)
+(Platform API Tokens, including `mode` and token-scoped policies, which this
+tab does not expose).
 
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
-1. `pnpm build` -- must pass with zero errors
-2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/api /tmp/agent-api.png
-   ```
+1. `pnpm build` -- must pass with zero errors.
+2. `pnpm test` -- vitest must pass.
+3. `pnpm dev`, sign in as an org admin, open `/agents/<uuid>/api`: the key
+   table and **Create New** render. Create a key, copy it, then delete it.
+4. `npx playwright screenshot http://localhost:3000/agents/<uuid>/api /tmp/agent-api.png`
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
+- **Organization keys, not agent keys**: creating a key here creates a
+  Platform API Token for the whole organization, and deleting one breaks
+  every app that uses it, whichever agent it calls.
+- **Shown once**: the secret appears only in the reveal dialog; store it
+  then.
+- **No table or button?** The `/apitokens/` grants are missing (Step 2).
+- **Shared provider**: mount `AgentSettingsProvider` once at the layout
+  level (`/iblai-vibe-agent` §1); the nested provider in Step 2 only adds
+  grants.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor`
+  (`pnpm add sonner @iblai/iblai-web-mentor`).
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

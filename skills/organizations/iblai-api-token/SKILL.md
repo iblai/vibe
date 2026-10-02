@@ -32,7 +32,7 @@ A token's RBAC authority is controlled by its **`mode`**:
 
 ## Reads
 
-- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/?platform_key={org}` — list API keys. The list view omits `policies`/`groups`.
+- **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/?platform_key={org}&page={n}&page_size={size}` — list API keys. Pagination is opt-in: send `page_size` to get `{count, next, previous, results}`; without it the endpoint returns the full, unpaged list. The list view omits `policies`/`groups`.
 - **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/{name}?platform_key={org}` — retrieve a single token, including its currently associated `policies` and `groups`.
 - **GET** `https://api.iblai.app/dm/api/core/platform/api-tokens/field-permissions/?platform_key={org}` — report which RBAC-gated fields (`mode`, `policies_to_add`, `policies_to_remove`, `groups_to_add`, `groups_to_remove`) the caller may write. Returns `{field: {"write": bool}}`. Useful for building the create form. Gated on create access.
 
@@ -147,3 +147,6 @@ curl -X PATCH \
   org via `platform_key={org}`.
 - `policies`/`groups` are returned only on detail responses (retrieve/create/update),
   not in the list view.
+- The agent **API** tab (`/iblai-vibe-agent-api`) is a UI over these same
+  org-wide tokens: list (10 per page), create, and delete by name.
+- Verified against the live schema (4.411.0) on 2026-10-02.
