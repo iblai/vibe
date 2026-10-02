@@ -7,7 +7,9 @@
 Measure and improve an agent's quality from the API: build evaluation
 datasets, run experiments that send each question to the agent, then grade the
 results with LLM-as-Judge and/or human scores and export to CSV. Use to test an
-agent against a dataset and grade the results.
+agent against a dataset and grade the results. The UI twin is
+[`/iblai-vibe-agent-evals`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/SKILL.md),
+which calls datasets "benchmarks" and runs "evaluations".
 
 ## Auth & conventions
 
@@ -144,6 +146,12 @@ curl -X POST \
   chat traces (`trace_ids` — input + agent response pulled from each trace).
 - Deletes (item, run, score) are **queued** (`202`), not immediate. A dataset
   itself has no update or delete endpoint.
+- Deleting a run leaves its judge records: a new run started under the same
+  `run_name` lists the old reviews in `…/evaluate/`. Use a fresh `run_name`.
+- When the judge model call fails, the judge task still ends `completed` and
+  writes `0` with the comment `LLM judge call failed` for each item. Check
+  comments before trusting low scores.
+- Verified against the live schema (4.411.0) and live runs on 2026-10-02.
 
 ## Schema
 
