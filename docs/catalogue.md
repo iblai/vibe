@@ -97,7 +97,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-search`](../skills/agents/iblai-api-search/SKILL.md) | 🔌 api | Discover agents and learning content in an ibl.ai organization via the platform API |
 | [`/iblai-vibe-agent`](../skills/agents/iblai-vibe-agent/SKILL.md) | 📖 guide | Family index for configuring one ibl.ai agent from your app |
 | [`/iblai-vibe-agent-access`](../skills/agents/iblai-vibe-agent-access/SKILL.md) | 🖥️ ui | Add the agent Access tab (role-based access control for editor and chat roles) to your Next.js app |
-| [`/iblai-vibe-agent-analytics`](../skills/agents/iblai-vibe-agent-analytics/SKILL.md) | 🖥️ ui | Add the agent Analytics tab (AgentAnalyticsTab |
+| [`/iblai-vibe-agent-analytics`](../skills/agents/iblai-vibe-agent-analytics/SKILL.md) | 🖥️ ui | Add the agent Analytics tab (AgentAnalyticsTab, a hub of report cards for one agent that hands off to your full analytics pages) to your … |
 | [`/iblai-vibe-agent-api`](../skills/agents/iblai-vibe-agent-api/SKILL.md) | 🖥️ ui | Add the agent API tab (API key management) to your Next.js app |
 | [`/iblai-vibe-agent-audit`](../skills/agents/iblai-vibe-agent-audit/SKILL.md) | 🖥️ ui | Add the agent Audit tab (audit log of who changed what and when, with user/date/action filters) to your Next.js app |
 | [`/iblai-vibe-agent-billing`](../skills/agents/iblai-vibe-agent-billing/SKILL.md) | 🖥️ ui | Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block/alert enforcement, and near-limit alert th… |

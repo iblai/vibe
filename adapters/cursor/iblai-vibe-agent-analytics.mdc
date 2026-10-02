@@ -1,5 +1,5 @@
 ---
-description: "Add the agent Analytics tab (AgentAnalyticsTab — a hub of report cards for one agent that hands off to your full analytics pages) to your Next.js app. Use when the user wants an Analytics tab among the agent settings tabs, links from an agent to its usage, users, topics, transcripts, costs, or reports, or mentions AgentAnalyticsTab. For the dashboards themselves see /iblai-vibe-analytics; for the REST contract see /iblai-api-analytics."
+description: "Add the agent Analytics tab (AgentAnalyticsTab, a hub of report cards for one agent that hands off to your full analytics pages) to your Next.js app. Use when the user wants an Analytics tab among the agent settings tabs, links from an agent to its usage, users, topics, transcripts, costs, or reports, or mentions AgentAnalyticsTab. For the dashboards themselves see /iblai-vibe-analytics; for the REST contract see /iblai-api-analytics."
 globs:
 alwaysApply: false
 ---
@@ -32,7 +32,7 @@ because the host has no route for them (vibe-starter's case).
 - `@iblai/iblai-js` ≥ 2.26 (resolves `@iblai/web-containers` 1.32).
 - Analytics pages to land on: vibe-starter's `/admin/analytics/*`, or the
   agent-scoped layout in `/iblai-vibe-analytics` ("One agent instead of the
-  org").
+  org"), mounted at `/agents/<uuid>/dashboards`.
 - A real agent UUID. Ask the user; never invent one.
 
 ## Step 1: Check Environment
@@ -75,8 +75,11 @@ export default function AgentAnalyticsPage() {
 ```
 
 With the agent-scoped layout from `/iblai-vibe-analytics`, route to
-`/agents/${mentorId}/analytics/${value}` instead and drop `excludeTabs` for
-the reports you added. Hide `audit` unless the viewer holds
+`/agents/${mentorId}/dashboards/${value}` (plain `…/dashboards` for
+Overview) instead and
+drop `excludeTabs` for the reports you added. Keep the dashboards off
+`/agents/<uuid>/analytics/`: that route is this hub, and the Overview card
+(`value` `""`) would route back to it. Hide `audit` unless the viewer holds
 `/mentors/{mentorDbId}/#view_audit_logs` (`/iblai-vibe-rbac`), as the OS
 does. In a modal, close it before `router.push`.
 
@@ -158,4 +161,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   themselves with `/iblai-vibe-analytics`.
 - **Every card needs a route**: exclude any `value` your app does not serve,
   or the click 404s.
+- **vibe-starter's tab strip drops `?agent=`**: its
+  `app/(app)/admin/analytics/layout.tsx` routes tabs without the query, so
+  after landing on a report, switching tabs shows the whole organization.
+  Carry `?agent=` through its `onTabChange` if you need the scope to stick.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
