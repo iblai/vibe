@@ -30,15 +30,17 @@ disable edit controls instead of waiting for a 403:
 
 ```json
 "permissions": {
-  "content": { "read": true, "write": false },
-  "active": { "read": true, "write": false },
-  "title": { "read": true, "write": false },
+  "field": {
+    "content": { "read": true, "write": false },
+    "active": { "read": true, "write": false },
+    "title": { "read": true, "write": false }
+  },
   "object": { "write": false, "delete": false }
 }
 ```
 
-There is one entry per response field, plus `object`. Field values are never
-blanked. `object.delete` is always `false` because disclaimers cannot be
+This is the same envelope as every other RBAC endpoint. `field` has one
+entry per response field. Field values are never blanked. `object.delete` is always `false` because disclaimers cannot be
 deleted (deactivate with `active: false`).
 
 ## Writes
