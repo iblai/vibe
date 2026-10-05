@@ -13,7 +13,7 @@ plan, and a phone paired to the computer can drive it from anywhere in the
 house. The first half of this page is how to use it; the second half adds
 it to an app of your own.
 
-![The Code panel under the chat box: the on/off switch, Approvals, the Agent choice (ibl.ai, Codex, Claude Code) with its sign-in line, the Workspace folder, and Phone Access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
+![The Code panel under the chat box: the on/off switch, Approvals, the Agent choice (ibl.ai, Codex, Claude Code) with its sign-in line, the Workspace folder, and Phone Access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
 
 > **Common setup (brand, conventions, env files, verification):** see
 > [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
@@ -63,50 +63,54 @@ computer only.
 
 ### 3. Sign in to Codex
 
-Choose **Codex**. The line reads **Not signed in**:
+Choose **Codex**. The line reads *Not signed in — sign in to Codex in the
+ChatGPT app.* with a **Check Again** button:
 
-![Agent set to Codex, "Not signed in", with the Sign in with ChatGPT button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
+![Agent set to Codex, the signed-out line and the Check Again button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
 
-1. Click **Sign in with ChatGPT**. The line says *Continue in your
-   browser…* and a browser tab opens on ChatGPT:
+1. Open the ChatGPT app and go to **Codex**. No ChatGPT app yet? Download
+   it from [chatgpt.com](https://chatgpt.com/) — Codex is part of it; there
+   is no separate app to install.
+2. Sign in there with the account that has your plan:
 
-   ![The ChatGPT "Log in or sign up" page the button opens](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-6-chatgpt-login.png)
+   ![The ChatGPT app's Sign in to ChatGPT screen](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-6-chatgpt-app-sign-in.png)
 
-2. Sign in there with the account that has your plan, then come back to
-   the app. The line now shows how you are signed in:
+   You are in when Codex asks *What should we build?*:
 
-   ![Agent set to Codex, signed in: the line reads "Logged in using an API key"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-8-agent-codex-signed-in.png)
+   ![Codex in the ChatGPT app, signed in: What should we build?](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-7-chatgpt-app-codex-signed-in.png)
 
-Already using the Codex app in a terminal? Its own sign-in works too:
-run `codex`, pick **Sign in with ChatGPT**, **Sign in with Device Code**
-or **Provide your own API key**; the ibl.ai app picks that sign-in up
-the next time you open the panel. (Codex comes from
-[openai.com/codex](https://openai.com/codex).)
+3. Back in the ibl.ai app, click **Check Again**. The line now shows how
+   you are signed in:
 
-![The Codex terminal sign-in menu: ChatGPT, device code, or your own API key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-7-codex-terminal-login.png)
+   ![Agent set to Codex, signed in: the line reads "Logged in using an API key"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-8-agent-codex-signed-in.png)
+
+Prefer a terminal? Install the Codex command-line tool with OpenAI's
+one-line installer, `curl -fsSL https://chatgpt.com/codex/install.sh | sh`,
+then run `codex` and pick **Sign in with ChatGPT**, **Sign in with Device
+Code** or **Provide your own API key** from its menu; the ibl.ai app picks
+that sign-in up on **Check Again** too.
 
 If you send a message before signing in, a small notice says **Codex isn’t
-signed in** with the same **Sign in with ChatGPT** button; once you are
-in it says *Signed in — send your message again*.
+signed in** and repeats the hint.
 
 ### 4. Sign in to Claude Code
 
 Choose **Claude Code**. Claude Code signs in from a terminal, so the line
-reads *Run `claude` in a terminal to sign in.* with a **Check Again**
+reads *Not signed in — run `claude` in a terminal.* with a **Check Again**
 button:
 
-![Agent set to Claude Code, the terminal hint and the Check Again button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-9-agent-claude-signed-out.png)
+![Agent set to Claude Code, the terminal hint and the Check Again button](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-9-agent-claude-signed-out.png)
 
 1. Open a terminal and run `claude`. If the command is not found, install
    Claude Code first from [claude.ai/code](https://claude.ai/code).
 2. Pick **Claude account with subscription** (or the Console account if
    you pay per use) and finish in the browser it opens:
 
-   ![The Claude Code terminal welcome with "Select login method"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-10-claude-terminal-login.png)
+   ![The Claude Code terminal welcome with "Select login method"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-10-claude-terminal-login.png)
 
 3. Back in the app, click **Check Again**. The line shows your account:
 
-   ![Agent set to Claude Code, signed in: a grey dot and the account's email](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-11-agent-claude-signed-in.png)
+   ![Agent set to Claude Code, signed in: a grey dot and the account's email](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-11-agent-claude-signed-in.png)
 
 If you send a message first, the notice **Claude Code isn’t signed in**
 repeats the terminal hint.
@@ -137,20 +141,20 @@ your home or office network.
 On the computer, open the Code panel and click **Enable** next to
 **Phone Access**. A QR code, an address and a password appear:
 
-![The Code panel with Phone Access enabled: the pairing QR code, the address and the password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-1-code-pill.png)
+![The Code panel with Phone Access enabled: the pairing QR code, the address and the password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-1-code-pill.png)
 
 On the phone, open Code. Under **Your Computer**, tap **Scan QR Code**, or
 type the address and password:
 
-![Phone, not yet paired: Your Computer with Scan QR Code, or the address and password typed by hand](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
+![Phone, not yet paired: Your Computer with Scan QR Code, or the address and password typed by hand](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
 
 Once paired, the panel says **Connected To** your computer and shows its
 workspace; pick another with **Select Workspace** or start a **New
 Workspace**, then send your message as usual:
 
-![Phone, paired: Connected To the computer, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
+![Phone, paired: Connected To the computer, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
 
-![Phone, Code on: choosing one of the computer's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
+![Phone, Code on: choosing one of the computer's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
 
 Good to know:
 
