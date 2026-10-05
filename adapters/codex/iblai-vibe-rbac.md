@@ -67,7 +67,7 @@ Open or copy that file when you need the exact action strings.
 | Role | Summary |
 |------|---------|
 | `TENANT_ADMIN` | `Ibl.*` everywhere — full organization control. |
-| `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for agents granted to them; reads field-level agent + settings data. |
+| `STUDENT` | Chat + read settings/prompts/tools/disclaimers/MCP for agents granted to them; reads field-level agent + settings data. Lists artifacts only; reading, editing and deleting their own artifacts comes from the Artifact Owner role. |
 | `STUDENT_MENTOR_VIEWERS` | List agents (filtered to what they have access to). |
 | `MENTOR_VIEWER` | Read-only agent + settings + prompts + documents + reports + chat. Apply to `/platforms/{pk}/mentors/{pk}/`. |
 | `MENTOR_EDITOR` | Agent read + write across settings, prompts, documents, artifacts, disclaimers, grader. Apply to `/platforms/{pk}/mentors/{pk}/`. |

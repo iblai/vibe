@@ -24,7 +24,27 @@ accept.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — Advisory text lives in the `disclaimer` field.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/disclaimers/?mentor_id={mentor}&scope=mentor` — User Agreement list (read `results[0]` for the active agreement).
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/disclaimers/?mentor_id={mentor}&scope=mentor` — User Agreement list (read `results[0]` for the active agreement). `mentor_id` must be an agent in `{org}`, or the call returns 404.
+- **GET** `…/users/{username}/disclaimers/{id}/` — one disclaimer.
+
+Each disclaimer in these responses (and in the write responses) carries a
+`permissions` object describing what the caller may do with it. Use it to
+disable edit controls instead of waiting for a 403:
+
+```json
+"permissions": {
+  "field": {
+    "content": { "read": true, "write": false },
+    "active": { "read": true, "write": false },
+    "title": { "read": true, "write": false }
+  },
+  "object": { "write": false, "delete": false }
+}
+```
+
+This is the same envelope as every other RBAC endpoint. `field` has one
+entry per response field. Field values are never blanked. `object.delete` is always `false` because disclaimers cannot be
+deleted (deactivate with `active: false`).
 
 ## Writes
 
@@ -55,6 +75,30 @@ accept.
     "active": "boolean"
   }
   ```
+
+- **POST** `…/users/{username}/disclaimers/{id}/add-mentor/` or `…/remove-mentor/` — attach or detach another agent:
+  ```json
+  {
+    "mentor_id": "uuid"
+  }
+  ```
+
+## Permissions
+
+- Reads need `Ibl.Mentor/Disclaimers/list` / `read` on the agent
+  (`view_disclaimers`).
+- **Every write** (create, PUT/PATCH, add/remove-mentor) needs
+  `Ibl.Mentor/Disclaimers/write` on each agent involved. That is the
+  `write_disclaimers` flag on the agent in the RBAC permission check. Create
+  no longer accepts `Ibl.Mentor/Disclaimers/action` alone.
+  - Moving a disclaimer onto another agent (`mentors` in a PATCH) or
+    add-mentor needs `write` on that agent too.
+  - Switching to `scope: "platform"`, or editing a platform-scope disclaimer,
+    needs `write` on `/platforms/{pk}/disclaimers/`.
+- Seeded roles: Students and Mentor Viewer read; Mentor Editor, the agent's
+  owner, and org admins write.
+- The `{username}` in the path is not what gets authorized: the caller behind
+  the `Api-Token` is. A refused write returns **403** and changes nothing.
 
 ## Example
 
