@@ -123,7 +123,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
-| [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Add the OS app's Code mode to a vibe Next.js + Tauri app |
+| [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app |
 | [`/iblai-vibe-project`](../skills/agents/iblai-vibe-project/SKILL.md) | 🖥️ ui | Add the in-process Projects surface (project landing page |
 | [`/iblai-vibe-workflow`](../skills/agents/iblai-vibe-workflow/SKILL.md) | 🖥️ ui | Add workflow builder components to your Next.js app |
 
