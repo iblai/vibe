@@ -52,4 +52,5 @@ next-env.d.ts
 
 # agents
 .agents/skills
+agent/skills
 .claude/skills
