@@ -13,10 +13,12 @@ metadata:
 > **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
 Add user profile features -- a compact avatar dropdown for your navbar and
-a full settings page with sidebar tabs for Basic info, Social links,
-Education (with Credentials and Skills sub-tabs), Experience (with a
-Resume sub-tab), Purchases, Memory, Privacy, History, and Security —
-several of them feature-gated per organization (see the tab table below).
+a full settings page whose sidebar groups its tabs under four headings:
+**Profile** (Basic, Social), **Records** (Gradebook, Education with
+Credentials and Skills sub-tabs, Experience with a Resume sub-tab,
+Purchases), **AI & data** (Memory, History, **Usage**) and **Account**
+(Privacy, Security, Advanced) — several of them feature-gated per
+organization (see the tab table below).
 
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/profile-page.png)
 
@@ -92,6 +94,10 @@ The dropdown shows: **Profile** (opens the SDK profile modal), a
 dedicated "Account" item is off (`showAccountTab={false}`); account settings
 live on the separate `/account` page.
 
+The modal the dropdown opens carries the full tab set below, **Usage**
+included — the dropdown has no prop to turn that one off, so mount
+`UserProfileModal` yourself with `showLlmUsageTab={false}` if you need to.
+
 ## Step 3: Add a Full Profile Page
 
 Step 2 creates the dropdown only. You must create the profile **page**
@@ -114,6 +120,7 @@ import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export default function ProfilePage() {
   const [tenantKey, setTenantKey] = useState("");
+  const [tenants, setTenants] = useState<any[]>([]);
   const [username, setUsername] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [ready, setReady] = useState(false);
@@ -134,6 +141,7 @@ export default function ProfilePage() {
       const tenantsRaw = localStorage.getItem("tenants");
       if (tenantsRaw) {
         const parsed = JSON.parse(tenantsRaw);
+        setTenants(parsed);
         const match = parsed.find((t: any) => t.key === resolved);
         if (match) setIsAdmin(!!match.is_admin);
       }
@@ -179,6 +187,9 @@ export default function ProfilePage() {
 - **`Profile` vs `UserProfileModal`**: `Profile` renders inline (full page).
   `UserProfileModal` renders as a dialog overlay. Use `Profile` for a
   dedicated `/profile` route.
+- **Give the wrapper a height**: the shell fills its parent (`h-full`), and
+  the sidebar and the content panel only scroll independently when that
+  parent is bounded — `h-[80vh]` or `min-h-[640px]` on the card is enough.
 - **Import path**: `@iblai/iblai-js/web-containers` (NOT `/next`).
 
 ## Step 4: Organization Switcher
@@ -212,24 +223,102 @@ get_component_info("MediaBox")
 get_component_info("ResumeTab")
 ```
 
+## Layout and navigation
+
+Both `Profile` and `Account` render the same shell, so what you learn here
+holds for `/iblai-vibe-account` too:
+
+- **Desktop (`lg` and up):** a 280px sidebar — an identity card (the user's
+  avatar, name and email, or the organization's logo and key, plus a role
+  chip) over grouped navigation — beside a content column with a fixed
+  header (the active tab's title and description), a scrolling panel, and a
+  footer that appears only on the tabs that submit a form (Basic and
+  Social).
+- **Small screens:** the sidebar collapses to a single-line identity row —
+  the user's name, or the organization's — and a horizontally scrolling row
+  of pills; the active pill is solid blue.
+- **Groups with no visible tabs are dropped**, so an organization without a
+  gradebook, monetization or memsearch simply shows fewer headings.
+- **Keyboard:** arrow keys move between items and wrap at both ends,
+  `Home`/`End` jump to the first and last.
+
+For end-to-end selectors: `Profile`'s items are ARIA tabs
+(`role="tab"`, `aria-selected`, `aria-controls="<targetTab>-tabpanel"`,
+roving `tabIndex`) inside `nav[aria-label="Profile tabs"]` — the small-screen
+strip is a second tablist labelled `"Profile tabs mobile"`, so scope your
+queries to one of them. `Account`'s items are plain buttons marked
+`aria-current="page"` inside `nav[aria-label="Organization settings"]` — see
+the account skill.
+
 ## Profile tabs
 
-The sidebar tabs the `Profile` component renders, with the `targetTab`
-id and when each appears:
+The sidebar tabs the `Profile` component renders, with their sidebar group,
+the `targetTab` id and when each appears:
 
-| Tab | `targetTab` id | Shown when | Notes |
-|---|---|---|---|
-| Basic | `basic` | Always | Full name, email, title, about, language |
-| Social | `social` | Always | Social links |
-| Gradebook | `gradebook` | `customization.showGradebookTab` | Credentials + skills gradebook |
-| Education | `education` | Always | Sub-tabs: Education / Credentials / Skills |
-| Experience | `experience` | Always | Sub-tabs: Experience / Resume |
-| Purchases | `purchases` | Organization has monetization enabled | Purchase history |
-| Memory | `memory` | `enableMemoryTab` prop AND organization memsearch on | The user's own global memories + capture/personalization toggles (the admin view of the same data is `/iblai-vibe-memory`) |
-| Privacy | `privacy` | Organization allows user chat-privacy control | "Private Mode" — see the Chat Privacy Settings API below |
-| History | `chatHistory` | Own profile only (hidden on read-only previews) | Conversations + Exports — documented in `/iblai-vibe-history` |
-| Security | `security` | Own profile only | Password reset, account deletion |
-| Advanced | `advanced` | Tauri desktop with `localLLMProps.isAvailable` | Local LLM models — see `/iblai-vibe-local-llm` |
+| Tab | Group | `targetTab` id | Shown when | Notes |
+|---|---|---|---|---|
+| Basic | Profile | `basic` | Always | Full name, email, title, about, language + the **Features** switches |
+| Social | Profile | `social` | Always | Social links |
+| Gradebook | Records | `gradebook` | `customization.showGradebookTab` | Credentials + skills gradebook |
+| Education | Records | `education` | Always | Sub-tabs: Education / Credentials / Skills |
+| Experience | Records | `experience` | Always | Sub-tabs: Experience / Resume |
+| Purchases | Records | `purchases` | Organization has monetization enabled | Purchase history |
+| Memory | AI & data | `memory` | `enableMemoryTab` prop AND organization memsearch on | The user's own global memories + capture/personalization toggles (the admin view of the same data is `/iblai-vibe-memory`) |
+| History | AI & data | `chatHistory` | Own profile, or a viewer who may read this user's chats (admin / watcher) | Conversations + Exports — documented in `/iblai-vibe-history` |
+| Usage | AI & data | `llmUsage` | `showLlmUsageTab` (default **on**) and the viewer is not a pure watcher | The viewed user's AI spend, tokens and requests — see below |
+| Privacy | Account | `privacy` | Organization allows user chat-privacy control | "Private Mode" — see the Chat Privacy Settings API below |
+| Security | Account | `security` | Own profile only | Password reset, account deletion |
+| Advanced | Account | `advanced` | Tauri desktop with `localLLMProps.isAvailable` | Local LLM models — see `/iblai-vibe-local-llm` |
+
+Tab shots: [Basic](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-basic.png) · [Social](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-social.png) · [Gradebook](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-gradebook.png) · [Memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-memory.png) · [History](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-history.png) · [Usage](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-usage.png) · [Privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-privacy.png) · [Security](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-security.png)
+
+## Usage tab (AI spend)
+
+![Profile — Usage](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-usage.png)
+
+What one person's AI has cost, in the profile itself — no analytics page, no
+admin rights needed to look at your own:
+
+| Piece | What it shows |
+|---|---|
+| Range control | Today / 7 days / 30 days / 90 days / All time, plus a refresh button |
+| KPI tiles | **Spend**, **Tokens** (with tokens per request), **Requests**, **Avg cost per request** |
+| Spend over time | Column chart, bucketed by day / week / month depending on the range, gap-filled so empty days still read as zero; arrow keys read each bar out loud |
+| By model / By service | Share of spend per model and per service, long tails folded into "Other" |
+| Recent activity | The latest traces, newest first, 10 per page; expand a row to see its steps (model, input/output/total tokens, cost, latency) |
+
+**It always follows the profile on screen.** The tab sends the viewed user's
+`username` on every request, so opening someone else's profile shows *their*
+usage, not the organization's total and not yours. The header says whose it
+is ("Usage for `ashlynn12`" when previewing, "Only your own activity is
+shown" on your own profile).
+
+**Who may see it:**
+
+- Anyone may open the tab for themselves.
+- Admins and other privileged viewers see it on the profiles they preview;
+  the backend decides and answers **403** when the viewer may not, which the
+  tab renders as "Usage isn't available" rather than an empty chart.
+- **Pure watchers** (the `/watchedgroups/#list` permission without being an
+  organization admin) never get the tab at all — cost reporting excludes
+  them, the same way the analytics tabs do.
+- Hosts that do not want it anywhere pass `showLlmUsageTab={false}`.
+
+Empty periods get an empty state with "Show last 90 days" / "Show all time"
+shortcuts; an unreachable tracing backend gets "temporarily unavailable"
+with a retry, an expired session gets "Sign in again".
+
+### Platform data
+
+`GET {dm_url}/api/analytics/llm-usage/` with `username={user}` — `metrics`
+for the tiles, chart and breakdowns, `traces` for recent activity,
+`observations` for the steps under a row. The endpoints, the per-user hooks
+that wrap them (`useUserLlmUsageSummary` and friends) and the error contract
+are in [`references/profile-api.md`](references/profile-api.md#per-user-llm-usage-the-usage-tab);
+the REST twin is
+[`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md)
+and the organization-wide view of the same data is
+[`/iblai-vibe-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/SKILL.md).
 
 ---
 
@@ -274,7 +363,7 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `enableRbac` | `boolean?` | Enable RBAC permission checks |
 | `isModalOpen` | `boolean?` | Control profile modal open state externally |
 | `onModalOpenChange` | `(open: boolean) => void` | Callback when modal open state changes |
-| `defaultActiveTab` | `string?` | Default tab when profile modal opens |
+| `defaultActiveTab` | `string?` | Default tab when profile modal opens — any id from the **Profile tabs** table, e.g. `llmUsage` |
 | `onAccountDeleted` | `() => void` | Callback after account deletion |
 
 ## `<Profile>` Props (Full-Page Profile)
@@ -288,22 +377,33 @@ Import from `@iblai/iblai-js/web-containers`.
 | `isAdmin` | `boolean` | Admin flag |
 | `onClose` | `() => void` | Close callback |
 | `customization` | `object` | See below |
-| `targetTab` | `string` | Initial tab id — see the **Profile tabs** table (`basic`, `social`, `gradebook`, `education`, `experience`, `purchases`, `memory`, `privacy`, `chatHistory`, `security`, `advanced`) |
+| `targetTab` | `string` | Initial tab id — see the **Profile tabs** table (`basic`, `social`, `gradebook`, `education`, `experience`, `purchases`, `memory`, `chatHistory`, `llmUsage`, `privacy`, `security`, `advanced`) |
 | `enableMemoryTab` | `boolean?` | Show the Memory tab (still requires organization memsearch to be on) |
+| `showLlmUsageTab` | `boolean?` | Show the **Usage** tab — defaults to `true`; pure watchers never see it either way |
 | `localLLMProps` | `object?` | Props for local LLM tab (Tauri desktop only) |
+| `currentSPA` | `string?` | Current app id (e.g. `"mentor"`) — used for conditional SDK rendering |
 | `onAccountDeleted` | `() => void` | Callback after account deletion |
 
 ### Customization object
 
 ```typescript
 {
-  showMentorAIDisplayCheckbox?: boolean;  // Show "visible on MentorAI" toggle
-  showLeaderboardDisplayCheckbox?: boolean;  // Show leaderboard opt-in
+  showMentorAIDisplayCheckbox?: boolean;  // Show the "Display Agent Sidebar" switch
   showUsernameField?: boolean;  // Show username field (read-only)
   showPlatformName?: boolean;  // Show platform/tenant name badge
   useGravatarPicFallback?: boolean;  // Use Gravatar when no profile pic
+  showGradebookTab?: boolean;  // Show the Gradebook tab
+  showLeaderboardDisplayCheckbox?: boolean;  // @deprecated — ignored, see below
 }
 ```
+
+The Basic tab's switches sit in a section called **Features**. It holds one
+switch, **Display Agent Sidebar** (`showMentorAIDisplayCheckbox`), with an
+info icon explaining what it turns on: *"Keeps the AI agent panel beside
+whatever you are working on, so you can ask questions without leaving the
+page."* The old **Display Leaderboard** switch was removed —
+`showLeaderboardDisplayCheckbox` still type-checks so existing callers keep
+compiling, but it renders nothing.
 
 ## `<UserProfileModal>` Props (Profile + Account Modal)
 
@@ -311,10 +411,12 @@ For a profile editing modal (used by the MentorAI reference app), import
 `UserProfileModal` from `@iblai/iblai-js/web-containers/next`. This is a
 dialog that combines profile editing and account settings in one overlay.
 
-The modal shows **Profile** tabs (basic, social, education, experience,
-resume, security) and **Account** tabs (organization, management,
-integrations, billing). Billing/purchases is on the Account side, not
-the Profile side.
+`targetTab` alone decides which half renders: the **Profile** ids
+(`basic`, `social`, `education`, `experience`, `resume`, `memory`,
+`chatHistory`, `llmUsage`, `security`, `advanced`) open the profile, the
+**Account** ids (`organization`, `management`, `integrations`, `billing`,
+`monetization`, `datasets`) open organization settings. Billing/purchases is
+on the Account side, not the Profile side.
 
 ### Required
 
@@ -330,15 +432,17 @@ the Profile side.
 | Prop | Type | Description |
 |------|------|-------------|
 | `tenants` | `Tenant[]` | The user's full `tenants` list from localStorage |
-| `targetTab` | `string` | Initial tab: `basic`, `social`, `education`, `experience`, `resume`, `security`, `organization`, `management`, `integrations`, `billing` |
+| `targetTab` | `string` | Initial tab — any id from the two lists above (default `basic`) |
+| `showLlmUsageTab` | `boolean` | Show the profile's **Usage** tab (default `true`) |
+| `enableMemoryTab` | `boolean` | Show the profile's Memory tab (needs organization memsearch) |
+| `showGradebookTab` | `boolean` | Show the profile's Gradebook tab |
+| `showBenchmarks` | `boolean` | Show the Account side's Benchmarks tab (default `false`; each app opts in) |
+| `showMentorAIDisplayCheckbox` | `boolean` | Show the Basic tab's **Display Agent Sidebar** switch |
 | `showPlatformName` | `boolean` | Show organization name badge |
 | `useGravatarPicFallback` | `boolean` | Use Gravatar when no profile pic |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
-| `billingEnabled` | `boolean` | Enable billing tab (requires Stripe integration) |
-| `billingURL` | `string` | Stripe billing portal URL |
-| `topUpEnabled` | `boolean` | Enable credit top-up |
-| `topUpURL` | `string` | Stripe top-up URL |
+| `currentPlan` | `string` | Current plan name, shown by the Billing tab (which appears when the organization's paywall is on — there is no `billingURL` prop) |
 | `onTenantUpdate` | `(tenant: Tenant) => void` | Called when organization is updated |
 | `onBillingTabRequest` | `() => Promise<void> \| void` | Called when billing tab is opened -- fetch billing data |
 | `onUpgradeClick` | `() => void` | Called when upgrade button is clicked |
@@ -355,6 +459,11 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
    pnpm dev &
    npx playwright screenshot http://localhost:3000/profile /tmp/profile.png
    ```
+4. In the browser, click every tab the sidebar lists — none may 404 or come
+   up blank. On **Usage**, switch the range and watch the numbers change;
+   `$0.00` across every range means the account genuinely has no traced AI
+   calls, while an error card means the request failed (check the browser
+   console for the status).
 
 ## Important Notes
 
@@ -369,8 +478,13 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   lives on the Account page (`/iblai-vibe-account`, `/iblai-vibe-billing`).
   The Profile page's own **Purchases** tab shows the user's purchase
   history and only appears when the organization has monetization enabled.
-- **Feature-gated tabs**: Memory, Privacy, Purchases, Gradebook, and
+- **Feature-gated tabs**: Memory, Privacy, Purchases, Gradebook, Usage and
   Advanced only render when their gate is on (see the Profile tabs
-  table) — `targetTab` pointing at a hidden tab falls back to nothing
-  useful, so check the gate before deep-linking.
+  table) — `Profile` takes `targetTab` at its word and renders an empty
+  panel for a hidden tab (`Account` is the one that falls back to the first
+  tab you may see), so check the gate before deep-linking.
+- **Previewing someone else** (`Profile` for a username that is not the
+  signed-in user) drops Security and turns the copy neutral — "Spend,
+  tokens and requests across conversations" instead of "your". History and
+  Usage stay, gated on what the viewer may read.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
