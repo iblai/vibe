@@ -25,3 +25,15 @@ overrides:
   dompurify@3: ^3.4.16 # @iblai/web-containers pins 3.3.3
   "@tiptap/core@3": ^3.30.5 # @iblai/web-containers pins 3.20.4
   prismjs@1: ^1.30.0 # refractor@3 asks ~1.27.0
+  "@modelcontextprotocol/sdk@1": ^1.31.0 # @iblai/mcp 1.28.0, @iblai/web-utils 2.6.1 pin 1.27.1 — GHSA-6qxp-vccf-f47h
+  prosemirror-view@1: ^1.42.3 # @tiptap/pm 3.20.4 (pinned by @iblai/web-containers) resolves 1.41.8 — GHSA-c8x8-7fp4-3x9w
+  proxy-addr@2: ^2.0.8 # express 5 asks ^2.0.7, lock had 2.0.7 — GHSA-jqcg-44mw-7w3h
+  source-map-js@1: ^1.2.2 # @tailwindcss/node asks ^1.2.1, lock had 1.2.1 — GHSA-68fv-2mgg-jv7q
+# braces <= 3.0.3 (GHSA-vfj7-8cjw-p6xm) has no patched release. It reaches the
+# starter only through rollup-plugin-copy, which @iblai/data-layer,
+# @iblai/web-utils and @iblai/web-containers list as a runtime dependency even
+# though it is a Rollup build plugin nothing in an app imports. Ignored until a
+# fix ships or the SDK packages move it to devDependencies.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
