@@ -27,6 +27,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "organization setting", "white-label", "per-org config" | `/iblai-vibe-org-metadata` ★ (GET-merge-PUT) + `/iblai-vibe-account` |
 | "profile", "avatar", "résumé" | `/iblai-vibe-profile` ★ |
 | "remember", "memory", "personalize" | `/iblai-vibe-memory-guide` ★ → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` |
+| "incognito", "private mode", "don't save this chat", "PII", "redact personal data" | `/iblai-vibe-incognito` (the toggle + the four tiers) → `/iblai-vibe-agent-privacy` (PII filtering + the agent's Incognito policy), the Profile › Privacy tab in `/iblai-vibe-profile` |
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
@@ -288,6 +289,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-analytics` ★ | Analytics dashboard (org-wide or per agent) |
 | `/iblai-vibe-agent-audit` | Agent audit log |
 | `/iblai-vibe-history` | The user's own conversation history + exports |
+| `/iblai-vibe-incognito` | Incognito: the chat-header toggle, the mid-conversation dialog, and how org / agent / user / session tiers resolve |
 | `/iblai-vibe-pricing` | How money works; which rail to charge users |
 | `/iblai-vibe-credit` | Credit balance widget |
 | `/iblai-vibe-billing` | Org Billing: plan & credits, spend limits, agent limits |

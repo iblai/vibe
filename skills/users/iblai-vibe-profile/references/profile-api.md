@@ -263,9 +263,9 @@ DELETE {dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/ai-user-profile-memory/{
 
 ---
 
-## Chat Privacy Settings
+## Chat Privacy Settings (the Privacy tab — Default Incognito Setting)
 
-Users can control how their chat data is stored.
+The user's default for how conversations with agents are recorded.
 
 ```
 GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-config/
@@ -273,10 +273,24 @@ GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 POST {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 ```
 
-**Privacy modes**: `normal`, `anonymized`, `disabled`
+**`chat_privacy_mode`** and the card it renders as:
 
-The config endpoint returns whether the platform has this feature enabled.
-The settings endpoint reads/writes the user's preference.
+| Value | Card | Meaning |
+|---|---|---|
+| `normal` | Normal | Saved to history and linked to the account; agents use prior turns |
+| `anonymized` | Anonymized | Saved for AI context but stripped of identifying account info |
+| `disabled` | **Incognito** | Nothing recorded; every message is a single-turn Q&A |
+
+The config endpoint returns `{ allow_user_chat_privacy_control }` — the
+organization gate; the tab renders only when it is on. The settings
+endpoint reads / writes the preference (`ChatPrivacyTab`, internal, mounted
+by `Profile` at `targetTab="privacy"`; hooks `useGetUserChatPrivacySettingsQuery`
+/ `useUpdateUserChatPrivacySettingsMutation`).
+
+An agent set to **Always Incognito** or the organization can override this
+for specific conversations, and any single chat can be switched into
+Incognito from the chat header — the full picture, the resolved-mode
+endpoint and the header toggle are in `/iblai-vibe-incognito`.
 
 ---
 

@@ -36,10 +36,12 @@ personal data or auditing what sensitive data flowed through the agents.
   ```json
   {
     "enable_privacy_router": "boolean",
-    "privacy_action": "redact|mask|block",
+    "privacy_action": "allow|redact|mask|block",
     "privacy_entities": "string[] (PERSON, EMAIL_ADDRESS, US_SSN, …)",
     "privacy_response": "string",
-    "enable_privacy_output_filter": "boolean"
+    "enable_privacy_output_filter": "boolean",
+    "disable_chathistory": "boolean  (Incognito policy: Always Incognito)",
+    "disable_privacy_mode": "boolean  (Incognito policy: Never Incognito)"
   }
   ```
 
@@ -64,8 +66,17 @@ curl -X PUT \
 ## Notes
 
 - A field left out of the PUT is left unchanged — never resend the whole object.
-- `privacy_action` is one of `redact`, `mask`, or `block`; `block` stops the turn
-  and returns `privacy_response`, while `redact`/`mask` rewrite the detected PII.
+- `privacy_action` is one of `allow`, `redact`, `mask`, or `block`; `block` stops
+  the turn and returns `privacy_response`, `redact`/`mask` rewrite the detected
+  PII, and `allow` only records the detection (see `privacy-flags/`) and passes
+  the message through unchanged.
+- The two Incognito flags are the agent tier of chat privacy: `disable_chathistory`
+  makes every conversation incognito (nothing saved to history or memory, for
+  anyone); `disable_privacy_mode` takes Incognito away from users of this agent
+  (a user whose default is Incognito is saved anonymized instead). Set at most
+  one; both true reads as `disable_privacy_mode`. The organization gate, the
+  user default and the per-session flip are in
+  [`/iblai-vibe-incognito`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-incognito/SKILL.md).
 - `privacy_entities` is a list of detector names (`PERSON`, `EMAIL_ADDRESS`,
   `US_SSN`, …) — repeat the `-F` key per entity in `multipart/form-data`.
 - `enable_privacy_output_filter` applies the same detection to the agent's
