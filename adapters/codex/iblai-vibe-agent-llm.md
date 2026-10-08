@@ -54,9 +54,9 @@ export default function AgentLLMPage() {
 
 The tab reads `tenantKey`, `mentorId` and `username` from the nearest
 `<AgentSettingsProvider>`. Pass `mentorId` to configure a different agent
-than the provider describes — the SDK does this for the "switch model"
-dialog opened from the chat chrome, where the agent being configured is
-the one in the chat:
+than the provider describes — a host can mount the tab in a "switch
+model" dialog opened from the chat chrome, where the agent being
+configured is the one in the chat (the ibl.ai OS does exactly this):
 
 ```tsx
 <AgentLLMTab mentorId={chatMentorId} showConfigurationHeader={false} />;
@@ -104,8 +104,9 @@ From `@iblai/iblai-js/web-containers`, for custom UI that shows a
 provider's name or logo (an agents table, a transcript row):
 
 - `useLlmProviderCatalogue({ org, userId, mentorId })` -- returns a
-  resolver `(llmProvider?, llmName?) => LlmProviderDetails` backed by the
-  same catalogue cache the tab fills; a key the catalogue does not list
+  resolver `(llmProvider?, llmName?) => LlmProviderDetails` over the same
+  `mentor-llms` rows the tab reads (the tab reads them directly; the SDK
+  uses this hook for `LlmModelBadge`); a key the catalogue does not list
   resolves to the raw key and no logo.
 - `LlmProviderDetails` -- `{ logo: string | null; displayName: string }`.
 - `inferProviderKeysFromModel` -- the provider keys a model name implies.

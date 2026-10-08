@@ -111,7 +111,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |
 | [`/iblai-vibe-agent-lti`](../skills/agents/iblai-vibe-agent-lti/SKILL.md) | 🖥️ ui | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app |
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
-| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab |
+| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab: two sub-tabs, PII Filtering (detect personal information in messages and allow, redact, mask or block it, choo… |
 | [`/iblai-vibe-agent-prompt`](../skills/agents/iblai-vibe-agent-prompt/SKILL.md) | 🖥️ ui | Add the agent Prompts tab (system prompts and suggested prompts) to your Next.js app |
 | [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app |
 | [`/iblai-vibe-agent-sandbox`](../skills/agents/iblai-vibe-agent-sandbox/SKILL.md) | 🖥️ ui | Add the agent Sandbox tab (sandbox type selection |
@@ -122,7 +122,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
 | [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
-| [`/iblai-vibe-incognito`](../skills/agents/iblai-vibe-incognito/SKILL.md) | 🖥️ ui | Add Incognito to your chat |
+| [`/iblai-vibe-incognito`](../skills/agents/iblai-vibe-incognito/SKILL.md) | 🖥️ ui | Add Incognito to your chat: the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for th… |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
 | [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app |
 | [`/iblai-vibe-project`](../skills/agents/iblai-vibe-project/SKILL.md) | 🖥️ ui | Add the in-process Projects surface (project landing page |

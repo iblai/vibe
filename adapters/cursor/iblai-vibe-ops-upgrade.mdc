@@ -64,12 +64,17 @@ sub-tabs, no Incognito policy, no Virtual Machine settings. Remove it
 first; it lives in `pnpm-workspace.yaml` under `overrides:` (pnpm 10 —
 older starters wrote the key single-quoted, newer ones double-quoted,
 so match either) or in `package.json` under `pnpm.overrides` (older
-setups):
+setups). The ten-line comment vibe-starter wrote above the hold goes
+with it, but only when both of its marker lines are present:
 
 ```bash
 if [ -f pnpm-workspace.yaml ] && grep -Eq "^[[:space:]]+[\"']?@iblai/web-containers[\"']?: *1\.16\.0" pnpm-workspace.yaml; then
   sed -i.bak -E "/^[[:space:]]+[\"']?@iblai\/web-containers[\"']?: *1\.16\.0/d" pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.bak
   echo "removed the @iblai/web-containers 1.16.0 override from pnpm-workspace.yaml"
+fi
+if [ -f pnpm-workspace.yaml ] && grep -q '^# `@iblai/web-containers` 1\.16\.1 was published' pnpm-workspace.yaml && grep -q '^# exports; iblai-js 2\.3\.1\.\.2\.3\.3 are all affected\.$' pnpm-workspace.yaml; then
+  sed -i.bak '/^# `@iblai\/web-containers` 1\.16\.1 was published/,/^# exports; iblai-js 2\.3\.1\.\.2\.3\.3 are all affected\.$/d' pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.bak
+  echo "removed the comment that explained the hold"
 fi
 if [ -f package.json ] && node -e "process.exit(require('./package.json').pnpm?.overrides?.['@iblai/web-containers'] ? 0 : 1)"; then
   node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));delete p.pnpm.overrides['@iblai/web-containers'];if(!Object.keys(p.pnpm.overrides).length)delete p.pnpm.overrides;if(!Object.keys(p.pnpm).length)delete p.pnpm;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"

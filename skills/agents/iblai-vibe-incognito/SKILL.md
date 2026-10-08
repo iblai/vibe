@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-incognito
-description: Add Incognito to your chat — the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for this chat?" mid-conversation dialog, the locked states, and how the four tiers resolve (organization gate, agent policy, the user's profile default, this session). Use when the user mentions incognito, private mode, "don't save this chat", chat history off, anonymized conversations, or wants the toggle in their chat header. For the agent's policy see /iblai-vibe-agent-privacy; for the user's default see /iblai-vibe-profile; for the organization gate see /iblai-vibe-account
+description: Add Incognito to your chat: the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for this chat?" mid-conversation dialog, the locked states, and how the four tiers resolve (organization gate, agent policy, the user's profile default, this session). Use when the user mentions incognito, private mode, "don't save this chat", chat history off, anonymized conversations, or wants the toggle in their chat header. For the agent's policy see /iblai-vibe-agent-privacy; for the user's default see /iblai-vibe-profile; for the organization gate see /iblai-vibe-account
 globs:
 alwaysApply: false
 metadata:

@@ -175,8 +175,9 @@ From `@iblai/iblai-js/web-containers/next`:
 - `AgentEvaluationTabProps` -- props type for the tab.
 
 From `@iblai/iblai-js/web-containers`: `useLlmProviderCatalogue` and
-`LlmProviderDetails` -- the provider name + logo resolver behind the
-Evaluate modal's picker, for custom UI (see `/iblai-vibe-agent-llm`).
+`LlmProviderDetails` -- a provider name + logo resolver over the same
+`mentor-llms` rows the Evaluate picker reads directly, for custom UI
+(see `/iblai-vibe-agent-llm`).
 
 From `@iblai/data-layer` (the same RTK Query hooks the tab uses, for
 custom UI): `useListEvalDatasetsQuery`, `useListEvalRunsQuery`,

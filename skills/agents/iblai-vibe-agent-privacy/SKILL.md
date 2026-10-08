@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-privacy
-description: Add the agent Privacy tab — two sub-tabs, PII Filtering (detect personal information in messages and allow, redact, mask or block it, choose the entity types, filter AI responses too) and Incognito (whether conversations with this agent are kept out of chat history and memory — Users Decide, Always Incognito, or Never Incognito). Use when the user mentions PII, personal data, redaction, incognito for an agent, or "don't save conversations with this agent". For the in-chat Incognito toggle and how the org, agent, user and session tiers resolve see /iblai-vibe-incognito; for the user's own default see /iblai-vibe-profile; for the REST endpoints see /iblai-api-agent-privacy
+description: Add the agent Privacy tab: two sub-tabs, PII Filtering (detect personal information in messages and allow, redact, mask or block it, choose the entity types, filter AI responses too) and Incognito (whether conversations with this agent are kept out of chat history and memory: Users Decide, Always Incognito, or Never Incognito). Use when the user mentions PII, personal data, redaction, incognito for an agent, or "don't save conversations with this agent". For the in-chat Incognito toggle and how the org, agent, user and session tiers resolve see /iblai-vibe-incognito; for the user's own default see /iblai-vibe-profile; for the REST endpoints see /iblai-api-agent-privacy
 globs:
 alwaysApply: false
 metadata:
