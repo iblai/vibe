@@ -51,52 +51,33 @@ template and fill in your values:
 
 ## Step 2: Mount `AgentEvaluationTab`
 
-`AgentEvaluationTab` has one required prop: `getLLMProviderDetails`. This
-maps a provider name to display info (logo URL, display name) for the LLM
-picker inside the Evaluate (new review) modal. The host app provides this
-because logos and display names are host-specific -- same contract as the
-LLM tab (`/iblai-vibe-agent-llm`); if that tab is already mounted, reuse
-the same function.
+`AgentEvaluationTab` has no required props. The LLM picker inside the
+Evaluate (new review) modal reads provider names and logos from the
+backend's model catalogue, the same source as the LLM tab
+(`/iblai-vibe-agent-llm`). Older SDK releases took a required
+`getLLMProviderDetails` prop here; it no longer exists.
 
 ```tsx
 // app/(app)/agents/[mentorId]/evals/page.tsx
 "use client";
 
-import {
-  AgentEvaluationTab,
-  type LLMProviderDetails,
-} from "@iblai/iblai-js/web-containers/next";
-
-function getLLMProviderDetails(
-  providerName: string,
-  llmName?: string,
-): LLMProviderDetails {
-  const providers: Record<string, LLMProviderDetails> = {
-    openai: { name: "OpenAI", logo: "/logos/openai.svg" },
-    anthropic: { name: "Anthropic", logo: "/logos/anthropic.svg" },
-    google: { name: "Google", logo: "/logos/google.svg" },
-  };
-  return (
-    providers[providerName] ?? {
-      name: providerName,
-      logo: "/logos/default.svg",
-    }
-  );
-}
+import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentEvalsPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentEvaluationTab getLLMProviderDetails={getLLMProviderDetails} />
+      <AgentEvaluationTab />
     </div>
   );
 }
 ```
 
-`AgentEvaluationTab` reads `tenantKey`, `mentorId`, and `username` from
-`AgentSettingsProvider` (via `useAgentSettings()`) and handles all of its
-own data fetching and mutations (benchmarks, runs, reviews, scores,
-export, delete).
+`AgentEvaluationTab` reads `tenantKey`, `mentorId`, `username` and
+`userIsStudent` from `AgentSettingsProvider` (via `useAgentSettings()`)
+and handles all of its own data fetching and mutations (benchmarks, runs,
+reviews, scores, export, delete). Evaluations are admin-only: for a
+learner (`userIsStudent`, from the provider or the prop) the tab renders
+nothing, even when deep-linked.
 
 ### With custom pagination
 
@@ -106,7 +87,6 @@ used. Inject your own to match the host app's pagination UI:
 
 ```tsx
 <AgentEvaluationTab
-  getLLMProviderDetails={getLLMProviderDetails}
   PaginationComponent={({ currentPage, totalPages, onPageChange, disabled }) => (
     <MyPagination
       page={currentPage}
@@ -133,7 +113,6 @@ import {
 } from "@iblai/iblai-js/web-containers/next";
 
 <AgentEvaluationTab
-  getLLMProviderDetails={getLLMProviderDetails}
   labels={{
     header: {
       title: "Benchmarks",
@@ -186,9 +165,9 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `getLLMProviderDetails` | `(providerName: string, llmName?: string) => LLMProviderDetails` | Yes | Maps a provider name to display info (logo, display name) for the review-modal LLM picker |
 | `labels` | `DeepPartial<EvaluationTabLabels>` | No | Override user-visible strings |
 | `PaginationComponent` | `ComponentType<{ currentPage, totalPages, onPageChange, disabled }>` | No | Custom pagination for the evaluations table. Defaults to the web-containers `AdvancedPagination` |
+| `userIsStudent` | `boolean` | No | `true` for a learner: the tab renders nothing (evaluations are admin-only). Overrides the value from `AgentSettingsProvider` |
 
 ## Related Exports
 
@@ -197,8 +176,10 @@ From `@iblai/iblai-js/web-containers/next`:
 - `AGENT_EVALUATION_TAB_LABELS` -- the default agent-facing label bundle.
 - `EvaluationTabLabels` -- type for the full label bundle.
 - `AgentEvaluationTabProps` -- props type for the tab.
-- `LLMProviderDetails` -- type for the return value of
-  `getLLMProviderDetails` (shared with `/iblai-vibe-agent-llm`).
+
+From `@iblai/iblai-js/web-containers`: `useLlmProviderCatalogue` and
+`LlmProviderDetails` -- the provider name + logo resolver behind the
+Evaluate modal's picker, for custom UI (see `/iblai-vibe-agent-llm`).
 
 From `@iblai/data-layer` (the same RTK Query hooks the tab uses, for
 custom UI): `useListEvalDatasetsQuery`, `useListEvalRunsQuery`,
