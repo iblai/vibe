@@ -1,0 +1,320 @@
+---
+name: iblai-vibe-incognito
+description: Add Incognito to your chat, the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for this chat?" mid-conversation dialog, the locked states, and how the four tiers resolve (organization gate, agent policy, the user's profile default, this session). Use when the user mentions incognito, private mode, "don't save this chat", chat history off, anonymized conversations, or wants the toggle in their chat header. For the agent's policy see /iblai-vibe-agent-privacy; for the user's default see /iblai-vibe-profile; for the organization gate see /iblai-vibe-account
+globs:
+alwaysApply: false
+metadata:
+  kind: ui
+---
+
+# /iblai-vibe-incognito
+
+Add **Incognito** -- a conversation the platform does not save to chat
+history or use for memory. It is one feature across four surfaces, and
+this skill is the map plus the one piece no other skill mounts: the
+chat-header **Incognito** toggle (`ChatPrivacyToggle`) and its
+mid-conversation confirmation dialog.
+
+| Tier | Who sets it | Where | Skill |
+|---|---|---|---|
+| **Organization gate** | Admin | Account → Advanced → *Allow users to control chat privacy* | `/iblai-vibe-account` |
+| **Agent policy** | Agent admin | Agent → Privacy → **Incognito**: Users Decide / Always Incognito / Never Incognito | `/iblai-vibe-agent-privacy` |
+| **User default** | Each user | Profile → **Privacy**: Normal / Anonymized / Incognito | `/iblai-vibe-profile` |
+| **This conversation** | Each user | The header toggle (this skill) | — |
+
+Incognito used to be called **Private Mode**; the names in the UI, the
+toasts and the dialog all say Incognito now. The wire names did not
+change (`disable_chathistory`, `chat_privacy_mode`).
+
+![Mid-conversation — "Enable Incognito for this chat?"](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-incognito/iblai-vibe-incognito-dialog.png)
+
+![Agent tier — Privacy › Incognito](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-privacy/iblai-vibe-agent-privacy-incognito.png)
+
+![User tier — Profile › Privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/user-profile/user-profile-privacy.png)
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
+## How the tiers resolve
+
+The backend answers one question per `(org, user, agent, session)`:
+`GET …/chat-privacy-effective/` → `{ mode, source, is_locked }`.
+
+- `mode` is `normal`, `anonymized` or `disabled` (**disabled = Incognito**).
+  Incognito withholds the message text: no chat-history row is written
+  and nothing feeds memory. Each turn is still recorded against the user
+  for usage, and the conversation's own turns are kept for 24 hours,
+  refreshed on every turn, as the agent's context — so the agent follows
+  the conversation. Anonymized strips the account identity from the
+  history rows only; the per-turn usage record keeps the user and the
+  text.
+- `source` says which tier won: `mentor` (the agent), `tenant`, `user`
+  (profile default), `session` (this conversation), or `default`.
+- `is_locked` is true when the agent or the organization decided — the
+  user cannot change it from the conversation.
+
+Precedence, highest first:
+
+1. **Agent — Always Incognito** (`disable_chathistory` on the agent):
+   every conversation is incognito; the pill is locked on.
+2. **Agent — Never Incognito** (`disable_privacy_mode` on the agent):
+   the toggle disappears, and a user whose profile default is Incognito
+   is saved **anonymized** instead.
+3. **Organization gate off**: no user control anywhere — no toggle, no
+   Incognito sub-tab, no profile Privacy tab; every chat is saved
+   (`chat-privacy-effective` answers `mode: normal`, `source: tenant`,
+   `is_locked: true`).
+4. **This session** (`disable_chathistory` on the session): what the
+   toggle writes.
+5. **User default** (`chat_privacy_mode`): Normal, Anonymized, or
+   Incognito for every conversation unless a tier above overrides.
+6. **Default**: normal.
+
+## Prerequisites
+
+- Auth must be set up first (`/iblai-vibe-auth`)
+- MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
+- A chat surface to put the toggle on (`/iblai-vibe-agent-chat`) — the
+  toggle reads the active session id and message list from the shared
+  chat slice, so it only makes sense next to a mounted chat.
+- The organization gate on, or nothing renders (by design — see the
+  render gate below).
+
+## Step 1: Check Environment
+
+Before proceeding, check for an `iblai.env` in the project root. Look for
+`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
+is missing these variables, tell the user:
+"You need an `iblai.env` with your platform configuration. Download the
+template and fill in your values:
+`curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
+
+## Step 2: Mount the toggle in the chat header
+
+Place it in the header's right-hand cluster, next to the credit balance
+and the notification bell — all three are 40×40 icon buttons at rest;
+Incognito grows into a labelled pill when it is on.
+
+```tsx
+// components/navbar/incognito-toggle.tsx
+"use client";
+
+import { ChatPrivacyToggle } from "@iblai/iblai-js/web-containers";
+
+export function IncognitoToggle({
+  tenantKey,
+  username,
+  mentorId,
+}: {
+  tenantKey: string;
+  username: string;
+  /** The agent of the open chat; omit off chat pages and the toggle hides. */
+  mentorId?: string;
+}) {
+  return <ChatPrivacyToggle org={tenantKey} userId={username} mentor={mentorId} />;
+}
+```
+
+Safe to render unconditionally: it returns `null` when identity is
+missing, when the organization gate is off, or when the agent is
+**Never Incognito** — except while the current conversation is already
+incognito, when the pill stays visible so the state is not lost.
+
+Hosts on the SDK's `PlatformNavbar` pass the same three values as its
+`privacyToggle` config (`PlatformNavbarPrivacyToggleConfig`) and `null`
+off chat pages.
+
+## Step 3: Use MCP Tools for Customization
+
+```
+get_component_info("ChatPrivacyToggle")
+get_hook_info("useChatPrivacy")
+get_component_info("AgentPrivacyTab")
+```
+
+## `<ChatPrivacyToggle>` Props
+
+Import from `@iblai/iblai-js/web-containers`.
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `org` | `string` | Yes | Organization key |
+| `userId` | `string` | Yes | Username of the signed-in user |
+| `mentor` | `string` | No | Agent UUID of the open chat. Without it the toggle renders nothing (it cannot start a session) |
+| `className` | `string` | No | Extra classes on the trigger button |
+
+## What the toggle does
+
+A hat-and-glasses icon button; when Incognito is on it turns into a
+blue gradient pill labelled **Incognito**. What a click does depends on
+the state:
+
+| State | Click |
+|---|---|
+| Normal, no user message yet | Starts a fresh session with `disable_chathistory: true` — no dialog. Once a message is sent, that conversation **stays** in Incognito |
+| Incognito, no user message yet | Starts a fresh **normal** session — the way out of an empty incognito chat |
+| Normal, messages sent | Opens **"Enable Incognito for this chat?"** (below); on confirm, flips this session's `disable_chathistory` to `true` |
+| Incognito, messages sent | Flips `disable_chathistory` back to `false` on the same session — history resumes, no dialog |
+| Locked on | No action; the tooltip says why |
+| A reply is streaming | Waits (*"Wait for the reply to finish before changing Incognito."*) |
+
+### The mid-conversation dialog
+
+> **Enable Incognito for this chat?**
+> From here on, new messages in this conversation won't be saved, and
+> the assistant stops using your earlier messages. **Your earlier
+> messages stay saved in your history.** You can turn Incognito off
+> again anytime to resume saving.
+>
+> Cancel · **Enable Incognito**
+
+Only the mid-conversation *enable* asks. Turning it off again, and
+either direction on an empty chat, act immediately with a toast.
+
+### Locked states and their tooltips
+
+| Why | Tooltip |
+|---|---|
+| Agent is Always Incognito (`source: mentor`) | "This agent always runs in Incognito — no chat history or memory is kept for conversations with it." |
+| Profile default is Incognito (`source: user`) | "Incognito is on for all your chats from your profile's Privacy settings. To save history, change it there, then start a new chat." |
+| Conversation has no owner (started in Incognito, or a resume was refused) | "Incognito stays on for this conversation, so nothing in it is saved. Start a new chat to save history." |
+| Profile default is Anonymized and messages were sent | "Incognito can't be turned on for this conversation. Start a new chat and turn Incognito on before sending a message." |
+
+A refused action toasts the backend's own reason when it sent one (the
+403 from an agent locked while the chat was open), otherwise the
+generic message for that action.
+
+## Custom UI: `useChatPrivacy`
+
+The toggle is a thin view over one hook, exported from
+`@iblai/iblai-js/web-containers`, for hosts that want their own
+control:
+
+```tsx
+import { useChatPrivacy } from "@iblai/iblai-js/web-containers";
+
+const {
+  featureEnabled,       // organization gate
+  privacyModeDisabled,  // agent is Never Incognito (or a tier above locked a non-incognito mode)
+  effective,            // { mode, source, is_locked }
+  isEffectiveReady,     // don't act before the first resolution lands
+  messageCount,         // user-authored messages in the open chat
+  isTurnInFlight,
+  canResumeHistory,     // false once this browser knows the session has no owner
+  startPrivateChat,     // new session, disable_chathistory: true
+  startNormalChat,      // new session, normal
+  disableChatHistory,   // (true | false) on the current session
+} = useChatPrivacy({ org, userId, mentor, onActionError });
+```
+
+`onActionError` receives `{ action, status?, message? }` — `action` is
+`startPrivateChat`, `startNormalChat`, `disableChatHistory` or
+`enableChatHistory`; a refused resume arrives as `enableChatHistory`
+with `400` (admin) or `404` (own user).
+
+## REST API
+
+All under `${dmUrl}` where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`. Auth:
+`Authorization: Token <token>`.
+
+| Tier | Method | Path | Body / notes |
+|---|---|---|---|
+| Organization | GET / PATCH | `/api/ai-account/orgs/{org}/users/{username}/chat-privacy-config/` | `{ "allow_user_chat_privacy_control": boolean }` — PATCH is admin-only (403 otherwise); the `{username}` segment is the caller, the value is organization-wide |
+| Agent | PUT | `/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor_unique_id}/settings/` | `{ "disable_chathistory": boolean, "disable_privacy_mode": boolean }` — see `/iblai-vibe-agent-privacy` |
+| User | GET / POST | `/api/ai-account/orgs/{org}/users/{username}/chat-privacy-settings/` | `{ "chat_privacy_mode": "normal" \| "anonymized" \| "disabled" }` |
+| Resolved | GET | `/api/ai-account/orgs/{org}/users/{username}/chat-privacy-effective/?mentor={uuid}&session={id}` | `{ mode, source, is_locked }` |
+| Session | POST | `/api/ai-mentor/orgs/{org}/users/{username}/sessions/{session_id}/disable-chathistory/` | `{ "disable_chathistory": boolean }`. `false` is refused for a session with no owner (400 admin / 404 own user) |
+
+A new session starts incognito with `POST …/sessions/` and
+`{ "mentor": uuid, "disable_chathistory": true }`; the backend creates
+that session without an owner, which is why it can never leave
+Incognito once it has messages.
+
+## Related Exports
+
+From `@iblai/iblai-js/web-containers`:
+
+- `ChatPrivacyToggle`, `ChatPrivacyToggleProps` — the header toggle.
+- `useChatPrivacy`, `ChatPrivacyAction`, `ChatPrivacyActionError`,
+  `toChatPrivacyActionError` — the hook behind it.
+- `PlatformNavbar`, `PlatformNavbarPrivacyToggleConfig` — the SDK navbar
+  and its `privacyToggle` slot.
+- `Profile` with `targetTab="privacy"` — the user tier
+  (`/iblai-vibe-profile`).
+
+From `@iblai/iblai-js/web-containers/next`:
+
+- `AgentPrivacyTab` — the agent tier (`/iblai-vibe-agent-privacy`).
+
+From `@iblai/iblai-js/data-layer` (`chatPrivacyApiSlice`):
+
+- `useGetTenantChatPrivacyConfigQuery`,
+  `useUpdateTenantChatPrivacyConfigMutation` — the organization gate.
+- `useGetUserChatPrivacySettingsQuery`,
+  `useUpdateUserChatPrivacySettingsMutation` — the user default.
+- `useGetChatPrivacyEffectiveQuery` — the resolved mode.
+- `useUpdateSessionDisableChathistoryMutation` — the session flip.
+- `ChatPrivacyModeEnum`, `CHAT_PRIVACY_MODES`, and the types
+  `ChatPrivacyMode`, `ChatPrivacyEffective`, `TenantChatPrivacyConfig`,
+  `UserChatPrivacySettings`, `MentorChatPrivacyPublicSettings`.
+
+From `@iblai/iblai-js/playwright`: `getChatPrivacyToggle`,
+`expectChatPrivacyState`, `expectChatPrivacySource`,
+`expectChatPrivacyLocked`, `clickChatPrivacyToggle`,
+`confirmEnableChatPrivacyMidSession`, `turnOffChatPrivacyMidSession`,
+`cancelEnableChatPrivacyMidSession`.
+
+SDK source: `packages/web-containers/src/components/chat-privacy/chat-privacy-toggle.tsx`,
+`hooks/use-chat-privacy.ts`, the organization gate row at
+`components/profile/advanced/chat-privacy.tsx`, and the data layer under
+`packages/data-layer/src/features/chat-privacy/`.
+
+## Step 4: Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+
+1. `pnpm build` -- must pass with zero errors
+2. `pnpm test` -- vitest must pass
+3. Start dev server and touch test:
+   ```bash
+   pnpm dev &
+   npx playwright screenshot http://localhost:3000/ /tmp/incognito.png
+   ```
+
+Stable selectors: `chat-privacy-toggle` (`data-state="on" | "off"`,
+`data-source`, `aria-pressed`, `aria-disabled`),
+`chat-privacy-confirm-dialog`, `chat-privacy-confirm-cancel`,
+`chat-privacy-confirm-action`.
+
+## Important Notes
+
+- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
+  (they register `chatPrivacyApiSlice` and the shared chat slice the
+  toggle reads)
+- **`initializeDataLayer()`**: 5 args (v1.2+)
+- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
+  (`pnpm add sonner @iblai/iblai-web-mentor`)
+- **Incognito is per conversation, not per message.** Turning it on
+  mid-conversation keeps the earlier messages in history and stops
+  saving from that point; the assistant also stops using the earlier
+  turns. Turning it off resumes saving on the same conversation —
+  messages sent while it was on are gone. What Incognito withholds is
+  the message text: no history row, nothing to memory. Usage is still
+  metered per turn, and the incognito turns stay available to the agent
+  as context for 24 hours.
+- **An empty chat started in Incognito has no owner.** The backend
+  creates it that way, so once it has messages it cannot be turned
+  back; the toggle locks and points the user to a new chat. This
+  browser remembers such sessions in `localStorage`
+  (`iblai_chat_privacy_stays_incognito_sessions`).
+- **Anonymized is not Incognito.** A profile default of Anonymized keeps
+  the chat-history rows but strips the account identity from them; the
+  per-turn usage record still carries the user and the text. The pill
+  stays off and the agent still uses prior turns. Those conversations
+  have no owner either, so Incognito cannot be enabled on them mid-way.
+- **The user-facing name is Incognito everywhere** — the toggle, the
+  agent's Privacy tab, the profile Privacy tab, the toasts and the
+  dialog. Wire fields keep their older names: `disable_chathistory`,
+  `disable_privacy_mode`, `chat_privacy_mode: "disabled"`, and the
+  `mentor` query parameter.
+- **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

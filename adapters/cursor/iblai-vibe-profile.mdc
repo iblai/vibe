@@ -262,7 +262,7 @@ the `targetTab` id and when each appears:
 | Memory | AI & data | `memory` | `enableMemoryTab` prop AND organization memsearch on | The user's own global memories + capture/personalization toggles (the admin view of the same data is `/iblai-vibe-memory`) |
 | History | AI & data | `chatHistory` | Own profile, or a viewer who may read this user's chats (admin / watcher) | Conversations + Exports — documented in `/iblai-vibe-history` |
 | Usage | AI & data | `llmUsage` | `showLlmUsageTab` (default **on**) and the viewer is not a pure watcher | The viewed user's AI spend, tokens and requests — see below |
-| Privacy | Account | `privacy` | Organization allows user chat-privacy control | "Private Mode" — see the Chat Privacy Settings API below |
+| Privacy | Account | `privacy` | Organization allows user chat-privacy control | **Default Incognito Setting** — Normal / Anonymized / Incognito for every conversation; the whole feature is `/iblai-vibe-incognito` |
 | Security | Account | `security` | Own profile only | Password reset, account deletion |
 | Advanced | Account | `advanced` | Tauri desktop with `localLLMProps.isAvailable` | Local LLM models — see `/iblai-vibe-local-llm` |
 

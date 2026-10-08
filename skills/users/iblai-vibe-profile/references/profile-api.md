@@ -263,9 +263,9 @@ DELETE {dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/ai-user-profile-memory/{
 
 ---
 
-## Chat Privacy Settings
+## Chat Privacy Settings (the Privacy tab — Default Incognito Setting)
 
-Users can control how their chat data is stored.
+The user's default for how conversations with agents are recorded.
 
 ```
 GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-config/
@@ -273,10 +273,27 @@ GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 POST {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 ```
 
-**Privacy modes**: `normal`, `anonymized`, `disabled`
+**`chat_privacy_mode`** and the card it renders as:
 
-The config endpoint returns whether the platform has this feature enabled.
-The settings endpoint reads/writes the user's preference.
+| Value | Card | Meaning |
+|---|---|---|
+| `normal` | Normal | Saved to history and linked to the account; agents use prior turns |
+| `anonymized` | Anonymized | History rows are kept without the account identity; the per-turn usage record still carries the user and the text; agents use prior turns |
+| `disabled` | **Incognito** | No chat-history row and nothing to memory — the message text is withheld. Usage is still metered per turn, and the conversation's turns stay available to the agent as context for 24 hours, refreshed each turn |
+
+The cards' own copy still describes Incognito as "a single-turn Q&A"; the
+behaviour above is what the backend does.
+
+The config endpoint returns `{ allow_user_chat_privacy_control }` — the
+organization gate; the tab renders only when it is on. The settings
+endpoint reads / writes the preference (`ChatPrivacyTab`, internal, mounted
+by `Profile` at `targetTab="privacy"`; hooks `useGetUserChatPrivacySettingsQuery`
+/ `useUpdateUserChatPrivacySettingsMutation`).
+
+An agent set to **Always Incognito** or the organization can override this
+for specific conversations, and any single chat can be switched into
+Incognito from the chat header — the full picture, the resolved-mode
+endpoint and the header toggle are in `/iblai-vibe-incognito`.
 
 ---
 

@@ -32,43 +32,34 @@ template and fill in your values:
 
 ## Step 2: Mount `AgentLLMTab`
 
-`AgentLLMTab` has one required prop: `getLLMProviderDetails`. This maps a
-provider name to display info (logo URL, display name). The host app
-provides this because logos and display names are host-specific.
+`AgentLLMTab` has no required props. Provider names and logos come from
+the backend's model catalogue (the same `mentor-llms` read the picker
+uses), so the host supplies no mapper. Older SDK releases took a required
+`getLLMProviderDetails` prop; it no longer exists.
 
 ```tsx
 // app/(app)/agents/[mentorId]/llm/page.tsx
 "use client";
 
-import {
-  AgentLLMTab,
-  type LLMProviderDetails,
-} from "@iblai/iblai-js/web-containers/next";
-
-function getLLMProviderDetails(
-  providerName: string,
-  llmName?: string,
-): LLMProviderDetails {
-  const providers: Record<string, LLMProviderDetails> = {
-    openai: { name: "OpenAI", logo: "/logos/openai.svg" },
-    anthropic: { name: "Anthropic", logo: "/logos/anthropic.svg" },
-    google: { name: "Google", logo: "/logos/google.svg" },
-  };
-  return (
-    providers[providerName] ?? {
-      name: providerName,
-      logo: "/logos/default.svg",
-    }
-  );
-}
+import { AgentLLMTab } from "@iblai/iblai-js/web-containers/next";
 
 export default function AgentLLMPage() {
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentLLMTab getLLMProviderDetails={getLLMProviderDetails} />
+      <AgentLLMTab />
     </div>
   );
 }
+```
+
+The tab reads `tenantKey`, `mentorId` and `username` from the nearest
+`<AgentSettingsProvider>`. Pass `mentorId` to configure a different agent
+than the provider describes — a host can mount the tab in a "switch
+model" dialog opened from the chat chrome, where the agent being
+configured is the one in the chat (the ibl.ai OS does exactly this):
+
+```tsx
+<AgentLLMTab mentorId={chatMentorId} showConfigurationHeader={false} />;
 ```
 
 ## Step 3: Customize Labels (Optional)
@@ -77,7 +68,6 @@ export default function AgentLLMPage() {
 import { AgentLLMTab } from "@iblai/iblai-js/web-containers/next";
 
 <AgentLLMTab
-  getLLMProviderDetails={getLLMProviderDetails}
   labels={{
     header: { title: "Model configuration" },
   }}
@@ -97,9 +87,9 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `getLLMProviderDetails` | `(providerName: string, llmName?: string) => LLMProviderDetails` | Yes | Maps provider name to display info (logo, display name) |
 | `labels` | `DeepPartial<LLMTabLabels>` | No | Override user-visible strings |
-| `showConfigurationHeader` | `boolean` | No | Show/hide the configuration header |
+| `showConfigurationHeader` | `boolean` | No | Show/hide the configuration header (default `true`) |
+| `mentorId` | `string` | No | Configure this agent instead of the one from `<AgentSettingsProvider>` — for a model picker opened from a chat |
 
 ## Related Exports
 
@@ -107,8 +97,19 @@ From `@iblai/iblai-js/web-containers/next`:
 
 - `AGENT_LLM_TAB_LABELS` -- the default agent-facing label bundle.
 - `LLMTabLabels` -- type for the full label bundle.
-- `LLMProviderDetails` -- type for the return value of `getLLMProviderDetails`.
-- `LLMProvider`, `Provider` -- types for provider data structures.
+- `LLMProvider`, `LLMProviderType` -- types for provider data structures
+  (`LLMProviderType` is the `{ name, chat_models }` provider row).
+
+From `@iblai/iblai-js/web-containers`, for custom UI that shows a
+provider's name or logo (an agents table, a transcript row):
+
+- `useLlmProviderCatalogue({ org, userId, mentorId })` -- returns a
+  resolver `(llmProvider?, llmName?) => LlmProviderDetails` over the same
+  `mentor-llms` rows the tab reads (the tab reads them directly; the SDK
+  uses this hook for `LlmModelBadge`); a key the catalogue does not list
+  resolves to the raw key and no logo.
+- `LlmProviderDetails` -- `{ logo: string | null; displayName: string }`.
+- `inferProviderKeysFromModel` -- the provider keys a model name implies.
 
 ## Step 5: Verify
 
@@ -131,6 +132,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
-- **Required prop**: `getLLMProviderDetails` is host-provided because
-  logos and display names vary per deployment.
+- **Provider naming is backend-owned**: logos and display names come from
+  the organization's model catalogue, so the tab needs no host mapper.
+  Older SDK releases took a required `getLLMProviderDetails` prop; it no
+  longer exists.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
