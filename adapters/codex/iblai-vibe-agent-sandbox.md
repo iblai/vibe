@@ -293,12 +293,15 @@ Updates are upserts — the first PATCH bootstraps the row.
 From `@iblai/iblai-js/web-containers`:
 
 - `SandboxConfig`, `AgentConfigPrompts` — the two section components.
+- `useLlmProviderCatalogue` — resolves a provider key to its display
+  name and logo, for custom UI that shows the chosen model (see
+  `/iblai-vibe-agent-llm`).
+
+From `@iblai/iblai-js/web-containers/next`:
+
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
-- `canSwitchLLm`, `canSwitchProvider` — helpers for custom UI that needs
-  to mirror the model-picker rules; `useLlmProviderCatalogue` resolves a
-  provider key to its display name and logo.
 - `LLMProvider`, `Provider` — types for the picker.
 
 From `@iblai/data-layer`:
