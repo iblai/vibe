@@ -56,17 +56,19 @@ echo "Current SDK (package.json): ${OLD_SDK:-not-installed}"
 Skip this step if there is no `package.json` in the current directory, or if
 `@iblai/iblai-js` is not a dependency.
 
-Projects scaffolded before October 2026 carry an override that holds
+Projects scaffolded before this release carry an override that holds
 `@iblai/web-containers` at 1.16.0 (vibe-starter needed it while
 `@iblai/data-layer` lagged behind). With it in place, `pnpm update` moves
 `@iblai/iblai-js` but every component stays on the old UI — no Privacy
 sub-tabs, no Incognito policy, no Virtual Machine settings. Remove it
-first; it lives in `pnpm-workspace.yaml` under `overrides:` (pnpm 10) or
-in `package.json` under `pnpm.overrides` (older setups):
+first; it lives in `pnpm-workspace.yaml` under `overrides:` (pnpm 10 —
+older starters wrote the key single-quoted, newer ones double-quoted,
+so match either) or in `package.json` under `pnpm.overrides` (older
+setups):
 
 ```bash
-if [ -f pnpm-workspace.yaml ] && grep -q '"@iblai/web-containers": 1.16.0' pnpm-workspace.yaml; then
-  sed -i.bak '/"@iblai\/web-containers": 1.16.0/d' pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.bak
+if [ -f pnpm-workspace.yaml ] && grep -Eq "^[[:space:]]+[\"']?@iblai/web-containers[\"']?: *1\.16\.0" pnpm-workspace.yaml; then
+  sed -i.bak -E "/^[[:space:]]+[\"']?@iblai\/web-containers[\"']?: *1\.16\.0/d" pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.bak
   echo "removed the @iblai/web-containers 1.16.0 override from pnpm-workspace.yaml"
 fi
 if [ -f package.json ] && node -e "process.exit(require('./package.json').pnpm?.overrides?.['@iblai/web-containers'] ? 0 : 1)"; then
@@ -86,6 +88,17 @@ if [ -f package.json ] && [ -n "$OLD_SDK" ]; then
   fi
   NEW_SDK=$(node -p "require('./package.json').dependencies['@iblai/iblai-js']")
   echo "SDK: $OLD_SDK → $NEW_SDK"
+fi
+```
+
+If an override survived in a shape the step above does not match, the
+lockfile still resolves the old package. Make that fail loudly instead
+of shipping the old UI:
+
+```bash
+if [ -f pnpm-lock.yaml ] && grep -q '@iblai/web-containers@1\.16\.0' pnpm-lock.yaml; then
+  echo "ERROR: pnpm-lock.yaml still resolves @iblai/web-containers 1.16.0 — an override is still in place. Remove it from pnpm-workspace.yaml (overrides:) or package.json (pnpm.overrides) and run pnpm update again." >&2
+  false
 fi
 ```
 
