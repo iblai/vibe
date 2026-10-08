@@ -298,8 +298,9 @@ From `@iblai/iblai-js/web-containers`:
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
-- `getLLMProviderDetails`, `canSwitchLLm`, `canSwitchProvider` —
-  helpers for custom UI that needs to mirror the model-picker rules.
+- `canSwitchLLm`, `canSwitchProvider` — helpers for custom UI that needs
+  to mirror the model-picker rules; `useLlmProviderCatalogue` resolves a
+  provider key to its display name and logo.
 - `LLMProvider`, `Provider` — types for the picker.
 
 From `@iblai/data-layer`:

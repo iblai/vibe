@@ -59,6 +59,27 @@ echo "Current SDK (package.json): ${OLD_SDK:-not-installed}"
 Skip this step if there is no `package.json` in the current directory, or if
 `@iblai/iblai-js` is not a dependency.
 
+Projects scaffolded before October 2026 carry an override that holds
+`@iblai/web-containers` at 1.16.0 (vibe-starter needed it while
+`@iblai/data-layer` lagged behind). With it in place, `pnpm update` moves
+`@iblai/iblai-js` but every component stays on the old UI — no Privacy
+sub-tabs, no Incognito policy, no Virtual Machine settings. Remove it
+first; it lives in `pnpm-workspace.yaml` under `overrides:` (pnpm 10) or
+in `package.json` under `pnpm.overrides` (older setups):
+
+```bash
+if [ -f pnpm-workspace.yaml ] && grep -q '"@iblai/web-containers": 1.16.0' pnpm-workspace.yaml; then
+  sed -i.bak '/"@iblai\/web-containers": 1.16.0/d' pnpm-workspace.yaml && rm -f pnpm-workspace.yaml.bak
+  echo "removed the @iblai/web-containers 1.16.0 override from pnpm-workspace.yaml"
+fi
+if [ -f package.json ] && node -e "process.exit(require('./package.json').pnpm?.overrides?.['@iblai/web-containers'] ? 0 : 1)"; then
+  node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));delete p.pnpm.overrides['@iblai/web-containers'];if(!Object.keys(p.pnpm.overrides).length)delete p.pnpm.overrides;if(!Object.keys(p.pnpm).length)delete p.pnpm;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+  echo "removed the @iblai/web-containers override from package.json"
+fi
+```
+
+Then update the SDK:
+
 ```bash
 if [ -f package.json ] && [ -n "$OLD_SDK" ]; then
   if command -v pnpm >/dev/null 2>&1; then
