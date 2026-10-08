@@ -302,7 +302,9 @@ From `@iblai/iblai-js/web-containers/next`:
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
-- `LLMProvider`, `Provider` — types for the picker.
+- `LLMProvider`, `LLMProviderType` — types for the picker (`LLMProviderType`
+  is the `{ name, chat_models }` provider row; `LLMProvider` the full row
+  with `display_name` and `logo`).
 
 From `@iblai/data-layer`:
 

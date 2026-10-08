@@ -102,7 +102,8 @@ From `@iblai/iblai-js/web-containers/next`:
 
 - `AGENT_LLM_TAB_LABELS` -- the default agent-facing label bundle.
 - `LLMTabLabels` -- type for the full label bundle.
-- `LLMProvider`, `Provider` -- types for provider data structures.
+- `LLMProvider`, `LLMProviderType` -- types for provider data structures
+  (`LLMProviderType` is the `{ name, chat_models }` provider row).
 
 From `@iblai/iblai-js/web-containers`, for custom UI that shows a
 provider's name or logo (an agents table, a transcript row):
