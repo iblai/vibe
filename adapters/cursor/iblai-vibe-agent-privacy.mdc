@@ -190,8 +190,12 @@ Choose how it works for this agent."* Three radio cards:
 | **Never Incognito** | `disable_privacy_mode: true` | Incognito isn't available for this agent; the toggle disappears. Users whose profile default is Incognito are saved **anonymously** instead |
 
 One control writes both flags in the same PUT, so the contradictory
-"always *and* never" pair cannot be configured. A record that still
-carries both (older data) reads as **Never Incognito**.
+"always *and* never" pair cannot be configured from here. A record that
+still carries both (older data) **behaves as Always Incognito**: the
+backend checks `disable_chathistory` first, answers `mode: disabled`,
+`source: mentor`, and writes no history — even though the tab displays
+it as Never Incognito. Choosing any card rewrites both flags and clears
+the mismatch.
 
 ## Which sub-tabs appear
 

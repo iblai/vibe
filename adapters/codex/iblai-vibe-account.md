@@ -263,7 +263,7 @@ Two things are specific to `Account`:
 | **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` |
 | **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — test-input suites for evaluating agents |
 | **Memory** | AI & data | `memory` | `isAdmin === true` — organization-wide global and per-agent memories (see `/iblai-vibe-memory`) |
-| **Advanced** | System | `advanced` | `isAdmin === true` |
+| **Advanced** | System | `advanced` | `isAdmin === true` — organization-wide switches, among them **Allow users to control chat privacy**, the gate that turns Incognito on for the organization (`PATCH …/chat-privacy-config/`, admin-only; see `/iblai-vibe-incognito`) |
 
 Every tab but Management and Billing needs `isAdmin`; those two answer to
 RBAC instead (Billing also to an admin). Integrations is itself split into

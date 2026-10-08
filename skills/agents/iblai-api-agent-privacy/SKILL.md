@@ -77,7 +77,10 @@ curl -X PUT \
   makes every conversation incognito (nothing saved to history or memory, for
   anyone); `disable_privacy_mode` takes Incognito away from users of this agent
   (a user whose default is Incognito is saved anonymized instead). Set at most
-  one; both true reads as `disable_privacy_mode`. The organization gate, the
+  one: with both true the backend checks `disable_chathistory` first and
+  behaves as Always Incognito (`chat-privacy-effective/?mentor=` answers
+  `mode: disabled`, `source: mentor`; no history is written), while the
+  agent's Privacy tab shows the record as Never Incognito. The organization gate, the
   user default and the per-session flip are in
   [`/iblai-vibe-incognito`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-incognito/SKILL.md).
 - `privacy_entities` is a list of detector names (`PERSON`, `EMAIL_ADDRESS`,

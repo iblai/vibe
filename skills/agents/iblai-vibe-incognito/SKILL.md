@@ -39,8 +39,14 @@ change (`disable_chathistory`, `chat_privacy_mode`).
 The backend answers one question per `(org, user, agent, session)`:
 `GET …/chat-privacy-effective/` → `{ mode, source, is_locked }`.
 
-- `mode` is `normal`, `anonymized` or `disabled` (**disabled = Incognito**:
-  nothing is recorded and every message is a single-turn Q&A).
+- `mode` is `normal`, `anonymized` or `disabled` (**disabled = Incognito**).
+  Incognito withholds the message text: no chat-history row is written
+  and nothing feeds memory. Each turn is still recorded against the user
+  for usage, and the conversation's own turns are kept for 24 hours,
+  refreshed on every turn, as the agent's context — so the agent follows
+  the conversation. Anonymized strips the account identity from the
+  history rows only; the per-turn usage record keeps the user and the
+  text.
 - `source` says which tier won: `mentor` (the agent), `tenant`, `user`
   (profile default), `session` (this conversation), or `default`.
 - `is_locked` is true when the agent or the organization decided — the
@@ -54,7 +60,9 @@ Precedence, highest first:
    the toggle disappears, and a user whose profile default is Incognito
    is saved **anonymized** instead.
 3. **Organization gate off**: no user control anywhere — no toggle, no
-   Incognito sub-tab, no profile Privacy tab; every chat is saved.
+   Incognito sub-tab, no profile Privacy tab; every chat is saved
+   (`chat-privacy-effective` answers `mode: normal`, `source: tenant`,
+   `is_locked: true`).
 4. **This session** (`disable_chathistory` on the session): what the
    toggle writes.
 5. **User default** (`chat_privacy_mode`): Normal, Anonymized, or
@@ -167,7 +175,6 @@ either direction on an empty chat, act immediately with a toast.
 | Why | Tooltip |
 |---|---|
 | Agent is Always Incognito (`source: mentor`) | "This agent always runs in Incognito — no chat history or memory is kept for conversations with it." |
-| Organization default (`source: tenant`) | "Your organization has Incognito enabled by default — no chat history or memory is kept." |
 | Profile default is Incognito (`source: user`) | "Incognito is on for all your chats from your profile's Privacy settings. To save history, change it there, then start a new chat." |
 | Conversation has no owner (started in Incognito, or a resume was refused) | "Incognito stays on for this conversation, so nothing in it is saved. Start a new chat to save history." |
 | Profile default is Anonymized and messages were sent | "Incognito can't be turned on for this conversation. Start a new chat and turn Incognito on before sending a message." |
@@ -231,12 +238,12 @@ From `@iblai/iblai-js/web-containers`:
   `toChatPrivacyActionError` — the hook behind it.
 - `PlatformNavbar`, `PlatformNavbarPrivacyToggleConfig` — the SDK navbar
   and its `privacyToggle` slot.
+- `Profile` with `targetTab="privacy"` — the user tier
+  (`/iblai-vibe-profile`).
 
 From `@iblai/iblai-js/web-containers/next`:
 
 - `AgentPrivacyTab` — the agent tier (`/iblai-vibe-agent-privacy`).
-- `Profile` with `targetTab="privacy"` — the user tier
-  (`/iblai-vibe-profile`).
 
 From `@iblai/iblai-js/data-layer` (`chatPrivacyApiSlice`):
 
@@ -291,16 +298,20 @@ Stable selectors: `chat-privacy-toggle` (`data-state="on" | "off"`,
   mid-conversation keeps the earlier messages in history and stops
   saving from that point; the assistant also stops using the earlier
   turns. Turning it off resumes saving on the same conversation —
-  messages sent while it was on are gone.
+  messages sent while it was on are gone. What Incognito withholds is
+  the message text: no history row, nothing to memory. Usage is still
+  metered per turn, and the incognito turns stay available to the agent
+  as context for 24 hours.
 - **An empty chat started in Incognito has no owner.** The backend
   creates it that way, so once it has messages it cannot be turned
   back; the toggle locks and points the user to a new chat. This
   browser remembers such sessions in `localStorage`
   (`iblai_chat_privacy_stays_incognito_sessions`).
-- **Anonymized is not Incognito.** A profile default of Anonymized
-  records the conversation without identity — the pill stays off, and
-  the agent still uses prior turns. Those conversations have no owner
-  either, so Incognito cannot be enabled on them mid-way.
+- **Anonymized is not Incognito.** A profile default of Anonymized keeps
+  the chat-history rows but strips the account identity from them; the
+  per-turn usage record still carries the user and the text. The pill
+  stays off and the agent still uses prior turns. Those conversations
+  have no owner either, so Incognito cannot be enabled on them mid-way.
 - **The user-facing name is Incognito everywhere** — the toggle, the
   agent's Privacy tab, the profile Privacy tab, the toasts and the
   dialog. Wire fields keep their older names: `disable_chathistory`,
