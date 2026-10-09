@@ -15,6 +15,8 @@ auth session.
 
 ![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
 ![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
+![Canvas card in a response (Open Canvas, follow-up suggestions, Canvas chip on)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-3-canvas-card.png)
+![Canvas panel open beside the chat (editing toolbar, Export)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-4-canvas-panel.png)
 
 > **Template (legacy `<mentor-ai>` widget):** a full-screen `<mentor-ai>`
 > web-component ChatWidget (distinct from the in-process `Chat` component

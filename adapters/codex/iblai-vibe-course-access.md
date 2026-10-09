@@ -5,6 +5,9 @@
 # /iblai-vibe-course-access
 
 ![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/course-content-page.png)
+![Progress tab — course completion, grade vs passing grade, grade summary](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-2-progress.png)
+![Dates tab — important dates timeline](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-3-dates.png)
+![Discussion tab — My posts / All posts / Topics / Learners, Add a post](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-4-discussion.png)
 
 Add a full edX course-content experience -- hierarchical course outline
 sidebar, collapsible modules/lessons/sublessons with progress indicators,
