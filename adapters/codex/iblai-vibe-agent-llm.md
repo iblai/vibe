@@ -10,6 +10,7 @@ one tab in the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
 ![LLM Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm.png)
+![LLM Selection modal (models of the chosen provider)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm-2-model-selection.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
