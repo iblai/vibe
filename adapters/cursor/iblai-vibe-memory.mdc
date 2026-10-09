@@ -148,7 +148,9 @@ the reference for custom builds:
   Learning Goals / Personal Context / Preferences / …), a
   **Categories** manager (create/rename/delete categories), **Add
   Memory**, and per-memory cards showing the time-ago, owning user's
-  email, and an actions kebab.
+  email, and an actions kebab. This popup is the **Personal Memories**
+  half only — an agent's **Shared Memory** (facts every chat gets) is
+  managed on the agent's own Memory tab (`/iblai-vibe-agent-memory`).
 
 ## Related Exports
 

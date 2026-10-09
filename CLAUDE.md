@@ -179,16 +179,18 @@ skill (raw SKILL.md: endpoints, bodies, errors). Ask `@iblai/mcp`
   Skill: `/iblai-vibe-agent-setting`. REST: [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md)
 - **Agent memory** — three stores: global memories (per user, every agent),
   agent memories (per user × agent, filed under categories with extraction
-  prompts), and agent knowledge (per agent, no user, curated, injected into
-  every chat as `## Agent Knowledge`). Show users what an agent remembers,
+  prompts), and agent knowledge — the Memory tab's **Shared Memory** (per
+  agent, no user, curated, injected into every chat as `## Agent
+  Knowledge`). Show users what an agent remembers,
   let them add or delete facts, toggle capture/recall
   (`auto_capture_enabled`, `use_memory_in_responses`); the org flag
   `enable_memsearch` gates it all. SDK (`features/memory`):
   `useGetUserMemorySettingsQuery` / `useUpdateUserMemorySettingsMutation`,
   `useGetGlobalMemoriesQuery`, `useGetMentorMemoriesListQuery`,
-  `useCreateMentorMemoryMutation`, `useGetMemsearchStatusQuery`; agent
-  knowledge is REST-only today. UI: `AgentMemoryTab` (`/next`), the
-  `Profile` Memory tab, `Account targetTab="memory"`.
+  `useCreateMentorMemoryMutation`, `useGetMemsearchStatusQuery`,
+  `useGetSharedMemoriesQuery` / `useCreateSharedMemoryMutation` (agent
+  knowledge). UI: `AgentMemoryTab` (`/next`; Personal Memories + Shared
+  Memory sub-tabs), the `Profile` Memory tab, `Account targetTab="memory"`.
   Skills: `/iblai-vibe-agent-memory` (one agent), `/iblai-vibe-memory`
   (whole org). REST: [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md)
 - **Analytics** — one `/dm/api/analytics/` family; `mentor_unique_id`

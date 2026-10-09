@@ -60,7 +60,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.33.1` |
+  | `@iblai/iblai-js` | `^2.35.1` |
   | `@iblai/agent-ai` | `^2.10.0` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
