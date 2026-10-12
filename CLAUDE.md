@@ -39,6 +39,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
 | "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, screenshot |
+| "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -401,8 +402,8 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 - **Primary**: `#0058cc` (brand blue)
 - **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack
-- **Style**: shadcn/ui new-york variant, neutral base, Lucide icons
+- **Font**: Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600)
+- **Style**: shadcn/ui base-nova (Base UI), neutral base, Lucide icons
 
 See [BRAND.md](BRAND.md) for the complete brand guidelines.
 

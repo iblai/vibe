@@ -14,6 +14,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Open Sans (next/font, app/layout.tsx), one weight step lighter — as in the LMS and CRM. */
+  --font-sans:
+    var(--font-open-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-weight-semibold: 500;
+  --font-weight-bold: 600;
+  --font-heading: var(--font-sans);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -152,12 +159,6 @@
 /* Custom styles for SDK components */
 [data-sonner-toaster][data-sonner-theme='dark'] .toast-wrapped-contact-tag {
   @apply text-blue-400 hover:text-blue-300;
-}
-
-body {
-  font-family:
-    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-    'Noto Color Emoji' !important;
 }
 
 /* Safe area insets for mobile status bar / notch / home indicator */

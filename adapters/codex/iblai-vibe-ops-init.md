@@ -336,6 +336,15 @@ Do NOT build custom components when an SDK component exists. Do NOT restyle
 SDK components — wrap the *container*, never the internals. ibl.ai and
 shadcn share one Tailwind theme and render in brand colors automatically.
 
+Before diverging from the ibl.ai design language — another font or weight
+scale, a size outside the scale, a new accent colour, restyling SDK
+internals, a hand-rolled shell or spinner, a card around an SDK panel, dark
+mode — stop and ask with AskUserQuestion: what the language says, what would
+change, what it costs. Reuse `components/page-header.tsx`,
+`components/empty-state.tsx` and `components/loading-screen.tsx` before
+writing new ones; the examples are in `/iblai-vibe-component` (House
+components), the wiring in BRAND.md.
+
 ## Map of this app
 
 | Where | What |
@@ -397,7 +406,7 @@ must be in the org's allowed redirect origins or sign-in never returns.
 ## Brand
 
 - **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- shadcn/ui new-york variant, system sans-serif, Lucide icons; SDK components ship their own styles — do NOT override them
+- shadcn/ui base-nova (Base UI: `render` prop, not `asChild`), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
 
 ## Layout Patterns
 
