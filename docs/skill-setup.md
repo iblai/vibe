@@ -49,7 +49,8 @@ outside the scale, a new accent colour, restyling SDK internals, a hand-rolled
 shell or spinner, a card around an SDK panel, dark mode — stop and ask the
 user: what the language says, what would change, what it costs. The wiring,
 the type scale and the canonical components (page header, empty state, loading
-screen, badges, forms, dialogs, tables) are in `/iblai-vibe-house-style`.
+screen, badges, forms, dialogs, tables) are in `/iblai-vibe-component`
+(House components) and BRAND.md.
 
 Full brand guidelines:
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md).

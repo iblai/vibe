@@ -12,6 +12,7 @@ Brand guidelines for building consistent ibl.ai applications. Based on the
 | Token | Hex | OKLCH | Usage |
 |-------|-----|-------|-------|
 | Primary | `#0058cc` | `oklch(0.492 0.194 259.3)` | Brand blue -- buttons, links, active states |
+| Tint | `#eef6fc` | `oklch(0.969 0.012 239.9)` | Icon tiles, selected rows |
 | Primary Light | `#00b0ef` | `oklch(0.713 0.148 233.2)` | Sky blue -- gradient start, highlights |
 | Primary Dark | `#004499` | `oklch(0.406 0.152 258.2)` | Deep blue -- hover states, emphasis |
 | Chat Primary | `#3b82f6` | `oklch(0.623 0.188 259.8)` | Chat interface elements |
@@ -92,6 +93,23 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" })
 And no `body { font-family: … !important }` rule anywhere: `app/iblai-styles.css`
 used to carry one, which beat any loaded font.
 
+### Type by role
+
+| Role | Classes |
+|---|---|
+| Page title in a header bar | `text-base font-semibold text-gray-900` |
+| Page title on a list page | `text-2xl font-semibold text-gray-700`, subtitle `text-sm text-gray-600` |
+| Section or card title | `text-sm font-semibold text-gray-900` |
+| Dialog title | `ibl-dialog-title` |
+| Body | `text-sm` (`text-gray-700` on white) |
+| Meta, help, timestamps | `text-xs text-muted-foreground` |
+| Form label | `Label` (already `text-sm font-medium`), `text-gray-700` |
+| Error | `text-xs text-red-500` |
+| Table head | `text-[11px] font-semibold tracking-wide text-muted-foreground uppercase` |
+
+`font-semibold` renders 500 and `font-bold` 600 through the remap; write the
+classes as usual.
+
 ### Font Weights
 
 | Weight | Value | Usage |
@@ -170,8 +188,9 @@ In an app on `@iblai/iblai-js`, this document is the design system. Another
 font or weight scale, a size outside the scale, a new accent colour, a restyled
 SDK component, a hand-rolled shell or spinner, a card around an SDK panel, dark
 mode: stop and ask the user first, stating what this document says, what would
-change and what it costs. The wiring, the type scale and the canonical
-components are in `/iblai-vibe-house-style`.
+change and what it costs. The wiring and the type scale are above; the
+canonical components and the probe are in `/iblai-vibe-component` (House
+components).
 
 ---
 

@@ -347,7 +347,8 @@ internals, a hand-rolled shell or spinner, a card around an SDK panel, dark
 mode — stop and ask with AskUserQuestion: what the language says, what would
 change, what it costs. Reuse `components/page-header.tsx`,
 `components/empty-state.tsx` and `components/loading-screen.tsx` before
-writing new ones; the wiring and snippets are in `/iblai-vibe-house-style`.
+writing new ones; the examples are in `/iblai-vibe-component` (House
+components), the wiring in BRAND.md.
 
 ## Map of this app
 

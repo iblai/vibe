@@ -38,7 +38,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
 | "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, screenshot |
-| "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-house-style` — the ibl.ai design language and its canonical components; diverging from it is a question for the user, not a decision |
+| "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -314,7 +314,7 @@ agentic Code mode in a Tauri build — opencode, permission cards, phone pairing
 **Tier 4 — ops and polish**: `/iblai-vibe-ops-build` (macOS, Windows, iOS,
 Android via Tauri v2), `/iblai-vibe-ops-release` (App Store / Play),
 `/iblai-vibe-windows-msix`, `/iblai-vibe-iconography`, `/iblai-vibe-ops-upgrade`,
-`/iblai-vibe-readme`, `/iblai-vibe-design`, `/iblai-vibe-house-style`, `/iblai-vibe-deslop`,
+`/iblai-vibe-readme`, `/iblai-vibe-design`, `/iblai-vibe-deslop`,
 `/iblai-vibe-scaffold`, `/iblai-vibe-component`, `/iblai-vibe-credential`.
 
 **Tier 5 — security (unrelated to building on the platform; authorized use

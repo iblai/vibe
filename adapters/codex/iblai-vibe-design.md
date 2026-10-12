@@ -97,8 +97,8 @@ or
 An app on `@iblai/iblai-js` (the dependency, or an `iblai.env`) is an ibl.ai
 app: BRAND.md *is* its design system, and diverging from it — font, scale,
 accent colour, SDK internals, shell, spinner, dark mode — is a question for
-the user, never a decision. `/iblai-vibe-house-style` has the rule, the
-wiring and the canonical components.
+the user, never a decision. `/iblai-vibe-component` (House components) has
+the components and the probe; BRAND.md the wiring and the scale.
 
 ### 2. Register
 

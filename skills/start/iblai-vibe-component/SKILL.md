@@ -112,8 +112,9 @@ If you find nothing:
 An app on `@iblai/iblai-js` (the dependency, or an `iblai.env`) is an ibl.ai
 app: BRAND.md *is* its design system, and diverging from it — font, scale,
 accent colour, SDK internals, shell, spinner, dark mode — is a question for
-the user, never a decision. `/iblai-vibe-house-style` has the rule, the
-wiring and the canonical components.
+the user, never a decision. Ask with AskUserQuestion: what the language
+says, what would change, what it costs. The components and the probe are in
+**House components** below; the wiring and the type scale are in BRAND.md.
 
 ## Creating a New App
 
@@ -230,6 +231,41 @@ Key navbar details:
     </div>
   </div>
 </footer>
+```
+
+## House components
+
+In an app on `@iblai/iblai-js` the three starter files come first:
+`components/page-header.tsx`, `components/empty-state.tsx` and
+`components/loading-screen.tsx`. A project that did not start from the
+starter copies them from
+`https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter/components/<file>`.
+The examples in this skill's `assets/` are copy-ready and typechecked
+against the starter (`test.json` maps each to its path).
+
+| Component | Use | Example |
+|---|---|---|
+| Page header | title (+ count) left, actions right; a page is the header, then `flex-1 overflow-auto` | `assets/notes-page.tsx` |
+| Empty state | dashed card, icon tile in the brand tint, one line of help, one action | `assets/notes-empty.tsx` |
+| Loading | the OS arc, full page or an opaque overlay while saving; never grey "Loading..." text | `assets/notes-loading.tsx` |
+| Section card | the starter's `Card` with the house border, `text-sm font-semibold` title | `assets/note-card.tsx` |
+| Form field | `Label` + `Input` + `text-xs text-muted-foreground` help, `text-xs text-red-500` error | `assets/note-form.tsx` |
+| Dialog footer | outline cancel, `ibl-button-primary` confirm with the SDK `Spinner size="sm"` while pending | `assets/delete-note-dialog.tsx` |
+| Table | a plain table in the bordered white box; shadcn `table` only for its wrappers | `assets/notes-table.tsx` |
+| Status badge | `Badge` with a dot: grey by default, emerald/rose for good/bad, the brand tint for selected | `assets/note-status.tsx` |
+| Toast, shell | `sonner` (`toast.success`); the SDK `SidebarProvider → PlatformSidebar + SidebarInset`, never a local copy; top navbar: `/iblai-vibe-navbar` | — |
+
+Primary action `ibl-button-primary`, cancel `variant="outline"`; Lucide
+`strokeWidth={1.75}`; a status dot is grey unless it means good or bad.
+
+Check painted values, on a page that is still your app (unauthenticated
+routes leave for sign-in within seconds), because the minifier rewrites
+`oklch()` to `lab()`:
+
+```js
+const probe = (cls) => { const d = document.createElement("div"); d.className = cls; document.body.appendChild(d); const cs = getComputedStyle(d); d.remove(); return cs; };
+getComputedStyle(document.body).fontFamily; // starts with "Open Sans"
+probe("bg-primary").backgroundColor; // "rgb(0, 88, 204)"; probe("font-semibold").fontWeight → "500"
 ```
 
 ## Component Gallery
