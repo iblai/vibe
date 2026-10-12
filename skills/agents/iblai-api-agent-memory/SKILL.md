@@ -39,7 +39,7 @@ Two PGVector-backed memory stores ("memsearch") sit behind these endpoints:
   agent; facts any agent should know about the user.
 - **Agent memories** (`UserMentorMemory`) — scoped to a user + one agent + a
   **category**; what a single agent remembers about the user.
-- **Agent knowledge** (`MentorMemory`) — scoped to one agent (org + agent), **not** any
+- **Agent knowledge** (`MentorMemory`; **Shared Memory** in the agent's Memory tab) — scoped to one agent (org + agent), **not** any
   user and **not** categorized. Manually curated (never auto-extracted), it is injected into
   **every** user's chat with that agent as an `## Agent Knowledge` block, gated by the agent's
   `enable_memory_component` and each user's `use_memory_in_responses`. This is shared "how the
@@ -69,7 +69,7 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 
 - **GET** `…/orgs/{org}/mentors/{mentor}/memory-categories/` — category list for one agent.
 
-### Agent knowledge (shared)
+### Agent knowledge (Shared Memory)
 
 - **GET** `…/orgs/{org}/mentors/{mentor}/agent-memories/?page={n}&page_size={n}` — paged list of the agent's shared knowledge entries (DRF page envelope; `page_size` default 20, max 100). This path has **no** `users/{username}` segment — do not confuse it with the user-scoped `{u}/agent-memories/` twin spelling above, which lists one user's per-agent memories.
 
@@ -117,7 +117,7 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 - **PATCH** `…/orgs/{org}/mentors/{mentor}/memory-categories/{categoryId}/` — edit a category (any subset of the create fields).
 - **DELETE** `…/orgs/{org}/mentors/{mentor}/memory-categories/{categoryId}/` — delete a category (no body). Destructive — confirm with the user first.
 
-### Agent knowledge (shared)
+### Agent knowledge (Shared Memory)
 
 - **POST** `…/orgs/{org}/mentors/{mentor}/agent-memories/` — add a shared knowledge entry:
   ```json
