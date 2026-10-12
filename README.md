@@ -187,7 +187,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`billing/`](skills/billing) | How you are charged, spend caps, three ways to charge your users | 12 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
-| [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores | 12 |
+| [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores, the house style | 13 |
 | [`security/`](skills/security) | Authorized-use security work | 8 |
 
 The full list with one line per skill: [docs/catalogue.md](docs/catalogue.md).

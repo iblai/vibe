@@ -104,6 +104,12 @@ If you find nothing:
 > No existing design system detected. I'll use the ibl.ai defaults
 > from `BRAND.md`.
 
+An app on `@iblai/iblai-js` (the dependency, or an `iblai.env`) is an ibl.ai
+app: BRAND.md *is* its design system, and diverging from it — font, scale,
+accent colour, SDK internals, shell, spinner, dark mode — is a question for
+the user, never a decision. `/iblai-vibe-house-style` has the rule, the
+wiring and the canonical components.
+
 ## Creating a New App
 
 For a brand-new project, scaffold from **vibe-starter** — a pre-wired

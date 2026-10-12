@@ -16,7 +16,7 @@ six data families almost every app reads or writes (the section right below).
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
 | [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 26 |
-| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 12 |
+| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 13 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
 ## Core
@@ -241,6 +241,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-infrastructure`](../skills/ship/iblai-api-infrastructure/SKILL.md) | 📖 guide | Deploy and self-host the ibl.ai platform infrastructure |
 | [`/iblai-vibe-design`](../skills/ship/iblai-vibe-design/SKILL.md) | 🛠️ ops | Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize… |
 | [`/iblai-vibe-deslop`](../skills/ship/iblai-vibe-deslop/SKILL.md) | 🛠️ ops | Audit and harden existing codebases (especially AI-generated / vibe-coded ones) for production readiness |
+| [`/iblai-vibe-house-style`](../skills/ship/iblai-vibe-house-style/SKILL.md) | 🛠️ ops | The ibl.ai house style for apps built on @iblai/iblai-js, with the canonical, typechecked snippets to check your UI against |
 | [`/iblai-vibe-iconography`](../skills/ship/iblai-vibe-iconography/SKILL.md) | 🛠️ ops | Generate every required app-icon size for Tauri desktop, iOS, Windows MSIX, and macOS builds from a single source image |
 | [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface) |
 | [`/iblai-vibe-ops-deploy`](../skills/ship/iblai-vibe-ops-deploy/SKILL.md) | 🛠️ ops | Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web |
@@ -264,4 +265,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 156 skills.
+Total: 157 skills.

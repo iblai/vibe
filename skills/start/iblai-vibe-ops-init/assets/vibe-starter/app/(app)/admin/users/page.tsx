@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { InviteUserDialog, InvitedUsersDialog } from "@iblai/iblai-js/web-containers";
 import { AccountPanel } from "@/components/admin/account-panel";
+import { PageHeader } from "@/components/page-header";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 /**
@@ -16,22 +17,27 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <div className="flex items-center justify-end gap-2 px-4 pt-4 md:px-8">
-        <button
-          type="button"
-          onClick={() => setShowPending(true)}
-          className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent"
-        >
-          Pending invites
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowInvite(true)}
-          className="rounded-lg bg-gradient-to-r from-[#2563EB] to-[#93C5FD] px-3 py-1.5 text-sm font-medium text-white"
-        >
-          Invite user
-        </button>
-      </div>
+      <PageHeader
+        title="Users"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowPending(true)}
+              className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent"
+            >
+              Pending invites
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowInvite(true)}
+              className="ibl-button-primary rounded-lg px-3 py-1.5 text-sm font-medium"
+            >
+              Invite user
+            </button>
+          </>
+        }
+      />
       <AccountPanel tab="management" onInviteClick={() => setShowInvite(true)} />
       <InviteUserDialog isOpen={showInvite} onClose={() => setShowInvite(false)} tenant={tenant} />
       {showPending && <InvitedUsersDialog onClose={() => setShowPending(false)} tenant={tenant} />}

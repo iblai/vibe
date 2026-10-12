@@ -68,12 +68,29 @@ Button gradient (Tailwind classes):
 
 ## Typography
 
-System sans-serif font stack (no custom fonts required):
+Open Sans, the face the ibl.ai apps render: the variable font, weights 300–800,
+self-hosted by `next/font/google`. Three steps make it render; skip one and the
+system stack shows instead.
+
+```tsx
+// app/layout.tsx — the variable goes on <html>, where --font-sans is declared
+import { Open_Sans } from "next/font/google";
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
+// <html className={openSans.variable}>
+```
 
 ```css
-font-family: ui-sans-serif, system-ui, sans-serif,
-  'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+/* app/globals.css — map it for Tailwind, one weight step lighter */
+@theme inline {
+  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 600;
+  --font-heading: var(--font-sans);
+}
 ```
+
+And no `body { font-family: … !important }` rule anywhere: `app/iblai-styles.css`
+used to carry one, which beat any loaded font.
 
 ### Font Weights
 
@@ -82,8 +99,8 @@ font-family: ui-sans-serif, system-ui, sans-serif,
 | Light | 300 | Subtle text, captions |
 | Normal | 400 | Body text |
 | Medium | 500 | Emphasis, labels |
-| Semibold | 600 | Headings, buttons |
-| Bold | 700 | Strong emphasis |
+| Semibold | 500 | Headings, buttons (`font-semibold`, remapped one step lighter) |
+| Bold | 600 | Strong emphasis (`font-bold`, remapped) |
 
 ### Font Sizes
 
@@ -141,11 +158,20 @@ font-family: ui-sans-serif, system-ui, sans-serif,
 
 | Setting | Value |
 |---------|-------|
-| UI framework | shadcn/ui with Radix UI primitives |
-| Style variant | `new-york` |
+| UI framework | shadcn/ui on Base UI primitives (`render` prop, not `asChild`), as vibe-starter ships; the OS is on Radix |
+| Style variant | `base-nova` (the OS: `new-york`) |
 | Base color | `neutral` |
 | CSS variables | Enabled |
 | Icon library | Lucide React |
+
+## Before diverging
+
+In an app on `@iblai/iblai-js`, this document is the design system. Another
+font or weight scale, a size outside the scale, a new accent colour, a restyled
+SDK component, a hand-rolled shell or spinner, a card around an SDK panel, dark
+mode: stop and ask the user first, stating what this document says, what would
+change and what it costs. The wiring, the type scale and the canonical
+components are in `/iblai-vibe-house-style`.
 
 ---
 

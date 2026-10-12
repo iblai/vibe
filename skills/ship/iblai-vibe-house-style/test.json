@@ -1,0 +1,6 @@
+{
+  "overlay": {
+    "../../start/iblai-vibe-ops-init/assets/vibe-starter/components/page-header.tsx": "components/page-header.tsx",
+    "../../start/iblai-vibe-ops-init/assets/vibe-starter/components/empty-state.tsx": "components/empty-state.tsx"
+  }
+}

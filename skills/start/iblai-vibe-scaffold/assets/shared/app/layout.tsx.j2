@@ -27,9 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={openSans.variable} suppressHydrationWarning>
       <head />
-      <body className={`${openSans.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <Script src="/env.js" strategy="afterInteractive" />
         {children}
         <Toaster />
