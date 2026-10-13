@@ -233,8 +233,8 @@ removals run before additions.
 |---|---|
 | `POST rbac/student-mentor-creation/set/` | `{ platform_key, allow_students_to_create_mentors }` |
 | `GET rbac/student-mentor-creation/status/?platform_key={key}` | – |
-| `POST rbac/student-llm-access/set/` | `{ platform_key, llm_resources: ["llms/openai/models/gpt-4o", ...] }` |
-| `GET rbac/student-llm-access/status/?platform_key={key}` | – |
+| `POST rbac/llm-access/set/` | `{ platform_key, llm_resources: ["llms/openai/models/gpt-4o", ...] }` |
+| `GET rbac/llm-access/status/?platform_key={key}` | – |
 
 ### Response permission metadata
 
