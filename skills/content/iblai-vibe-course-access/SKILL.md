@@ -306,11 +306,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors
 2. `pnpm test` — vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot "http://localhost:3000/course-content/<course-id>/course" /tmp/course.png
-   ```
+3. Touch test `/course-content/<course-id>/course` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
    Replace `<course-id>` with a URL-encoded course id the user has access
    to (e.g. `course-v1%3Aibl%2BDEMO%2B2024`).
 

@@ -381,10 +381,8 @@ Full rationale, on-disk layout, and the agent's environment:
    exists under `~/.local/share/iblai/workspaces/…`.
 4. `pnpm exec tauri ios dev "<device>"` after **phone access** is on
    the desktop: scan the QR, send the same prompt, see the same card.
-5. Screenshot the composer with the pill on:
-   ```bash
-   npx playwright screenshot http://localhost:3000/ /tmp/code-mode.png
-   ```
+5. Touch test `/` in the browser as `/iblai-vibe-ops-test` says: the composer
+   shows the **Code** pill.
 
 ## Platform data
 

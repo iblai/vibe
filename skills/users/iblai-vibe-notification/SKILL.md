@@ -112,11 +112,8 @@ Derive `isAdmin` from the `tenants` array in localStorage.
 
 Run `/iblai-vibe-ops-test` before reporting done:
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/notifications /tmp/notifications.png
-```
+`pnpm build && pnpm test`, then touch test `/notifications` and the navbar bell
+in the browser as `/iblai-vibe-ops-test` says.
 
 ## Notes
 

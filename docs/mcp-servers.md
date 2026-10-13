@@ -42,3 +42,12 @@ Claude Desktop / Cursor JSON and the tool list. Rule: if a skill covers it,
 there is no server for it — everything else is REST via the `iblai-api-*`
 skills. (`X-Mentor-Unique-Id` is the header's wire name; the value is the
 agent's UUID.)
+
+## Plus a browser: `chrome-devtools` (third-party, local)
+
+Not an ibl.ai server: the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
+gives the assistant a real Chrome for the `/iblai-vibe-ops-test` touch test.
+vibe-starter's `.mcp.json` starts it; Claude Code asks once to approve it. Its
+Chrome keeps its own profile, so the user signs in by hand once; nothing asks
+for a password. Claude Code users can run `claude --chrome` instead. Codex and
+Cursor entries: [browser-touch-test.md](../skills/ship/iblai-vibe-ops-test/references/browser-touch-test.md).

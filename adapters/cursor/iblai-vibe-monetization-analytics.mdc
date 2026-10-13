@@ -367,11 +367,7 @@ if (result.portal_url) {
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
-2. Drive the dashboard:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/admin/monetization /tmp/dash.png
-   ```
+2. Touch test `/admin/monetization` in the browser as `/iblai-vibe-ops-test` says.
 3. Revenue card shows `sales_count >= 1` on a Platform with at least one
    completed paid checkout, formatted in the Platform's currency.
 4. Subscribers list paginates: incrementing `page` updates `next_page` to

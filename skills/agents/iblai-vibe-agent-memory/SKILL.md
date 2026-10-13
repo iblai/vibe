@@ -93,11 +93,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/memory /tmp/agent-memory.png
-   ```
+3. Touch test `/agents/<id>/memory` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 

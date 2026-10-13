@@ -314,7 +314,7 @@ record the answers here:
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill |
-| "tests", "before you show me" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, screenshot |
+| "tests", "before you show me", "is it done?" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, then its touch test: the route in a real browser, every control you added, the console, the phone width |
 
 **Freshness rule:** the installed skills are a copy of
 [iblai/vibe](https://github.com/iblai/vibe), which changes often. If
@@ -328,8 +328,10 @@ in the vibe repo.
 
 Rules that never change: SDK components → shadcn/ui → custom, in that order;
 `pnpm install --ignore-scripts`; lowercase project names; ask for a real
-agent UUID, never invent one; never print a token; run `/iblai-vibe-ops-test`
-before saying "done".
+agent UUID, never invent one; never print a token; never ask for a password;
+before saying "done", run `/iblai-vibe-ops-test` — build, tests, and its touch
+test in a real browser (Claude in Chrome, or the `chrome-devtools` server in
+`.mcp.json`); no browser tool → say so, never call it tested.
 
 ## Component Priority
 

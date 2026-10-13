@@ -246,7 +246,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface) |
 | [`/iblai-vibe-ops-deploy`](../skills/ship/iblai-vibe-ops-deploy/SKILL.md) | 🛠️ ops | Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web |
 | [`/iblai-vibe-ops-release`](../skills/ship/iblai-vibe-ops-release/SKILL.md) | 🛠️ ops | Generate a Makefile + Fastlane config that builds and submits your Tauri app to the Apple App Store and Google Play |
-| [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | When the user wants to add unit tests (Vitest), e2e tests (Playwright), or get test coverage above 95% for their ibl.ai Next.js app |
+| [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | Test an ibl.ai Next.js app before showing it or saying done |
 | [`/iblai-vibe-readme`](../skills/ship/iblai-vibe-readme/SKILL.md) | 🛠️ ops | Write or refresh the README.md |
 | [`/iblai-vibe-windows-msix`](../skills/ship/iblai-vibe-windows-msix/SKILL.md) | 🛠️ ops | Build and distribute a Tauri app as a Windows MSIX package for sideloading (test) or the Microsoft Store (release) |
 

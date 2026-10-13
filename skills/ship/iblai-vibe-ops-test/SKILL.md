@@ -1,23 +1,105 @@
 ---
 name: iblai-vibe-ops-test
-description: When the user wants to add unit tests (Vitest), e2e tests (Playwright), or get test coverage above 95% for their ibl.ai Next.js app. Also use when the user says "add tests," "write tests," "test this," "increase coverage," "set up Vitest," "set up Playwright," "test my app," "track e2e coverage," "add a coverage checklist," or "verify before showing." Maintains `e2e/COVERAGE.md` + `e2e/coverage.json` for checkpoint-tracked e2e coverage and runs the touch-test screenshot pass before showing work. For app-store screenshots, see iblai-marketing-screenshot.
+description: Test an ibl.ai Next.js app before showing it or saying done — pnpm build, pnpm test, then a touch test that drives the running app in a real browser (Claude in Chrome or the Chrome DevTools MCP) through every control you added, reads the console and the failed requests, and checks the phone width; the user signs in by hand, never with a password. Also sets up Vitest and Playwright journeys, lifts coverage above 95%, and keeps e2e/COVERAGE.md + coverage.json. Use when the user says "is it done", "show me", "test this", "touch test", "add tests", "write tests", "increase coverage", "set up Vitest", "set up Playwright", or "track e2e coverage". For the deployed URL see /iblai-vibe-ops-deploy.
 globs:
 alwaysApply: false
 metadata:
   kind: ops
-  version: 2.0.0
+  version: 3.0.0
 ---
 
 # /iblai-vibe-ops-test
 
-Add Vitest unit tests and Playwright e2e journeys to an ibl.ai Next.js
-app and lift coverage above 95%. Also run the touch-test screenshot
-pass before showing work to the user.
+Two jobs. **Before you say "done"** — every change, a feature or a whole app:
+`pnpm build`, `pnpm test`, then the touch test below, which drives the running
+app in a real browser. **When the user asks for tests or coverage**: Steps 0–5
+set up Vitest and Playwright journeys and lift coverage above 95%.
 
-You MUST run `pnpm build`, `pnpm test`, and the e2e suite green before
-presenting any work. Do NOT show untested code.
+Never ask for a password. The touch test lets the user sign in by hand in the
+browser window; `pnpm test:e2e` signs in with `e2e/.env.development`, which only
+the user fills in. Use `pnpm`; fall back to `npm` if it is not installed.
 
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm is not installed.
+## Before you say "done"
+
+1. `pnpm build` — zero errors.
+2. `pnpm test` — green.
+3. The touch test below, on every route the change touched.
+4. `pnpm test:e2e` when `e2e/.env.development` is filled in (it reuses the
+   running dev server). Never ask for those credentials.
+
+A change with no screen (a script, a server route nothing renders yet) reports
+"no screen to touch" in place of step 3. Never say "done", "ready" or
+"complete" without the touch-test report.
+
+## Touch test in the browser
+
+Tests prove the code; this proves the screen. Drive the running app in a real
+browser, use what you built, read the console. It can fail — when it does, fix
+the code and run it again.
+
+1. **Pick the tool** from your tool list (Claude Code may list MCP tools as
+   deferred; load them with ToolSearch):
+   - `mcp__claude-in-chrome__*` — Claude in Chrome, the user's own signed-in
+     Chrome (they started `claude --chrome`, or turned it on under `/chrome`).
+   - else `mcp__chrome-devtools__*` — the Chrome DevTools MCP: vibe-starter and
+     the scaffold ship it in `.mcp.json`; its Chrome keeps its own profile, so
+     the sign-in survives between runs.
+   - else `mcp__playwright__*` — the Playwright MCP older scaffolds ship.
+   - else **stop** and say: "I can't touch test without a browser tool. Restart
+     with `claude --chrome`, or turn on the `chrome-devtools` server (`/mcp`; I
+     can add it to `.mcp.json`)." Codex and Cursor entries:
+     [references/browser-touch-test.md](references/browser-touch-test.md). No
+     screenshot script instead, no password, and never report the touch test as
+     run.
+
+   The tool names below are the DevTools MCP's; the others have a matching
+   tool — `/mcp` lists Claude in Chrome's. Never guess a name.
+2. **One dev server.** `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000`
+   prints anything but `000` → a server is up; if it is this app, reuse it.
+   Otherwise start `pnpm dev` in the background and wait for `Ready`. Never a
+   second one: Next moves to port 3001, which the organization's allowed
+   redirect origins may not list.
+3. **Open the route.** `list_pages`, then `navigate_page` to
+   `http://localhost:3000/<route>`. Landed on the sign-in page? Say "Sign in in
+   the browser window I opened, then tell me", and wait. Never type the user's
+   credentials. A sign-in that never comes back means `localhost:3000` is not an
+   allowed redirect origin — say so. Give the first load a few seconds (one
+   re-auth round trip, one service-worker reload) before you navigate on.
+4. **Use what you built.** `take_snapshot` — the page as an accessibility tree
+   with `uid`s — then every control the change added or touched: tabs, buttons,
+   menus, toggles, forms, dialogs. `click`, `fill`, `fill_form`, `press_key` by
+   uid, and `take_snapshot` again after each. Expect content (no stuck
+   `Loading…`, no empty SDK panel), each control doing what its label says,
+   dialogs that open and close, a saved value that survives a reload. Use
+   harmless values; ask before deleting data or sending an invite, an email or a
+   payment. A combobox's rows (cmdk) do not show in the snapshot — read them
+   from a screenshot or with `evaluate_script`.
+5. **Read the console and the network.** `list_console_messages` (errors,
+   warnings) and `list_network_requests` (4xx, 5xx; `get_network_request` for a
+   body). An error the change caused is a failure. Quote URLs and status codes
+   only: headers and `localStorage` carry tokens.
+6. **Phone width.** `emulate` with viewport `412x915x2,mobile,touch`, reload,
+   then `evaluate_script` with
+   `() => document.documentElement.scrollWidth <= document.documentElement.clientWidth`
+   — it must return `true`. `take_snapshot` to check the controls are still
+   reachable, then clear the viewport (`emulate` with `""`). `resize_page` stops
+   near 850 px, so it is not a phone. No viewport tool? Report "phone: not
+   checked".
+7. **Evidence, then the report.** `take_screenshot` of the end state on desktop
+   and phone — evidence for the user, not the test; never into the repository.
+   Then:
+
+   ```text
+   Touch test: /<route> (Chrome DevTools MCP)
+   Touched: <control> → <what happened>; …
+   Console: clean | <errors>. Network: clean | <url → status>
+   Phone 412 px: no sideways scroll | <what overflowed>
+   Not touched: <control>, <why>
+   ```
+
+Something broke: fix it, run `pnpm build` and `pnpm test` again, touch test
+again. After a deploy, run the same on the live URL — `/iblai-vibe-ops-deploy`
+says when.
 
 ## Step 0: Detect what's already there
 
@@ -179,113 +261,17 @@ if (typeof window.ResizeObserver === 'undefined') {
 
 ## Step 2: Playwright infrastructure
 
-### Install
+vibe-starter ships it: `e2e/playwright.config.ts`, the real sign-in in
+`e2e/auth.setup.ts` (it reads `e2e/.env.development`, which the user fills in),
+auth, member and admin journeys, and `e2e/COVERAGE.md`; run `pnpm test:e2e`
+against a running `pnpm dev`. `playwright/.auth/` holds live tokens: keep
+`/playwright/` gitignored and never `git add -A` after a run.
 
-```bash
-pnpm add -D @playwright/test
-pnpm exec playwright install chromium
-```
-
-### `e2e/playwright.config.ts`
-
-```typescript
-import { defineConfig, devices } from '@playwright/test'
-import dotenv from 'dotenv'
-import path from 'path'
-
-const root = path.resolve(__dirname, '..')
-dotenv.config({ path: path.join(root, '.env.local'), override: true })
-dotenv.config({ path: path.join(root, '.env') })
-
-// Honour Next's basePath so spec files can use bare paths.
-const rawBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
-const basePath = rawBasePath
-  ? (rawBasePath.startsWith('/') ? rawBasePath : `/${rawBasePath}`)
-  : ''
-const origin = process.env.E2E_BASE_URL || 'http://localhost:3000'
-
-export default defineConfig({
-  testDir: './journeys',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 4,
-  timeout: 60_000,
-  reporter: [['html', { open: 'never' }], ['list']],
-  use: {
-    baseURL: `${origin}${basePath}`,
-    headless: true,
-    trace: 'retain-on-failure',
-    screenshot: process.env.CI ? 'only-on-failure' : 'off',
-    actionTimeout: 15_000,
-    navigationTimeout: 30_000,
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
-})
-```
-
-### `e2e/utils/seed-auth.ts`
-
-For most journeys you don't need real SSO — stub the localStorage shape
-that `<TenantProvider>` + `useUrlContext` expect:
-
-```typescript
-import type { Page } from '@playwright/test'
-
-export interface SeedAuthOptions {
-  tenantKey?: string
-  username?: string
-  expiresAt?: string  // future-dated so token-validity checks pass
-}
-
-export async function seedAuth(page: Page, opts: SeedAuthOptions = {}) {
-  const tenantKey = opts.tenantKey ?? 'main'
-  const username  = opts.username  ?? 'tester'
-  const expiresAt = opts.expiresAt ?? '2099-01-01T00:00:00.000Z'
-
-  await page.addInitScript(({ tenantKey, username, expiresAt }) => {
-    const tenant = {
-      user_id: 1, username, email: `${username}@example.com`,
-      user_active: true, key: tenantKey, org: tenantKey,
-      platform_name: 'Test', is_admin: true, is_staff: true, active: true,
-    }
-    localStorage.setItem('tenant', tenantKey)              // raw key string
-    localStorage.setItem('current_tenant', JSON.stringify(tenant)) // full object
-    localStorage.setItem('tenants', JSON.stringify([tenant]))
-    localStorage.setItem('userData', JSON.stringify({
-      user_id: 1, user_nicename: username, username,
-      email: `${username}@example.com`,
-    }))
-    localStorage.setItem('axd_token', 'stub-axd-token')
-    localStorage.setItem('axd_token_expires', expiresAt)
-    localStorage.setItem('dm_token', 'stub-dm-token')
-    localStorage.setItem('dm_token_expires', expiresAt)
-  }, { tenantKey, username, expiresAt })
-}
-```
-
-For journeys that need real backend data, use a real-SSO setup file
-instead — see [references/real-sso-auth-setup.md](references/real-sso-auth-setup.md).
-
-### `package.json` script
-
-```json
-{
-  "scripts": {
-    "test:e2e": "playwright test --config=e2e/playwright.config.ts"
-  }
-}
-```
+Not from vibe-starter: `pnpm add -D @playwright/test` and
+`pnpm exec playwright install chromium`, then take the config, the `seedAuth`
+localStorage stub for UI-only journeys and the `test:e2e` script from
+[references/playwright-setup.md](references/playwright-setup.md); for journeys
+that need real data, [references/real-sso-auth-setup.md](references/real-sso-auth-setup.md).
 
 ## Step 3: Write unit tests
 
@@ -411,6 +397,9 @@ test.describe('Home redirect', () => {
 })
 ```
 
+In vibe-starter drop `seedAuth`: journeys inherit the signed-in state from
+`auth.setup.ts`. Elsewhere it lives in references/playwright-setup.md.
+
 ### What to cover
 
 | Layer | Test |
@@ -457,24 +446,6 @@ tests to whatever's red. Three patterns close coverage gaps fast:
 If you can't get past ~90% without testing trivial wrappers, lower the
 threshold to 90 temporarily — but flag it so it doesn't quietly stick.
 
-## Step 6: Touch test + screenshot review (before showing the user)
-
-Even with 95% unit + e2e coverage, look at the running app before
-declaring done — automated tests don't catch broken layouts, invisible
-text, or missing icons.
-
-1. Ask the user for their ibl.ai login (email + password). Put them in
-   `e2e/.env.development` (gitignored). If they decline, only
-   screenshot unauthenticated pages.
-2. Run a Playwright login + screenshot script that hits every page
-   with a 10s wait and a `fullPage: true` capture.
-3. Read every `.png` for layout breaks, missing content, wrong brand
-   color (`#0058cc`), responsive issues, missing icons, etc. Fix in
-   code, re-screenshot, re-review.
-
-**Full script, env setup, and the review checklist:**
-see [references/touch-test-screenshots.md](references/touch-test-screenshots.md).
-
 ## Common pitfalls
 
 | Symptom | Fix |
@@ -485,16 +456,9 @@ see [references/touch-test-screenshots.md](references/touch-test-screenshots.md)
 | `next/navigation` errors in hook tests | `vi.mock('next/navigation', () => ({ useParams: () => ({}) }))` |
 | Coverage < 95% on `app/**` | Either add an e2e journey for that route OR move the route under the exclude list (it's pure routing glue) |
 | Playwright timeouts on first run | `pnpm exec playwright install chromium --with-deps` (Linux needs system libs) |
-| Tests pass locally but fail in CI | Set `workers: process.env.CI ? 1 : 4` and `retries: process.env.CI ? 2 : 0` — already covered above |
+| Tests pass locally but fail in CI | Set `workers: process.env.CI ? 1 : 4` and `retries: process.env.CI ? 2 : 0` — see references/playwright-setup.md |
 | Coverage report missing | Install `@vitest/coverage-v8` (not bundled with vitest) |
-
-## Summary
-
-1. **Install** vitest + @vitest/coverage-v8 + @testing-library/* + jsdom; install @playwright/test + chromium.
-2. **Write configs** — `vitest.config.ts` with 95% thresholds + exclude list; `__tests__/vitest.setup.ts` with the four jsdom polyfills; `e2e/playwright.config.ts` with `baseURL` honouring `NEXT_PUBLIC_BASE_PATH`.
-3. **Author unit tests** for lib utilities, hooks, components, providers, and pure data definitions until `pnpm test:coverage` reports ≥95% across all four metrics.
-4. **Author e2e journeys** for each route (mounts cleanly, links navigate, dialogs open, golden-path forms submit). Track them as checkpoints in `e2e/COVERAGE.md` + `e2e/coverage.json` — keep `summary.percent` ≥95%.
-5. **Run** `pnpm build && pnpm test:coverage && pnpm test:e2e` — all green.
-6. **Touch-test** every page with the screenshot script, read each image, fix any visual issues.
+| Browser tool says "No page found" | Its Chrome restarted: `list_pages`, then navigate again |
+| Sign-in never comes back to the app | The origin (port included) is missing from the organization's allowed redirect origins |
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
