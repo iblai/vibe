@@ -19,18 +19,6 @@ They ship with their own styling. Keep the components as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
 Do NOT add Lucide icons next to nav link labels. Links are text-only.
 
-When building custom UI around SDK components, use the ibl.ai brand:
-- **Primary**: `#0058cc`, **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
-- **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: Open Sans (wired in `app/layout.tsx` + `globals.css`; see BRAND.md), **Style**: shadcn/ui base-nova
-- Follow the component hierarchy: use ibl.ai SDK components
-  (`@iblai/iblai-js`) first, then shadcn/ui for everything else
-  (`npx shadcn@latest add <component>`). Do NOT write custom components
-  when an ibl.ai or shadcn equivalent exists. Both share the same
-  Tailwind theme and render in ibl.ai brand colors automatically.
-- Follow [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for
-  colors, typography, spacing, and component styles.
-
 The navbar MUST follow BRAND.md colors:
 - **Active link**: `text-[var(--navbar-active-text,var(--primary-color))]` /
   `border-[var(--navbar-active-border,var(--primary-color))]`
@@ -38,22 +26,26 @@ The navbar MUST follow BRAND.md colors:
 - **Active drawer item**: `bg-[var(--accent-color)] text-[var(--navbar-active-text,var(--primary-color))]`
 - **Hover**: `text-[var(--navbar-hover-text,var(--text-primary))]`
 - **Inactive**: `text-[var(--navbar-text,var(--text-secondary))]`
+- **Type**: the bar renders the system font — `font-[ui-sans-serif,system-ui,sans-serif]` on the `<header>` — as os.ibl.ai does; the page under it stays Open Sans (BRAND.md → Shell)
 
 ---
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Visual spec
 
 | Property | Value |
 |---|---|
-| Height | `h-16` mobile, `md:h-20` desktop |
+| Height | `h-16` at every width — the OS's 64 px |
 | Background | `bg-[var(--navbar-bg,#fff)]` — solid white, no blur/glass |
-| Border | `border-b border-[var(--border-color)]` |
+| Border | `border-b border-[var(--navbar-border,#D0E0FF)]` — the OS's hairline |
+| Font | `font-[ui-sans-serif,system-ui,sans-serif]` on the header — the system stack, scoped to the bar |
 | Layout | Full-width, `justify-between`, `px-4 sm:px-6 md:px-6 lg:px-8` |
 | Link spacing | `space-x-6` between desktop nav links |
-| Link style | Text-only (no icons), `text-sm font-medium` |
+| Link style | Text-only (no icons), `text-sm font-medium`, `--navbar-text` `#646464`, hover `#484848` |
 | Active link | `border-b-2` bottom border + brand color text |
 | Right side spacing | `space-x-4` between right-side items |
-| Hamburger icon | `h-6 w-6`, `rounded-sm` |
+| Hamburger icon | `h-5 w-5`, `rounded-sm` |
 | Mobile drawer header | `h-16` to match navbar |
 
 ---
@@ -216,7 +208,7 @@ export function NavigationDrawer({
       <SheetContent side="left" className="w-72 p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
 
-        {/* Header — h-16 matches navbar mobile height */}
+        {/* Header — h-16 matches the navbar */}
         <div className="flex h-16 items-center border-b border-[var(--border-color)] px-5">
           <div onClick={onClose}>
             <Logo />
@@ -327,7 +319,7 @@ export function NavBar({
   );
 
   return (
-    <header className="h-16 flex-shrink-0 border-b border-[var(--border-color)] bg-[var(--navbar-bg,#fff)] md:h-20">
+    <header className="h-16 flex-shrink-0 border-b border-[var(--navbar-border,#D0E0FF)] bg-[var(--navbar-bg,#fff)] font-[ui-sans-serif,system-ui,sans-serif]">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 md:px-6 lg:px-8">
         {/* Left: hamburger + logo + links */}
         <div className="flex h-full items-center">
@@ -336,7 +328,7 @@ export function NavBar({
             className="mr-3 rounded-sm text-[var(--navbar-text,var(--text-secondary))] hover:bg-[var(--navbar-hover-bg,var(--hover-bg))] hover:text-[var(--navbar-hover-text,var(--text-primary))] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none focus:ring-inset md:hidden"
             aria-label="Open sidebar"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
 
           <Logo />

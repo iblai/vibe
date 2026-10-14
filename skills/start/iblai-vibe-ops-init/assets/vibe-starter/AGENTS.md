@@ -146,6 +146,7 @@ must be in the org's allowed redirect origins or sign-in never returns.
 
 - **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
 - shadcn/ui base-nova (Base UI: `render` prop, not `asChild`), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
+- The shell: the sidebar inherits Open Sans; the top bar is the OS's (`components/navbar/nav-bar.tsx` — 64 px, `#D0E0FF` hairline, the system font, 14 px medium `#646464`); Lucide renders at 1.75 through `globals.css`, no `strokeWidth` prop
 
 ## Layout Patterns
 

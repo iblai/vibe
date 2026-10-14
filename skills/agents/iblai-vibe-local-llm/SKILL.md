@@ -33,7 +33,7 @@ is closed-source in the apps that have it today.
 > See [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 > for the brand palette.
 
-> **Common setup (env, conventions, verification):** see
+> **Common setup (brand, conventions, env files, verification):** see
 > [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites

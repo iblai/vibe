@@ -22,6 +22,8 @@ make android-release    # build .aab  -> upload to Play internal track
 make release-all        # both
 ```
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Prerequisites
 
 1. **Tauri shell already added** and the mobile projects initialized —

@@ -19,6 +19,8 @@ and macOS builds from a single source image.
 
 ---
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Quick Start
 
 ```bash

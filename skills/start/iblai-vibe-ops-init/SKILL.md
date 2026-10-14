@@ -15,6 +15,8 @@ or update the project's `CLAUDE.md` with ibl.ai platform guidance. The
 CLAUDE.md tells Claude Code how to work with the project -- which components
 to use, how to add features, and what patterns to follow.
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## What This Skill Does
 
 1. **If the working directory is empty / a brand-new project:** scaffold
@@ -414,6 +416,7 @@ must be in the org's allowed redirect origins or sign-in never returns.
 
 - **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
 - shadcn/ui base-nova (Base UI: `render` prop, not `asChild`), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
+- The shell: the sidebar inherits Open Sans; the top bar is the OS's (`components/navbar/nav-bar.tsx` — 64 px, `#D0E0FF` hairline, the system font, 14 px medium `#646464`); Lucide renders at 1.75 through `globals.css`, no `strokeWidth` prop
 
 ## Layout Patterns
 

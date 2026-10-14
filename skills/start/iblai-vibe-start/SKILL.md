@@ -89,6 +89,7 @@ Map to `DOMAIN_FOCUS=…`. Most apps say "users and agents"; that is fine.
    - Architecture: single-org | multi-org | headless — <one line why>
    - Access: members | public (<which agent is public>) | none
    - Focus: users, memories, agents, organizations
+   - Look: the ibl.ai house style — Open Sans body and sidebar, the OS's top bar (/iblai-vibe-component → House components, BRAND.md → Shell); diverging is a question for the user
    ```
 
 3. Credentials: run `/iblai-vibe-connect` (browser round trip; falls back to

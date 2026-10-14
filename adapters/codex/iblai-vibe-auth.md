@@ -124,7 +124,7 @@ before editing; full mechanics in
 - **`next.config`** — add the `@reduxjs/toolkit` webpack `resolve.alias` that
   deduplicates RTK. Without it the SDK binds a different `ReactReduxContext`
   and RTK Query hooks silently return `undefined`.
-- **`globals.css`** — add `@import "./iblai-styles.css";`.
+- **`globals.css`** — add `@import "./iblai-styles.css";`, and in `@theme inline` the Open Sans wiring: `--font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif; --font-weight-semibold: 500; --font-weight-bold: 600; --font-heading: var(--font-sans);` (BRAND.md → Typography; Step 5 loads the face). No `body { font-family … !important }` anywhere.
 - **`.env.local`** — set `NEXT_PUBLIC_MAIN_TENANT_KEY=<platform key>` (←
   `PLATFORM`) and, for server-side platform calls, `IBLAI_API_KEY` (←
   `TOKEN`). Nothing else needs deriving — the URL vars default in the
@@ -170,13 +170,17 @@ Then set the test script in `package.json`:
 
 Open `app/layout.tsx` and wrap `{children}` with the generated `IblaiProviders`.
 Add `viewport-fit=cover` to the metadata so mobile builds (iOS/Android) respect
-safe area insets and don't overlap with the status bar.
+safe area insets and don't overlap with the status bar. Load Open Sans here: the
+`next/font` variable goes on `<html>`, where Step 3's `--font-sans` reads it.
 
 **If you have no existing providers:**
 
 ```tsx
 import type { Metadata, Viewport } from "next";
+import { Open_Sans } from "next/font/google";
 import { IblaiProviders } from "@/providers/iblai-providers";
+
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 export const metadata: Metadata = {
   title: "My App",
@@ -190,7 +194,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={openSans.variable}>
       <body>
         <IblaiProviders>{children}</IblaiProviders>
       </body>
@@ -203,8 +207,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```tsx
 import type { Metadata, Viewport } from "next";
+import { Open_Sans } from "next/font/google";
 import { IblaiProviders } from "@/providers/iblai-providers";
 import { MyProvider } from "./my-provider";
+
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 export const metadata: Metadata = {
   title: "My App",
@@ -218,7 +225,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={openSans.variable}>
       <body>
         <IblaiProviders>
           <MyProvider>
@@ -305,7 +312,7 @@ pnpm dev
   `turbopack: {}` for Next.js 16+. Without the dedup,
   SDK components use a different `ReactReduxContext` and RTK Query hooks silently
   return `undefined` with zero HTTP requests.
-- **`globals.css`** -- SDK base styles import.
+- **`globals.css`** -- SDK base styles import and the Open Sans wiring.
 - **`.env.local`** -- platform key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) and, for
   server-side platform calls, `IBLAI_API_KEY`.
 

@@ -93,6 +93,18 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" })
 And no `body { font-family: … !important }` rule anywhere: `app/iblai-styles.css`
 used to carry one, which beat any loaded font.
 
+### Shell
+
+| Part | Renders | Classes |
+|---|---|---|
+| Sidebar | the SDK `SidebarProvider → PlatformSidebar + SidebarInset` (`@iblai/iblai-js/web-containers/next`); inherits Open Sans through `--font-sans` — no font class, no restyle | — |
+| Top bar | the ibl.ai OS's navbar (os.ibl.ai): 64 px at every width, white, a `#D0E0FF` hairline, the system font scoped to the bar; items 14 px medium `#646464`, hover `#484848`; icons 20 px `#646464`; the SDK bell and profile dropdown as shipped; the active link and the User/Admin switch keep `#0058cc` | `h-16 border-b border-[#D0E0FF] bg-white font-[ui-sans-serif,system-ui,sans-serif]` · `text-sm font-medium text-[#646464] hover:text-[#484848]` · `h-5 w-5 text-[#646464]` |
+| Icons | Lucide at 1.75 through one rule; explicit widths (the sidebar's 1.5) stay | `.lucide[stroke-width="2"] { stroke-width: 1.75; }` in `globals.css` |
+
+The starter ships it (`components/navbar/nav-bar.tsx`, `app/globals.css`) and `/iblai-vibe-navbar`
+builds it in an existing app. The system font in the bar is deliberate: it is what os.ibl.ai
+renders, over an Open Sans page — the LMS's type.
+
 ### Type by role
 
 | Role | Classes |
@@ -259,7 +271,9 @@ are derived from that file. When in doubt, check `base.css`.
 
 The visual design language for ibl.ai apps draws inspiration from Apple's
 design system. Use the guidelines below for layout, typography rhythm,
-component styling, and responsive behavior when building custom UI.
+component styling, and responsive behavior when building custom UI —
+inspiration for marketing and landing pages; inside an app on the SDK the
+sections above win: the shell is `### Shell`, the face is Open Sans.
 
 ### Visual Theme
 

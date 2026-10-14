@@ -9,6 +9,8 @@ sideloading (test) or Microsoft Store (release).
 
 ---
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Test Build (Sideloading)
 
 For local development and testing on your own machine.

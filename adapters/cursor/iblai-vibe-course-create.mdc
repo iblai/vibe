@@ -8,6 +8,8 @@ alwaysApply: false
 
 ![Course Content in User SPA](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-create/skills-spa-course-content.png)
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Overview
 
 This skill drives the IBL.AI Course Creation API to programmatically produce courses on an OpenEdX deployment. The API combines AI-generated structure (sections → subsections → units → components) with direct EdX writes, so **EdX is the single source of truth** for every structural operation. There are no intermediate database models for sections, subsections, units, or components — the API proxies every read/write to EdX.

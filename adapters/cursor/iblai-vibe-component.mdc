@@ -18,21 +18,13 @@ bundled template and fill in your values:
 when the project has no `iblai.env.example`:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-`iblai.env` is NOT a `.env.local` replacement — it only holds the 3
-shorthand variables. Next.js still reads runtime env vars from `.env.local`.
-
-Use `pnpm` as the default package manager. Fall back to `npm` if pnpm
-is not installed. The generated app should live in the current directory,
-not in a subdirectory.
-
-When building a navbar or header, do NOT display the organization/platform name.
-Use the ibl.ai logo instead.
-
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 is the **default** for colors, typography, spacing, and component styles —
 but if the project already has its own design system (downloaded from
 v0, a custom theme, a partner-branded shell, etc.), **follow that
 instead**. See "Detect Existing Design Style" below.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Detect Existing Design Style
 
@@ -196,26 +188,11 @@ page content and the navbar inner container. This keeps everything aligned.
 
 ### Navbar pattern
 
-Use a sticky top navbar with frosted glass effect, ibl.ai logo on the left,
-nav links next to it, and profile dropdown on the right:
-
-```tsx
-<header className="sticky top-0 z-50 flex-shrink-0 border-b border-[var(--border-color)] bg-white/80 backdrop-blur-xl backdrop-saturate-150">
-  <div className="mx-auto flex h-14 w-full items-center px-4 md:w-[75vw] md:px-0">
-    {/* Mobile hamburger (Sheet) */}
-    {/* Logo */}
-    {/* Desktop nav links with bottom-border active state */}
-    {/* Profile dropdown ml-auto */}
-  </div>
-</header>
-```
-
-Key navbar details:
-- **Active link**: `border-b-2 border-[var(--primary-color)] text-[var(--primary-color)]`
-- **Inactive link**: `border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]`
-- **Mobile**: Use shadcn `Sheet` with `side="left"` for a slide-out drawer.
-  Note: shadcn Sheet uses `@base-ui/react/dialog`, NOT Radix. The `asChild`
-  prop is NOT available on `SheetTrigger`.
+The top bar is the OS's: 64 px, white, a `#D0E0FF` hairline, the system font scoped to the
+bar, items `text-sm font-medium text-[#646464]` (hover `#484848`), the SDK bell and profile
+dropdown — `/iblai-vibe-navbar` builds it (BRAND.md → Shell). Mobile: shadcn `Sheet`
+`side="left"` (Base UI dialog, no `asChild` on `SheetTrigger`). The sidebar is the SDK
+`PlatformSidebar` and inherits Open Sans.
 
 ### Footer pattern
 
@@ -250,10 +227,11 @@ against the starter (`test.json` maps each to its path).
 | Dialog footer | outline cancel, `ibl-button-primary` confirm with the SDK `Spinner size="sm"` while pending | `assets/delete-note-dialog.tsx` |
 | Table | a plain table in the bordered white box; shadcn `table` only for its wrappers | `assets/notes-table.tsx` |
 | Status badge | `Badge` with a dot: grey by default, emerald/rose for good/bad, the brand tint for selected | `assets/note-status.tsx` |
-| Toast, shell | `sonner` (`toast.success`); the SDK `SidebarProvider → PlatformSidebar + SidebarInset`, never a local copy; top navbar: `/iblai-vibe-navbar` | — |
+| Toast, shell | `sonner` (`toast.success`); the SDK `SidebarProvider → PlatformSidebar + SidebarInset` in Open Sans (inherited), never a local copy; the top bar in the OS's type: `/iblai-vibe-navbar` | — |
 
-Primary action `ibl-button-primary`, cancel `variant="outline"`; Lucide
-`strokeWidth={1.75}`; a status dot is grey unless it means good or bad.
+Primary action `ibl-button-primary`, cancel `variant="outline"`; Lucide icons without a
+`strokeWidth` prop (`globals.css` renders the default at 1.75); a status dot is grey unless it
+means good or bad.
 
 Check painted values, on a page that is still your app (unauthenticated
 routes leave for sign-in within seconds), because the minifier rewrites

@@ -10,9 +10,10 @@ The navbar uses CSS custom properties for theming. Add these to your
 ```css
 :root {
   --navbar-bg: #ffffff;
-  --navbar-text: #374151;
-  --navbar-hover-text: #1f2937;
+  --navbar-text: #646464;
+  --navbar-hover-text: #484848;
   --navbar-hover-bg: #f3f4f6;
+  --navbar-border: #D0E0FF;
   --navbar-active-text: #0058cc;
   --navbar-active-border: #0058cc;
   --border-color: #d1d5db;
@@ -31,7 +32,7 @@ The navbar uses CSS custom properties for theming. Add these to your
 | Breakpoint | Navbar Height | Links | Drawer |
 |---|---|---|---|
 | < 768px (mobile) | h-16 (64px) | Hidden | Hamburger opens Sheet drawer |
-| >= 768px (desktop) | h-20 (80px) | Inline text links, `space-x-6` | Hidden |
+| >= 768px (desktop) | h-16 (64px) | Inline text links, `space-x-6` | Hidden |
 
 ---
 

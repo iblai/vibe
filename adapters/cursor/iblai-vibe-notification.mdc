@@ -18,14 +18,10 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 > [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
 > [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
-Do NOT add custom styles to ibl.ai SDK components — they ship with their
-own styling. Do NOT implement dark mode unless asked.
-
-Follow the component hierarchy: use ibl.ai SDK components
-(`@iblai/iblai-js`) first, then shadcn/ui (`npx shadcn@latest add <name>`).
-
 > **Navbar:** If the user wants a navbar with the bell, send them to
 > `/iblai-vibe-navbar` first.
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Step 0: Start from vibe-starter? (new projects)
 

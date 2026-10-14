@@ -71,7 +71,7 @@ export function NavBar({
   );
 
   return (
-    <header className="h-16 flex-shrink-0 border-b border-[var(--border-color)] bg-[var(--navbar-bg,#fff)] md:h-20">
+    <header className="h-16 flex-shrink-0 border-b border-[var(--navbar-border,#D0E0FF)] bg-[var(--navbar-bg,#fff)] font-[ui-sans-serif,system-ui,sans-serif]">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 md:px-6 lg:px-8">
         <div className="flex h-full items-center">
           <button
@@ -79,7 +79,7 @@ export function NavBar({
             className="mr-3 rounded-sm text-[var(--navbar-text,var(--text-secondary))] hover:bg-[var(--navbar-hover-bg,var(--hover-bg))] hover:text-[var(--navbar-hover-text,var(--text-primary))] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none focus:ring-inset md:hidden"
             aria-label="Open sidebar"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
 
           <Logo />
