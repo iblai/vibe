@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.13.1] - 2026-10-14
+
+### Fixed
+
+- normalize the platform domain before building service URLs
+
 ## [2.13.0] - 2026-10-14
 
 ### Added
