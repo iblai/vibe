@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.13.2] - 2026-10-14
+
+### Documentation
+
+- fix the documented test command
+
 ## [2.13.1] - 2026-10-14
 
 ### Fixed
