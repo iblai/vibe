@@ -13,6 +13,7 @@ import {
   buildPlan,
   defaultOriginFor,
   defaultTokenName,
+  normalizeDomain,
   envUpdatesFor,
   HostedPageUnavailable,
   maskToken,
@@ -159,6 +160,35 @@ test("resolveCallback exchanges a code for the values", async () => {
   assert.deepEqual(values, {
     domain: "iblai.app", org: "acme", org_name: "Acme Inc", username: "mika", token: TOKEN,
   });
+});
+
+test("normalizeDomain reduces any spelling to the platform base domain", () => {
+  assert.equal(normalizeDomain("iblai.app"), "iblai.app");
+  assert.equal(normalizeDomain("login.iblai.app"), "iblai.app");
+  assert.equal(normalizeDomain("https://login.iblai.app/"), "iblai.app");
+  assert.equal(normalizeDomain("  HTTPS://Example.EDU/path?x=1 "), "example.edu");
+  assert.equal(normalizeDomain("api.iblai.app"), "api.iblai.app"); // only the auth host is special
+  assert.equal(normalizeDomain(""), "iblai.app");
+  assert.equal(normalizeDomain(undefined, "fallback.app"), "fallback.app");
+});
+
+test("resolveCallback normalizes a domain reported as the auth host", async () => {
+  const fetchImpl = async () => ({
+    ok: true, status: 200,
+    json: async () => ({ domain: "login.iblai.app", org: "acme", username: "mika", token: TOKEN }),
+  });
+  const values = await resolveCallback({
+    query: { state: "s1", code: "one-time" }, state: "s1", domain: "iblai.app", fetchImpl,
+  });
+  // verifyToken builds https://api.<domain>/…, so this must be the base domain.
+  assert.equal(values.domain, "iblai.app");
+
+  const fallback = await resolveCallback({
+    query: { state: "s1", org: "acme", token: TOKEN, domain: "https://login.iblai.app" },
+    state: "s1", domain: "iblai.app",
+    fetchImpl: () => { throw new Error("must not be called"); },
+  });
+  assert.equal(fallback.domain, "iblai.app");
 });
 
 test("resolveCallback accepts the first-version fallback fields", async () => {
