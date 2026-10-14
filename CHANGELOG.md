@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.12.3] - 2026-10-14
+
+### Documentation
+
+- document llm_provider on messages list and watcher llm-usage access
+
 ## [2.12.2] - 2026-10-14
 
 ### Fixed
