@@ -456,14 +456,14 @@ controls appear (a host flag can only hide a control, never force it on).
 
 | Area | What the user sees |
 |------|--------------------|
-| Welcome screen | Gradient heading (the agent's name, or a time-of-day greeting with the user's first name when the agent's Welcome screen setting is "personal greeting"), the agent's welcome line, the disclaimer, and the centred composer. Starter prompts show under it as chips only when the host passes `showConversationStarters` and the agent's Welcome screen setting is not "none"; "Explore Agents" below the first screen needs `showExploreMentors` |
+| Welcome screen | Gradient heading (the agent's name, or a time-of-day greeting with the user's first name when the agent's Welcome screen setting is "personal greeting"), the agent's welcome line, the disclaimer, and the centred composer. Starter prompts show under it as chips only when the host passes `showConversationStarters`, `config.features.suggestedPrompts` is not `false` and the agent's "Starter prompts" setting is not "none" (the agent's `guided_prompts_count`, 1-10, sets how many); "Explore Agents" below the first screen needs `showExploreMentors` |
 | Message list | Right-aligned user bubbles; the agent's bubble with name and time, a collapsible "Thought" section for reasoning, markdown with code blocks (Copy) and tables (copy / download), and "Thinking…" until the first token |
-| Message actions | Under each finished reply: Copy, thumbs up / down, Share, Download, Report, Read aloud, Regenerate |
-| Suggested prompts | After a reply, up to three follow-up chips (the agent's `guided_prompts_count` setting, 1-10) and a refresh button. Picking one sends it |
+| Message actions | Under each finished reply: Copy, Read aloud and Retry, plus thumbs up / down, Report, Share and Download for signed-in users (Share and Download also for visitors with `showMessageActionsWhenLoggedOut`, both hidden under chat privacy; Report needs the agent's inappropriate-content setting) |
+| Suggested prompts | After a reply, up to three follow-up chips and a refresh button. Picking one sends it |
 | Composer | `+` menu (Upload File, Camera, then Tools, Skills, Prompts, Memory, and a Model picker when the agent allows it), a Canvas pill that turns off with its x, tool chips (two shown, the rest fold into "+N"), screen share, voice input, voice call, and Send, which becomes Stop Streaming while the agent answers |
 | Attachments | File cards above the input: uploading, processing, failed (with retry), too large, and long pastes that become a `.txt` card |
-| `/` skill picker | Typing `/` in the input lists the agent's skills by name; on by default, `slashSkillsEnabled={false}` turns it off |
-| Canvas | An agent reply that creates a document shows a card with **Open Canvas**; the panel opens beside the chat with an editing toolbar and Export |
+| `/` skill picker | Typing `/` in the input lists the agent's skills by name. It needs the per-agent `view_skill_assignments` grant in the `rbac` store, which `Chat` and vibe-starter's providers do not load, so in vibe-starter it stays empty unless you pass `slashSkills`; `slashSkillsEnabled={false}` turns it off |
+| Canvas | An agent reply that creates a document shows a card with **Open Canvas**; the panel opens beside the chat with an editing toolbar and Export. Tables show as plain pipe text unless you pass GFM-aware `markdownToHtml` / `htmlToMarkdown` in `config` |
 | Embed | With `embed` (or `?embed=true`) the chat drops its card border, widens the composer to about 680px, and shows up to four full-width suggested-prompt rows above the disclaimer; "Explore Agents" is never shown |
 | Phones | The `+` menu becomes a bottom sheet and the composer pins to the bottom |
 
@@ -490,8 +490,8 @@ controls appear (a host flag can only hide a control, never force it on).
 | `slots` | `ChatSlots` | no | `{ composerExtraControls?: ReactNode }` — extra controls rendered first in the composer's tool row. The only slot in 2.36.x |
 | `showConversationStarters` | `boolean` | no | Show the welcome screen's starter prompts. Default `false` |
 | `showExploreMentors` | `boolean` | no | Show "Explore Agents" on the welcome screen and the project agents list. Default `false`; the agent's own setting still applies |
-| `slashSkillsEnabled` | `boolean` | no | `/` skill picker. On by default (needs `config.features.skills` and the `view_skill_assignments` grant); `false` turns it off |
-| `slashSkills`, `slashSkillsLoading` | `EffectiveAgentSkill[]`, `boolean` | no | A host-supplied skill list for the `/` picker, and its loading flag |
+| `slashSkillsEnabled` | `boolean` | no | `/` skill picker. On unless `false`, but it fetches only with `config.features.skills` and the per-agent `view_skill_assignments` grant already in the `rbac` store (nothing in `Chat` loads it); otherwise pass `slashSkills` |
+| `slashSkills`, `slashSkillsLoading` | `EffectiveAgentSkill[]`, `boolean` | no | A host-supplied skill list for the `/` picker (`EffectiveAgentSkill` is exported from `@iblai/iblai-js/data-layer`), and its loading flag |
 | `projectId` | `string` | no | Scope the chat to a project (a new chat renders the project landing page) |
 | `redirectToAuthSpaJoinTenant` | `() => void` | no | Sends a signed-in user who is not a member of the organization to the auth app's join flow |
 
@@ -535,7 +535,7 @@ Also optional: `onScreenShare`, `onVoiceCall`, `eventBus`, `browse`,
 
 ## Known issues & host workarounds
 
-Two SDK defects were found against `web-containers@1.6.14`: voice "Processing…" hangs after any remount (the hook resets its ref on setup in 2.36.2, so the root cause is gone there; vibe-starter still sets `reactStrictMode: false` and never remounts `<Chat>` except through its key) and the prompt-gallery dialog can leave the app unclickable (mount `RadixPointerEventsGuard` once at the root — vibe-starter ships it as `components/radix-pointer-events-guard.tsx`). Full analysis and the guard's source: [`references/known-issues.md`](references/known-issues.md).
+Two SDK defects were found against `web-containers@1.6.14`: voice "Processing…" hangs after any remount (`Chat`'s own dictation hook resets its ref on setup in 2.36.2, so the root cause is gone there, but the `useVoiceChat` exported by `@iblai/iblai-js/web-utils` is not re-checked; vibe-starter still sets `reactStrictMode: false` and never remounts `<Chat>` except through its key) and the prompt-gallery dialog can leave the app unclickable (not re-checked on 2.36.2; mount `RadixPointerEventsGuard` once at the root — vibe-starter ships it as `components/radix-pointer-events-guard.tsx`). Full analysis and the guard's source: [`references/known-issues.md`](references/known-issues.md).
 
 ## Step 7: Verify
 
@@ -546,11 +546,12 @@ Two SDK defects were found against `web-containers@1.6.14`: voice "Processing…
 3. `pnpm dev` — open the route, sign in, and walk:
    - agent name + greeting, "Ask anything" textarea, the `+` menu
      (Upload File / Camera / Memory), Canvas pill, screen share /
-     voice input / voice call, and Send;
+     voice input / voice call (screen share when the agent enables it),
+     and Send;
    - send a message → "I Accept" the User Agreement → your bubble +
      "Thinking…" and a Stop Streaming button, then the reply with its
-     action row (Copy, thumbs, Share, Download, Report, Read aloud,
-     Regenerate) and follow-up prompt chips;
+     action row (Copy, thumbs, Share, Download, Report, Read aloud, Retry;
+     some depend on sign-in and agent settings) and follow-up prompt chips;
    - **voice**: record → transcription clears "Processing…" (if it
      hangs, the StrictMode workaround isn't applied or `<Chat>` is
      remounting);
