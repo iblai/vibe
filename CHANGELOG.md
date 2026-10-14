@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.12.4] - 2026-10-14
+
+### Documentation
+
+- document windowed period_* fields and memory created_at date filters
+
 ## [2.12.3] - 2026-10-14
 
 ### Documentation
