@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.13.0] - 2026-10-14
+
+### Added
+
+- browser touch test before done
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
 ## [2.12.5] - 2026-10-14
 
 ### Documentation
