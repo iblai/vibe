@@ -3,6 +3,18 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.12.1] - 2026-10-14
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
+### Documentation
+
+- scope message actions and voice hook notes
+- fix review findings on actions, prompts and skill picker
+- redesigned chat screenshots and SDK 2.36.2
+
 ## [2.12.0] - 2026-10-12
 
 ### Added
