@@ -1,5 +1,5 @@
 // Tests for connect.mjs — the pure parts run without a browser or the network.
-// Run: node --test skills/start/iblai-vibe-connect/scripts/
+// Run: node --test skills/start/iblai-vibe-connect/scripts/connect.test.mjs
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
