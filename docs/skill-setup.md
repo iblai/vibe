@@ -108,12 +108,12 @@ You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
 2. `pnpm test` — vitest must pass.
-3. Start a dev server and touch test the route with Playwright:
-
-```bash
-pnpm dev &
-npx playwright screenshot http://localhost:3000/<route> /tmp/<screenshot>.png
-```
+3. Touch test the route in a real browser, as `/iblai-vibe-ops-test` says: with
+   Claude in Chrome (`claude --chrome`) or the `chrome-devtools` MCP server in
+   `.mcp.json`, open `http://localhost:3000/<route>` on the running dev server,
+   use every control you added, read the console and the failed requests, check
+   the phone width. The user signs in by hand in that window — never ask for a
+   password. No browser tool: say so, and do not call the work done.
 
 After all work is complete, start a dev server (`pnpm dev`) so the user
 can see the result at http://localhost:3000.

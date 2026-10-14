@@ -448,11 +448,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/profile /tmp/profile.png
-   ```
+3. Touch test `/profile` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 4. In the browser, click every tab the sidebar lists — none may 404 or come
    up blank. On **Usage**, switch the range and watch the numbers change;
    `$0.00` across every range means the account genuinely has no traced AI

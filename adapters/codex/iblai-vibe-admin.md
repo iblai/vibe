@@ -112,7 +112,9 @@ uses the org's key. Never trust a client-side `isAdmin` for a write.
 2. Sign in as an admin: the switch and the admin links are there; flip to
    User: they vanish and `/admin/users` sends you home. Sign in as a member:
    no switch at all.
-3. `npx playwright screenshot http://localhost:3000/admin/users /tmp/admin-users.png` shows the Management surface and the Invite button.
+3. Touch test `/admin/users` in the browser as `/iblai-vibe-ops-test` says: the
+   Management surface and the Invite button are there; open and cancel the
+   invite dialog.
 
 ## Related skills
 

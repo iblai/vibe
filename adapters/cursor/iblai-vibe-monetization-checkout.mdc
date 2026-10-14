@@ -296,12 +296,8 @@ anyway — it keeps the URL self-describing for logging / caching.
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
-2. `pnpm dev` and exercise both surfaces:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/learn/<locked-item> /tmp/paywall.png
-   npx playwright screenshot http://localhost:3000/buy/<item-id> /tmp/guest.png
-   ```
+2. Touch test both surfaces in the browser as `/iblai-vibe-ops-test` says:
+   `/learn/<locked-item>` and `/buy/<item-id>`.
 3. **Authenticated paywall**: locked item renders `<PaywallModal>`
    (`Choose your plan` header visible); picking a tier redirects to
    `https://checkout.stripe.com/...`; `closable={false}` makes escape

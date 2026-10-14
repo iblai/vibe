@@ -21,7 +21,7 @@
     "reason": "SDK v2 d.ts gap: the career-profile CRUD hooks (useGetUserEducationQuery et al.) exist at runtime but are missing from data-layer typings"
   },
   "iblai-vibe-ops-test": {
-    "fences": [1, 6],
+    "fences": [1, 4],
     "reason": "snippets assume @testing-library/jest-dom matcher typings, which the skill installs into the target app; vibe-starter does not ship them"
   },
   "iblai-vibe-workflow": {
