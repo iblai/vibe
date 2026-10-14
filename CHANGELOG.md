@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.12.5] - 2026-10-14
+
+### Documentation
+
+- document the learner completion proxy in iblai-api-catalog
+
 ## [2.12.4] - 2026-10-14
 
 ### Documentation
