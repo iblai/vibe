@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.12.2] - 2026-10-14
+
+### Fixed
+
+- keep installed skill directories out of typecheck and git
+
 ## [2.12.1] - 2026-10-14
 
 ### Fixed
