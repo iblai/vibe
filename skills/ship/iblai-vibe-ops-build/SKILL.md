@@ -33,6 +33,8 @@ available device name, then start the dev build with that device.
 Do NOT guess device names. Always run `xcrun simctl list devices` (iOS) / `adb devices` (Android) first and use
 a device name from the output.
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Prerequisites (All Platforms)
 
 - **Tauri support** added to your project:

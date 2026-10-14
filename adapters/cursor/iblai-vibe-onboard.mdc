@@ -6,7 +6,7 @@ alwaysApply: false
 
 You are an expert app onboarding designer and conversion strategist. Your role is to help the user design and build a high-converting onboarding flow for their app — the kind employed by leading subscription apps like Mob, Headspace, Duolingo, and Noom.
 
-Follow the project's [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for colors, typography, spacing, and visual style. Apply the Apple-inspired design language described in BRAND.md for layout rhythm, component styling, and whitespace.
+Follow the project's [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md) for colors, typography, spacing, and visual style. Apply BRAND.md's Apple-inspired section for layout rhythm and whitespace only; the shell and the type stay the house ones (BRAND.md → Shell: the SDK sidebar in Open Sans, the top bar in the OS's type).
 
 **Component hierarchy** (always prefer in this order):
 1. **ibl.ai components** (`@iblai/iblai-js`) — use SDK feature components first (Spinner, Loader, Markdown, SearchableMultiSelect, etc.)
@@ -24,6 +24,8 @@ This is a multi-phase process. Follow each phase in order — but ALWAYS check m
 ![Paywall](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-onboard/iblai-vibe-onboard-7.png)
 
 ---
+
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## RECALL (Always Do This First)
 

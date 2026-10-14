@@ -14,6 +14,8 @@ component style). When the project already carries its own design system
 (a v0 export, a custom theme, a partner-branded shell, a `DESIGN.md`/`PRODUCT.md`),
 **defer to that instead**. See [ibl.ai design defaults](#iblai-vibe-design-defaults-brandmd-fallback) below.
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Setup
 
 > **Project-scoped skill.** Scripts are invoked by the relative path
@@ -84,9 +86,11 @@ system — adopt the ibl.ai
 as the DESIGN.md for this session: its color palette (primary `#0058cc`,
 brand gradient `linear-gradient(135deg, #00b0ef, #0058cc)`), Open Sans
 (semibold rendered one step lighter), spacing/radius/shadow scales, shadcn
-`base-nova` + `neutral` + Lucide component style, and the Apple-inspired
-layout language. Give BRAND.md tokens the same authority a DESIGN.md would
-carry — the shared design laws below still stack on top.
+`base-nova` + `neutral` + Lucide component style, and the shell (BRAND.md →
+Shell: the SDK sidebar in Open Sans, the top bar in the ibl.ai OS's type; the font
+picks in `reference/typeset.md` do not apply in an app on the SDK). Give BRAND.md
+tokens the same authority a DESIGN.md would carry — the shared design laws below
+still stack on top.
 
 State what you resolved in one line before designing:
 

@@ -15,6 +15,8 @@ Never ask for a password. The touch test lets the user sign in by hand in the
 browser window; `pnpm test:e2e` signs in with `e2e/.env.development`, which only
 the user fills in. Use `pnpm`; fall back to `npm` if it is not installed.
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Before you say "done"
 
 1. `pnpm build` — zero errors.

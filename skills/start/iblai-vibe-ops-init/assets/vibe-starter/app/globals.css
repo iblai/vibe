@@ -55,9 +55,10 @@
 
 :root {
     --navbar-bg: #ffffff;
-    --navbar-text: #374151;
-    --navbar-hover-text: #1f2937;
+    --navbar-text: #646464;
+    --navbar-hover-text: #484848;
     --navbar-hover-bg: #f3f4f6;
+    --navbar-border: #D0E0FF;
     --navbar-active-text: #0058cc;
     --navbar-active-border: #0058cc;
     --border-color: #d1d5db;
@@ -83,4 +84,9 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Lucide's default stroke renders at the house 1.75; explicit widths stay. */
+.lucide[stroke-width="2"] {
+    stroke-width: 1.75;
 }

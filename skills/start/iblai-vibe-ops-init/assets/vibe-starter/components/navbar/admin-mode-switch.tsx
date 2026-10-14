@@ -11,7 +11,7 @@ export function AdminModeSwitch({ className }: { className?: string }) {
   const pathname = usePathname() ?? "/";
   if (!isAdmin) return null;
   return (
-    <div className={`flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)] ${className ?? ""}`}>
+    <div className={`flex items-center gap-2 text-sm font-medium text-[var(--navbar-text,var(--text-secondary))] ${className ?? ""}`}>
       <span className={adminMode ? "" : "text-[var(--primary-color)]"}>User</span>
       <Switch
         id="admin-mode"

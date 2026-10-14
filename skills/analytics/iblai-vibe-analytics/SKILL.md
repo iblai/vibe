@@ -25,9 +25,7 @@ follows. Each tab is a Next.js route under `basePath`.
 > [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
 > [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
 
-Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
-mode unless asked. Follow the component hierarchy: ibl.ai SDK
-(`@iblai/iblai-js`) first, then shadcn/ui (`npx shadcn@latest add`).
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
 

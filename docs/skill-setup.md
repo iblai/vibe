@@ -36,6 +36,9 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
 - **Font**: Open Sans — `--font-open-sans` on `<html>`, mapped to `--font-sans` in `@theme inline`, semibold rendered as 500; no `!important` body font
+- **Shell**: the sidebar is the SDK `SidebarProvider → PlatformSidebar + SidebarInset` and inherits Open Sans (no font class, no restyle); the top bar is the ibl.ai OS's (os.ibl.ai) — 64 px at every width, white, a `#D0E0FF` hairline, the system font scoped to the bar, items 14 px medium `#646464` (hover `#484848`), icons 20 px, the SDK bell and profile dropdown as shipped: `h-16 border-b border-[#D0E0FF] bg-white font-[ui-sans-serif,system-ui,sans-serif]`, `text-sm font-medium text-[#646464] hover:text-[#484848]`, `h-5 w-5` (`/iblai-vibe-navbar` builds it; BRAND.md → Shell)
+- **Icons**: Lucide at 1.75 through one rule in `globals.css` — `.lucide[stroke-width="2"] { stroke-width: 1.75; }` — no `strokeWidth` prop; explicit widths stay
+- **An existing app**: on its first UI task, probe it — `getComputedStyle(document.body).fontFamily` starts with Open Sans, the `header` renders the system font at 64 px, a `bg-primary` element paints `rgb(0, 88, 204)` — and wire what is missing as part of that task (the three font steps, the top bar classes, no `!important` body font), saying in one line what changed. A user who keeps their own type says so: record it in the app's `AGENTS.md`; the rule below then applies
 - **Style**: shadcn/ui base-nova (Base UI: `render` prop, not `asChild`)
 
 Follow the component hierarchy: use ibl.ai SDK components

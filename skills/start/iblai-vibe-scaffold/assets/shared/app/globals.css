@@ -140,6 +140,11 @@
   }
 }
 
+/* Lucide's default stroke renders at the house 1.75; explicit widths stay. */
+.lucide[stroke-width="2"] {
+  stroke-width: 1.75;
+}
+
 .ibl-dialog-title {
   @apply text-start text-base font-semibold text-[#646464];
 }

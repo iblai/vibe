@@ -16,7 +16,7 @@ assembly steps so the skills can perform them directly — render the
 > with their own styling. See
 > [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md).
 
-> **Common setup (env, conventions, verification):** see
+> **Common setup (brand, conventions, env files, verification):** see
 > [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Two ways in

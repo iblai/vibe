@@ -14,6 +14,8 @@ native shells, how to ship releases, and how to contribute — with
 consistent section headings, badges, and conventions across every ibl.ai
 app.
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## What This Skill Does
 
 1. Read `package.json` to derive the project name, version, description,

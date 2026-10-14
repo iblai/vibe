@@ -17,6 +17,8 @@ The user provides a codebase (directory path or repo). They may specify focus ar
 
 ---
 
+> **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
+
 ## Phase 1: AUDIT
 
 **MANDATORY before starting**: Read the full audit checklist and format spec
