@@ -21,7 +21,9 @@ STUDENT = {
         "Ibl.Mentor/Tools/read",
         "Ibl.Mentor/Disclaimers/list",
         "Ibl.Mentor/Disclaimers/read",
-        "Ibl.Mentor/Artifacts/*",
+        # List only: the artifacts resource is platform-wide. Members read,
+        # write and delete their own artifacts through the Artifact Owner role.
+        "Ibl.Mentor/Artifacts/list",
         "Ibl.Mentor/ConnectedServices/list",
         "Ibl.Mentor/ConnectedServices/action",
         "Ibl.Mentor/GetRedirectUrl/action",
@@ -115,7 +117,7 @@ STUDENT = {
         "Ibl.Mentor/Mentors/uploaded_profile_image/read",
         "Ibl.Mentor/Prompts/*/read",
         "Ibl.Mentor/Tools/*/read",
-        "Ibl.Mentor/Artifacts/*",
+        "Ibl.Mentor/Disclaimers/*/read",
         "Ibl.Mentor/MCPServers/*/read",
     ],
 }
@@ -222,6 +224,7 @@ MENTOR_VIEWER = {
         "Ibl.Mentor/Prompts/*/read",
         "Ibl.Mentor/Documents/*/read",
         "Ibl.Mentor/Artifacts/*/read",
+        "Ibl.Mentor/Disclaimers/*/read",
     ],
 }
 
@@ -281,6 +284,7 @@ MENTOR_EDITOR = {
         "Ibl.Mentor/Prompts/*",
         "Ibl.Mentor/Documents/*",
         "Ibl.Mentor/Artifacts/*",
+        "Ibl.Mentor/Disclaimers/*",
     ],
 }
 

@@ -53,9 +53,9 @@ Role names are the platform's seeded display strings, quoted verbatim.
 | Role | Grants |
 |------|--------|
 | `Tenant Admin` | Full access (`Ibl.*`) |
-| `Students` | Chat, read agent settings, manage own artifacts |
+| `Students` | Chat, read agent settings and disclaimers, list artifacts (reading, editing and deleting their own artifacts comes from `artifact-owner`) |
 | `Mentor Viewer` | Read-only on agent settings, documents, prompts |
-| `Mentor Editor` | Full read/write on agent settings, documents, prompts |
+| `Mentor Editor` | Full read/write on agent settings, documents, prompts, disclaimers |
 | `Mentor Chat` | Chat access (same as Students) |
 | `Student Mentor Creators` | Create agents |
 | `Analytics Viewer` | View analytics for permitted teams |
@@ -146,7 +146,7 @@ per resource type.
 
 | Resource | Operations |
 |----------|-----------|
-| `mentors` | read, write, delete, chat, web_search, attach_document, voice_record, voice_call, export_chat_history, view_chat_history, view_analytics, view_prompts, show_settings, share_mentor, read_shared_mentor, sell_mentor, can_use_embed, view_moderation_logs, view_safety_logs, view_disclaimers, view_prompts_menu, view_tools_menu, view_disclaimers_menu |
+| `mentors` | read, write, delete, chat, web_search, attach_document, voice_record, voice_call, export_chat_history, view_chat_history, view_analytics, view_prompts, show_settings, share_mentor, read_shared_mentor, sell_mentor, can_use_embed, view_moderation_logs, view_safety_logs, view_disclaimers, write_disclaimers, view_prompts_menu, view_tools_menu, view_disclaimers_menu |
 | `prompts`, `documents`, `tools`, `settings`, `llms`, `mcpservers` | read, write, delete |
 | `usergroups` | read, write, delete, share_usergroup, read_shared_usergroup |
 | `platforms` | can_send_notifications, can_view_analytics, can_manage_users, can_invite |
