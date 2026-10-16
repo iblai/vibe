@@ -33,7 +33,10 @@ an agent runs on use `/iblai-api-agent-llm`; to _converse with a deployed agent_
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models` — OpenAI-style model list for the deployment;
-  each `id` is a `provider/model` you can pass as `model`.
+  each `id` is a `provider/model` you can pass as `model`. A model is listed only
+  when some gateway can serve it for the org (its own key, or ibl.ai's key if the
+  org may borrow it); `iblai-pro` / `iblai-fast` appear only where servable. When
+  ibl.ai's key pays, the org's model allow-list also hides models.
 
 ## Writes
 
@@ -98,7 +101,15 @@ curl "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/v1/models" \
 - `model` must be `provider/model` and resolve to a provider the deployment has
   configured — list it via
   `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models`; unknown/bad
-  model → `400 invalid_request`.
+  model → `400 invalid_request`. A model the org's allow-list refuses →
+  `403` with an OpenAI-style `{"error": {"type": "permission_error", …}}`.
+- **Gateways:** of the gateways that serve the model, the org's own key is used
+  first, then ibl.ai's key if the org may borrow it. Credential names per gateway:
+  `openrouter` -> `iblai`, `vertex` -> `google` (service account),
+  `azure_foundry` -> `gateway_azure_foundry`, `bedrock` -> `bedrock`,
+  `openai` -> `openai`, `google_genai` -> `gemini_google_api_key`,
+  `anthropic` -> `anthropic`; `groq`, `xai`, `deepseek`, `perplexity`, `nvidia`
+  use their own name.
 - **Tool calling** is supported (OpenAI `tools` / `tool_calls`); streamed
   tool-call deltas carry dense, 0-based `index` values, matching the OpenAI wire
   format that clients index directly.

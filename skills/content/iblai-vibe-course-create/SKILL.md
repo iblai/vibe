@@ -155,14 +155,16 @@ All paths below are appended to the base root `{base_url}/api/ai-mentor/orgs/{or
 }
 ```
 
+`provider` and `model` may both be omitted; the task then stores the organization's helper model.
+
 | Field                        | Required | Default         | Notes                                                                          |
 | ---------------------------- | -------- | --------------- | ------------------------------------------------------------------------------ |
 | `name`                       | Yes      | —               | Course display name                                                            |
 | `description`                | Yes      | —               | Detailed scope — see **Writing the description** below                         |
 | `target_audience`            | Yes      | —               | User profile                                                                |
 | `publish_course`             | No       | `true`          | Auto-publish on sync                                                           |
-| `provider`                   | No       | `"openai"`      | LLM provider                                                                   |
-| `model`                      | No       | `"gpt-4o-mini"` | Larger models give better structure; `gpt-4o` or `gpt-4.1` for complex courses |
+| `provider`                   | No       | helper provider (`"openai"`) | LLM provider. Omit both `provider` and `model` to use the org's helper model (operator config `HELPER_LLM_PROVIDER` / `HELPER_LLM_MODEL`; built-in `openai` / `gpt-4o-mini`). Send both or neither; a lone half completes only from a matching helper pair, else the built-in. |
+| `model`                      | No       | helper model (`"gpt-4o-mini"`) | Larger models give better structure; `gpt-4o` or `gpt-4.1` for complex courses |
 | `desired_number_of_sections` | No       | `4`             | 3–6 is typical; higher values produce thinner sections                         |
 
 ### Create xblock (`POST /course-creation/course/{course_id}/create-xblock/`)

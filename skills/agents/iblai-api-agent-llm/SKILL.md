@@ -54,5 +54,15 @@ curl -X PUT \
 
 - Pull the provider/model cards first, then send exactly one `llm_provider` +
   `llm_name` pair that appears in that list — values must match a real card.
+- Each card carries an `availability` status: `byok_configured` (the org's own
+  key pays), `byok_main_fallback` (ibl.ai's key pays), `gateway_credits` (served
+  under another host), `byok_missing` (add a key first). The status comes from
+  the same gateway resolver chat uses, so the picker and runtime agree;
+  `gateway_only` is no longer returned. The org's model allow-list hides models
+  only when a key ibl.ai lends would pay, never when the org's own key does.
+  Response shape is unchanged.
+- Gateway rule: of the gateways that serve the model, the org's own key first,
+  then ibl.ai's key if the org may borrow it. Credential names are in
+  `/iblai-api-integration`.
 - Selection persists through the shared `settings/` endpoint, so it sits
   alongside the other configuration fields on the same agent.
