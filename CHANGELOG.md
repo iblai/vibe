@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.14.2] - 2026-10-20
+
+### Documentation
+
+- document attachment-only turns on the merged history fields
+- document message attachments and file-only turns
+
 ## [2.14.1] - 2026-10-20
 
 ### Documentation
