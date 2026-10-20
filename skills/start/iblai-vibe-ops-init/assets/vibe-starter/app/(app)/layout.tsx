@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import {
@@ -12,20 +13,20 @@ import { resolveAppTenant, readTenants, isTenantAdmin } from '@/lib/iblai/tenant
 import { handleLogout } from '@/lib/iblai/auth-utils';
 import { AdminModeProvider } from '@/lib/iblai/admin-mode';
 
-/** What every member sees. */
-const MEMBER_LINKS: NavLink[] = [
-  { name: 'Home', href: '/', segment: null },
-  { name: 'Agents', href: '/agents', segment: 'agents' },
-  { name: 'Profile', href: '/profile', segment: 'profile' },
+/** What every member sees. `key` indexes the `Nav` message namespace. */
+const MEMBER_LINKS: ReadonlyArray<Omit<NavLink, 'name'> & { key: string }> = [
+  { key: 'home', href: '/', segment: null },
+  { key: 'agents', href: '/agents', segment: 'agents' },
+  { key: 'profile', href: '/profile', segment: 'profile' },
 ];
 
 /** What org admins see in Admin mode, on top of the member links. */
-const ADMIN_LINKS: NavLink[] = [
-  { name: 'Users', href: '/admin/users', segment: 'admin' },
-  { name: 'Analytics', href: '/admin/analytics', segment: 'admin' },
-  { name: 'Billing', href: '/admin/billing', segment: 'admin' },
-  { name: 'Memory', href: '/admin/memory', segment: 'admin' },
-  { name: 'Organization', href: '/admin/organization', segment: 'admin' },
+const ADMIN_LINKS: ReadonlyArray<Omit<NavLink, 'name'> & { key: string }> = [
+  { key: 'users', href: '/admin/users', segment: 'admin' },
+  { key: 'analytics', href: '/admin/analytics', segment: 'admin' },
+  { key: 'billing', href: '/admin/billing', segment: 'admin' },
+  { key: 'memory', href: '/admin/memory', segment: 'admin' },
+  { key: 'organization', href: '/admin/organization', segment: 'admin' },
 ];
 
 type Session = {
@@ -76,7 +77,11 @@ export default function AppLayout({
     if (pathname.startsWith('/admin') && !liveAdmin) router.replace('/');
   }, [pathname, liveAdmin, router]);
 
-  const links = liveAdmin ? [...MEMBER_LINKS, ...ADMIN_LINKS] : MEMBER_LINKS;
+  const t = useTranslations('Nav');
+  const links: NavLink[] = useMemo(() => {
+    const source = liveAdmin ? [...MEMBER_LINKS, ...ADMIN_LINKS] : MEMBER_LINKS;
+    return source.map(({ key, ...rest }) => ({ ...rest, name: t(key) }));
+  }, [liveAdmin, t]);
   const drawerItems: NavItem[] = links.map(({ name, href }) => ({ name, href }));
 
   return (
