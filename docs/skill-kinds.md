@@ -25,7 +25,7 @@ metadata:
 ```
 
 - `kind: ui` — expect a screenshot near the top, `Step 1…n` that write files, a
-  **Verify** block ending in a Playwright screenshot, and a **Platform data**
+  **Verify** block ending in the browser touch test (`/iblai-vibe-ops-test`), and a **Platform data**
   table linking the `iblai-api-*` skill that documents the same data over REST.
 - `kind: api` — expect `## Auth & conventions`, `## Reads`, `## Writes`,
   `## Example` (one real `curl`), `## Notes`, and no mention of any UI. The

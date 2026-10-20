@@ -108,4 +108,4 @@ Every tab skill has screenshots of the surface it mounts — open the skill befo
 ## Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
-`pnpm build`, `pnpm test`, then `npx playwright screenshot http://localhost:3000/agents/<uuid>/settings /tmp/agent-settings.png`.
+`pnpm build`, `pnpm test`, then Touch test `/agents/<uuid>/settings` in the browser as `/iblai-vibe-ops-test` says: every tab, the console, the phone width.

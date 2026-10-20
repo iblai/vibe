@@ -38,7 +38,8 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
-| "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, screenshot |
+| "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, then its touch test — the route in a real browser, every new control, the console, the phone width |
+| "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -261,7 +262,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe` | Start here — what you want → which skill |
 | `/iblai-vibe-ops-init` | New project from vibe-starter; credentials ladder; writes the project CLAUDE.md |
 | `/iblai-vibe-auth` | SSO auth for an existing Next.js app (providers, store, `lib/iblai/*`) |
-| `/iblai-vibe-ops-test` | Test before showing work (Vitest, Playwright, screenshots) |
+| `/iblai-vibe-ops-test` | Test before showing work: Vitest, Playwright journeys, a touch test in a real browser (Claude in Chrome or the Chrome DevTools MCP) |
 | `/iblai-vibe-ops-deploy` | Deploy through the platform's hosting API (Vercel-backed), containers, static hosts |
 
 **Tier 1 — the core app** (journey order)
@@ -403,8 +404,8 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 - **Primary**: `#0058cc` (brand blue)
 - **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack
-- **Style**: shadcn/ui new-york variant, neutral base, Lucide icons
+- **Font**: Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600)
+- **Style**: shadcn/ui base-nova (Base UI), neutral base, Lucide icons
 
 See [BRAND.md](BRAND.md) for the complete brand guidelines.
 
@@ -529,7 +530,7 @@ THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 >    the hosted platform → `DOMAIN=iblai.app` (`api.iblai.app`,
 >    `login.iblai.app`). A self-hosted OS host implies another domain — ask.
 > 2. **Get a token from the session, never a password.** With a browser tool
->    (`claude --chrome`, or the Playwright server in `.mcp.json`): open the
+>    (`claude --chrome`, or the `chrome-devtools` server in `.mcp.json`): open the
 >    URL, confirm the user is signed in, read `dm_token` and
 >    `userData.user_nicename` (the username) from localStorage, then mint a
 >    Platform API Token exactly as `/iblai-api-login` step 2 documents —

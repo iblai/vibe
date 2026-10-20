@@ -403,14 +403,10 @@ The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`.
 
 ## Verify
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
-```
-
-Then click every tab in the strip: none may 404. Switch the agent picker
-and the date range, and check that the numbers change.
+`pnpm build && pnpm test`, then touch test `/analytics` in the browser as
+`/iblai-vibe-ops-test` says: click every tab in the strip — none may 404; switch
+the agent picker and the date range, and check that the numbers change; read
+the console; check the phone width.
 
 ## Notes
 

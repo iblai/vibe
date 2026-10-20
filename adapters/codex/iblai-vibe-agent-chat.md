@@ -6,15 +6,19 @@
 
 > **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
-Add the full ibl.ai agent chat surface — message stream, conversation
-starters, canvas, file attach, voice input, voice call, screen sharing,
-prompt gallery — to your Next.js app. Uses the `Chat` React component
+Add the full ibl.ai agent chat surface — welcome screen, message stream
+with per-message actions, composer (`+` menu, tool chips, file cards,
+`/` skill picker), suggested prompts, canvas, voice input, voice call,
+screen sharing — to your Next.js app. Uses the `Chat` React component
 from `@iblai/iblai-js/web-containers/next`, which renders **in-process**
 (not in an iframe) and shares the host app's Redux store, providers, and
-auth session.
+auth session. This text describes the redesigned chat that ships from
+`@iblai/iblai-js` 2.36.2.
 
 ![Welcome state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-1-welcome.png)
-![Message sent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
+![Message sent (Thinking… while the agent starts, Stop Streaming on the send button)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-2-message-sent.png)
+![The + menu (Upload File, Camera, Memory)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-5-attach-menu.png)
+![A finished answer (Thought section, message actions, suggested follow-up prompts)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-6-answer-actions.png)
 ![Canvas card in a response (Open Canvas, follow-up suggestions, Canvas chip on)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-3-canvas-card.png)
 ![Canvas panel open beside the chat (editing toolbar, Export)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-chat/iblai-vibe-agent-chat-4-canvas-panel.png)
 
@@ -60,7 +64,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.35.1` |
+  | `@iblai/iblai-js` | `^2.36.2` |
   | `@iblai/agent-ai` | `^2.10.0` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
@@ -439,6 +443,25 @@ destructive (loses session, wedges voice). Rules:
 
 `<Chat>` has no `sessionId` prop and reads no URL param: sessions live in `localStorage` via `useCachedSessionId()` and are read once at mount — seed (resume) or clear (new) before mounting and key `<Chat>` on it, exactly as Step 6 does. Details, the missing "conversation loaded" signal, and the `getChatHistory` host list: [`references/sessions.md`](references/sessions.md).
 
+## What the chat shows
+
+Everything below is the SDK's own UI; none of it needs host code. The
+agent's own settings and your `config.features` allow-list decide which
+controls appear (a host flag can only hide a control, never force it on).
+
+| Area | What the user sees |
+|------|--------------------|
+| Welcome screen | Gradient heading (the agent's name, or a time-of-day greeting with the user's first name when the agent's Welcome screen setting is "personal greeting"), the agent's welcome line, the disclaimer, and the centred composer. Starter prompts show under it as chips only when the host passes `showConversationStarters`, `config.features.suggestedPrompts` is not `false` and the agent's "Starter prompts" setting is not "none" (the agent's `guided_prompts_count`, 1-10, sets how many on desktop; phones show rows capped at 4); "Explore Agents" below the first screen needs `showExploreMentors` |
+| Message list | Right-aligned user bubbles; the agent's bubble with name and time, a collapsible "Thought" section for reasoning, markdown with code blocks (Copy) and tables (copy / download), and "Thinking…" until the first token |
+| Message actions | Under each finished reply: Copy and Read aloud for everyone; thumbs up / down, Retry, Report, Share and Download for signed-in users (Share and Download also for visitors with `showMessageActionsWhenLoggedOut`, both hidden under chat privacy; Report needs the agent's inappropriate-content setting; thumbs, Retry and Report are hidden when viewing a shared chat) |
+| Suggested prompts | After a reply, up to three follow-up chips and a refresh button. Picking one sends it |
+| Composer | `+` menu (Upload File, Camera, then Tools, Skills, Prompts, Memory, and a Model picker when the agent allows it), a Canvas pill that turns off with its x, tool chips (two shown, the rest fold into "+N"), screen share, voice input, voice call, and Send, which becomes Stop Streaming while the agent answers |
+| Attachments | File cards above the input: uploading, processing, failed (with retry), too large, and long pastes that become a `.txt` card |
+| `/` skill picker | Typing `/` in the input lists the agent's skills by name. It needs the per-agent `view_skill_assignments` grant in the `rbac` store, which `Chat` and vibe-starter's providers do not load, so in vibe-starter it stays empty unless you pass `slashSkills`; `slashSkillsEnabled={false}` turns it off |
+| Canvas | An agent reply that creates a document shows a card with **Open Canvas**; the panel opens beside the chat with an editing toolbar and Export. Tables show as plain pipe text unless you pass GFM-aware `markdownToHtml` / `htmlToMarkdown` in `config` |
+| Embed | With `embed` (or `?embed=true`) the chat drops its card border, widens the composer to about 680px, and shows up to four full-width suggested-prompt rows above the disclaimer; "Explore Agents" is never shown |
+| Phones | The `+` menu becomes a bottom sheet and the composer pins to the bottom |
+
 ## Props
 
 | Prop | Type | Required | Description |
@@ -455,8 +478,22 @@ destructive (loses session, wedges voice). Rules:
 | `isPreviewMode` | `boolean` | yes | `true` for admin preview |
 | `mode` | `"default" \| "advanced"` | no | `"advanced"` enables builder UI |
 | `isPublicRoute` | `boolean` | no | Unauthenticated share links |
-| slot overrides (`canvasView`, `disclaimerModal`, `advancedChatHeader`, `advancedChatBuilder`, `liveKitChat`, `liveKitScreenSharing`, `welcomeChat`, `promptGalleryModal`) | `React.ComponentType<…>` | no | **Availability is SDK-version-dependent. As of `web-containers@1.6.14` these are NOT implemented** — `Chat` does not destructure them and they're absent from `index.d.ts`. Verify in `dist/next/index.d.ts` before relying on any of them; do not assume a slot override will take effect. |
-| `onSubscriptionGate`, `on402Error`, `canPerformAction`, `renderDocumentSidebar`, `projectId`, `onExploreClick`, `onMentorClick`, `projectLandingPage` | mixed | no | As available in your SDK version |
+| `hasBorder` | `boolean` | no | Card border around the chat. Default `true` |
+| `isInCanvasView` | `boolean` | no | Set when the chat itself is rendered inside the canvas view |
+| `embed` | `boolean` | no | Embedded (iframe widget) presentation. Defaults to the `?embed=true` query param |
+| `labels` | `DeepPartial<ChatLabels>` | no | Override any user-visible string, keyed like the SDK catalogue (`chat.<component>.<key>`). Omitted strings use the catalogue for the active locale |
+| `slots` | `ChatSlots` | no | `{ composerExtraControls?: ReactNode }` — extra controls rendered first in the composer's tool row. The only slot in 2.36.x |
+| `showConversationStarters` | `boolean` | no | Show the welcome screen's starter prompts. Default `false` |
+| `showExploreMentors` | `boolean` | no | Show "Explore Agents" on the welcome screen and the project agents list. Default `false`; the agent's own setting still applies |
+| `slashSkillsEnabled` | `boolean` | no | `/` skill picker. On unless `false`, but it fetches only with `config.features.skills` and the per-agent `view_skill_assignments` grant already in the `rbac` store (nothing in `Chat` loads it); otherwise pass `slashSkills` |
+| `slashSkills`, `slashSkillsLoading` | `EffectiveAgentSkill[]`, `boolean` | no | A host-supplied skill list for the `/` picker (`EffectiveAgentSkill` is exported from `@iblai/iblai-js/data-layer`), and its loading flag |
+| `projectId` | `string` | no | Scope the chat to a project (a new chat renders the project landing page) |
+| `redirectToAuthSpaJoinTenant` | `() => void` | no | Sends a signed-in user who is not a member of the organization to the auth app's join flow |
+
+> The old slot overrides (`canvasView`, `disclaimerModal`,
+> `advancedChatHeader`, `advancedChatBuilder`, `liveKitChat`,
+> `liveKitScreenSharing`, `welcomeChat`, `promptGalleryModal`) do not
+> exist. Host UI goes through `slots`, `labels` and `config`.
 
 ### `ChatConfig`
 
@@ -470,10 +507,30 @@ destructive (loses session, wedges voice). Rules:
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
 | `navigateToMentor` | `(id: string) => void` | Open an individual agent |
 | `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync banner |
+| `features?` | `ChatFeatures` | Allow-list: `voiceCall`, `dictation`, `screenShare`, `fileUpload`, `camera`, `canvas`, `memory`, `prompts`, `skills`, `suggestedPrompts`, `cowork`. All default `true`; `false` hides the control |
+| `navigateToProject?` | `(projectId: string, mentorId: string) => void` | Open a project |
+| `onUpgradeRequired?` | `(proceed, isAdminAction?) => unknown` | Paywall gate; run `proceed` when the user may continue. Without it every gated action runs |
+| `on402Error?` | `(data) => void \| Promise<void>` | Credits exhausted. Defaults to the SDK's pricing modal / billing tab / top banner |
+| `onSessionChange?` | `(sessionId: string) => void` | Called whenever the active session id changes |
+| `freeTrialDialog?` | `{ component, isOpen, onClose } \| null` | Upgrade dialog the chat renders while `isOpen`; `null` renders none |
+| `markdownComponent?` | `ComponentType<{ children?: string; className?: string }>` | Custom renderer for message bodies |
+| `markdownToHtml?`, `htmlToMarkdown?` | `(s: string) => string` | Canvas converters; pass a richer pair (tables, math) so canvas output matches chat |
+| `dmUrl?` | `() => string` | Data-manager URL for "Read aloud"; browser speech when absent |
+| `allowedParentOrigins?`, `postMessageTargetOrigin?` | `string[]`, `string` | Origins allowed to message the chat (embedding page), and where it posts back. Default: same origin only |
+| `streamingFocusManagement?` | `boolean` | Moves focus to Stop while streaming and to the last reply's Copy when done (WCAG 2.4.3). Default `true` |
+
+Also optional: `onScreenShare`, `onVoiceCall`, `eventBus`, `browse`,
+`suppressChatErrorToast`, `isOnline`, `enableSupportPhone`,
+`defaultSupportPhoneNumber`, `maximumCharacterSizeToCopy`,
+`exploreMentorsPublicFallback`, `showMessageActionsWhenLoggedOut`.
+
+`ChatProps`, `ChatConfig`, `ChatFeatures`, `ChatLabels`, `ChatSlots` and
+`ChatBrowseBridge` are exported as types from
+`@iblai/iblai-js/web-containers/next`.
 
 ## Known issues & host workarounds
 
-Two SDK defects need host workarounds: voice "Processing…" hangs after any remount (set `reactStrictMode: false`, never remount `<Chat>` except through its key) and the prompt-gallery dialog can leave the app unclickable (mount `RadixPointerEventsGuard` once at the root — vibe-starter ships it as `components/radix-pointer-events-guard.tsx`). Full analysis and the guard's source: [`references/known-issues.md`](references/known-issues.md).
+Two SDK defects were found against `web-containers@1.6.14`: voice "Processing…" hangs after any remount (`Chat`'s own dictation hook resets its ref on setup in 2.36.2, so the root cause is gone there, but the `useVoiceChat` exported by `@iblai/iblai-js/web-utils` (web-utils 2.8.0) still never sets its ref back to `true`; vibe-starter still sets `reactStrictMode: false` and never remounts `<Chat>` except through its key) and the prompt-gallery dialog can leave the app unclickable (not re-checked on 2.36.2; mount `RadixPointerEventsGuard` once at the root — vibe-starter ships it as `components/radix-pointer-events-guard.tsx`). Full analysis and the guard's source: [`references/known-issues.md`](references/known-issues.md).
 
 ## Step 7: Verify
 
@@ -482,15 +539,18 @@ Two SDK defects need host workarounds: voice "Processing…" hangs after any rem
 2. `pnpm test` — host unit suite still green (esp. any slices you
    renamed in the Brownfield step).
 3. `pnpm dev` — open the route, sign in, and walk:
-   - agent name + greeting, "Ask anything" textarea, action buttons
-     (attach / canvas / screen share / voice input / voice call / send),
-     conversation starters;
-   - send a message → "I Accept" the User Agreement → bubble + "is
-     generating…" indicator;
+   - agent name + greeting, "Ask anything" textarea, the `+` menu
+     (Upload File / Camera / Memory), Canvas pill, screen share /
+     voice input / voice call (screen share when the agent enables it),
+     and Send;
+   - send a message → "I Accept" the User Agreement → your bubble +
+     "Thinking…" and a Stop Streaming button, then the reply with its
+     action row (Copy, thumbs, Share, Download, Report, Read aloud, Retry;
+     some depend on sign-in and agent settings) and follow-up prompt chips;
    - **voice**: record → transcription clears "Processing…" (if it
      hangs, the StrictMode workaround isn't applied or `<Chat>` is
      remounting);
-   - **prompt gallery**: open then close → app still clickable (guard
+   - **prompt gallery** (`+` menu → Prompts, when the agent has prompts): open then close → app still clickable (guard
      working);
    - **resume/new** (if wired): history link loads the conversation;
      "new chat" starts empty.
