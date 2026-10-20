@@ -395,6 +395,12 @@ The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`. To
 link an agent's settings to these pages, add the agent **Analytics** tab
 (`AgentAnalyticsTab`, a hub of report cards): `/iblai-vibe-agent-analytics`.
 
+**Monetization tab.** The strip also has a `monetization` tab, hidden until
+you pass `enableMonetization` (the org's `enable_monetization` flag) *and*
+the user holds `can_sell_items` on the org. It renders
+`AnalyticsMonetizationStats` (revenue, sales, paywalls, subscribers). Setup:
+`/iblai-vibe-monetization-analytics`.
+
 ## Verify
 
 `pnpm build && pnpm test`, then touch test `/analytics` in the browser as

@@ -90,7 +90,7 @@ The command receives the prompt (catalogue + goal) on stdin and prints a JSON ar
 
 ## Layout
 
-`skills/<folder>/<name>/SKILL.md` — nine folders (`scripts/skill-categories.json`). `scripts/lib/skills.mjs` is the one discovery helper every script uses; `.claude/skills/` holds per-skill symlinks so local Claude Code sessions see the flat names.
+`skills/<folder>/<name>/SKILL.md` — ten folders (`scripts/skill-categories.json`). `scripts/lib/skills.mjs` is the one discovery helper every script uses; `.claude/skills/` holds per-skill symlinks so local Claude Code sessions see the flat names.
 
 ## Adding a new skill
 

@@ -3,6 +3,42 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.0] - 2026-10-20
+
+### Added
+
+- move the monetization skills to their own folder on current main
+- monetization skills update
+- monetization skills update
+
+## [2.15.0] - 2026-10-20
+
+### Added
+
+- merge main into the agent Memory tab skills on the 2.36.2 pin
+- agent Memory tab — Personal Memories + Shared Memory sub-tabs; starter to @iblai/iblai-js 2.35.1
+
+## [2.14.3] - 2026-10-20
+
+### Documentation
+
+- keep the key-borrowing switch read-only and list credential names once
+- LLM gateways, use-default-llm-key, optional course model (iblai-dm-pro#3081)
+
+## [2.14.2] - 2026-10-20
+
+### Documentation
+
+- document attachment-only turns on the merged history fields
+- document message attachments and file-only turns
+
+## [2.14.1] - 2026-10-20
+
+### Documentation
+
+- name the async-host paths production actually serves
+- document the REST vs ASGI host split and legacy alias
+
 ## [2.14.0] - 2026-10-20
 
 ### Added
