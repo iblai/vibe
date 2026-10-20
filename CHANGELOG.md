@@ -3,6 +3,17 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.14.0] - 2026-10-20
+
+### Added
+
+- add Spanish and Chinese catalogs; translate the admin switch overlay
+- ship English and French out of the box
+
+### Fixed
+
+- lift follow-redirects past its advisories and document the vite one
+
 ## [2.13.2] - 2026-10-14
 
 ### Documentation
