@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.14.1] - 2026-10-20
+
+### Documentation
+
+- name the async-host paths production actually serves
+- document the REST vs ASGI host split and legacy alias
+
 ## [2.14.0] - 2026-10-20
 
 ### Added
