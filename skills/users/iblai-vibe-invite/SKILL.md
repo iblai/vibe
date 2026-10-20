@@ -110,11 +110,8 @@ export function InviteSection() {
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
-2. Start dev server and verify dialogs open correctly:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000 /tmp/invite.png
-   ```
+2. Touch test the invite dialogs in the browser as `/iblai-vibe-ops-test` says:
+   each opens, validates and closes — send no real invite.
 
 ## Important Notes
 

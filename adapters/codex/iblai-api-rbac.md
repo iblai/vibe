@@ -103,7 +103,7 @@ and roles (platform is taken from the token; service accounts pass `platform_key
 ### Student toggles
 
 - **GET** `https://api.iblai.app/dm/api/core/rbac/student-agent-creation/status/?platform_key={org}` — read the toggle (returns `allow_students_to_create_mentors`). Canonical `student-mentor-creation`.
-- **GET** `https://api.iblai.app/dm/api/core/rbac/student-llm-access/status/?platform_key={org}` — read the allowed `llm_resources`.
+- **GET** `https://api.iblai.app/dm/api/core/rbac/llm-access/status/?platform_key={org}` — read the allowed `llm_resources`.
 
 ## Writes
 
@@ -187,7 +187,7 @@ and roles (platform is taken from the token; service accounts pass `platform_key
 ### Student toggles
 
 - **POST** `https://api.iblai.app/dm/api/core/rbac/student-agent-creation/set/` — enable/disable student agent creation (canonical `student-mentor-creation`): `{"platform_key": "…", "allow_students_to_create_mentors": true}`. Org-wide policy change — confirm with the user first.
-- **POST** `https://api.iblai.app/dm/api/core/rbac/student-llm-access/set/` — set which LLMs students may use: `{"platform_key": "…", "llm_resources": ["llms/openai/models/gpt-4", "llms/openai/", "llms/"]}`. Shorter paths grant every sub-resource. Org-wide policy change — confirm with the user first.
+- **POST** `https://api.iblai.app/dm/api/core/rbac/llm-access/set/` — set which LLMs students may use: `{"platform_key": "…", "llm_resources": ["llms/openai/models/gpt-4", "llms/openai/", "llms/"]}`. Shorter paths grant every sub-resource. A provider or model that is not active in the platform's model catalog returns 400; `llms/` is always accepted. Org-wide policy change — confirm with the user first.
 
 ## Example
 

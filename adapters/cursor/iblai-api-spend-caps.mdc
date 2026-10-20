@@ -34,6 +34,9 @@ can render a progress bar.
   `unique_id` (a UUID). `{user_id}` / `{username}` = the target user.
 - **Endpoint prefix twin:** every path under `api/ai-mentor/` also resolves
   under `api/ai-agent/` (alias); either works, pick one and be consistent.
+- **`agents/`, not `mentors/`:** the agent and user-per-agent cap paths use
+  `…/agents/{mentor}/…`. The `…/mentors/{mentor}/…` spelling still answers
+  but is marked deprecated in the schema.
 - **Permission tiers:** all cap **configuration** endpoints (organization / agent /
   user-agent read+write) require a **platform admin** (RBAC action prefix
   `Ibl.Mentor/SpendCaps/*`). The **status** endpoint is safe to show end users: any
@@ -78,16 +81,16 @@ can render a progress bar.
 - **GET** `/api/ai-mentor/orgs/{org}/spend-caps/agents/[?mentor={mentor}]` — list
   agent-scoped caps for the org; pass `mentor` to filter to one agent. Returns a
   list of cap objects.
-- **GET** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-cap/` — the single
+- **GET** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-cap/` — the single
   cap for one agent, or `404` if none. The agent is resolved org-scoped, so
   an agent from another org returns `404`.
 
 ### User-per-agent caps
 
-- **GET** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-caps/users/[?username=&email=]`
+- **GET** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-caps/users/[?username=&email=]`
   — list explicit per-user caps on one agent; optional `username` / `email`
   filters.
-- **GET** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-caps/users/{username}/`
+- **GET** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-caps/users/{username}/`
   — the one cap for a specific user on that agent, or `404`.
 
 ### User spend status (safe to show end users)
@@ -140,16 +143,16 @@ fields sent in the body are ignored.
 
 ### Agent cap
 
-- **PUT** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-cap/` — create/update
+- **PUT** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-cap/` — create/update
   the cap for one agent.
-- **DELETE** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-cap/` — remove it.
+- **DELETE** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-cap/` — remove it.
 
 ### User-per-agent cap
 
-- **PUT** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-caps/users/{username}/`
+- **PUT** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-caps/users/{username}/`
   — create/update the cap for one user on one agent (username comes from the URL,
   not the body).
-- **DELETE** `/api/ai-mentor/orgs/{org}/mentors/{mentor}/spend-caps/users/{username}/`
+- **DELETE** `/api/ai-mentor/orgs/{org}/agents/{mentor}/spend-caps/users/{username}/`
   — remove it.
 
 ## Example
@@ -165,7 +168,7 @@ curl -X PUT "$dm/api/ai-mentor/orgs/$IBLAI_ORG/spend-caps/tenant/" \
        "enforcement": "block", "alert_thresholds": [0.75, 0.9]}'
 
 # Cap one agent at $50/week, alert-only (never blocks chats).
-curl -X PUT "$dm/api/ai-mentor/orgs/$IBLAI_ORG/mentors/$MENTOR/spend-cap/" \
+curl -X PUT "$dm/api/ai-mentor/orgs/$IBLAI_ORG/agents/$MENTOR/spend-cap/" \
   -H "$auth" -H 'Content-Type: application/json' \
   -d '{"max_cost_usd": "50.00", "interval_type": "week", "enforcement": "alert_only"}'
 
@@ -237,3 +240,8 @@ Status summary (from the status endpoint):
 | `caps[].warning_threshold` | float \| null | lowest configured alert threshold |
 | `caps[].mentor_unique_id` | str \| null | set for agent/user_agent caps |
 | `caps[].username` | str \| null | set for user_agent caps |
+
+Verified against the live schema (4.411.0) and a live agent and
+user-per-agent cap (created, read, deleted) on 2026-10-02. The UI for the
+agent-level scopes is
+[`/iblai-vibe-agent-billing`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/SKILL.md).

@@ -1,17 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import { IblaiProviders } from "@/providers/iblai-providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Open Sans is the ibl.ai face; globals.css maps --font-open-sans to --font-sans.
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 // The middleware's nonce-based CSP requires per-request rendering: a statically
 // prerendered page ships nonce-less <script> tags that enforce mode blocks
@@ -38,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <IblaiProviders>{children}</IblaiProviders>

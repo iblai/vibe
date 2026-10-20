@@ -7,9 +7,9 @@ it produces. Both are enforced by `scripts/check-skill-kinds.mjs`.
 
 | `kind` | Prefix | What it does | What it produces | Credentials it uses | Count |
 |---|---|---|---|---|---|
-| **`ui`** | `iblai-vibe-*` | Mounts an SDK **visual component** in a Next.js app (a page, a tab, a dialog, a widget) | Files in your app: routes, components, providers; a screen you can screenshot | The signed-in user's session (SSO) in the browser; `IBLAI_API_KEY` only in server routes | 53 |
-| **`api`** | `iblai-api-*` (and three `iblai-vibe-*` that drive an API without a screen) | Operates the platform **headlessly** — exact REST endpoints (method, URL, body, errors), `curl` first | Nothing in your app unless you want it: the endpoint contract, a script, a CI job, a server route | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`; org key; username | 51 |
-| **`guide`** | either | Orients and decides — an index, a decision page, a reference. Builds nothing | A pointer to the skill that builds | — | 13 |
+| **`ui`** | `iblai-vibe-*` | Mounts an SDK **visual component** in a Next.js app (a page, a tab, a dialog, a widget) | Files in your app: routes, components, providers; a screen you can screenshot | The signed-in user's session (SSO) in the browser; `IBLAI_API_KEY` only in server routes | 59 |
+| **`api`** | `iblai-api-*` (and three `iblai-vibe-*` that drive an API without a screen) | Operates the platform **headlessly** — exact REST endpoints (method, URL, body, errors), `curl` first | Nothing in your app unless you want it: the endpoint contract, a script, a CI job, a server route | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`; org key; username | 67 |
+| **`guide`** | either | Orients and decides — an index, a decision page, a reference. Builds nothing | A pointer to the skill that builds | — | 15 |
 | **`ops`** | `iblai-vibe-ops-*` and friends | Runs, tests, builds, deploys, releases, upgrades, polishes | Builds, URLs, store submissions, a refreshed project | `IBLAI_API_KEY` for deploys | 11 |
 | **`security`** | `iblai-vibe-security-*` | Authorized-use security work unrelated to the platform | Reports | — | 8 |
 
@@ -25,7 +25,7 @@ metadata:
 ```
 
 - `kind: ui` — expect a screenshot near the top, `Step 1…n` that write files, a
-  **Verify** block ending in a Playwright screenshot, and a **Platform data**
+  **Verify** block ending in the browser touch test (`/iblai-vibe-ops-test`), and a **Platform data**
   table linking the `iblai-api-*` skill that documents the same data over REST.
 - `kind: api` — expect `## Auth & conventions`, `## Reads`, `## Writes`,
   `## Example` (one real `curl`), `## Notes`, and no mention of any UI. The

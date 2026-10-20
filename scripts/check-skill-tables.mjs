@@ -20,7 +20,7 @@ let failed = false;
 for (const file of ["CLAUDE.md", "docs/catalogue.md"]) {
   const seen = mentioned(file);
   // Tier-2 tabs are listed as bare suffixes after `/iblai-vibe-agent-`; accept the family form.
-  const tabsListed = /`\/iblai-vibe-agent`[^\n]*indexes the 24 tabs|each `\/iblai-vibe-agent-<tab>`/.test(readFileSync(join(ROOT, file), "utf8"));
+  const tabsListed = /`\/iblai-vibe-agent`[^\n]*indexes the \d+ tabs|each `\/iblai-vibe-agent-<tab>`/.test(readFileSync(join(ROOT, file), "utf8"));
   const missing = skills.filter((s) => !seen.has(s) && !(tabsListed && /^iblai-vibe-agent-(?!chat|search|create|setting|memory|billing|audit)/.test(s)));
   const ghosts = [...seen].filter((s) => !skills.includes(s) && !["iblai-api", "iblai-vibe-agent-<tab>"].includes(s));
   if (missing.length) { failed = true; console.error(`${file}: skills not mentioned: ${missing.join(", ")}`); }

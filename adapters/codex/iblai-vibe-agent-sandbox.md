@@ -293,12 +293,19 @@ Updates are upserts — the first PATCH bootstraps the row.
 From `@iblai/iblai-js/web-containers`:
 
 - `SandboxConfig`, `AgentConfigPrompts` — the two section components.
-- `LLMProviderModal` — provider/model picker used by the Model row.
-  Mountable standalone (e.g. for an "override default model" flow
-  outside the sandbox).
-- `getLLMProviderDetails`, `canSwitchLLm`, `canSwitchProvider` —
-  helpers for custom UI that needs to mirror the model-picker rules.
-- `LLMProvider`, `Provider` — types for the picker.
+- `useLlmProviderCatalogue` — resolves a provider key to its display
+  name and logo, for custom UI that shows the chosen model (see
+  `/iblai-vibe-agent-llm`).
+
+From `@iblai/iblai-js/web-containers/next`:
+
+- `LLMProviderModal` — the LLM tab's provider/model picker
+  (`/iblai-vibe-agent-llm`), mountable standalone (e.g. for an "override
+  default model" flow outside the sandbox). The Model row's own picker is
+  internal and not exported.
+- `LLMProvider`, `LLMProviderType` — types for the picker (`LLMProviderType`
+  is the `{ name, chat_models }` provider row; `LLMProvider` the full row
+  with `display_name` and `logo`).
 
 From `@iblai/data-layer`:
 
@@ -324,11 +331,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/sandbox /tmp/agent-sandbox.png
-   ```
+3. Touch test `/agents/<id>/sandbox` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 

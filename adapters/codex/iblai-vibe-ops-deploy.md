@@ -314,6 +314,15 @@ Redeploy = rebuild the zip, POST again with the same `project` — and when the
 rebuilt content hashes to what is already live, Step 3.5 turns that into a
 no-op instead of a push.
 
+## Step 4.5: Touch test the live URL
+
+Before you tell the user the deploy is done, run the `/iblai-vibe-ops-test`
+touch test on `$APP_URL` in place of `http://localhost:3000`: open it, sign in
+by hand (the first sign-in there also proves the origin is in the organization's
+allowed redirect origins), use what the deploy shipped, read the console, check
+the phone width, and put the report next to the URL. No browser tool: report
+the URL and say the live touch test did not run.
+
 ## Step 5: Update Tauri (if present)
 
 If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set

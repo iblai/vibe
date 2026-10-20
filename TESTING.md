@@ -1,12 +1,13 @@
 # Testing the skills
 
-Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) is **opt-in per PR: add the `run-tests` label** (tiers 0–1.5 always; the agent tier additionally only on changed skills); the live tier is weekly/manual. skills-ci is not a merge-required check.
+Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual.
 
 | Tier | Command | What it proves |
 |---|---|---|
 | 0 | `bash scripts/validate-skills.sh` | Frontmatter/spec conformance, off-spec dirs |
 | 1 | `node scripts/test-skills-render.mjs [--build]` | Skill **code** (assets + SKILL.md ts/tsx fences) typechecks against the currently-pinned SDK in vibe-starter |
 | 1.5 | `node scripts/check-sdk-pins.mjs [--fix]` | No `@iblai/*` version mention drifts from vibe-starter's `package.json` |
+| 1.5 | `pnpm audit --audit-level=moderate` (in vibe-starter) | No known moderate-or-higher advisory in the starter's lockfile, which every new project copies |
 | 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
 | 1.5 | `node scripts/check-skill-kinds.mjs` | Every skill declares `metadata.kind` (`ui`/`api`/`guide`/`ops`/`security`) and it agrees with its name prefix |
 | 1.5 | `node scripts/build-catalogue.mjs` + `node scripts/check-skill-tables.mjs` | `docs/catalogue.md` is regenerated from frontmatter; every skill is in CLAUDE.md's tier table and the catalogue, and nothing named there is missing |

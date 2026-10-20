@@ -64,7 +64,7 @@ export function OrgSettingsForm() {
             <button
               type="submit"
               disabled={isLoading || isSaving}
-              className="rounded-lg bg-gradient-to-r from-[#2563EB] to-[#93C5FD] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="ibl-button-primary rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {isSaving ? "Saving…" : "Save"}
             </button>

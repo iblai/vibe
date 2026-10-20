@@ -78,7 +78,7 @@ Any ibl.ai skill works out of the box. The ones this starter already uses are ma
 /iblai-vibe-agent-chat      ✓ customize the chat on /
 /iblai-vibe-agent-search    ✓ /agents
 /iblai-vibe-agent-create    ✓ /setup + /api/admin/agents
-/iblai-vibe-agent           # configure an agent (24 tabs, one provider)
+/iblai-vibe-agent           # configure an agent (26 tabs, one provider)
 /iblai-vibe-user-metadata   ✓ per-user settings
 /iblai-vibe-org-metadata    ✓ per-org settings
 /iblai-vibe-admin           ✓ User/Admin mode + admin area
@@ -130,12 +130,12 @@ public/sw.js                      # Offline service worker the SDK <Chat> regist
 e2e/                              # Playwright journeys + COVERAGE.md
 .env.example                      # → .env.local: org key, IBLAI_API_KEY, optional agent/app name
 iblai.env.example                 # → iblai.env: DOMAIN, PLATFORM, TOKEN
-.mcp.json                         # @iblai/mcp for your AI assistant (pnpm dlx)
+.mcp.json                         # @iblai/mcp (SDK docs) + chrome-devtools (the touch-test browser)
 ```
 
 ## AI-Assisted Development
 
-The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. Add the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server to your agent's MCP config (e.g. `.mcp.json`) for component-level lookups.
+The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. `.mcp.json` ships the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server for component-level lookups and the `chrome-devtools` server that `/iblai-vibe-ops-test` drives for the touch test.
 
 The [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server gives your AI assistant access to:
 

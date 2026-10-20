@@ -286,6 +286,12 @@ silently ignored. `""` means org-wide; never pass `undefined` for `mentorId`.
 
 ![Analytics — Cost → Usage & latency by model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-7-cost-usage-by-model.png)
 
+![Analytics — Courses (Active / Total Courses, Enrollments, Total Learners; Course Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-10-courses.png)
+
+![Analytics — Programs (Active / Total Programs, Enrollments, Total Learners; Program Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-11-programs.png)
+
+![Analytics — Data Reports (one card per report, download button)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-12-data-reports.png)
+
 ## Inside a transcript
 
 The Transcripts panel replays a conversation the way the chat rendered it,
@@ -366,13 +372,14 @@ for custom transcript UI:
 ## One agent instead of the org
 
 For analytics on a single agent (e.g.
-`app/(app)/agents/[mentorId]/analytics/`), pass the route's `mentorId` to
+`app/(app)/agents/[mentorId]/dashboards/`; keep `…/analytics/` free for the
+agent Analytics tab's hub), pass the route's `mentorId` to
 every tab and **omit `showPicker`**: the page already knows its agent. Also
 drop the groups filter, and hide Audit unless the viewer holds
 `/mentors/{mentorDbId}/#view_audit_logs` (`/iblai-vibe-rbac`):
 
 ```tsx
-const basePath = `/agents/${mentorId}/analytics`;
+const basePath = `/agents/${mentorId}/dashboards`;
 
 <AnalyticsLayout
   currentPath={pathname}
@@ -384,18 +391,16 @@ const basePath = `/agents/${mentorId}/analytics`;
 </AnalyticsLayout>
 ```
 
-The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`.
+The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`. To
+link an agent's settings to these pages, add the agent **Analytics** tab
+(`AgentAnalyticsTab`, a hub of report cards): `/iblai-vibe-agent-analytics`.
 
 ## Verify
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
-```
-
-Then click every tab in the strip: none may 404. Switch the agent picker
-and the date range, and check that the numbers change.
+`pnpm build && pnpm test`, then touch test `/analytics` in the browser as
+`/iblai-vibe-ops-test` says: click every tab in the strip — none may 404; switch
+the agent picker and the date range, and check that the numbers change; read
+the console; check the phone width.
 
 ## Notes
 
