@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.15.0] - 2026-10-20
+
+### Added
+
+- merge main into the agent Memory tab skills on the 2.36.2 pin
+- agent Memory tab — Personal Memories + Shared Memory sub-tabs; starter to @iblai/iblai-js 2.35.1
+
 ## [2.14.3] - 2026-10-20
 
 ### Documentation
