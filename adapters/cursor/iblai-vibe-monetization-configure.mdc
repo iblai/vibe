@@ -346,14 +346,9 @@ page using `useGetPublicPricingQuery({ config_unique_id })` and
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
-2. `pnpm dev` and drive the tab:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot \
-     "http://localhost:3000/account?profileTab=monetization" \
-     /tmp/monetization.png
-   ```
-3. Confirm with the screenshot:
+2. Touch test `/account?profileTab=monetization` in the browser as
+   `/iblai-vibe-ops-test` says.
+3. Confirm in the browser:
    - The `Monetization` tab is present in the sidebar (gating works).
    - Without Connect onboarding, the paywall pane shows the dashed
      "Connect Stripe first" card (Stripe Connect status guards correctly).

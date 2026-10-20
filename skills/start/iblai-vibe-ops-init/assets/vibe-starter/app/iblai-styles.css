@@ -171,12 +171,6 @@
   @apply text-blue-400 hover:text-blue-300;
 }
 
-body {
-  font-family:
-    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-    'Noto Color Emoji' !important;
-}
-
 /* Safe area insets for mobile status bar / notch / home indicator */
 body {
   padding-top: env(safe-area-inset-top);

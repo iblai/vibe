@@ -29,6 +29,13 @@ the agent's runtime behaviour. Push pulls the current configuration
 onto the connected sandbox; Auto Push on Save pushes after every
 edit.
 
+With **Virtual Machine Shell** selected, a **Network Access** section
+appears under the card — the VM's egress profile, its network policy
+and its secrets. That section has its own skill:
+`/iblai-vibe-agent-virtual-machine` (and
+`/iblai-vibe-virtual-machine` for the organization-wide policies and
+secrets it draws on).
+
 Agent Skills are managed independently of the sandbox — see
 `/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
 per-agent assignment, skill resources, and the chat `/` picker).
@@ -291,12 +298,18 @@ Updates are upserts — the first PATCH bootstraps the row.
 From `@iblai/iblai-js/web-containers`:
 
 - `SandboxConfig`, `AgentConfigPrompts` — the two section components.
+- `useLlmProviderCatalogue` — resolves a provider key to its display
+  name and logo, for custom UI that shows the chosen model (see
+  `/iblai-vibe-agent-llm`).
+
+From `@iblai/iblai-js/web-containers/next`:
+
 - `LLMProviderModal` — provider/model picker used by the Model row.
   Mountable standalone (e.g. for an "override default model" flow
   outside the sandbox).
-- `getLLMProviderDetails`, `canSwitchLLm`, `canSwitchProvider` —
-  helpers for custom UI that needs to mirror the model-picker rules.
-- `LLMProvider`, `Provider` — types for the picker.
+- `LLMProvider`, `LLMProviderType` — types for the picker (`LLMProviderType`
+  is the `{ name, chat_models }` provider row; `LLMProvider` the full row
+  with `display_name` and `logo`).
 
 From `@iblai/data-layer`:
 
@@ -322,11 +335,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/sandbox /tmp/agent-sandbox.png
-   ```
+3. Touch test `/agents/<id>/sandbox` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 
@@ -377,8 +387,8 @@ prefixed with `${dmUrl}/api/ai-mentor/orgs/{org}/` where `dmUrl` is
 
 | Method | Path | Body |
 |---|---|---|
-| GET | `mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw`, `enable_virtual_machine`, and `enable_computational_runtime` (booleans) |
-| PUT | `mentors/{mentor_unique_id}/settings/` | e.g. `{ "enable_virtual_machine": true, "enable_claw": false, "enable_computational_runtime": false }` |
+| GET | `users/{username}/mentors/{mentor_unique_id}/settings/` | Returns the full settings object, including `enable_claw`, `enable_virtual_machine`, and `enable_computational_runtime` (booleans) |
+| PUT | `users/{username}/mentors/{mentor_unique_id}/settings/` | e.g. `{ "enable_virtual_machine": true, "enable_claw": false, "enable_computational_runtime": false }` |
 
 The kinds are mutually exclusive by convention, enforced client-side:
 when enabling one flag, send the other two as `false` in the same
@@ -434,6 +444,31 @@ body of the corresponding `*.md` workspace file), plus `model`
 
 Agent Skills endpoints (catalog, resources, per-agent assignments)
 are documented in `/iblai-vibe-agent-skills`.
+
+### Virtual machine network policies & secrets
+
+The **Virtual Machine Shell** kind runs each chat in an isolated Linux VM
+with no network by default. What it may reach is chosen per agent through
+three settings fields — `virtual_machine_egress`
+(`none` | `registries` | `public` | `custom`),
+`virtual_machine_network_policy_id` and `virtual_machine_secret_ids` — and
+the organization-wide network policies and VM secrets they point at live
+under `/api/ai-account/orgs/{org}/`.
+
+That whole surface has its own skills:
+
+- **`/iblai-vibe-agent-virtual-machine`** — the Sandbox tab's **Network
+  Access** section: egress profile, policy picker, secrets multi-select,
+  the rules the UI enforces before saving, and the agent settings fields.
+- **`/iblai-vibe-virtual-machine`** — organization settings → **Virtual
+  Machine**: the network policy and VM secret tables, their dialogs,
+  validation limits, RBAC verbs and the REST endpoints.
+
+**Billing:** VM lifetime is charged to the chatting user's credits at
+`SANDBOX_COST_USD_PER_10_MINUTES` (global configuration, default `$1`,
+overridable per organization), prorated per second and recorded on the
+`sandbox_session` observation in Langfuse.
+
 
 ### Common errors
 

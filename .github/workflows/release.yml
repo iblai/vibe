@@ -25,8 +25,10 @@ concurrency:
   group: release
   cancel-in-progress: false
 
-# Least privilege: this job only writes commits, tags and releases. It uses the
-# built-in token, so no personal access token is exposed to this public repo.
+# Least privilege: this job only writes commits, tags and releases. main requires
+# a pull request, which the built-in token cannot bypass, so pushes use
+# RELEASE_TOKEN: a vibe-only token held in the `release` environment, which only
+# main can deploy to.
 permissions:
   contents: write
 
@@ -35,6 +37,7 @@ jobs:
     # Ignore the release commits this workflow makes itself, so it cannot loop.
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: Check out full history
         # Pinned to a commit SHA rather than a tag: tags can be moved, a SHA
@@ -42,6 +45,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          # Persisted for the `git push` below.
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Work out the next version
         id: next
@@ -169,7 +174,7 @@ jobs:
       - name: Commit, tag and publish
         if: steps.next.outputs.release == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ steps.next.outputs.version }}
         run: |
           set -euo pipefail

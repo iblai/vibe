@@ -93,11 +93,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/memory /tmp/agent-memory.png
-   ```
+3. Touch test `/agents/<id>/memory` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 
@@ -146,6 +143,11 @@ Defaults are `false` if no settings row exists.
 | Method | Path | Purpose |
 |---|---|---|
 | PUT | `users/{user_id}/mentors/{mentor}/settings/` | Body includes `enable_memory_component: bool` |
+
+Every memory row identifies its owner with `username`, `email` and
+`user_full_name`, so a list renders the person without a second request; an
+agent-knowledge row names its curator with `created_by`, `created_by_email` and
+`created_by_full_name` instead.
 
 ### Global memories (apply across all agents)
 

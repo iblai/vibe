@@ -67,11 +67,11 @@ An org-wide `enable_memsearch` flag gates the whole feature (see `memsearch-stat
 
 ### Categories
 
-- **GET** `…/orgs/{org}/mentors/{mentor}/memory-categories/` — category list for one agent.
+- **GET** `…/orgs/{org}/mentors/{mentor}/memory-categories/?start_date={yyyy-MM-dd}&end_date={yyyy-MM-dd}` — category list for one agent. Optional `start_date` / `end_date` filter by the category's `created_at`.
 
 ### Agent knowledge (shared)
 
-- **GET** `…/orgs/{org}/mentors/{mentor}/agent-memories/?page={n}&page_size={n}` — paged list of the agent's shared knowledge entries (DRF page envelope; `page_size` default 20, max 100). This path has **no** `users/{username}` segment — do not confuse it with the user-scoped `{u}/agent-memories/` twin spelling above, which lists one user's per-agent memories.
+- **GET** `…/orgs/{org}/mentors/{mentor}/agent-memories/?page={n}&page_size={n}&start_date={yyyy-MM-dd}&end_date={yyyy-MM-dd}` — paged list of the agent's shared knowledge entries (DRF page envelope; `page_size` default 20, max 100). Optional `start_date` / `end_date` filter by the entry's `created_at`. This path has **no** `users/{username}` segment — do not confuse it with the user-scoped `{u}/agent-memories/` twin spelling above, which lists one user's per-agent memories.
 
 ### Global (cross-agent) memories
 
@@ -171,6 +171,11 @@ curl -s \
   `…/users/{username}`) is the twin spelling of one user's per-agent memories; the org+agent-scoped
   `…/orgs/{org}/mentors/{mentor}/agent-memories/` (no user segment) is the **shared agent knowledge**
   store. Different data, different path — pick by whether a `users/{username}` segment is present.
+- **`start_date` / `end_date`** accept an ISO date (`yyyy-MM-dd`) or full ISO
+  datetime (a trailing `Z` is honoured) and filter by `created_at`. They work on
+  the agent-memory reads, global memories, the shared agent-knowledge list, and
+  the category list. A value that can't be parsed returns `400`
+  (`{"error": "Invalid start_date format. Use ISO date format."}`).
 - There is no bulk-delete endpoint: to clear several memories, issue one DELETE per id.
 - Flat list reads (global memories, agent memories, categories) return a DRF page
   envelope — `{ "count": n, "results": [...] }`; iterate `results`. The grouped
@@ -184,7 +189,7 @@ curl -s \
 | --- | --- | --- |
 | `id` | ro | integer |
 | `content` | req (write) | the memory text; ≥10 chars |
-| `username`, `email` | ro | resolved from the user |
+| `username`, `email`, `user_full_name` | ro | resolved from the user; `user_full_name` is the display name, empty when the user has none |
 | `mentor_id` | ro | agent memories only |
 | `platform` | ro | global memories only (org key) |
 | `category` | ro | agent memories only; nested category object |
@@ -201,9 +206,11 @@ curl -s \
 | `mentor_name` | ro | the agent's name |
 | `content` | req (write) | the knowledge text; ≥10 chars |
 | `created_by` | ro | username of the curator, or `null` (service/API-key callers) |
+| `created_by_email`, `created_by_full_name` | ro | the curator's email and display name; both `null` when `created_by` is |
 | `created_at`, `updated_at` | ro | ISO 8601 |
 
-No `category`, `is_auto_generated`, or user fields — agent knowledge is shared and manually curated.
+No `category` or `is_auto_generated` — agent knowledge is shared and manually curated, so
+the only user it names is the curator (`created_by*`), never a learner.
 
 **Category object** (`MentorMemoryCategory`): `id` (ro), `name`, `slug` (unique per agent),
 `description`, `extraction_prompt`, `is_active` (default `true`), `created_at` (ro).

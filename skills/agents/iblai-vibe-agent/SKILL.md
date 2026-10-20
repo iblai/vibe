@@ -84,7 +84,7 @@ Start with the **core six** (bold). Add the others only when the user asks.
 | History | conversation history with filters and export | `/iblai-vibe-agent-history` | [agent-history](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-history/SKILL.md) |
 | LTI | LTI 1.3 launch, keys, tools, endpoints | `/iblai-vibe-agent-lti` | — |
 | MCP | connectors (featured + custom), OAuth | `/iblai-vibe-agent-mcp` | [agent-mcp](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-mcp/SKILL.md) |
-| Privacy | PII detection: redact / mask / block | `/iblai-vibe-agent-privacy` | [agent-privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-privacy/SKILL.md) |
+| Privacy | PII filtering (allow / redact / mask / block) and the Incognito policy | `/iblai-vibe-agent-privacy` | [agent-privacy](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-privacy/SKILL.md) |
 | Safety | moderation prompts, flagged content | `/iblai-vibe-agent-safety` | [agent-safety](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-safety/SKILL.md) |
 | Sandbox | computing runtime / VM shell / Claw instances | `/iblai-vibe-agent-sandbox` | [agent-sandbox](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-sandbox/SKILL.md) |
 | Skills | reusable Agent Skills, per-agent assignment, chat `/` picker | `/iblai-vibe-agent-skills` | [agent-skill](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-skill/SKILL.md) |
@@ -108,4 +108,4 @@ Every tab skill has screenshots of the surface it mounts — open the skill befo
 ## Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
-`pnpm build`, `pnpm test`, then `npx playwright screenshot http://localhost:3000/agents/<uuid>/settings /tmp/agent-settings.png`.
+`pnpm build`, `pnpm test`, then Touch test `/agents/<uuid>/settings` in the browser as `/iblai-vibe-ops-test` says: every tab, the console, the phone width.

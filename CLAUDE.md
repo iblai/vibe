@@ -27,16 +27,19 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "organization setting", "white-label", "per-org config" | `/iblai-vibe-org-metadata` ★ (GET-merge-PUT) + `/iblai-vibe-account` |
 | "profile", "avatar", "résumé" | `/iblai-vibe-profile` ★ |
 | "remember", "memory", "personalize" | `/iblai-vibe-memory-guide` ★ → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` |
+| "incognito", "private mode", "don't save this chat", "PII", "redact personal data" | `/iblai-vibe-incognito` (the toggle + the four tiers) → `/iblai-vibe-agent-privacy` (PII filtering + the agent's Incognito policy), the Profile › Privacy tab in `/iblai-vibe-profile` |
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
+| "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, policy, secrets), `/iblai-vibe-virtual-machine` (the org's policies + secrets) |
 | "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
 | "configure / operate the org from the terminal, a script, CI" (no app) | `/iblai-api-login`, then the `iblai-api-*` skill for that family — `curl`, never UI |
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
-| "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, screenshot |
+| "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, then its touch test — the route in a real browser, every new control, the console, the phone width |
+| "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -257,7 +260,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe` | Start here — what you want → which skill |
 | `/iblai-vibe-ops-init` | New project from vibe-starter; credentials ladder; writes the project CLAUDE.md |
 | `/iblai-vibe-auth` | SSO auth for an existing Next.js app (providers, store, `lib/iblai/*`) |
-| `/iblai-vibe-ops-test` | Test before showing work (Vitest, Playwright, screenshots) |
+| `/iblai-vibe-ops-test` | Test before showing work: Vitest, Playwright journeys, a touch test in a real browser (Claude in Chrome or the Chrome DevTools MCP) |
 | `/iblai-vibe-ops-deploy` | Deploy through the platform's hosting API (Vercel-backed), containers, static hosts |
 
 **Tier 1 — the core app** (journey order)
@@ -273,7 +276,8 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-agent` | Family index for all 24 agent settings tabs |
 | `/iblai-vibe-profile` ★ | Profile dropdown + settings page |
 | `/iblai-vibe-user-metadata` ★ | Custom per-user data on the platform |
-| `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory) |
+| `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory, Virtual Machine) |
+| `/iblai-vibe-virtual-machine` | Org Virtual Machine settings: the network policies and VM secrets agents' sandboxes draw on |
 | `/iblai-vibe-org-metadata` | Custom org data; GET-merge-PUT; where branding lives |
 | `/iblai-vibe-admin` | User/Admin mode and the admin area |
 | `/iblai-vibe-invite` | Invitation dialogs |
@@ -286,6 +290,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-analytics` ★ | Analytics dashboard (org-wide or per agent) |
 | `/iblai-vibe-agent-audit` | Agent audit log |
 | `/iblai-vibe-history` | The user's own conversation history + exports |
+| `/iblai-vibe-incognito` | Incognito: the chat-header toggle, the mid-conversation dialog, and how org / agent / user / session tiers resolve |
 | `/iblai-vibe-pricing` | How money works; which rail to charge users |
 | `/iblai-vibe-credit` | Credit balance widget |
 | `/iblai-vibe-billing` | Org Billing: plan & credits, spend limits, agent limits |
@@ -331,9 +336,10 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | Talk to an agent | `agent-session` (REST/SSE/WebSocket), `agent-chat` (hosted MCP server), `inference` (OpenAI-compatible `/v1`) |
 | Organization | `org`, `management`, `rbac`, `invite`, `scim`, `token`, `integration`, `notification`, `feature`, `billing`, `spend-caps`, `crm`, `external-service-proxy` |
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
-| Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply` |
+| Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply`, `heygen` (avatar video, voice cloning, streaming avatars) |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |
 | Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-outline` (bulk build), `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
+| Deploy & hosting | `hosting` — upload a build, poll it live, custom domains (headless twin of `/iblai-vibe-ops-deploy`) |
 | Guides | `ecosystem`, `infrastructure` (self-hosting) |
 
 Authoring contract (Reads/Writes structure, `urls.py` as source of truth, the
@@ -396,8 +402,8 @@ import { SsoLogin, UserProfileDropdown } from "@iblai/iblai-js/web-containers/ne
 - **Primary**: `#0058cc` (brand blue)
 - **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack
-- **Style**: shadcn/ui new-york variant, neutral base, Lucide icons
+- **Font**: Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600)
+- **Style**: shadcn/ui base-nova (Base UI), neutral base, Lucide icons
 
 See [BRAND.md](BRAND.md) for the complete brand guidelines.
 
@@ -439,7 +445,7 @@ The canonical SKILL.md files ARE the Claude Code format — no separate
 adapter needed for Claude. Use `templates/skill-template.md` as the
 starting point when authoring a new skill.
 
-**Skill validation & testing** (details in [TESTING.md](TESTING.md); CI runs the first three on PRs labeled `run-tests` — not merge-required):
+**Skill validation & testing** (details in [TESTING.md](TESTING.md); CI runs the first three on PRs labeled `run-tests`, a label every PR needs — skills-ci's `deterministic` check must pass to merge):
 
 ```bash
 bash scripts/validate-skills.sh           # spec conformance: name/description/frontmatter, ≤500 lines, off-spec dirs
@@ -462,6 +468,14 @@ justified typecheck skips live in `scripts/skill-render-skips.json`. Screenshot
 conventions: [docs/screenshots/README.md](docs/screenshots/README.md).
 `scripts/check-skill-tables.mjs` fails when a skill directory is missing from
 this catalogue or vice versa.
+
+## Reviewing pull requests
+
+To review or re-review a PR on this repo, use the `iblai-vibe-pr-review` skill.
+It is for maintainers: a real directory in `.claude/skills/` (the other entries
+there link into `skills/`), marked `metadata.internal` so installers skip it,
+and outside the catalogue. Name it without a leading slash in this file:
+`check-skill-tables.mjs` reads every slash-prefixed `iblai-` name as a product skill.
 
 ## Deployment
 
@@ -514,7 +528,7 @@ THIS PROJECT ALREADY HAS GIT INITIALIZED. DO NOT INITIALIZE GIT.
 >    the hosted platform → `DOMAIN=iblai.app` (`api.iblai.app`,
 >    `login.iblai.app`). A self-hosted OS host implies another domain — ask.
 > 2. **Get a token from the session, never a password.** With a browser tool
->    (`claude --chrome`, or the Playwright server in `.mcp.json`): open the
+>    (`claude --chrome`, or the `chrome-devtools` server in `.mcp.json`): open the
 >    URL, confirm the user is signed in, read `dm_token` and
 >    `userData.user_nicename` (the username) from localStorage, then mint a
 >    Platform API Token exactly as `/iblai-api-login` step 2 documents —

@@ -94,8 +94,12 @@ org-wide scope on every endpoint here.
 
 - **GET** `{dm_url}/api/analytics/messages/?platform_key={platform}&search={q}&topic={topic}&sentiment={s}&min_messages=&max_messages=&page=1&limit=20[&mentor_unique_id={mentor}][&start_date=&end_date=]`
   — transcript list (one row per session). `search` matches the user's
-  **email** or username and the session's first user message. Each row carries
-  the user's `email`.
+  **email** or username and the session's first user message. Each row
+  identifies the learner with `user` (numeric id), `username`, `email` and
+  `name` (display name), so a table needs no second request to label a row.
+  Each row also carries the agent's `model` (the mentor's LLM name) and
+  `llm_provider` (the mentor's LLM provider) — both `null` when the agent has
+  none set.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended
@@ -108,18 +112,29 @@ org-wide scope on every endpoint here.
   metadata, processing_error, url}]`; `[]` when none). A turn the user sent
   as attachments only is included with `human: ""` and its files in
   `human_files`, so render the files when the text is empty. `url` is a
-  signed link that expires, so fetch it again rather than storing it.
+  presigned link that expires, so re-fetch it rather than caching it.
 
 ### Content analytics (courses / programs / pathways / skills)
 
 Catalog engagement and time-spent, org-wide by default. Add `mentor_unique_id`
 to scope to content consumed via one agent.
 
-- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
+- **GET** `{dm_url}/api/analytics/content/?platform_key={platform}&metric=courses&date_filter=30d&include_overtime=false&page=1&limit=20[&sort_by=enrollments][&search=][&mentor_unique_id={mentor}][&granularity=hour][&usergroup_ids=]`
   — aggregated content analytics + paginated item list. `metric` (**required**)
   ∈ `course`/`courses` | `program`/`programs` | `pathway`/`pathways` |
   `skill`/`skills`. `include_overtime=true` adds a 7-day time-spent series
   (courses only).
+  - **Order (`sort_by`):** `enrollments` (default when omitted) - total
+    enrollments, active and inactive, highest first, ties by name;
+    `active_enrollments` - active enrollments, highest first; `name` - A to Z.
+    Counts use the same user scope as each item's `analytics.enrollments`, so
+    content with 0 enrollments sorts last. Skills are always ordered by name.
+    Send `sort_by=name` if you need the alphabetical list.
+  - **Program identifiers:** with `metric=program`, each result has
+    `program_id` (the program code, e.g. `2025`, the value catalog search
+    filters take as `program_id`) and `program_key`
+    (`program-v1:<org>+<program_id>`). `id` still returns the program key but
+    is deprecated for programs; read `program_id` / `program_key` instead.
 - **GET** `{dm_url}/api/analytics/content/details/{content_id}/?platform_key={platform}&metric=courses&date_filter=30d&search=&page=1&limit=20[&time_metric=][&mentor_unique_id={mentor}]`
   — detailed analytics for one content item (summary + per-user rows +
   optional time series). `metric` **required**.
@@ -162,6 +177,11 @@ serves three resources via the `resource` param; every `measures`, `aggregation`
   group by). `order_by` ∈ `timestamp` (default) | `name` | `username` |
   `session_id`; `direction` ∈ `asc` | `desc`. `&trace_id={id}` fetches one trace.
   Unlike observations, traces **are** agent-scopable via `mentor_unique_id`.
+  Each trace row carries the tracing backend's native `userId` (= username) plus
+  `userFullName` and `userEmail`, resolved server-side from the local user record
+  (camelCase to stay uniform with the backend's own `userId`/`sessionId`). Both
+  are `null` when the trace has no `userId` or the user isn't found. Enrichment is
+  **traces-only** — `metrics` (aggregate) and `observations` carry no `userId`.
 
 All three return the same envelope: `{ "resource": "…", "data": [...], "meta": {...} }`.
 `limit` caps at `1000`. A get-by-id (`trace_id` on traces, `observation_id` on
@@ -170,13 +190,17 @@ is never leaked. An unreachable/erroring tracing backend returns **`502`** (dist
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
 
-**Access (self-service).** Platform admins — and watchers / mentor owners via
-their RBAC grants — see the whole tenant. A **non-admin** end user may read
-**only their own usage**: the `userId`/`username` filter is clamped to the
-caller, so a self-access call can never return tenant-wide aggregates. Omitting
-`username` defaults to the caller's own rows; passing **another** user's
-`username` is rejected **`403`**. This governs end-user tokens driving the UI —
-with an `Api-Token` workspace key you act as the platform, so you always get the
+**Access (self-service & delegated).** Platform admins see the whole tenant; a
+**mentor owner** sees their agent's rows (scope with `mentor_unique_id`). A
+**watcher** — a user holding an analytics grant on specific learners — may drill
+into a watched learner via `?username=<watched>`; the query is clamped to their
+watched set (their own rows plus watched users on the plain aggregate), and an
+**unwatched** `username` is rejected **`403`**. A plain **non-admin** end user
+may read **only their own usage**: the `userId`/`username` filter is clamped to
+the caller, so a self-access call can never return tenant-wide aggregates.
+Omitting `username` defaults to the caller's own rows (a watcher additionally
+sees their watched users). This governs end-user tokens driving the UI — with an
+`Api-Token` workspace key you act as the platform, so you always get the
 full-tenant scope and the self-scoping above does not apply.
 
 ### Per-user analytics
@@ -290,6 +314,19 @@ curl -s "$dm_url/api/analytics/content/?platform_key=$IBLAI_ORG&metric=courses&d
 - **Same endpoints, two scopes.** `mentor_unique_id` present ⇒ agent scope;
   absent ⇒ org-wide. `platform_key={platform}` is your workspace key throughout.
 - **`date_filter=custom`** requires both `start_date` and `end_date` (`yyyy-MM-dd`).
+- **Windowed `period_*` response fields.** `topics` (`metric=overview`), `users`
+  (`metric=currently_active`, plus the `active_users*` metrics), and `content`
+  return flat `period_*` figures computed over the `date_filter` window alongside
+  the existing all-time / month figures: each topics metric block adds
+  `period_total` / `period_previous` / `period_percentage_change`; `users`
+  `currently_active` adds `period_count` / `period_change`; `content`
+  `summary.totals` and `summary.averages` add `period_*` counterparts
+  (`period_total_enrollments`, `period_active_enrollments`, `period_total_learners`,
+  `period_total_time_spent`, `period_completion_rate`, `period_average_rating`,
+  `period_time_per_learner`). Every windowed response also echoes
+  `period_start_date` / `period_end_date`. These fields appear **only when a
+  window resolves** — `date_filter=all_time` omits them entirely, so treat them
+  as optional.
 - **Cost values are already user-facing** — the financial endpoints return
   platform-marked-up USD. Consume as-is; do not re-apply any markup.
 - **Costs are best-effort** (a separate datastore) — a null/empty cost block

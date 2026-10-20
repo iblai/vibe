@@ -174,9 +174,10 @@ Deploy through the ibl.ai platform's hosting API (Vercel-backed) with
 No Vercel account or token — auth is the platform API key (`TOKEN`) in
 `iblai.env`. The skill zips the app (the `out/` export in static mode, the
 project source in server mode), uploads it, polls until the build is
-READY, and prints the live `*.vercel.app` URL Vercel reports. Re-run it
-to redeploy; attach custom domains via the hosting DNS endpoint (the skill
-returns the DNS records to add).
+READY, and prints the address as `site_url` — a subdomain the platform
+assigns, or the organization's own custom domain. Re-run it to redeploy;
+custom domains are attached and managed through the skill, which returns
+the DNS records to add.
 
 **Going back to local** (Tauri dev builds): remove `devUrl` from
 `src-tauri/tauri.conf.json` and the WebView loads local static files

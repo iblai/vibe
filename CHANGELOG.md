@@ -3,6 +3,184 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.13.2] - 2026-10-14
+
+### Documentation
+
+- fix the documented test command
+
+## [2.13.1] - 2026-10-14
+
+### Fixed
+
+- normalize the platform domain before building service URLs
+
+## [2.13.0] - 2026-10-14
+
+### Added
+
+- browser touch test before done
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
+## [2.12.5] - 2026-10-14
+
+### Documentation
+
+- document the learner completion proxy in iblai-api-catalog
+
+## [2.12.4] - 2026-10-14
+
+### Documentation
+
+- document windowed period_* fields and memory created_at date filters
+
+## [2.12.3] - 2026-10-14
+
+### Documentation
+
+- document llm_provider on messages list and watcher llm-usage access
+
+## [2.12.2] - 2026-10-14
+
+### Fixed
+
+- keep installed skill directories out of typecheck and git
+
+## [2.12.1] - 2026-10-14
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
+### Documentation
+
+- scope message actions and voice hook notes
+- fix review findings on actions, prompts and skill picker
+- redesigned chat screenshots and SDK 2.36.2
+
+## [2.12.0] - 2026-10-12
+
+### Added
+
+- Open Sans house style, canonical components and an ask-first rule
+- screens added from docs
+- Incognito — agent Privacy sub-tabs, profile default, chat toggle
+- Virtual Machine network policies and secrets
+- account & profile revamps skills updated
+
+### Fixed
+
+- keep the Privacy and Incognito descriptions valid YAML
+- ops-upgrade removes the web-containers hold in either quote style, then checks the lock
+- the /next provider type is exported as LLMProviderType, not Provider
+- agent-sandbox exports — drop canSwitchLLm/canSwitchProvider, LLMProviderModal and types are /next
+- Incognito review — what is withheld vs kept, both-flags, tenant row, links, screenshots
+- clear the Oct-2026 pnpm audit findings (security floors, lock refresh)
+- clear vibe-starter's Dependabot alerts (next 16.3.8, SDK pin overrides, lock refresh)
+- the agent-settings endpoints include the users/{username} segment
+
+### Changed
+
+- fold the house style into iblai-vibe-component and drop the new skil
+
+### Documentation
+
+- close the Incognito review nits
+- Code mode pictures move to assets; Codex signs in through the ChatGPT app
+- retire the dead iblai-mcp catalog in iblai-api-agent-mcp
+- Code mode skill walks users through Codex and Claude Code sign-in
+
+## [2.10.2] - 2026-09-23
+
+### Documentation
+
+- VM network policies, credential-backed secrets and runtime billing
+
+## [2.10.1] - 2026-09-23
+
+### Documentation
+
+- document userFullName/userEmail on llm-usage traces
+
+## [2.10.0] - 2026-09-23
+
+### Added
+
+- port vibe-agent's in-app paywall setup and member checkout; allow Stripe in CSP
+
+## [2.9.0] - 2026-09-22
+
+### Added
+
+- always use https://login.iblai.app
+- add /iblai-vibe-connect skill (client half of the connect flow)
+
+### Documentation
+
+- list /iblai-vibe-connect in the skills catalog
+
+## [2.8.0] - 2026-09-22
+
+### Added
+
+- add the paywall Stripe Connect screen and in-app embedded checkout
+
+## [2.7.2] - 2026-09-22
+
+### Documentation
+
+- document catalog search price and format filters
+
+## [2.7.1] - 2026-09-22
+
+### Documentation
+
+- correct the hosted-app address contract and document the shared-subdomain route
+
+## [2.7.0] - 2026-09-22
+
+### Added
+
+- add iblai-api-hosting and iblai-api-heygen
+
+## [2.6.0] - 2026-09-21
+
+### Added
+
+- add shared domain content
+
+### Documentation
+
+- document custom domains for hosted apps
+
+## [2.5.4] - 2026-09-20
+
+### Documentation
+
+- null all three identity fields for deleted user
+- document read-only privacy-flags audit endpoint
+
+## [2.5.3] - 2026-09-18
+
+### Documentation
+
+- refresh Spend Limits and Agent Limits screenshots in iblai-vibe-billing
+
+## [2.5.2] - 2026-09-18
+
+### Documentation
+
+- content analytics sort_by default and program identifiers
+
+## [2.5.1] - 2026-09-18
+
+### Documentation
+
+- document the user identity fields on every read that names a user
+
 ## [2.5.0] - 2026-09-17
 
 ### Added

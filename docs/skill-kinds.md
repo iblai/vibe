@@ -25,7 +25,7 @@ metadata:
 ```
 
 - `kind: ui` — expect a screenshot near the top, `Step 1…n` that write files, a
-  **Verify** block ending in a Playwright screenshot, and a **Platform data**
+  **Verify** block ending in the browser touch test (`/iblai-vibe-ops-test`), and a **Platform data**
   table linking the `iblai-api-*` skill that documents the same data over REST.
 - `kind: api` — expect `## Auth & conventions`, `## Reads`, `## Writes`,
   `## Example` (one real `curl`), `## Notes`, and no mention of any UI. The
@@ -49,6 +49,7 @@ Most capabilities exist in both families. Pick by *where the code runs*:
 | Notifications | `/iblai-vibe-notification` | `/iblai-api-notification` |
 | Billing, credits, spend caps, paywalls | `/iblai-vibe-pricing` → `credit`, `billing`, `monetization*` | `/iblai-api-billing`, `/iblai-api-spend-caps` |
 | Courses, catalog, credentials, applications | `/iblai-vibe-course-access`, `/iblai-vibe-application` | `/iblai-api-catalog`, `-course-create`, `-credential`, `-apply`, `-milestone`, `-catalog-media`, `-catalog-invitation` |
+| Deploying and hosting the app | `/iblai-vibe-ops-deploy` (a guided runbook, kind `ops` — not a component) | `/iblai-api-hosting` |
 | Anything without a component | `/iblai-vibe-api` (server route + `Api-Token`) | the `iblai-api-*` skill for that family |
 
 Rule of thumb: **in the browser, use the SDK hook or component** (it carries

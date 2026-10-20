@@ -53,6 +53,14 @@ pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
 {% endif %}
 ```
 
+## Before you say "done"
+
+Run `/iblai-vibe-ops-test`: `pnpm build`, `pnpm test`, then its touch test.
+Open each route you changed in a real browser (the `chrome-devtools` server in
+`.mcp.json`, or `claude --chrome`), use every control you added, read the
+console, check the phone width. The user signs in by hand in that window; never
+ask for a password. No browser tool? Say so: the work is not done.
+
 ## Architecture
 
 ### Route Groups
@@ -124,7 +132,7 @@ Copy `.env.example` to `.env.local` and fill in your values.
 
 | Package | Version |
 |---------|---------|
-| `@iblai/iblai-js` | ^2.12.2 |
+| `@iblai/iblai-js` | ^2.36.2 |
 | `@iblai/iblai-web-mentor` | ^2.0.1 |
 | `@reduxjs/toolkit` | 2.11.2 |
 | `next` | 16.2.1 |
@@ -173,6 +181,7 @@ Available in `.claude/skills/` (invoke with `/` in Claude Code):
 | `/iblai-vibe-component` | Overview of all SDK components |
 | `/iblai-vibe-ops-build` | Desktop/mobile builds (Tauri v2) |
 | `/iblai-vibe-ops-deploy` | Deploy via ibl.ai hosting (Vercel) |
+| `/iblai-vibe-ops-test` | Build, tests, and a touch test in a real browser before "done" |
 | `/iblai-vibe-windows-msix` | Windows MSIX build for test (sideloading) and release (Store) |
 | `/iblai-vibe-iconography` | Generate Tauri icon sizes from a source image |
 | `/iblai-vibe-deslop` | Audit and harden codebases for production readiness |

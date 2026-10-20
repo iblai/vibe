@@ -1,14 +1,16 @@
 "use client";
 
-import { Spinner } from "@iblai/iblai-js/web-containers";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * The one loading / busy screen, the OS's look: white, a centred Lucide arc in
- * brand blue. Full page by default; `overlay` covers the viewport (opaque,
- * above everything, like the OS boot loader) while something saves or
- * redirects and the user must not interact. Busy forms keep their controls
- * disabled underneath it as well.
+ * brand blue. The arc is rendered directly (not the SDK `Spinner`, which
+ * hardcodes `text-blue-500`) so the colour and size match the OS `Spinner`
+ * exactly — `Loader2` at `h-8` in `#2563EB`. Full page by default; `overlay`
+ * covers the viewport (opaque, above everything, like the OS boot loader) while
+ * something saves or redirects and the user must not interact. Busy forms keep
+ * their controls disabled underneath it as well.
  */
 export function LoadingScreen({
   message,
@@ -30,7 +32,7 @@ export function LoadingScreen({
         className,
       )}
     >
-      <Spinner className="h-14 w-14 text-[#2563EB]" />
+      <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
       {message && <p className="text-sm text-muted-foreground">{message}</p>}
     </output>
   );

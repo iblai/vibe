@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-privacy
-description: Configure an ibl.ai agent's Privacy Router via the platform API — enable PII detection, choose redact/mask/block action, select entity types (PERSON, EMAIL_ADDRESS, US_SSN, …), set the privacy response, and toggle output filtering (saved through the agent settings endpoint). Use when controlling how the agent handles personal data.
+description: Configure an ibl.ai agent's Privacy Router via the platform API — enable PII detection, choose redact/mask/block action, select entity types (PERSON, EMAIL_ADDRESS, US_SSN, …), set the privacy response, and toggle output filtering (saved through the agent settings endpoint) — and review the tenant's PII/PHI detection audit log (privacy-flags). Use when controlling how the agent handles personal data or auditing what sensitive data flowed through the agents.
 metadata:
   kind: api
 ---
@@ -10,8 +10,9 @@ metadata:
 Configure an agent's Privacy Router via the API: enable PII detection, pick the
 redact / mask / block action and the entity types to watch, set the response
 returned when PII is caught, and toggle output filtering — all saved through the
-single `settings/` endpoint. Use when controlling how the agent handles personal
-data.
+single `settings/` endpoint — plus review the tenant's read-only PII/PHI
+detection audit log (`privacy-flags`). Use when controlling how the agent handles
+personal data or auditing what sensitive data flowed through the agents.
 
 ## Auth & conventions
 
@@ -29,6 +30,8 @@ data.
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — load the current privacy fields.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/public-settings/` — privacy-router state for anonymous (unauthenticated) requests.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/privacy-flags/?mentor={mentor}&rail={pii|phi}&action_taken={redact|mask|block|allow}&source={text_prompt|file_text|file_image|file_pdf|llm_response|memory_retrieval}&session_id={id}&username={u}&start_time={iso}&end_time={iso}&search={q}&page={n}&page_size={n}` — list every PII/PHI detection recorded across the tenant (read-only audit log). Each row reports the `rail` that fired (`pii`/`phi`), the `action_taken`, the `source`, and `detected_entities` — the entity **types** only (e.g. `["EMAIL_ADDRESS", "US_SSN"]`), never the raw detected values. File-sourced rows also carry `file_name`, `file_content_type`, `file_size`, and `file_reference`. The actor is named by `username`, `email`, and `user_full_name` (all three are `null` for a since-deleted user, since identity resolves through the user relation). `search` matches `username`, `session_id`, and `file_name`.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/privacy-flags/{id}/` — retrieve a single detection.
 
 ## Writes
 
@@ -36,10 +39,12 @@ data.
   ```json
   {
     "enable_privacy_router": "boolean",
-    "privacy_action": "redact|mask|block",
+    "privacy_action": "allow|redact|mask|block",
     "privacy_entities": "string[] (PERSON, EMAIL_ADDRESS, US_SSN, …)",
     "privacy_response": "string",
-    "enable_privacy_output_filter": "boolean"
+    "enable_privacy_output_filter": "boolean",
+    "disable_chathistory": "boolean  (Incognito policy: Always Incognito)",
+    "disable_privacy_mode": "boolean  (Incognito policy: Never Incognito)"
   }
   ```
 
@@ -64,11 +69,30 @@ curl -X PUT \
 ## Notes
 
 - A field left out of the PUT is left unchanged — never resend the whole object.
-- `privacy_action` is one of `redact`, `mask`, or `block`; `block` stops the turn
-  and returns `privacy_response`, while `redact`/`mask` rewrite the detected PII.
+- `privacy_action` is one of `allow`, `redact`, `mask`, or `block`; `block` stops
+  the turn and returns `privacy_response`, `redact`/`mask` rewrite the detected
+  PII, and `allow` only records the detection (see `privacy-flags/`) and passes
+  the message through unchanged.
+- The two Incognito flags are the agent tier of chat privacy: `disable_chathistory`
+  makes every conversation incognito (nothing saved to history or memory, for
+  anyone); `disable_privacy_mode` takes Incognito away from users of this agent
+  (a user whose default is Incognito is saved anonymized instead). Set at most
+  one: with both true the backend checks `disable_chathistory` first and
+  behaves as Always Incognito (`chat-privacy-effective/?mentor=` answers
+  `mode: disabled`, `source: mentor`; no history is written), while the
+  agent's Privacy tab shows the record as Never Incognito. The organization gate, the
+  user default and the per-session flip are in
+  [`/iblai-vibe-incognito`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-incognito/SKILL.md).
 - `privacy_entities` is a list of detector names (`PERSON`, `EMAIL_ADDRESS`,
   `US_SSN`, …) — repeat the `-F` key per entity in `multipart/form-data`.
 - `enable_privacy_output_filter` applies the same detection to the agent's
   output, not just the user's input.
 - Use the `public-settings/` read to confirm the state applied to anonymous
   (unauthenticated) requests.
+- `privacy-flags/` is a **read-only** audit log — there are no write/delete verbs.
+  A row is recorded at every detection point (text-prompt input, LLM response
+  output, uploaded files, and memory retrieval), so it captures more than just
+  the input rail. `rail` distinguishes PII (`pii`) from PHI (`phi`) detections.
+- Privacy flags store entity **types** only, so a detection is still audited even
+  on a private turn where the raw prompt is withheld — `detected_entities` never
+  contains the personal data itself.

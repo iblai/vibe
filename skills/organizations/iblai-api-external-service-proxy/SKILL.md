@@ -113,6 +113,13 @@ billable: `generate-*`, `translate-video`, `create-photo-avatar`; destructive:
 → **Full action catalog** and the `generate-video` / `generate-template-video` bodies plus
 the `video-status` shape: [`references/heygen.md`](references/heygen.md).
 
+> **There is a second HeyGen door.** This proxy is the org-admin-only generic gateway.
+> `/iblai-api-heygen` documents a *dedicated* HeyGen surface that any member can use on
+> their own behalf — voice cloning, photo and digital-twin avatars, video generation and
+> interactive streaming avatars — metered in credits with a per-user ownership gate. Use
+> that one for member-facing features; use this one for admin automation and for the
+> actions it does not expose (translation, talking photos, webhooks, remaining quota).
+
 ## Example
 
 ```bash

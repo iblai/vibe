@@ -27,7 +27,7 @@ moderation logs. Use when setting guardrails or auditing flagged content.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — load moderation/safety prompts, responses, and enable flags.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/?mentor={mentor}&page={n}&page_size={n}&search={q}&target_system={Moderation System|Safety System}&start_time={iso}&end_time={iso}` — list flagged prompts.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/moderation-logs/?mentor={mentor}&page={n}&page_size={n}&search={q}&target_system={Moderation System|Safety System}&start_time={iso}&end_time={iso}` — list flagged prompts. Each row names who was flagged with `username`, `email` and `user_full_name`; the last two are `null` for a row whose user has since been deleted, which a log row is expected to outlive. The `safety-logs/` twin (same path, `…/safety-logs/`) returns the same shape.
 
 ## Writes
 

@@ -25,7 +25,7 @@ feeding an agent knowledge.
 
 ## Reads
 
-- **GET** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/pathways/{mentor}/?limit=5&offset={n}&search={q}` — list training docs. Poll this every 2s while any document is `pending`.
+- **GET** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/pathways/{mentor}/?limit=5&offset={n}&search={q}` — list training docs. Poll this every 2s while any document is `pending`. Each row names who trained it with `username`, `user_email` and `user_full_name`; the last two are `null` when the stored username matches no user (a service-account upload, or a deleted user).
 - **GET** `https://api.iblai.app/dm/api/ai-index/documents/{document_id}/settings/` — retrain schedule.
 - **GET** `https://api.github.com/repos/{owner}/{repo}/branches` — list GitHub branches for a repo resource (external, no auth).
 
