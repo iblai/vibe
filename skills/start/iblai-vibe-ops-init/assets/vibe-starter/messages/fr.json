@@ -1,0 +1,17 @@
+{
+  "Nav": {
+    "home": "Accueil",
+    "agents": "Agents",
+    "profile": "Profil",
+    "users": "Utilisateurs",
+    "analytics": "Analyses",
+    "billing": "Facturation",
+    "memory": "Mémoire",
+    "organization": "Organisation",
+    "navigation": "Navigation",
+    "openSidebar": "Ouvrir le menu latéral",
+    "user": "Utilisateur",
+    "admin": "Admin",
+    "adminMode": "Mode admin"
+  }
+}
