@@ -26,7 +26,7 @@ runs on.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — current provider/model.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor-llms/?mentor_id={mentor}` — provider/model cards.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor-llms/?mentor_unique_id={mentor}` — provider/model cards. `mentor_unique_id` runs the permission check in the agent's context (`mentor_id` is only a legacy filter). Each provider row carries `name` (the `llm_provider` value), `logo`, and `chat_models[]`; each model's `llm_name` is the `llm_name` value. Rows also report whether the organization holds a usable key (`has_credentials`, `can_use_main_keys`, `main_has_credentials`); a provider without one cannot be selected. Optional filters: `provider`, `search`, `is_multimodal`, `supports_function_calling`, `min_context_window`.
 
 ## Writes
 

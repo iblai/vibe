@@ -23,13 +23,15 @@ Above the grid sit two boxes:
 
 ![LLM tab -- Allow In-Chat Model Change and Models Users Can Pick above the provider grid](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm.png)
 
-Clicking a provider card opens **LLM Selection**, where you pick the model
-this agent runs on:
+Providers the organization holds no usable key for are tinted gray and sorted
+last. Clicking a provider card opens **LLM Selection**, where you pick the
+model this agent runs on; clicking a model saves it at once (no confirm step):
 
 ![LLM Selection modal (models of the chosen provider)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm-2-model-selection.png)
 
-**User Models** opens a dialog of provider cards (searchable, with
-"N of M allowed" or "All allowed" on each). It sets which models users in
+**User Models** opens a searchable dialog of provider cards. A card with at
+least one allowed model shows "N of M allowed" or "All allowed"; the others
+show no count. It sets which models users in
 the organization can pick, for every agent:
 
 ![User Models dialog -- provider cards with how many models each allows](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-llm/iblai-vibe-agent-llm-3-users-models.png)
@@ -71,14 +73,12 @@ uses), so the host supplies no mapper. Older SDK releases took a required
 "use client";
 
 import { AgentLLMTab } from "@iblai/iblai-js/web-containers/next";
-import { useAdminMode } from "@/lib/iblai/admin-mode";
+import { isTenantAdmin } from "@/lib/iblai/tenant";
 
 export default function AgentLLMPage() {
-  // An organization admin viewing in Admin mode (the starter's User/Admin switch).
-  const { adminMode } = useAdminMode();
   return (
     <div className="flex h-full flex-col bg-white">
-      <AgentLLMTab isTenantAdmin={adminMode} />
+      <AgentLLMTab isTenantAdmin={isTenantAdmin()} />
     </div>
   );
 }
@@ -90,13 +90,40 @@ is not an organization admin. Leave it out (default `false`) on surfaces
 members reach, and in a "switch model" dialog opened from the chat.
 
 The tab reads `tenantKey`, `mentorId` and `username` from the nearest
-`<AgentSettingsProvider>`. Pass `mentorId` to configure a different agent
-than the provider describes — a host can mount the tab in a "switch
-model" dialog opened from the chat chrome, where the agent being
-configured is the one in the chat (the ibl.ai OS does exactly this):
+`<AgentSettingsProvider>`.
+
+To reuse the tab outside the settings page -- for example a "switch model"
+dialog opened from the chat header -- drop the header and wrap it in its own
+`AgentSettingsProvider`. The tab always reads the org, username, and RBAC
+switch from the provider and throws without one (vibe-starter's chat page has
+none); the `mentorId` prop only overrides the agent.
 
 ```tsx
-<AgentLLMTab mentorId={chatMentorId} showConfigurationHeader={false} />;
+import {
+  AgentLLMTab,
+  AgentSettingsProvider,
+} from "@iblai/iblai-js/web-containers/next";
+
+export function SwitchModel({
+  agentId,
+  tenantKey,
+  username,
+}: {
+  agentId: string;
+  tenantKey: string;
+  username: string;
+}) {
+  return (
+    <AgentSettingsProvider
+      tenantKey={tenantKey}
+      mentorId={agentId}
+      username={username}
+      enableRBAC={false}
+    >
+      <AgentLLMTab showConfigurationHeader={false} />
+    </AgentSettingsProvider>
+  );
+}
 ```
 
 ## Step 3: Customize Labels (Optional)
@@ -150,9 +177,8 @@ Import from `@iblai/iblai-js/web-containers/next`.
 `name` and the model `llm_name`. Saves run one at a time and the last tick
 wins. A failed save puts the tick back; a 400 names the model that is no
 longer offered and offers **Remove It**; unticking the last model asks
-first (**Save with No Models?**). The backend enforces the list: users
-who are not admins see only the allowed models in the chat's model
-picker. The endpoints are in [`/iblai-api-rbac`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-rbac/SKILL.md).
+first (**Save with No Models?**). Users who are not admins see only the
+allowed models in the chat's model picker. The endpoints are in [`/iblai-api-rbac`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-rbac/SKILL.md).
 
 Under RBAC (`enableRBAC`) the switch follows the agent's field permissions
 for `enable_in_chat_llm_change` and is read-only without write access.
