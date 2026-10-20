@@ -7,14 +7,14 @@ Two boolean flags on the Platform record gate monetization UI in the SDK. They l
 | Flag | Controls | Configured by |
 |---|---|---|
 | `enable_monetization` | Admin Monetization tab in `Account`; user Purchases tab in `Profile`; PaywallModal access flow | ibl.ai operator (no in-app toggle) |
-| `show_paywall` | `CreditBalance` widget in navbar (the Platform-wide credits product — see [/iblai-vibe-credit](../../iblai-vibe-credit)) | ibl.ai operator (no in-app toggle) |
+| `show_paywall` | `CreditBalance` widget in navbar (the Platform-wide credits product — see [/iblai-vibe-credit](../../../billing/iblai-vibe-credit/SKILL.md)) | ibl.ai operator (no in-app toggle) |
 
 ## Why both exist
 
 The two flags gate fundamentally different products:
 
 - **`enable_monetization`** — this Platform sells its own items (courses, agents, pathways, programs) to its users. Revenue flows through Stripe Connect Express to the Platform's connected account; ibl.ai takes a commission. See [/iblai-vibe-monetization-onboard](../../iblai-vibe-monetization-onboard) and [/iblai-vibe-monetization-configure](../../iblai-vibe-monetization-configure).
-- **`show_paywall`** — this Platform buys ibl.ai credits to fund AI consumption (agent messages, embeddings, etc.). Charges flow directly to ibl.ai's Stripe account. See [/iblai-vibe-credit](../../iblai-vibe-credit).
+- **`show_paywall`** — this Platform buys ibl.ai credits to fund AI consumption (agent messages, embeddings, etc.). Charges flow directly to ibl.ai's Stripe account. See [/iblai-vibe-credit](../../../billing/iblai-vibe-credit/SKILL.md).
 
 One Platform is the seller; the other Platform is the buyer of ibl.ai's product. They are independent commercial relationships.
 
@@ -86,7 +86,7 @@ const isPurchasesEnabled = currentTenant?.enable_monetization;
 
 ### Navbar `CreditBalance` widget
 
-Gated on `show_paywall`. Detailed integration lives in [/iblai-vibe-credit](../../iblai-vibe-credit).
+Gated on `show_paywall`. Detailed integration lives in [/iblai-vibe-credit](../../../billing/iblai-vibe-credit/SKILL.md).
 
 ```tsx
 {showCreditBalance && currentTenant?.show_paywall && (
@@ -97,7 +97,7 @@ Gated on `show_paywall`. Detailed integration lives in [/iblai-vibe-credit](../.
 ## Decision tree for app authors
 
 - **Want users to sell their own items?** Need `enable_monetization: true` AND Stripe Connect onboarding complete on the connected account (`charges_enabled` + `details_submitted`). See [/iblai-vibe-monetization-onboard](../../iblai-vibe-monetization-onboard).
-- **Want this Platform to buy ibl.ai credits?** Need `show_paywall: true`. See [/iblai-vibe-credit](../../iblai-vibe-credit).
+- **Want this Platform to buy ibl.ai credits?** Need `show_paywall: true`. See [/iblai-vibe-credit](../../../billing/iblai-vibe-credit/SKILL.md).
 - **Both?** Both flags must be `true`. Each product is configured independently.
 - **Neither?** Skip the monetization UI entirely — render the free-tier experience.
 
@@ -129,7 +129,7 @@ Use optional chaining on `currentTenant?.` — the user may not be a member of e
 - [/iblai-vibe-monetization-configure](../../iblai-vibe-monetization-configure) — admin MonetizationTab + paywall wizard
 - [/iblai-vibe-monetization-checkout](../../iblai-vibe-monetization-checkout) — PaywallModal + access-check + checkout
 - [/iblai-vibe-monetization-subscription](../../iblai-vibe-monetization-subscription) — user PurchasesTab + cancel flow
-- [/iblai-vibe-credit](../../iblai-vibe-credit) — Platform-wide ibl.ai credits product (gated by `show_paywall`)
+- [/iblai-vibe-credit](../../../billing/iblai-vibe-credit/SKILL.md) — Platform-wide ibl.ai credits product (gated by `show_paywall`)
 - [/iblai-vibe-auth](../../../start/iblai-vibe-auth) — how the `tenants` array is hydrated into localStorage
 - [/iblai-vibe-account](../../../organizations/iblai-vibe-account) — Account tab host
 - [/iblai-vibe-profile](../../../users/iblai-vibe-profile) — Profile tab host
