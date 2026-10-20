@@ -23,7 +23,7 @@ runs on.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentors/{mentor}/settings/` — current provider/model.
-- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor-llms/?mentor_id={mentor}` — provider/model cards.
+- **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor-llms/?mentor_unique_id={mentor}` — provider/model cards. `mentor_unique_id` runs the permission check in the agent's context (`mentor_id` is only a legacy filter). Each provider row carries `name` (the `llm_provider` value), `logo`, and `chat_models[]`; each model's `llm_name` is the `llm_name` value. Rows also report whether the organization holds a usable key (`has_credentials`, `can_use_main_keys`, `main_has_credentials`); a provider without one cannot be selected. Optional filters: `provider`, `search`, `is_multimodal`, `supports_function_calling`, `min_context_window`.
 
 ## Writes
 
@@ -32,6 +32,14 @@ runs on.
   {
     "llm_provider": "string (required)",
     "llm_name": "string (required)"
+  }
+  ```
+- **PUT** `…/users/{username}/mentors/{mentor}/settings/` — let users switch
+  the model in their own chat session (Allow In-Chat Model Change; it resets
+  to the agent's model on a new chat):
+  ```json
+  {
+    "enable_in_chat_llm_change": "boolean"
   }
   ```
 
@@ -53,3 +61,7 @@ curl -X PUT \
   `llm_name` pair that appears in that list — values must match a real card.
 - Selection persists through the shared `settings/` endpoint, so it sits
   alongside the other configuration fields on the same agent.
+- Which models users may pick when in-chat model change is on is an
+  organization-wide list, not an agent setting: `GET`/`POST`
+  `/api/core/rbac/llm-access/…` in `/iblai-api-rbac`. The LLM tab's User
+  Models dialog (`/iblai-vibe-agent-llm`) edits it.

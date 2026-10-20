@@ -74,7 +74,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | ★ [`/iblai-api-agent-setting`](../skills/agents/iblai-api-agent-setting/SKILL.md) | 🔌 api | Read and write an ibl.ai agent's core settings via the platform API |
 | ★ [`/iblai-vibe-agent-create`](../skills/agents/iblai-vibe-agent-create/SKILL.md) | 🖥️ ui | Create an ibl.ai agent from inside your app |
 | ★ [`/iblai-vibe-agent-memory`](../skills/agents/iblai-vibe-agent-memory/SKILL.md) | 🖥️ ui | Add the agent Memory tab (enable/disable memory and manage memories) to your Next.js app |
-| ★ [`/iblai-vibe-agent-setting`](../skills/agents/iblai-vibe-agent-setting/SKILL.md) | 🖥️ ui | Add the agent Settings tab (name, description, visibility, copy, delete) to your Next.js app |
+| ★ [`/iblai-vibe-agent-setting`](../skills/agents/iblai-vibe-agent-setting/SKILL.md) | 🖥️ ui | Add the agent Settings tab (Basic, Discovery, Capabilities and Welcome Screen sub-tabs; copy, delete) to your Next.js app |
 | [`/iblai-api-agent-access`](../skills/agents/iblai-api-agent-access/SKILL.md) | 🔌 api | Manage role-based access to an ibl.ai agent via the platform API |
 | [`/iblai-api-agent-audit`](../skills/agents/iblai-api-agent-audit/SKILL.md) | 🔌 api | Read an ibl.ai agent's audit log via the platform API |
 | [`/iblai-api-agent-chat`](../skills/agents/iblai-api-agent-chat/SKILL.md) | 🔌 api | Set up live chat with a deployed ibl.ai agent by wiring the hosted iblai-api-agent-chat MCP server into the project (.mcp.json / claude m… |
@@ -108,7 +108,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-evals`](../skills/agents/iblai-vibe-agent-evals/SKILL.md) | 🖥️ ui | Add the agent Evals tab (run the agent against benchmarks, score responses with LLM-as-Judge reviews or manual scores, export CSV) to you… |
 | [`/iblai-vibe-agent-grader`](../skills/agents/iblai-vibe-agent-grader/SKILL.md) | 🖥️ ui | Add the agent Grader tab (rubric-based grading with a grading toggle, grading setup form, criteria table, and grade results with LMS-sync… |
 | [`/iblai-vibe-agent-history`](../skills/agents/iblai-vibe-agent-history/SKILL.md) | 🖥️ ui | Add the agent History tab (every user's conversations with this agent |
-| [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |
+| [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection, in-chat model change, models users can pick) to your Next.js app |
 | [`/iblai-vibe-agent-lti`](../skills/agents/iblai-vibe-agent-lti/SKILL.md) | 🖥️ ui | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app |
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
 | [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab with two sub-tabs, PII Filtering (detect personal information in messages and allow, redact, mask or block it, … |
