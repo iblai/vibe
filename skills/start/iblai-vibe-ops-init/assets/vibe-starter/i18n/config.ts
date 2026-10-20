@@ -10,7 +10,7 @@
  * Add a locale by extending SUPPORTED_LOCALES and adding the matching
  * `messages/<locale>.json`.
  */
-export const SUPPORTED_LOCALES = ["en", "fr"] as const;
+export const SUPPORTED_LOCALES = ["en", "es", "fr", "zh"] as const;
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -25,13 +25,15 @@ export const OPENEDX_LOCALE_COOKIE = "openedx-language-preference";
 /** Labels for a language selector. */
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
+  es: "Español",
   fr: "Français",
+  zh: "中文",
 };
 
 /**
  * Narrow an arbitrary string to a supported locale, falling back to default.
  * Normalizes region/script subtags so platform codes resolve too, e.g.
- * `fr-FR`/`fr_CA` → `fr`, `en-US` → `en`.
+ * `fr-FR`/`fr_CA` → `fr`, `zh-CN`/`zh-Hans` → `zh`, `en-US` → `en`.
  */
 export function resolveLocale(value: string | undefined | null): Locale {
   if (!value) return DEFAULT_LOCALE;

@@ -102,17 +102,20 @@ See `AGENTS.md` (also `CLAUDE.md`) for the "what the user says → which skill" 
 
 ## Languages
 
-Ships in English and French. The locale is resolved per request from cookies —
-the shared platform preference (`openedx-language-preference`, set on the parent
-domain so a language chosen in any ibl.ai app carries across) first, then this
-app's own `NEXT_LOCALE`. There is no `[locale]` route segment and no middleware,
-so routes are unaffected, and `<html lang>` follows the resolved locale.
+Ships in English, Spanish, French and Chinese (Simplified). The locale is
+resolved per request from cookies — the shared platform preference
+(`openedx-language-preference`, set on the parent domain so a language chosen in
+any ibl.ai app carries across) first, then this app’s own `NEXT_LOCALE`. There
+is no `[locale]` route segment and no locale middleware, so routes are
+unaffected, and `<html lang>` follows the resolved locale.
 
 ```
 i18n/config.ts     supported locales, labels, resolveLocale()
 i18n/request.ts    next-intl request config (cookie → messages)
 messages/en.json   catalogs, one namespace per surface
+messages/es.json
 messages/fr.json
+messages/zh.json
 ```
 
 **Translating a surface**
@@ -128,7 +131,7 @@ messages/fr.json
 Add it to `SUPPORTED_LOCALES` and `LOCALE_LABELS` in `i18n/config.ts`, then add
 `messages/<locale>.json` with the same keys. `iblai/os` ships a
 `scripts/validate-i18n.mjs` that fails CI when catalogs drift out of parity —
-worth copying once you have more than two.
+worth copying.
 
 ## Project Layout
 
