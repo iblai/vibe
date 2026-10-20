@@ -1,5 +1,5 @@
 ---
-description: "What memory means for an ibl.ai app and which surface to mount for which audience — user global memories, per-agent memories by category, shared agent knowledge, the org/agent/user gates that decide whether memory is on, and the SDK hooks and REST endpoints for anything custom. Use when the user mentions memory, remember, personalize, \"what the agent knows about the user\", forget, or wants memory UI in their app. For the org-wide admin surface see /iblai-vibe-memory; for one agent's tab see /iblai-vibe-agent-memory; the member's own view is the Profile Memory tab in /iblai-vibe-profile."
+description: "What memory means for an ibl.ai app and which surface to mount for which audience — user global memories, per-agent memories by category, shared agent knowledge (the Memory tab's Shared Memory sub-tab), the org/agent/user gates that decide whether memory is on, and the SDK hooks and REST endpoints for anything custom. Use when the user mentions memory, remember, personalize, \"what the agent knows about the user\", forget, or wants memory UI in their app. For the org-wide admin surface see /iblai-vibe-memory; for one agent's tab see /iblai-vibe-agent-memory; the member's own view is the Profile Memory tab in /iblai-vibe-profile."
 globs:
 alwaysApply: false
 ---
@@ -24,7 +24,7 @@ tells you which to use; the linked skills mount them.
 |---|---|---|---|---|
 | **Global memories** | one user, **every** agent in the org | auto-capture from chats (`auto` badge) or the user by hand | every agent the user talks to, when recall is on | "Prefers concise answers", "Works in the finance team" |
 | **Agent memories** | one user × **one agent**, filed under **categories** | auto-capture guided by each category's *extraction prompt*, or admins/the user by hand | that agent only | per the five default categories: `knowledge_gaps`, `learning_goals`, `preferences`, `progress_milestones`, `personal_context` |
-| **Agent knowledge** | one agent, **no user** — shared by everyone | admins / the agent's owner, curated | injected into every chat with that agent as `## Agent Knowledge` | "Our refund window is 30 days", "Always cite the policy handbook" |
+| **Agent knowledge** — the **Shared Memory** sub-tab of the agent's Memory tab | one agent, **no user** — shared by everyone | admins / the agent's owner, by hand (never auto-captured) | injected into every chat with that agent as `## Agent Knowledge` | "Our refund window is 30 days", "Always cite the policy handbook" |
 
 Memories are short facts (≥ 10 characters). Auto-captured ones carry a robot
 icon and an `auto` badge; manual ones a person icon.
@@ -47,7 +47,7 @@ org gate from the browser.
 | Audience | Wants | Mount | Skill |
 |---|---|---|---|
 | **Member** | see/curate what is remembered about *me*; the two toggles | `Profile` → `targetTab="memory"` (the Profile Memory tab) | `/iblai-vibe-profile` |
-| **Agent owner / editor** | what *this agent* remembers about its users, by category; manage categories and extraction prompts; enable/disable | `AgentMemoryTab` inside `AgentSettingsProvider` | `/iblai-vibe-agent-memory` |
+| **Agent owner / editor** | what *this agent* remembers about its users, by category; manage categories and extraction prompts; the shared memories every chat gets; enable/disable | `AgentMemoryTab` inside `AgentSettingsProvider` | `/iblai-vibe-agent-memory` |
 | **Org admin / DPO / support** | any user's global memories and toggles; any agent's memories; corrections and deletions on someone's behalf | `Account` → `targetTab="memory"` (Global + Agent tabs) | `/iblai-vibe-memory` |
 | **Your own page** ("what the app knows about you" card on the home page) | list + add + delete global memories | the hooks in §4 | this page |
 
@@ -61,6 +61,7 @@ SDK hooks (`@iblai/iblai-js/data-layer`, verified 2.9.x):
 | `useGetGlobalMemoriesQuery`, `useCreateGlobalMemoryMutation`, `useUpdateGlobalMemoryMutation`, `useDeleteGlobalMemoryMutation` | global memories |
 | `useGetMentorMemoriesListQuery`, `useCreateMentorMemoryMutation` | agent memories (see `get_api_query_info` for the full set) |
 | `useGetMemsearchStatusQuery`, `useGetMemsearchConfigQuery`, `useUpdateMemsearchConfigMutation` | the org gate |
+| `useGetSharedMemoriesQuery`, `useCreateSharedMemoryMutation`, `useUpdateSharedMemoryMutation`, `useDeleteSharedMemoryMutation` | agent knowledge — Shared Memory |
 
 Minimal "what the app remembers" card (member-facing):
 
@@ -113,12 +114,12 @@ Full reference: [iblai-api-agent-memory](https://raw.githubusercontent.com/iblai
 
 - Memory is personal data. Give members the two toggles and a way to delete (the Profile tab does both).
 - Admin cross-user access exists for support and data-protection duties — gate your admin memory page on `isTenantAdmin()` (see `/iblai-vibe-admin`).
-- Agent knowledge is shared with everyone who talks to the agent; never put a person's data there.
+- Agent knowledge (Shared Memory) is shared with everyone who talks to the agent; never put a person's data there.
 
 ## Related skills
 
 - `/iblai-vibe-profile` — member's own Memory tab
-- `/iblai-vibe-agent-memory` — one agent's Memory tab
+- `/iblai-vibe-agent-memory` — one agent's Memory tab (Personal Memories + Shared Memory)
 - `/iblai-vibe-memory` — org-wide Memory admin
 - `/iblai-vibe-agent-privacy` — PII redaction/masking in chats (a different feature)
 - `/iblai-vibe-api` — calling endpoints that have no hook

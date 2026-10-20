@@ -73,7 +73,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | ★ [`/iblai-api-agent-memory`](../skills/agents/iblai-api-agent-memory/SKILL.md) | 🔌 api | Manage an ibl.ai agent's memories via the platform API |
 | ★ [`/iblai-api-agent-setting`](../skills/agents/iblai-api-agent-setting/SKILL.md) | 🔌 api | Read and write an ibl.ai agent's core settings via the platform API |
 | ★ [`/iblai-vibe-agent-create`](../skills/agents/iblai-vibe-agent-create/SKILL.md) | 🖥️ ui | Create an ibl.ai agent from inside your app |
-| ★ [`/iblai-vibe-agent-memory`](../skills/agents/iblai-vibe-agent-memory/SKILL.md) | 🖥️ ui | Add the agent Memory tab (enable/disable memory and manage memories) to your Next.js app |
+| ★ [`/iblai-vibe-agent-memory`](../skills/agents/iblai-vibe-agent-memory/SKILL.md) | 🖥️ ui | Add the agent Memory tab |
 | ★ [`/iblai-vibe-agent-setting`](../skills/agents/iblai-vibe-agent-setting/SKILL.md) | 🖥️ ui | Add the agent Settings tab (name, description, visibility, copy, delete) to your Next.js app |
 | [`/iblai-api-agent-access`](../skills/agents/iblai-api-agent-access/SKILL.md) | 🔌 api | Manage role-based access to an ibl.ai agent via the platform API |
 | [`/iblai-api-agent-audit`](../skills/agents/iblai-api-agent-audit/SKILL.md) | 🔌 api | Read an ibl.ai agent's audit log via the platform API |
