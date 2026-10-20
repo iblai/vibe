@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.14.3] - 2026-10-20
+
+### Documentation
+
+- keep the key-borrowing switch read-only and list credential names once
+- LLM gateways, use-default-llm-key, optional course model (iblai-dm-pro#3081)
+
 ## [2.14.2] - 2026-10-20
 
 ### Documentation
