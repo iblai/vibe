@@ -8,5 +8,5 @@ import { PaywallSetup } from "@/components/paywall-setup";
  * screen says so, and the platform refuses everyone else on every call.
  */
 export default function PaywallSetupPage() {
-  return <PaywallSetup step="access" />;
+  return <PaywallSetup />;
 }

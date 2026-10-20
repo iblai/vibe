@@ -10,6 +10,9 @@ metadata:
 # /iblai-vibe-course-access
 
 ![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/course-content-page.png)
+![Progress tab — course completion, grade vs passing grade, grade summary](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-2-progress.png)
+![Dates tab — important dates timeline](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-3-dates.png)
+![Discussion tab — My posts / All posts / Topics / Learners, Add a post](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-4-discussion.png)
 
 Add a full edX course-content experience -- hierarchical course outline
 sidebar, collapsible modules/lessons/sublessons with progress indicators,
@@ -303,11 +306,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors
 2. `pnpm test` — vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot "http://localhost:3000/course-content/<course-id>/course" /tmp/course.png
-   ```
+3. Touch test `/course-content/<course-id>/course` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
    Replace `<course-id>` with a URL-encoded course id the user has access
    to (e.g. `course-v1%3Aibl%2BDEMO%2B2024`).
 

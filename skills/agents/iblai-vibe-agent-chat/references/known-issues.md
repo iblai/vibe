@@ -10,6 +10,12 @@ otherwise apply the host workaround.
 
 ### Voice "Processing…" hangs forever (React StrictMode / remounts)
 
+> **Status on `@iblai/iblai-js` 2.36.2:** `Chat`'s own dictation hook (not
+> the `useVoiceChat` exported by web-utils 2.8.0, which still never resets it, so a host calling that one directly keeps the hang) now sets its mounted ref back to `true` in its effect setup, so a StrictMode
+> double-invoke no longer leaves it `false`. Not re-run against a
+> browser. vibe-starter keeps `reactStrictMode: false` and the no-remount
+> rule as a safeguard; the analysis below is for older SDKs.
+
 `useVoiceChat`'s `isMounted` ref is only ever reset to `false` (effect
 cleanup), never back to `true` on setup. React StrictMode (Next default)
 double-invokes effects in dev (mount→cleanup→remount) → the ref stays

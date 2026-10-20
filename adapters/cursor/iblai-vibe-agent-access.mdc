@@ -105,11 +105,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/access /tmp/agent-access.png
-   ```
+3. Touch test `/agents/<id>/access` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 
@@ -236,8 +233,8 @@ removals run before additions.
 |---|---|
 | `POST rbac/student-mentor-creation/set/` | `{ platform_key, allow_students_to_create_mentors }` |
 | `GET rbac/student-mentor-creation/status/?platform_key={key}` | – |
-| `POST rbac/student-llm-access/set/` | `{ platform_key, llm_resources: ["llms/openai/models/gpt-4o", ...] }` |
-| `GET rbac/student-llm-access/status/?platform_key={key}` | – |
+| `POST rbac/llm-access/set/` | `{ platform_key, llm_resources: ["llms/openai/models/gpt-4o", ...] }` |
+| `GET rbac/llm-access/status/?platform_key={key}` | – |
 
 ### Response permission metadata
 

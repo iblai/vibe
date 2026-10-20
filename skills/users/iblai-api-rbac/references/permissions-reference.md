@@ -34,7 +34,7 @@ The three ViewSets share one CRUD→action map; only the action prefix differs:
 | List team access | GET | `…/teams/access/` | `Ibl.Core/ShareUserGroups/read` |
 | Bulk user policies | PUT | `/dm/api/core/platform/users/policies/` | `Ibl.Core/UserPolicies/write` |
 | Student agent-creation `{set,status}` | POST/GET | `…/rbac/student-agent-creation/…` | org admin (no extra action) |
-| Student LLM access `{set,status}` | POST/GET | `…/rbac/student-llm-access/…` | org admin (no extra action) |
+| Student LLM access `{set,status}` | POST/GET | `…/rbac/llm-access/…` | org admin (no extra action) |
 
 Gating specifics:
 

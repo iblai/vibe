@@ -130,10 +130,10 @@ META="$DM/api/core/orgs/$PLATFORM/metadata/"
 | `app/api/paywall/admin/setup/route.ts` | The whole setup in one call: source check → retire the old price → product (tagged) → price → record; free records only | 156 |
 | `app/api/paywall/admin/connect/route.ts` | Connect with Stripe relay: GET / POST / DELETE, statuses verbatim | 44 |
 | `components/paywall-gate.tsx` | The gate around `(app)`: admins in (and to setup while unanswered), members by the platform's verdict | 71 |
-| `components/paywall-setup.tsx` | The setup screen: the question, then Connect with Stripe; reconnect, disconnect | 427 |
+| `components/paywall-setup.tsx` | The setup screen: the question, whose paid answer's button is Connect with Stripe; reconnect, disconnect | 390 |
 | `components/pay-modal.tsx` | Stripe's embedded checkout in a modal, then the platform's confirmation | 169 |
 | `app/paywall/page.tsx` | Where unpaid members land: the price, Continue to payment, Restore access | 105 |
-| `app/paywall/setup/page.tsx`, `app/paywall/setup/connect/page.tsx` | The two setup steps, outside `(app)`; Stripe returns to the second | 23 |
+| `app/paywall/setup/page.tsx` | The setup page, outside `(app)`; Stripe returns to it | 12 |
 
 **Trust rules (non-negotiable):**
 
@@ -185,9 +185,9 @@ that page. (The root works too: the gate sends an admin whose question is unansw
 Name the page anyway.) There they:
 
 - choose **Free access**, a **One-time fee** or a **Monthly fee**, with the USD price;
-- for a paid answer while the organization has no Stripe source, press **Connect with
-  Stripe** — sign in on Stripe (or create an account there), consent, and they are back on
-  `/paywall/setup/connect`, where the answer saves itself.
+- for a paid answer while the organization has no Stripe source, the button reads **Connect
+  with Stripe** — sign in on Stripe (or create an account there), consent, and they are back on
+  `/paywall/setup`, where the answer saves itself.
 
 Nothing is typed or copied, and nothing about Stripe goes through you. Say once that the
 quiet **Payments setup** link on `/account` reopens it: a later "change the price" or "make it
@@ -210,8 +210,8 @@ organization yet: deploy first, or attach the domain.
 ## Step 4: Verify
 
 - [ ] As an admin with the question unanswered, opening `/` lands on `/paywall/setup`
-- [ ] Monthly $29 with no Stripe source → **Continue** → **Connect with Stripe** → Stripe →
-      back on `/paywall/setup/connect` → saved → the app
+- [ ] Monthly $29 with no Stripe source → **Connect with Stripe** → Stripe → back on
+      `/paywall/setup` → saved → the app
 - [ ] `GET $META` shows `apps.<slug>` with `access`, `amount`, `stripe.price_id` and
       `stripe.publishable_key`
 - [ ] With a **member** account (admins never pay): `/` → `/paywall` with the price →

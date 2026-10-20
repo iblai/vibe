@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Chat, type ChatConfig } from "@iblai/iblai-js/web-containers/next";
 import {
@@ -12,6 +11,8 @@ import {
   useVisitingTenant,
   useCachedSessionId,
 } from "@iblai/iblai-js/web-utils";
+import { Bot } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
@@ -126,31 +127,31 @@ function AgentChat() {
 function NoAgentYet({ isAdmin }: { isAdmin: boolean }) {
   return (
     <div className="flex flex-1 items-center justify-center p-8">
-      <div className="w-full max-w-md rounded-lg border border-[var(--border-color)] bg-white p-8 text-center">
-        <Image src="https://ibl.ai/images/iblai-logo.png" alt="ibl.ai" width={96} height={32} className="mx-auto h-8 w-auto" />
-        <h1 className="mt-6 text-xl font-semibold">No agent yet</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {isAdmin
+      <EmptyState
+        className="w-full max-w-md flex-none"
+        icon={<Bot strokeWidth={1.75} />}
+        title="No agent yet"
+        description={
+          isAdmin
             ? "Pick one of your organization's agents or create a new one. It becomes what this page chats with."
-            : "An admin hasn't chosen this app's agent yet. Ask them to finish setup, or browse the agents you already have access to."}
-        </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Link
-            href="/agents"
-            className="inline-flex items-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
-          >
-            Pick an agent
-          </Link>
-          {isAdmin && (
+            : "An admin hasn't chosen this app's agent yet. Ask them to finish setup, or browse the agents you already have access to."
+        }
+        action={
+          <div className="flex justify-center gap-3">
             <Link
-              href="/setup"
-              className="inline-flex items-center rounded-lg bg-gradient-to-r from-[#2563EB] to-[#93C5FD] px-4 py-2 text-sm font-medium text-white"
+              href="/agents"
+              className="inline-flex items-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
             >
-              Set up
+              Pick an agent
             </Link>
-          )}
-        </div>
-      </div>
+            {isAdmin && (
+              <Link href="/setup" className="ibl-button-primary inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium">
+                Set up
+              </Link>
+            )}
+          </div>
+        }
+      />
     </div>
   );
 }

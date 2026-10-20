@@ -10,6 +10,7 @@
 
 ## Checks
 
+- [ ] `run-tests` label added — skills-ci's `deterministic` check must pass to merge
 - [ ] `bash scripts/validate-skills.sh`
 - [ ] `node scripts/build-adapters.mjs` (adapters committed)
 - [ ] `node scripts/check-sdk-pins.mjs` · `node scripts/check-links.mjs` · `node scripts/check-skill-tables.mjs` · `node scripts/check-skill-kinds.mjs`

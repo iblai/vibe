@@ -119,9 +119,9 @@ Everything else is generated.
 
 Conventional commit subject (`feat(skills): add iblai-vibe-thing` → a minor
 release; `fix:`/`docs:` → patch). Fill in the PR template — it asks for the
-user test and the checks above. CI runs the deterministic tiers on every PR;
-add the `run-tests` label to also run the agent tier on your skill
-([TESTING.md](TESTING.md)).
+user test and the checks above. Add the `run-tests` label: skills-ci runs only
+on labelled PRs (the deterministic tiers, plus the agent tier on your skill),
+and its `deterministic` check must pass to merge ([TESTING.md](TESTING.md)).
 
 ## Core skills
 

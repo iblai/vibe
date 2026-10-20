@@ -361,11 +361,8 @@ The full implementations (React Flow canvas with its critical details, `Workflow
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
-2. Start dev server and verify the workflow pages render:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/workflows /tmp/workflows.png
-   ```
+2. Touch test `/workflows` in the browser as `/iblai-vibe-ops-test` says: the
+   workflow pages render, the console is clean.
 
 ## Common Pitfalls
 

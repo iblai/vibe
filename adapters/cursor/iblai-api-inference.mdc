@@ -105,13 +105,8 @@ curl "https://api.iblai.app/dm/api/ai-mentor/orgs/$IBLAI_ORG/v1/models" \
   `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/v1/models`; unknown/bad
   model → `400 invalid_request`. A model the org's allow-list refuses →
   `403` with an OpenAI-style `{"error": {"type": "permission_error", …}}`.
-- **Gateways:** of the gateways that serve the model, the org's own key is used
-  first, then ibl.ai's key if the org may borrow it. Credential names per gateway:
-  `openrouter` -> `iblai`, `vertex` -> `google` (service account),
-  `azure_foundry` -> `gateway_azure_foundry`, `bedrock` -> `bedrock`,
-  `openai` -> `openai`, `google_genai` -> `gemini_google_api_key`,
-  `anthropic` -> `anthropic`; `groq`, `xai`, `deepseek`, `perplexity`, `nvidia`
-  use their own name.
+- The org's own key is used first, then ibl.ai's key if the org may borrow it.
+  Credential names are in `/iblai-api-integration`.
 - **Tool calling** is supported (OpenAI `tools` / `tool_calls`); streamed
   tool-call deltas carry dense, 0-based `index` values, matching the OpenAI wire
   format that clients index directly.

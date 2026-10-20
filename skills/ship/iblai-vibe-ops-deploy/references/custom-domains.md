@@ -1,8 +1,9 @@
 # Custom domains for a hosted app
 
-A hosted project usually has an address the moment the deploy is accepted —
-either a subdomain the platform assigns it automatically, or a custom domain
-your organization configured. This reference covers configuring that domain,
+A hosted project has an address the moment the deploy is accepted — the
+subdomain chosen for it under the platform's shared domain (like a username;
+the deploy runbook's Step 3.6), or a custom domain your organization
+configured. This reference covers configuring that domain,
 re-verifying it, reclaiming it and detaching it.
 
 `site_url` on the deploy response is the address to show the user, and the
@@ -13,14 +14,13 @@ them an error, and each answering with an empty `site_domain_error` as well — 
 there is no message explaining it, because nothing was attempted:
 
 - your organization uses **its own** hosting credential rather than the
-  instance-wide one, so there is no shared domain for the platform to assign
-  from;
+  instance-wide one, so there is no shared domain to choose a subdomain under;
 - the instance offers **no shared domain** at all;
-- the backend is older than automatic assignment.
+- the backend is older than chosen subdomains.
 
-Then the deployment's own `url` is the address once the build is READY — or ask
-for a subdomain explicitly, below. Do not treat a `null` `site_url` as a failed
-deploy: the app is live either way.
+Then the deployment's own `url` is the address once the build is READY — or
+choose a subdomain, below. Do not treat a `null` `site_url` as a failed deploy:
+the app is live either way.
 
 ## Variables
 
@@ -56,26 +56,44 @@ needed, so it can be shown as-is.
 the organization owns: it means the records are not visible in DNS yet. Tell the
 user to add them and re-check later, do not treat it as a failure.
 
-## Ask for a subdomain
+## Choose a subdomain
 
-Omit `domain` entirely and the platform assigns the project a subdomain of the
-shared domain it offers. Nothing for the user to buy, configure or verify — the
-address works immediately.
+Send `subdomain` instead of `domain` — one label, lowercase letters, digits and
+hyphens, like a username — and the project is served at
+`<subdomain>.<the platform's shared domain>`. Nothing for the user to buy,
+configure or verify — the address works immediately. A body with neither
+`domain` nor `subdomain` is a `400`: the platform never invents an address.
 
 ```bash
 curl -s -X POST "$BASE/providers/vercel/hosting/dns/" -H "$AUTH" \
   -H 'Content-Type: application/json' \
-  -d "{\"project\": $ID}" | jq
+  -d "{\"project\": $ID, \"subdomain\": \"smallsite\"}" | jq
 ```
 
-`201` with the same shape as an attach. This is the fix when a deploy came back
-with `site_url: null` — including a project deployed before the instance offered
-a shared domain at all.
+`201` with the same shape as an attach, and `site_url` moves to the new host.
+This is the fix when a deploy came back with `site_url: null` — including a
+project deployed before the instance offered a shared domain at all — and the
+route for renaming: a different subdomain moves `site_url` and leaves the
+previous host attached until it is detached (below).
+
+Asking twice is safe: a project that already has that exact host gets it handed
+back with `200` rather than a second one. A project already served at a custom
+domain gets the subdomain **alongside** it — the response carries the new host,
+but `site_url` keeps the custom domain. Detach the custom domain and ask again
+to make the subdomain the address.
 
 | Status | Meaning | Fix |
 |---|---|---|
-| 201 | Assigned. The response carries the new name | Show it to the user; it serves as soon as the build is READY |
-| 503 | No shared domain is on offer — either the instance configures none, or your organization is on its own hosting credential | Attach a domain you own instead (above). The error body says which of the two it is |
+| 201 | Chosen. The response carries the new name | Show it to the user; it serves as soon as the build is READY |
+| 200 | The project already has this subdomain; the response carries it | Nothing to do — same as 201 |
+| 400 | No hosting credential is configured for the organization | Configure one, or ask your ibl.ai operator |
+| 400 with a `subdomain` key | Neither `domain` nor `subdomain` was sent, both were, or the label is malformed | Send exactly one; a label is lowercase letters, digits and hyphens, no leading or trailing hyphen |
+| 409 | That name is taken — by another organization, another of your projects, or it is a reserved label such as `www` | Ask the user for a different subdomain |
+| 4xx naming a host | The subdomain recorded for the project no longer exists at the provider (removed in its dashboard, or detached under another project) | Detach that host through the routes below, then ask again |
+| 4xx with `code` | The provider refused the attach itself | Read `error`; a `409` here means the name is taken on the provider's side — ask the user for a different subdomain |
+| 429 | The provider rate-limited the request | Back off and retry; honour `Retry-After` when it is present |
+| 502 | The provider is unreachable, or it rejected the instance's hosting credential | Retry later; if it persists, ask your ibl.ai operator |
+| 503 | No subdomain can be chosen: no shared domain is on offer (the instance configures none, or your organization is on its own hosting credential), the shared domain is offered but currently unreachable, or this instance cannot yet record a subdomain for this project | The error body says which. Attach a domain you own instead (above), or ask your ibl.ai operator to update the instance |
 
 ## Inspect what a project has
 
@@ -120,6 +138,16 @@ Use it when the user says they have added the DNS records: it re-asks, stores
 the result, and returns the same `{name, apex_name, verified, verification,
 misconfigured, configured_by, required_records}` shape plus `records`.
 
+A `200` with `verified: false`, an empty `records` and a `detail` means the
+domain is configured but no app has been deployed to it yet — deploy a project
+with it (the deploy runbook's `domain` field) to get its records.
+
+A domain attached before this route existed carries no record of which app
+serves it. A re-verify then asks the provider about the organization's deployed
+apps in turn until one has the domain, records that app, and verifies as usual —
+so the question is asked once for a domain some app serves. A domain no app
+serves is asked about again on every re-verify, one call per app.
+
 It is also how a **lost** domain comes back. If the domain was taken over by
 another organization while this one was not serving it (see below), a successful
 verification here reclaims it — the other organization is detached and the
@@ -129,8 +157,11 @@ domain is re-attached to this project.
 |---|---|---|
 | 200 | Checked. Read `verified` and `misconfigured` | If `verified` is false, the records are not visible yet — wait and repeat |
 | 400 | Not a hosted domain — this row belongs to one of the ibl.ai sign-in/app domains, not a deployed site | Manage those through the custom-domains routes below |
+| 400, 404, 409 with `code` | The provider refused the check; `error` carries its reason | A 404 means the app no longer has the domain — detach it (below) and attach it again |
 | 403 | Not the organization's API key, or hosting is admin-only for this caller | Use the admin key your operator issued |
 | 404 | No such domain for this organization | Check the `id` against the listing |
+| 429 | The provider rate-limited the check | Back off and retry; honour `Retry-After` when it is present |
+| 502 | The provider is unreachable, or it rejected the instance's hosting credential | Retry later; if it persists, ask your ibl.ai operator |
 | 503 | This instance does not offer domain re-verification yet | Ask your ibl.ai operator to update it |
 
 ## Detach a domain from the organization
@@ -144,6 +175,22 @@ curl -s -X DELETE "$ORG_BASE/providers/vercel/hosting/domains/$DOMAIN_ID/" -H "$
 
 `204` on success. It detaches the domain from its project before dropping it, so
 nothing is left serving a site the organization no longer tracks.
+
+For a domain attached before this route existed, the detach first asks the
+provider which of the organization's deployed apps serves it and detaches it
+there. That needs the organization's hosting credential whenever the
+organization has deployed apps: without one the detach answers `400` rather
+than dropping a domain the provider would keep serving. A domain no app serves
+is dropped once every app has answered that it does not have it; only an
+organization with no deployed apps drops it without a provider call.
+
+| Status | Meaning | Fix |
+|---|---|---|
+| 204 | Detached at the provider and dropped | Nothing further |
+| 400 | No hosting credential is configured while the organization has deployed apps (the body says so), or the row is one of the ibl.ai sign-in/app domains | Configure the credential, or manage that row through the custom-domains routes below |
+| 400, 409 with `code` | The provider refused the detach; `error` carries its reason. A domain the provider no longer knows about is not an error here — it is simply dropped | Read `error`, resolve it at the provider, retry |
+| 403, 404, 503 | As for re-verify above | As above |
+| 429, 502 | The provider rate-limited the request, or is unreachable | Back off and retry; honour `Retry-After` when it is present |
 
 ## List the organization's domains
 
@@ -222,6 +269,7 @@ undone if that deploy then fails (a 409 for a push already in flight, say). The
 previous holder is left detached for a deployment that never happened; the
 domain is free, and either organization can re-verify to take it.
 
-Domains that can never be claimed: the automatically assigned subdomain
-namespace (its own apex, and names like `www` under it), and provider-owned
-hosts such as `*.vercel.app`.
+Domains that can never be claimed as a custom domain: the shared subdomain
+namespace (chosen with `subdomain` instead — its apex, and names like `www`
+under it, are reserved for everyone), and provider-owned hosts such as
+`*.vercel.app`.

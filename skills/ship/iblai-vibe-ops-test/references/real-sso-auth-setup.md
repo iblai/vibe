@@ -5,7 +5,7 @@ analytics, etc.), use a Playwright `auth.setup.ts` project that drives
 a real SSO flow once and reuses the resulting `storageState` across
 tests.
 
-The seedAuth helper in [`SKILL.md`](../SKILL.md) is fine for routing /
+The seedAuth helper in [playwright-setup.md](playwright-setup.md) is fine for routing /
 UI smoke tests, but anything that hits RTK Query will get 401s without
 real tokens.
 
@@ -195,5 +195,5 @@ Cheaper alternative: delete `playwright/.auth/` from CI before each run.
 
 If your journeys only assert routing, dialog wiring, or visual
 presence (not data-bound), stick with the cheaper `seedAuth` helper
-from the main skill. It's faster (no SSO round-trip) and doesn't need
+from [playwright-setup.md](playwright-setup.md). It's faster (no SSO round-trip) and doesn't need
 real credentials.

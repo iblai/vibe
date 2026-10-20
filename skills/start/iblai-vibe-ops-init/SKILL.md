@@ -314,7 +314,7 @@ record the answers here:
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill |
-| "tests", "before you show me" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, screenshot |
+| "tests", "before you show me", "is it done?" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, then its touch test: the route in a real browser, every control you added, the console, the phone width |
 
 **Freshness rule:** the installed skills are a copy of
 [iblai/vibe](https://github.com/iblai/vibe), which changes often. If
@@ -328,8 +328,10 @@ in the vibe repo.
 
 Rules that never change: SDK components → shadcn/ui → custom, in that order;
 `pnpm install --ignore-scripts`; lowercase project names; ask for a real
-agent UUID, never invent one; never print a token; run `/iblai-vibe-ops-test`
-before saying "done".
+agent UUID, never invent one; never print a token; never ask for a password;
+before saying "done", run `/iblai-vibe-ops-test` — build, tests, and its touch
+test in a real browser (Claude in Chrome, or the `chrome-devtools` server in
+`.mcp.json`); no browser tool → say so, never call it tested.
 
 ## Component Priority
 
@@ -340,6 +342,15 @@ before saying "done".
 Do NOT build custom components when an SDK component exists. Do NOT restyle
 SDK components — wrap the *container*, never the internals. ibl.ai and
 shadcn share one Tailwind theme and render in brand colors automatically.
+
+Before diverging from the ibl.ai design language — another font or weight
+scale, a size outside the scale, a new accent colour, restyling SDK
+internals, a hand-rolled shell or spinner, a card around an SDK panel, dark
+mode — stop and ask with AskUserQuestion: what the language says, what would
+change, what it costs. Reuse `components/page-header.tsx`,
+`components/empty-state.tsx` and `components/loading-screen.tsx` before
+writing new ones; the examples are in `/iblai-vibe-component` (House
+components), the wiring in BRAND.md.
 
 ## Map of this app
 
@@ -402,7 +413,7 @@ must be in the org's allowed redirect origins or sign-in never returns.
 ## Brand
 
 - **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- shadcn/ui new-york variant, system sans-serif, Lucide icons; SDK components ship their own styles — do NOT override them
+- shadcn/ui base-nova (Base UI: `render` prop, not `asChild`), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
 
 ## Layout Patterns
 
