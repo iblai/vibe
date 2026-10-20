@@ -130,12 +130,12 @@ public/sw.js                      # Offline service worker the SDK <Chat> regist
 e2e/                              # Playwright journeys + COVERAGE.md
 .env.example                      # → .env.local: org key, IBLAI_API_KEY, optional agent/app name
 iblai.env.example                 # → iblai.env: DOMAIN, PLATFORM, TOKEN
-.mcp.json                         # @iblai/mcp for your AI assistant (pnpm dlx)
+.mcp.json                         # @iblai/mcp (SDK docs) + chrome-devtools (the touch-test browser)
 ```
 
 ## AI-Assisted Development
 
-The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. Add the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server to your agent's MCP config (e.g. `.mcp.json`) for component-level lookups.
+The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. `.mcp.json` ships the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server for component-level lookups and the `chrome-devtools` server that `/iblai-vibe-ops-test` drives for the touch test.
 
 The [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server gives your AI assistant access to:
 

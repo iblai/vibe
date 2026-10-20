@@ -63,7 +63,7 @@ read from Stripe at most once a minute (`?refresh=1` reads it now — once, neve
 
 ```bash
 curl -s -X POST "$CONNECT" -H "$AUTH" -H 'Content-Type: application/json' \
-  -d '{"return_url":"http://localhost:3000/paywall/setup/connect"}'
+  -d '{"return_url":"http://localhost:3000/paywall/setup"}'
 # → {"authorize_url":"https://connect.stripe.com/oauth/authorize?…"}
 ```
 

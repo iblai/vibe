@@ -9,7 +9,6 @@
     "assets/stripe-components/components/pay-modal.tsx": "components/pay-modal.tsx",
     "assets/stripe-components/app/paywall/page.tsx": "app/paywall/page.tsx",
     "assets/stripe-components/app/paywall/setup/page.tsx": "app/paywall/setup/page.tsx",
-    "assets/stripe-components/app/paywall/setup/connect/page.tsx": "app/paywall/setup/connect/page.tsx",
     "assets/stripe-components/__tests__/paywall.test.ts": "__tests__/paywall.test.ts",
     "assets/stripe-components/__tests__/paywall-routes.test.ts": "__tests__/paywall-routes.test.ts",
     "assets/stripe-components/__tests__/paywall-client.test.ts": "__tests__/paywall-client.test.ts"

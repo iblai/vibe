@@ -65,7 +65,8 @@ authorization check, so an authenticated non-admin with a malformed query gets
 |---|---|---|
 | 400 | `project` missing or not a positive integer, or `domain` malformed. | Fix the query. `domain` must be lowercase punycode with an alphabetic TLD. |
 | 400 | `DELETE dns/` without `domain`. | It is required, despite being optional on the list read. |
-| 409 | The domain is already in use. | The reservation spans **all** ibl.ai app domains, not just hosting, so this can collide with an auth, agent or analytics domain. Nothing was sent to the provider and nothing was left behind — pick another name. |
+| 400 | `POST dns/` with neither `domain` nor `subdomain`, with both, or with a malformed `subdomain`; `POST deployment/` of a project with no address and no `subdomain` while a shared domain is on offer. The body has a `subdomain` key. | Send exactly one; ask the user for a subdomain — the platform never invents an address. |
+| 409 | The domain is already in use — or the chosen subdomain is taken (another organization, another of your projects, or a reserved label such as `www`). | The reservation spans **all** ibl.ai app domains, not just hosting, so this can collide with an auth, agent or analytics domain. Nothing was sent to the provider and nothing was left behind — pick another name. |
 
 ## Provider translation
 

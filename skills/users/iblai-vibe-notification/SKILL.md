@@ -15,6 +15,7 @@ Add notification features -- a compact bell icon with unread badge for your
 navbar and a full notification center page with Inbox and Alerts tabs.
 
 ![Notifications Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-notification/notifications-page.png)
+![Alerts tab — predefined alerts with Active/Inactive toggles and Edit (admins)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-notification/iblai-vibe-notification-2-alerts.png)
 
 > **Template:** the bell this skill creates is bundled as
 > [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
@@ -111,11 +112,8 @@ Derive `isAdmin` from the `tenants` array in localStorage.
 
 Run `/iblai-vibe-ops-test` before reporting done:
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/notifications /tmp/notifications.png
-```
+`pnpm build && pnpm test`, then touch test `/notifications` and the navbar bell
+in the browser as `/iblai-vibe-ops-test` says.
 
 ## Notes
 

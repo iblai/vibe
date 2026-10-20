@@ -97,6 +97,9 @@ org-wide scope on every endpoint here.
   **email** or username and the session's first user message. Each row
   identifies the learner with `user` (numeric id), `username`, `email` and
   `name` (display name), so a table needs no second request to label a row.
+  Each row also carries the agent's `model` (the mentor's LLM name) and
+  `llm_provider` (the mentor's LLM provider) — both `null` when the agent has
+  none set.
 - **GET** `{dm_url}/api/analytics/messages/details/?platform_key={platform}&session_id={id}[&mentor_unique_id={mentor}]`
   — one full transcript. `session_id` **required**. Returns `summary` +
   `messages[]`. Beyond `human`/`ai`, every AI turn carries the extended
@@ -181,13 +184,17 @@ is never leaked. An unreachable/erroring tracing backend returns **`502`** (dist
 from a `500` bug). `date_filter=all_time` on `metrics` falls back to a fixed lower
 bound (the backing Metrics API requires bounded timestamps).
 
-**Access (self-service).** Platform admins — and watchers / mentor owners via
-their RBAC grants — see the whole tenant. A **non-admin** end user may read
-**only their own usage**: the `userId`/`username` filter is clamped to the
-caller, so a self-access call can never return tenant-wide aggregates. Omitting
-`username` defaults to the caller's own rows; passing **another** user's
-`username` is rejected **`403`**. This governs end-user tokens driving the UI —
-with an `Api-Token` workspace key you act as the platform, so you always get the
+**Access (self-service & delegated).** Platform admins see the whole tenant; a
+**mentor owner** sees their agent's rows (scope with `mentor_unique_id`). A
+**watcher** — a user holding an analytics grant on specific learners — may drill
+into a watched learner via `?username=<watched>`; the query is clamped to their
+watched set (their own rows plus watched users on the plain aggregate), and an
+**unwatched** `username` is rejected **`403`**. A plain **non-admin** end user
+may read **only their own usage**: the `userId`/`username` filter is clamped to
+the caller, so a self-access call can never return tenant-wide aggregates.
+Omitting `username` defaults to the caller's own rows (a watcher additionally
+sees their watched users). This governs end-user tokens driving the UI — with an
+`Api-Token` workspace key you act as the platform, so you always get the
 full-tenant scope and the self-scoping above does not apply.
 
 ### Per-user analytics
@@ -301,6 +308,19 @@ curl -s "$dm_url/api/analytics/content/?platform_key=$IBLAI_ORG&metric=courses&d
 - **Same endpoints, two scopes.** `mentor_unique_id` present ⇒ agent scope;
   absent ⇒ org-wide. `platform_key={platform}` is your workspace key throughout.
 - **`date_filter=custom`** requires both `start_date` and `end_date` (`yyyy-MM-dd`).
+- **Windowed `period_*` response fields.** `topics` (`metric=overview`), `users`
+  (`metric=currently_active`, plus the `active_users*` metrics), and `content`
+  return flat `period_*` figures computed over the `date_filter` window alongside
+  the existing all-time / month figures: each topics metric block adds
+  `period_total` / `period_previous` / `period_percentage_change`; `users`
+  `currently_active` adds `period_count` / `period_change`; `content`
+  `summary.totals` and `summary.averages` add `period_*` counterparts
+  (`period_total_enrollments`, `period_active_enrollments`, `period_total_learners`,
+  `period_total_time_spent`, `period_completion_rate`, `period_average_rating`,
+  `period_time_per_learner`). Every windowed response also echoes
+  `period_start_date` / `period_end_date`. These fields appear **only when a
+  window resolves** — `date_filter=all_time` omits them entirely, so treat them
+  as optional.
 - **Cost values are already user-facing** — the financial endpoints return
   platform-marked-up USD. Consume as-is; do not re-apply any markup.
 - **Costs are best-effort** (a separate datastore) — a null/empty cost block

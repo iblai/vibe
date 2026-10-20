@@ -43,8 +43,9 @@ alwaysApply: false
 ## Verify
 
 1. `pnpm build` and `pnpm test` pass.
-2. `pnpm dev`, sign in, open `/<route>`: <what must be visible>.
-3. `npx playwright screenshot http://localhost:3000/<route> /tmp/<feature>.png` — the screenshot shows <…>.
+2. Touch test `/<route>` in the browser as `/iblai-vibe-ops-test` says: sign in, <what must be
+   visible>; <each control this skill adds> does <what it should>; console clean; no sideways
+   scroll at phone width.
 
 ## Customize
 

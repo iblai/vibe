@@ -28,8 +28,6 @@ once and mount as many tabs as you need.
 ![Edit Voice Instructions modal (rich-text editor)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-6-instructions-edit.png)
 ![Voice call sub-tab: call style, language, provider, and call voice](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-voice/iblai-vibe-agent-voice-4-voice-call.png)
 
-You MUST run `/iblai-ops-test` before telling the user the work is ready.
-
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Prerequisites
@@ -179,15 +177,12 @@ From `@iblai/iblai-js/web-containers/next`:
 
 ## Step 5: Verify
 
-Run `/iblai-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/agents/<id>/voice /tmp/agent-voice.png
-   ```
+3. Touch test `/agents/<id>/voice` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 

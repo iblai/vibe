@@ -20,8 +20,9 @@ visual-component skills (`iblai-vibe-*`, kind `ui`) are described in
    Path variables: `{org}` = `$IBLAI_ORG` (a.k.a. `platform_key`),
    `{username}` = `$IBLAI_USERNAME`, `{mentor}` = an agent's `unique_id`.
    Almost every endpoint is REST on this host. The **only** exceptions are
-   streaming chat and inference (`.../v1/chat/completions`, `agent/chat/`, and
-   any WebSocket), which are served by the async host `asgi.data.iblai.app` —
+   streaming chat and inference (`.../v1/chat/completions`, `mentor/chat/`, the
+   `/ws/langflow/` WebSocket) and the hosted MCP server (`/mcp/agent-chat/`),
+   which are served by the async host `asgi.data.iblai.app` —
    each skill names that host explicitly where it applies. Never send a plain
    REST call (training, settings, datasets, agent creation, …) to
    `asgi.data.iblai.app`; it will `403`. See [Hosts](#hosts) for the full map.
@@ -50,7 +51,7 @@ the right one for the call:
 | Host | What it is | Use it for |
 |---|---|---|
 | `https://api.iblai.app/dm/api/...` | Data Manager gateway (synchronous) | **Everything REST** — agents, datasets/training, settings, sessions, CRM, the model list. The default; when in doubt, this one. |
-| `https://asgi.data.iblai.app/...` | Async gateway | **Streaming only** — chat completions (`.../v1/chat/completions`), `agent/chat/`, and WebSocket (`wss://asgi.data.iblai.app/ws/chat/`). The synchronous gateway cannot drive the streaming generator, so these live here and only here. |
+| `https://asgi.data.iblai.app/...` | Async gateway | **Streaming only** — chat completions (`.../v1/chat/completions`), `api/mentor/chat/`, the WebSocket `wss://asgi.data.iblai.app/ws/langflow/`, and the hosted MCP server (`/mcp/agent-chat/`). Its gateway passes only these: `api/agent/chat/` and `/ws/chat/` get the gateway’s own `403` (`{"code":"403","message":"Forbidden"}`), while `https://api.iblai.app/asgi/...` serves both spellings. The synchronous gateway cannot drive the streaming generator. |
 | `https://platform.iblai.app/api/...` | Legacy alias of the DM gateway — note **no `/dm` prefix** | Nothing new. It is the old form of `api.iblai.app/dm/api/...`; skills standardize on the `api.iblai.app/dm` form. |
 
 Two failure modes this prevents — both have bitten real integrations:
@@ -59,10 +60,12 @@ Two failure modes this prevents — both have bitten real integrations:
   rejects synchronous REST (training, settings, agent creation, …). Send those
   to `api.iblai.app/dm/...`.
 - **A streaming call sent to the REST host will not stream.** Completions must
-  go to `asgi.data.iblai.app`; `api.iblai.app` cannot drive the generator.
+  go to `asgi.data.iblai.app` (or `api.iblai.app/asgi/...`); `api.iblai.app/dm`
+  cannot drive the generator.
 
 Self-hosted deployments substitute the domain — `api.$DOMAIN` for the REST
-gateway (see the `DOMAIN` handling in "Using an API skill" above).
+gateway, `asgi.data.$DOMAIN` for the async one (see the `DOMAIN` handling in
+"Using an API skill" above).
 
 ## Runtime chat: the hosted MCP server
 

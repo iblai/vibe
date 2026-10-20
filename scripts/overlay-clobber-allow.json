@@ -1,0 +1,29 @@
+{
+  "_comment": "Intended overlay overrides for scripts/test-skills-compose.mjs. `dest` suppresses the clobber on that destination file; `reason` MUST say why it is intentional. Two kinds: (1) 'intended override' — a feature skill's real implementation replaces a scaffold stub (permanent). (2) 'latent' — a real manifest smell kept green for now but worth fixing; should shrink to zero.",
+  "allow": [
+    {
+      "dest": "app/(app)/page.tsx",
+      "reason": "intended override: iblai-vibe-auth's real authenticated home page replaces the scaffold agent-template home."
+    },
+    {
+      "dest": "lib/iblai/auth-utils.ts",
+      "reason": "intended override: iblai-vibe-auth's real auth-utils replaces the scaffold base stub."
+    },
+    {
+      "dest": "lib/iblai/config.ts",
+      "reason": "intended override: iblai-vibe-auth's real config replaces the scaffold base stub."
+    },
+    {
+      "dest": "components/iblai/chat-widget.tsx",
+      "reason": "harmless: the scaffold agent template re-uses iblai-vibe-agent-chat's OWN asset (same source file), so no content is lost."
+    },
+    {
+      "dest": "types/iblai-web-mentor.d.ts",
+      "reason": "harmless: the scaffold agent template re-uses iblai-vibe-agent-chat's OWN asset (same source file)."
+    },
+    {
+      "dest": "lib/config.ts",
+      "reason": "latent: iblai-vibe-scaffold maps BOTH its base and agent template variants (assets/base/lib/config.ts.j2 and assets/agent/lib/config.ts.j2) to one dest, so the render test only exercises the last. Split the variants or test them separately, then remove this entry."
+    }
+  ]
+}

@@ -104,6 +104,25 @@ export function defaultTokenName({ packageName, dirName, machine }) {
   return `${project} on ${machine || "this machine"}`;
 }
 
+/**
+ * The platform base domain every service URL is built from (`login.<domain>`,
+ * `api.<domain>`). Accepts what users and the hosted page may hand over — a
+ * scheme, a trailing slash, or the auth host itself (`login.iblai.app`) — and
+ * reduces it to the base (`iblai.app`). Without this, a domain reported as
+ * `login.iblai.app` makes token verification call `api.login.iblai.app`,
+ * which does not resolve, and the connection fails as NETWORK_ERROR after the
+ * token has already been minted.
+ */
+export function normalizeDomain(value, fallback = DEFAULT_DOMAIN) {
+  const host = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/^login\./, "");
+  return host || fallback;
+}
+
 export function buildConnectUrl({ domain, port, state, name, origin, org }) {
   const url = new URL(`https://login.${domain}/connect`);
   url.searchParams.set("callback", `http://127.0.0.1:${port}/callback`);
@@ -309,7 +328,7 @@ export async function resolveCallback({ query, state, domain, fetchImpl = fetch 
     if (!res.ok) throw new Error(`code exchange refused (HTTP ${res.status})`);
     const body = await res.json();
     return {
-      domain: body.domain || domain,
+      domain: normalizeDomain(body.domain || domain),
       org: body.org,
       org_name: body.org_name,
       username: body.username,
@@ -318,7 +337,7 @@ export async function resolveCallback({ query, state, domain, fetchImpl = fetch 
   }
   if (!query.token || !query.org) throw new Error("callback carried no code and no values");
   return {
-    domain: query.domain || domain,
+    domain: normalizeDomain(query.domain || domain),
     org: query.org,
     org_name: query.org_name,
     username: query.username,
@@ -466,7 +485,7 @@ async function main(argv) {
   if (opts.help) { console.log(USAGE); return EXIT_OK; }
 
   const cwd = process.cwd();
-  const domain = opts.domain || DEFAULT_DOMAIN;
+  const domain = normalizeDomain(opts.domain || DEFAULT_DOMAIN);
 
   if (opts.paste) {
     const parsed = parsePasteBlock(await readStdin());
@@ -474,7 +493,7 @@ async function main(argv) {
       console.error("paste block is missing PLATFORM/TOKEN (or IBLAI_ORG/IBLAI_API_KEY)");
       return EXIT_FAILED;
     }
-    const values = { ...parsed, domain: parsed.domain || domain };
+    const values = { ...parsed, domain: normalizeDomain(parsed.domain || domain) };
     try {
       const verified = await verifyToken({ domain: values.domain, token: values.token });
       values.username = values.username || verified.username;

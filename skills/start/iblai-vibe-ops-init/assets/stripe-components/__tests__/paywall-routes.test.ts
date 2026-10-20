@@ -569,7 +569,7 @@ describe("/api/paywall/admin/connect", () => {
     });
     const { POST } = await loadConnect();
     const res = await POST(
-      request("POST", { return_url: "http://localhost:3000/paywall/setup/connect" }),
+      request("POST", { return_url: "http://localhost:3000/paywall/setup" }),
     );
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -577,7 +577,7 @@ describe("/api/paywall/admin/connect", () => {
     });
     expect(connectCalls[0].init?.method).toBe("POST");
     expect(JSON.parse(connectCalls[0].init?.body as string)).toEqual({
-      return_url: "http://localhost:3000/paywall/setup/connect",
+      return_url: "http://localhost:3000/paywall/setup",
     });
     expect(connectCalls[0].headers).toMatchObject({
       Authorization: "Token dm-abc",
@@ -602,7 +602,7 @@ describe("/api/paywall/admin/connect", () => {
     ] as const) {
       stubFetch({ connect: () => Response.json(body, { status }) });
       const res = await POST(
-        request("POST", { return_url: "http://localhost:3000/paywall/setup/connect" }),
+        request("POST", { return_url: "http://localhost:3000/paywall/setup" }),
       );
       expect(res.status).toBe(status);
       expect(await res.json()).toEqual(body);
