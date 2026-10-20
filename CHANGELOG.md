@@ -3,6 +3,14 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.0] - 2026-10-20
+
+### Added
+
+- move the monetization skills to their own folder on current main
+- monetization skills update
+- monetization skills update
+
 ## [2.15.0] - 2026-10-20
 
 ### Added
