@@ -85,5 +85,7 @@ curl -X PUT \
 
 - A field left out of the PUT is left unchanged — never resend the whole object.
 - `categories` expects numeric category ids from the categories endpoint, not names.
+- `enable_in_chat_llm_change` saves through the same endpoint, but its switch
+  is on the LLM tab, not the Settings tab — see `/iblai-api-agent-llm`.
 - Deletion and forking are scoped to `{username}`; settings reads/writes use the
   `users/{username}/mentors/{mentor}/` path.
