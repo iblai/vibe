@@ -36,6 +36,14 @@ runs on.
     "llm_name": "string (required)"
   }
   ```
+- **PUT** `…/users/{username}/mentors/{mentor}/settings/` — let users switch
+  the model in their own chat session (Allow In-Chat Model Change; it resets
+  to the agent's model on a new chat):
+  ```json
+  {
+    "enable_in_chat_llm_change": "boolean"
+  }
+  ```
 
 ## Example
 
@@ -55,3 +63,7 @@ curl -X PUT \
   `llm_name` pair that appears in that list — values must match a real card.
 - Selection persists through the shared `settings/` endpoint, so it sits
   alongside the other configuration fields on the same agent.
+- Which models users may pick when in-chat model change is on is an
+  organization-wide list, not an agent setting: `GET`/`POST`
+  `/api/core/rbac/llm-access/…` in `/iblai-api-rbac`. The LLM tab's User
+  Models dialog (`/iblai-vibe-agent-llm`) edits it.
