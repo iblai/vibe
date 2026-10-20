@@ -21,7 +21,7 @@
     "reason": "SDK v2 d.ts gap: the career-profile CRUD hooks (useGetUserEducationQuery et al.) exist at runtime but are missing from data-layer typings"
   },
   "iblai-vibe-ops-test": {
-    "fences": [1, 6],
+    "fences": [1, 4],
     "reason": "snippets assume @testing-library/jest-dom matcher typings, which the skill installs into the target app; vibe-starter does not ship them"
   },
   "iblai-vibe-workflow": {
@@ -39,9 +39,5 @@
   "iblai-vibe-course-access": {
     "all": true,
     "reason": "documents v1-era course hooks: useGetDepartmentMemberCheckQuery is gone from the v2 runtime entirely, useCourseNavigator/exam/enrollment hooks are d.ts gaps — the skill needs a v2 rewrite"
-  },
-  "iblai-vibe-analytics": {
-    "targets": ["app/(app)/analytics/layout.tsx", "app/(app)/analytics/financial/page.tsx"],
-    "reason": "SDK pin gap: AnalyticsLayout showPicker and AnalyticsFinancialStats userId ship in @iblai/web-containers 1.21.0, but @iblai/iblai-js 2.12.2 resolves 1.16.0 — unskip when the starter's SDK pin picks up web-containers >= 1.21.0"
   }
 }

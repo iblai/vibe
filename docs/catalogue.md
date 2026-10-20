@@ -10,9 +10,9 @@ six data families almost every app reads or writes (the section right below).
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
-| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 56 |
+| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 58 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
-| [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 9 |
+| [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, credits, spend caps, and which rail to charge your users on. | 5 |
 | [`monetization/`](#monetization) | Charge your users: pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics. | 7 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
@@ -112,7 +112,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-llm`](../skills/agents/iblai-vibe-agent-llm/SKILL.md) | 🖥️ ui | Add the agent LLM tab (model provider selection) to your Next.js app |
 | [`/iblai-vibe-agent-lti`](../skills/agents/iblai-vibe-agent-lti/SKILL.md) | 🖥️ ui | Add the agent LTI tab (LTI 1.3 launch toggle with agent links, signing keys, tools, and platform endpoints) to your Next.js app |
 | [`/iblai-vibe-agent-mcp`](../skills/agents/iblai-vibe-agent-mcp/SKILL.md) | 🖥️ ui | Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialo… |
-| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab (PII detection and filtering with redact/mask/block actions, entity-type selection, and AI-response filtering) … |
+| [`/iblai-vibe-agent-privacy`](../skills/agents/iblai-vibe-agent-privacy/SKILL.md) | 🖥️ ui | Add the agent Privacy tab with two sub-tabs, PII Filtering (detect personal information in messages and allow, redact, mask or block it, … |
 | [`/iblai-vibe-agent-prompt`](../skills/agents/iblai-vibe-agent-prompt/SKILL.md) | 🖥️ ui | Add the agent Prompts tab (system prompts and suggested prompts) to your Next.js app |
 | [`/iblai-vibe-agent-safety`](../skills/agents/iblai-vibe-agent-safety/SKILL.md) | 🖥️ ui | Add the agent Safety tab (moderation prompts and flagged content) to your Next.js app |
 | [`/iblai-vibe-agent-sandbox`](../skills/agents/iblai-vibe-agent-sandbox/SKILL.md) | 🖥️ ui | Add the agent Sandbox tab (sandbox type selection |
@@ -121,9 +121,11 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-support`](../skills/agents/iblai-vibe-agent-support/SKILL.md) | 🖥️ ui | Add the agent Support tab (human support ticket inbox with availability toggle, filters, ticket detail, status updates, and replies) to y… |
 | [`/iblai-vibe-agent-task`](../skills/agents/iblai-vibe-agent-task/SKILL.md) | 🖥️ ui | Add the agent Tasks tab (schedule automated periodic agent tasks with run logs) to your Next.js app |
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (enable/disable agent tools) to your Next.js app |
+| [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (pick the agent's voice and configure voice calls) to your Next.js app |
+| [`/iblai-vibe-incognito`](../skills/agents/iblai-vibe-incognito/SKILL.md) | 🖥️ ui | Add Incognito to your chat, the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for th… |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
-| [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Add the OS app's Code mode to a vibe Next.js + Tauri app |
+| [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app |
 | [`/iblai-vibe-project`](../skills/agents/iblai-vibe-project/SKILL.md) | 🖥️ ui | Add the in-process Projects surface (project landing page |
 | [`/iblai-vibe-workflow`](../skills/agents/iblai-vibe-workflow/SKILL.md) | 🖥️ ui | Add workflow builder components to your Next.js app |
 
@@ -167,6 +169,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-account`](../skills/organizations/iblai-vibe-account/SKILL.md) | 🖥️ ui | Add account and organization settings page to your Next.js app |
 | [`/iblai-vibe-credential`](../skills/organizations/iblai-vibe-credential/SKILL.md) | 🔌 api | RBAC setup that lets an API token list and unmask integration credentials on the ibl.ai platform |
 | [`/iblai-vibe-crm-overview`](../skills/organizations/iblai-vibe-crm-overview/SKILL.md) | 📖 guide | Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ |
+| [`/iblai-vibe-virtual-machine`](../skills/organizations/iblai-vibe-virtual-machine/SKILL.md) | 🖥️ ui | Add the organization-wide Virtual Machine settings surface |
 
 ## Billing
 
@@ -251,7 +254,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface) |
 | [`/iblai-vibe-ops-deploy`](../skills/ship/iblai-vibe-ops-deploy/SKILL.md) | 🛠️ ops | Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web |
 | [`/iblai-vibe-ops-release`](../skills/ship/iblai-vibe-ops-release/SKILL.md) | 🛠️ ops | Generate a Makefile + Fastlane config that builds and submits your Tauri app to the Apple App Store and Google Play |
-| [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | When the user wants to add unit tests (Vitest), e2e tests (Playwright), or get test coverage above 95% for their ibl.ai Next.js app |
+| [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | Test an ibl.ai Next.js app before showing it or saying done |
 | [`/iblai-vibe-readme`](../skills/ship/iblai-vibe-readme/SKILL.md) | 🛠️ ops | Write or refresh the README.md |
 | [`/iblai-vibe-windows-msix`](../skills/ship/iblai-vibe-windows-msix/SKILL.md) | 🛠️ ops | Build and distribute a Tauri app as a Windows MSIX package for sideloading (test) or the Microsoft Store (release) |
 
@@ -270,4 +273,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 154 skills.
+Total: 157 skills.

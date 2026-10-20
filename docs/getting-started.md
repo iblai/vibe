@@ -64,7 +64,7 @@ its headless twin, the `iblai-api-*` skill that documents the same data over RES
 | Notifications — bell, inbox, alerts, admin send | [`/iblai-vibe-notification`](../skills/users/iblai-vibe-notification/SKILL.md) | [notification](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-notification/SKILL.md) |
 | Navbar, onboarding flow, README | [`/iblai-vibe-navbar`](../skills/start/iblai-vibe-navbar/SKILL.md), [`/iblai-vibe-onboard`](../skills/users/iblai-vibe-onboard/SKILL.md), [`/iblai-vibe-readme`](../skills/ship/iblai-vibe-readme/SKILL.md) | — |
 | Anything with no component | [`/iblai-vibe-api`](../skills/start/iblai-vibe-api/SKILL.md) | any of the 51 `iblai-api-*` skills |
-| Test before showing work; keep current | [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md), [`/iblai-vibe-ops-upgrade`](../skills/start/iblai-vibe-ops-upgrade/SKILL.md) | — |
+| Test before showing work (build, tests, a browser touch test); keep current | [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md), [`/iblai-vibe-ops-upgrade`](../skills/start/iblai-vibe-ops-upgrade/SKILL.md) | — |
 
 
 

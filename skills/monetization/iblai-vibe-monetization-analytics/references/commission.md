@@ -36,10 +36,9 @@ than reading hardcoded keys:
 | OpenAPI schema component `ItemTypeCommission` | `mentor`, `course`, `program` (3 — no pathway) |
 | SDK TypeScript type | `mentor`, `course` (2) |
 
-The backend reads each percentage from per-Platform `Config` keys
-(`STRIPE_ITEM_COMMISSION_PERCENT_MENTOR`, `_COURSE`, `_PROGRAM`,
-`_PATHWAY`), so at runtime you may see up to four keys; never assume
-exactly four are present. Render `mentor` as **"Agent"** to stay aligned
+Each value is a per-type commission percentage that ibl.ai sets (agent,
+course, program, pathway), so at runtime you may see up to four keys;
+never assume exactly four are present. Render `mentor` as **"Agent"** to stay aligned
 with the SDK's `displayItemType` helper —
 see [/iblai-vibe-monetization → references/item-types.md](../../../monetization/iblai-vibe-monetization/references/item-types.md).
 

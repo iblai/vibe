@@ -13,8 +13,6 @@ Platform-wide subscribers, per-item subscribers, paywalls list) and the
 `CancelSubscription` helper, which cancels the **caller's own**
 subscription on a given `(item_type, item_id)`.
 
-![Monetization tab — Total Revenue, Total Sales, Active Paywalls, Total Subscribers, and the two donut charts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-main-cards.png)
-
 > **A true admin override (cancel-on-behalf-of-user) does not exist.**
 > The cancel endpoint is hard-locked to `request.user`; there is no
 > `user_id` parameter. To force-cancel another user's subscription, an
@@ -133,10 +131,6 @@ forward your SPA to it. **Subscribed** is the day the subscription started
 (`created_at`); **Amount** is blank for `grandfathered` rows. `mentorId`,
 `selectedMentorId`, and `usergroupIds` are accepted but unused — the tab is
 always org-wide, so the agent picker and date range do not filter it.
-
-![Subscribers table — User, Item, Type, Plan, Amount, Subscribed, Status](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-subscribers-list.png)
-
-![Configured Paywalls table with the type filter and pagination](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/monetization/iblai-vibe-monetization-analytics/monetization-analytics-configured-paywalls.png)
 
 ## Step 1: Validate the API schema
 
@@ -357,12 +351,14 @@ no second roundtrip per row to draw the entry-level price.
 
 ## Step 7: Self-service CancelSubscription helper
 
-The SDK's `CancelSubscription` component (not re-exported from
-`@iblai/iblai-js/web-containers`; copy it locally) looks up and cancels the
-**caller's own** subscription on an `(item_type, item_id)` — never another
-user's; use the Stripe Dashboard for that. Recurring prices return
-`{portal_url}` (finish in Stripe's portal); one-time prices return the
-record with `status: 'canceled'`. Branch on both. Walkthrough:
+The SDK's `CancelSubscription` component is not exported from
+`@iblai/iblai-js`, so build the same form from
+`useLazyGetItemSubscriptionQuery` and `useCancelSubscriptionMutation`. It
+looks up and cancels the **caller's own** subscription on an
+`(item_type, item_id)` — never another user's; use the Stripe Dashboard for
+that. Recurring prices return `{portal_url}` (finish in Stripe's portal);
+one-time prices return the record with `status: 'canceled'`. Branch on
+both. The form and the branch:
 [`references/cancel-subscription.md`](./references/cancel-subscription.md).
 
 ## Verify
@@ -370,11 +366,7 @@ record with `status: 'canceled'`. Branch on both. Walkthrough:
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
-2. Drive the dashboard:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/admin/analytics/monetization /tmp/dash.png
-   ```
+2. Touch test `/admin/analytics/monetization` in the browser as `/iblai-vibe-ops-test` says.
    As a user with `can_sell_items` the Monetization tab is in the strip;
    without it (or with `enable_monetization` off) the tab is absent and
    the URL redirects to another tab.
@@ -438,11 +430,6 @@ Query the data-layer MCP for hook param shapes, filters, and cache tags:
 ## Files in this skill's scope
 
 Frontend (read via `gh api repos/iblai/ibl-web-frontend/contents/<path>`):
-
-- `packages/web-containers/src/components/analytics/{analytics-monetization-stats.tsx,use-monetization.ts,analytics-layout.tsx}` —
-  the shipped tab, its data hook, and the `enableMonetization` gate.
-- `packages/web-utils/src/utils/analytics-access.ts` —
-  `canViewMonetizationAnalytics`, `getMonetizationRbacResource`.
 
 - `packages/data-layer/src/features/monetization/{custom-api-slice,types,constants}.ts` —
   query defs, response/param types, and endpoint paths.

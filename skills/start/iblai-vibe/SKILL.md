@@ -46,7 +46,7 @@ what: [docs/catalogue.md#core](https://raw.githubusercontent.com/iblai/vibe/refs
 | Money — how you are billed; charging your users | `/iblai-vibe-pricing` → `/iblai-vibe-credit`, `-billing`, `-agent-billing`, `-monetization-app-paywall`, `-monetization` | `iblai-api-billing`, `spend-caps` |
 | A navbar, an onboarding flow, a README | `/iblai-vibe-navbar`, `/iblai-vibe-onboard`, `/iblai-vibe-readme` | — |
 | Ship: a URL; macOS / Windows / iOS / Android; the stores | `/iblai-vibe-ops-deploy`, `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix`, `/iblai-vibe-iconography` | `iblai-api-infrastructure` (self-host) |
-| Test before showing work; upgrade | `/iblai-vibe-ops-test`, `/iblai-vibe-ops-upgrade` | — |
+| Test before showing work (build, tests, a browser touch test); upgrade | `/iblai-vibe-ops-test`, `/iblai-vibe-ops-upgrade` | — |
 | Courses, applications, CRM, workflows, local LLMs | `/iblai-vibe-course-access`, `-course-create`, `-application`, `-crm-overview`, `-workflow`, `-local-llm` | `iblai-api-catalog`, `apply`, `crm` |
 | **Anything with no component** | `/iblai-vibe-api` — server route + `Api-Token` inside the app | the `iblai-api-*` skill for that family (51) |
 

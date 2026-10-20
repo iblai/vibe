@@ -35,14 +35,22 @@ When building custom UI around SDK components, use the ibl.ai brand:
 - **Primary**: `#0058cc`
 - **Gradient**: `linear-gradient(135deg, #00b0ef, #0058cc)`
 - **Button**: `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- **Font**: System sans-serif stack
-- **Style**: shadcn/ui new-york variant
+- **Font**: Open Sans — `--font-open-sans` on `<html>`, mapped to `--font-sans` in `@theme inline`, semibold rendered as 500; no `!important` body font
+- **Style**: shadcn/ui base-nova (Base UI: `render` prop, not `asChild`)
 
 Follow the component hierarchy: use ibl.ai SDK components
 (`@iblai/iblai-js`) first, then shadcn/ui for everything else
 (`npx shadcn@latest add <component>`). Do NOT write custom components
 when an ibl.ai or shadcn equivalent exists. Both share the same Tailwind
 theme and render in ibl.ai brand colors automatically.
+
+Before diverging from this language — another font or weight scale, a size
+outside the scale, a new accent colour, restyling SDK internals, a hand-rolled
+shell or spinner, a card around an SDK panel, dark mode — stop and ask the
+user: what the language says, what would change, what it costs. The wiring,
+the type scale and the canonical components (page header, empty state, loading
+screen, badges, forms, dialogs, tables) are in `/iblai-vibe-component`
+(House components) and BRAND.md.
 
 Full brand guidelines:
 [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md).
@@ -100,12 +108,12 @@ You MUST run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
 2. `pnpm test` — vitest must pass.
-3. Start a dev server and touch test the route with Playwright:
-
-```bash
-pnpm dev &
-npx playwright screenshot http://localhost:3000/<route> /tmp/<screenshot>.png
-```
+3. Touch test the route in a real browser, as `/iblai-vibe-ops-test` says: with
+   Claude in Chrome (`claude --chrome`) or the `chrome-devtools` MCP server in
+   `.mcp.json`, open `http://localhost:3000/<route>` on the running dev server,
+   use every control you added, read the console and the failed requests, check
+   the phone width. The user signs in by hand in that window — never ask for a
+   password. No browser tool: say so, and do not call the work done.
 
 After all work is complete, start a dev server (`pnpm dev`) so the user
 can see the result at http://localhost:3000.

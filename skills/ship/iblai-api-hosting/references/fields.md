@@ -20,6 +20,9 @@ Returned by `GET deployment/` (inside `projects[]`), `POST deployment/` and
 | `name` | string | The slug you sent as `project`. |
 | `vercel_project_name` | string | Derived identifier, `{org}-{username}-{project}-{digest}`, truncated to one DNS label. **Not a hostname** — never build a URL from it. |
 | `url` | string \| null | `https://` + the confirmed alias. **`null` unless the latest build is `READY`.** |
+| `site_url` | string \| null | `https://` + the address the project is served at: the subdomain chosen under the instance's shared domain, or a custom domain. Final from the `202` on; `null` when the project has neither. Read this, never `url`. |
+| `shared_domain` | string | The host on its own when `site_url` is the chosen shared subdomain; `""` when the site is served at a custom domain. |
+| `site_domain_error` | string | Why the last attempt to attach the address at the provider failed; `""` otherwise. |
 | `vercel_alias` | string | The confirmed production host, no scheme. `""` until confirmed. |
 | `vercel_project_id` | string | The hosting provider's project id. `""` until the first successful push. This is the value a hosted app passes to the boot lookup. |
 | `last_deployment_id` | string | `""` if never deployed. |
@@ -185,7 +188,8 @@ endpoint, never as a `400`.
 | Field | Where | Type | Required | Validation |
 |---|---|---|---|---|
 | `project` | query (`GET`/`DELETE dns/`), body (`POST dns/`) | integer | **yes** | ≥1 |
-| `domain` | query (`GET`/`DELETE dns/`), body (`POST dns/`) | string | optional on the list read, **required** everywhere else | `^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$` |
+| `domain` | query (`GET`/`DELETE dns/`), body (`POST dns/`, `POST deployment/`) | string | optional on the list read, **required** on `DELETE dns/`; on `POST dns/` exactly one of `domain` / `subdomain` | `^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$` |
+| `subdomain` | body (`POST dns/`, `POST deployment/`) | string | on `POST dns/` exactly one of `domain` / `subdomain`; on `POST deployment/` required for a project with no address while a shared domain is on offer | `^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$` — one label, never with `domain` |
 
 `domain` must be lowercase, carry at least one dot, end in an alphabetic TLD of two
 or more characters, have no trailing dot, and contain no Unicode — internationalized

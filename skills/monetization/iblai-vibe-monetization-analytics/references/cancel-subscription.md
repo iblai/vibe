@@ -2,30 +2,62 @@
 
 Detail for [`/iblai-vibe-monetization-analytics`](../SKILL.md) Step 7.
 
-The SDK ships a stand-alone `CancelSubscription` component, but it is
-**not currently re-exported** from `@iblai/iblai-js/web-containers` (the
-public `exports` map only declares `.`, `./next`, `./sso`, `./styles`).
-To use it standalone, either wait for the SDK to add an export, or copy
-`packages/web-containers/src/components/profile/monetization/cancel-subscription.tsx`
-from `iblai/ibl-web-frontend` into your app.
-
-```tsx
-import CancelSubscription from '@/components/monetization/cancel-subscription';
-
-<CancelSubscription platformKey={currentTenant.key} />
-```
-
-The component renders an inline form: pick `item_type`
-(`mentor` | `course` | `program` | `pathway`), enter an `item_id`, click
-**Look Up**, and the matching subscription card appears with a
-confirm-typing gate. Under the hood it uses
-`useLazyGetItemSubscriptionQuery` for the lookup and
+The SDK has a stand-alone `CancelSubscription` component, but
+`@iblai/iblai-js` 2.36.2 does **not export it** from `web-containers` or
+`web-containers/next`, so build the same form in your app from
+`useLazyGetItemSubscriptionQuery` (the lookup) and
 `useCancelSubscriptionMutation` — the same mutation the user-side
 `PurchasesTab` uses.
 
+```tsx
+'use client';
+import { useState } from 'react';
+import {
+  useCancelSubscriptionMutation,
+  useLazyGetItemSubscriptionQuery,
+} from '@iblai/iblai-js/data-layer';
+
+export function CancelSubscription({ platformKey }: { platformKey: string }) {
+  const [itemType, setItemType] = useState('mentor');
+  const [itemId, setItemId] = useState('');
+  const [lookUp, { data: sub, error }] = useLazyGetItemSubscriptionQuery();
+  const [cancel, { isLoading }] = useCancelSubscriptionMutation();
+  const item = { platform_key: platformKey, item_type: itemType, item_id: itemId };
+
+  const onCancel = async () => {
+    const result = await cancel({ ...item, return_url: window.location.href }).unwrap();
+    if (result.portal_url) window.location.assign(result.portal_url);
+    // otherwise result.status === 'canceled': it ended immediately
+  };
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); lookUp(item); }}>
+      <select value={itemType} onChange={(e) => setItemType(e.target.value)}>
+        {['mentor', 'course', 'program', 'pathway'].map((t) => <option key={t}>{t}</option>)}
+      </select>
+      <input value={itemId} onChange={(e) => setItemId(e.target.value)} placeholder="Item ID" />
+      <button type="submit">Look Up</button>
+      {error && <p>No subscription found.</p>}
+      {sub && (
+        <button type="button" disabled={isLoading} onClick={onCancel}>
+          Cancel {sub.item_name}
+        </button>
+      )}
+    </form>
+  );
+}
+```
+
+Pick an `item_type`, enter an `item_id`, click **Look Up**, and the
+caller's subscription to that item appears with a cancel button. Put a
+confirmation in front of the cancel call; the SDK component makes the
+user type one.
+
 **This cancels the CALLER's own subscription, not someone else's.**
-`ItemSubscriptionCancelView` (`billing/views.py:1885`) is hard-locked to
-`request.user`; there is no `user_id` parameter and no admin override.
+`POST …/items/{item_type}/{item_id}/subscription/cancel/` acts only on the
+signed-in caller; there is no `user_id` parameter and no admin override,
+and an item the caller holds no subscription to returns `404`
+(`{"detail": "Not found."}`).
 Spoofing `(item_type, item_id)` only changes which of the caller's own
 subscriptions is resolved. To force-cancel another user's subscription,
 use the Stripe Dashboard.

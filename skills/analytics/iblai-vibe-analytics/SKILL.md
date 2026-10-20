@@ -295,6 +295,12 @@ silently ignored. `""` means org-wide; never pass `undefined` for `mentorId`.
 
 ![Analytics — Cost → Usage & latency by model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-7-cost-usage-by-model.png)
 
+![Analytics — Courses (Active / Total Courses, Enrollments, Total Learners; Course Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-10-courses.png)
+
+![Analytics — Programs (Active / Total Programs, Enrollments, Total Learners; Program Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-11-programs.png)
+
+![Analytics — Data Reports (one card per report, download button)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-12-data-reports.png)
+
 ## Inside a transcript
 
 The Transcripts panel replays a conversation the way the chat rendered it,
@@ -403,14 +409,10 @@ the user holds `can_sell_items` on the org. It renders
 
 ## Verify
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
-```
-
-Then click every tab in the strip: none may 404. Switch the agent picker
-and the date range, and check that the numbers change.
+`pnpm build && pnpm test`, then touch test `/analytics` in the browser as
+`/iblai-vibe-ops-test` says: click every tab in the strip — none may 404; switch
+the agent picker and the date range, and check that the numbers change; read
+the console; check the phone width.
 
 ## Notes
 
