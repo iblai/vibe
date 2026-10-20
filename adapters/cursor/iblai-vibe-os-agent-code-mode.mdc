@@ -305,7 +305,7 @@ not SDK exports:
 | `@/hooks/use-user`, `@/features/utils` → `useUsername`, `getUserEmail` | read `userData` from localStorage (`user_nicename`, `user_email`) |
 | `@/components/markdown` | your Markdown renderer (the SDK `Chat` uses `react-markdown`) |
 | `@/components/ui/{popover,switch,tooltip,alert-dialog,collapsible}` | `npx shadcn@latest add popover switch tooltip alert-dialog collapsible` |
-| `next-intl` `useTranslations('…')` | `pnpm add next-intl` and load `messages/code-mode.en.json`, or inline the strings |
+| `next-intl` `useTranslations('…')` | already installed: merge `messages/code-mode.en.json`'s two namespaces into every `messages/<locale>.json`, or inline the strings |
 
 Mount them: `<CodingModeButton sessionId={…} skillSync={useOpencodeSkillSync({ org, mentorUniqueId })} />`
 in your composer's button row (the OS gates it to Tauri after mount, never

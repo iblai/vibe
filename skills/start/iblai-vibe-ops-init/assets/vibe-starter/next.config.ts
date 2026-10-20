@@ -1,3 +1,5 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
 // ibl.ai: Node.js 22+ localStorage polyfill (missing getItem/setItem in SSR)
 if (typeof window === "undefined" && typeof localStorage !== "undefined" && typeof localStorage.getItem !== "function") {
   const _s: Record<string, string> = {};
@@ -61,4 +63,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Locale is resolved per-request from cookies (i18n/request.ts) — no routing
+// segment, no middleware change, so every route stays as it is.
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+export default withNextIntl(nextConfig);
