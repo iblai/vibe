@@ -33,8 +33,8 @@ they need it, not by which team owns it:
 | `agents/` | Chatting with, browsing, creating, and configuring agents — every settings tab, `ui` and `api` alike |
 | `users/` | Profiles, per-user data, memories, roles and admins, invitations, notifications, onboarding |
 | `organizations/` | Organization settings and metadata, branding, integrations and tokens, CRM |
-| `billing/` | Credits, spend caps, charging users |
-| `monetization/` | Charging your users: the Stripe payment proxy, app paywall, Connect with Stripe |
+| `billing/` | How you are charged: credits, spend caps, choosing a pricing rail |
+| `monetization/` | Charging your users: the Stripe payment proxy, app paywall, Stripe Connect onboarding, item paywalls, checkout, subscriptions, revenue analytics |
 | `analytics/` | Usage, users, topics, transcripts, costs, reports |
 | `content/` | Courses, catalog, credentials, admissions, other LMSs |
 | `ship/` | Test, deploy, native builds, stores, icons, polish, self-hosting |
@@ -120,9 +120,9 @@ Everything else is generated.
 
 Conventional commit subject (`feat(skills): add iblai-vibe-thing` → a minor
 release; `fix:`/`docs:` → patch). Fill in the PR template — it asks for the
-user test and the checks above. CI runs the deterministic tiers on every PR;
-add the `run-tests` label to also run the agent tier on your skill
-([TESTING.md](TESTING.md)).
+user test and the checks above. Add the `run-tests` label: skills-ci runs only
+on labelled PRs (the deterministic tiers, plus the agent tier on your skill),
+and its `deterministic` check must pass to merge ([TESTING.md](TESTING.md)).
 
 ## Core skills
 

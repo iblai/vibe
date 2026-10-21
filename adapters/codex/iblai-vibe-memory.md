@@ -146,7 +146,9 @@ the reference for custom builds:
   Learning Goals / Personal Context / Preferences / …), a
   **Categories** manager (create/rename/delete categories), **Add
   Memory**, and per-memory cards showing the time-ago, owning user's
-  email, and an actions kebab.
+  email, and an actions kebab. This popup is the **Personal Memories**
+  half only — an agent's **Shared Memory** (facts every chat gets) is
+  managed on the agent's own Memory tab (`/iblai-vibe-agent-memory`).
 
 ## Related Exports
 
@@ -181,11 +183,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/settings/memory /tmp/tenant-memory.png
-   ```
+3. Touch test `/settings/memory` in the browser as `/iblai-vibe-ops-test` says: open it,
+   use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
 

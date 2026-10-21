@@ -13,7 +13,7 @@ your job is to host it correctly and pass the right props.
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
-> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../billing/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
+> **Verify the API before you call it.** Fetch the live OpenAPI schema at `{dm_url}/api/docs/schema/` (browsable at `{dm_url}/api/docs/`; `{dm_url}` = `https://api.$DOMAIN/dm`, `DOMAIN` from `iblai.env`, default `iblai.app`) and confirm the URL path, method, request body, and response shape for every endpoint you reach for. The schema is the source of truth; the URLs in this skill exist for orientation and may drift between releases. See [/iblai-vibe-monetization → references/schema-validation.md](../../monetization/iblai-vibe-monetization/references/schema-validation.md) for the exact fetch routine.
 
 ![Admin Monetization tab inside the Account page](./admin-monetization-tab.png)
 
@@ -54,7 +54,7 @@ page and exposing a URL the Connect onboard return can land on.
 | Paywall config (disabled state) | Dashed-border card: "Connect Stripe first to configure paywalls" | [admin-monetization-sample-no-onboarding.png](./admin-monetization-sample-no-onboarding.png) |
 | Item search dropdown | Debounced 300 ms search across agents, courses, programs + a `+` button for custom items | [admin-monetization-sample-pricing-list.png](./admin-monetization-sample-pricing-list.png) |
 | Configured-items list | Paginated cards (8 per page), filter `All / Active / Disabled`, badge per item type | [admin-monetization-sample-pricing-list.png](./admin-monetization-sample-pricing-list.png) |
-| Item detail wizard | 2-step (existing) or 3-step (custom) step indicator | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
+| Item detail wizard | 2-step (existing) or 3-step (custom: Item Details → Paywall → Pricing) step indicator | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Paywall settings | `is_enabled`, `allow_free_tier`, `trial_period_days`, `grandfathering_strategy`, `on_successful_payment` | [admin-monetization-sample-paywall-config.png](./admin-monetization-sample-paywall-config.png) |
 | Pricing tiers | CRUD list with create-form, edit-in-place, delete | [admin-monetization-sample-pricing-config.png](./admin-monetization-sample-pricing-config.png) |
 
@@ -344,14 +344,9 @@ page using `useGetPublicPricingQuery({ config_unique_id })` and
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` — must pass with zero errors.
-2. `pnpm dev` and drive the tab:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot \
-     "http://localhost:3000/account?profileTab=monetization" \
-     /tmp/monetization.png
-   ```
-3. Confirm with the screenshot:
+2. Touch test `/account?profileTab=monetization` in the browser as
+   `/iblai-vibe-ops-test` says.
+3. Confirm in the browser:
    - The `Monetization` tab is present in the sidebar (gating works).
    - Without Connect onboarding, the paywall pane shows the dashed
      "Connect Stripe first" card (Stripe Connect status guards correctly).

@@ -373,6 +373,5 @@ sections above — the endpoint/method/body and event facts stay above:
 - [`references/in-chat-events.md`](references/in-chat-events.md) — the fuller
   per-frame event reference: field types, the three `error` variants with their
   exact messages, and the client-handling gotchas.
-- [`references/mcp-servers-catalog.md`](references/mcp-servers-catalog.md) — the
-  open-source `iblai-mcp` repo of ready-made MCP servers. This skill wires
-  *external* MCP servers onto agents; that repo is a source of servers to wire.
+- ibl.ai's own MCP servers (`@iblai/mcp`, the hosted `iblai-agent-chat`) are
+  not ones this skill wires: [docs/mcp-servers.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/mcp-servers.md).

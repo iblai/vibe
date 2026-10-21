@@ -1,6 +1,6 @@
 # iblai-api-agent-setting
 
-> Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, forkable). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
+> Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, reasoning, prompt caching, incognito, forkable, additional agents). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
 
 # iblai-api-agent-setting
 
@@ -8,7 +8,8 @@
 
 Read and write an agent's core settings: identity (name, description, category,
 profile image), discovery/visibility, and capability flags (anonymous, featured,
-LTI, attachments, voice, memory, multi-query RAG, forkable) — all of which save
+LTI, attachments, voice, memory, multi-query RAG, reasoning, prompt caching,
+incognito, forkable, additional agents) — all of which save
 through the single `settings/` endpoint — plus forking (copy) and deletion. Use
 when configuring an agent's basic identity and capabilities.
 
@@ -53,9 +54,24 @@ when configuring an agent's basic identity and capabilities.
     "virtual_machine_secret_ids": "number[] (egress must be public or custom)",
     "enable_memory_component": "boolean",
     "enable_multi_query_rag": "boolean",
-    "forkable": "boolean"
+    "show_reasoning": "boolean",
+    "enable_prompt_caching": "boolean",
+    "disable_chathistory": "boolean",
+    "forkable": "boolean",
+    "show_explore_mentors": "boolean"
   }
   ```
+  `show_explore_mentors` shows the additional-agents section on the agent's
+  welcome screen ("Show additional agents"). `disable_chathistory` makes every
+  conversation with this agent incognito; the Privacy tab’s Incognito policy
+  sets it (see `/iblai-vibe-incognito`). `show_reasoning` shows the agent’s
+  reasoning steps while it responds; `enable_prompt_caching` caches repeated
+  prompt context to cut latency and cost on Anthropic models, and also turns
+  off document retrieval, memory and the current date/time in the system
+  prompt; `enable_multi_query_rag` is "Enhanced document retrieval". The
+  embed-widget counterparts of `show_attachment` / `show_voice_record` /
+  `show_voice_call` (`embed_show_*`) save through the same PUT — see
+  `/iblai-api-agent-embed`.
   The three `virtual_machine_*` keys configure the agent's Linux VM sandbox;
   the network policies and secrets they reference are managed per organization
   — see `/iblai-vibe-agent-sandbox` ("Virtual machine network policies & secrets").

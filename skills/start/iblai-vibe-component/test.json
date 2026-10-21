@@ -1,0 +1,12 @@
+{
+  "overlay": {
+    "assets/notes-page.tsx": "app/(app)/notes/page.tsx",
+    "assets/notes-empty.tsx": "components/notes/notes-empty.tsx",
+    "assets/notes-loading.tsx": "app/(app)/notes/loading.tsx",
+    "assets/note-card.tsx": "components/notes/note-card.tsx",
+    "assets/note-form.tsx": "components/notes/note-form.tsx",
+    "assets/delete-note-dialog.tsx": "components/notes/delete-note-dialog.tsx",
+    "assets/notes-table.tsx": "components/notes/notes-table.tsx",
+    "assets/note-status.tsx": "components/notes/note-status.tsx"
+  }
+}

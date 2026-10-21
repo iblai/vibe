@@ -105,8 +105,8 @@ action-definitions endpoint, and the Roles + Policies management UI components).
 `/iblai-agent-history`, `/iblai-agent-llm`, `/iblai-agent-memory`, `/iblai-agent-prompt`,
 `/iblai-agent-safety`, `/iblai-agent-tool`.
 
-**Ops skills** — `/iblai-ops-build` (build + run on desktop and mobile), `/iblai-ops-test`
-(validate the app before showing the user), `/iblai-ops-upgrade` (upgrade the ibl.ai
+**Ops skills** — `/iblai-vibe-ops-build` (build + run on desktop and mobile), `/iblai-vibe-ops-test`
+(validate the app before showing the user), `/iblai-vibe-ops-upgrade` (upgrade the ibl.ai
 CLI, SDK, and vibe skills). *(Earlier docs list these as `/iblai-build`, `/iblai-test`,
 and a `/iblai-screenshot` skill for capturing app-store screenshots for web/iOS/Android;
 `/iblai-chat` was the earlier name for the chat skill.)*

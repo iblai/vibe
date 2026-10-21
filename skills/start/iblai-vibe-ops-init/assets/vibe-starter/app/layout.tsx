@@ -1,17 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { IblaiProviders } from "@/providers/iblai-providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Open Sans is the ibl.ai face; globals.css maps --font-open-sans to --font-sans.
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
 
 // The middleware's nonce-based CSP requires per-request rendering: a statically
 // prerendered page ships nonce-less <script> tags that enforce mode blocks
@@ -30,18 +25,26 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // <html lang> follows the resolved locale. Hardcoding "en" misreports the
+  // document language to screen readers and crawlers as soon as a second
+  // locale ships (WCAG 3.1.1).
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang={locale}
+      className={`${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <IblaiProviders>{children}</IblaiProviders>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <IblaiProviders>{children}</IblaiProviders>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

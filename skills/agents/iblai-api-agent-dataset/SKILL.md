@@ -26,7 +26,7 @@ feeding an agent knowledge.
 ## Reads
 
 - **GET** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/pathways/{mentor}/?limit=5&offset={n}&search={q}` — list training docs. Poll this every 2s while any document is `pending`. Each row names who trained it with `username`, `user_email` and `user_full_name`; the last two are `null` when the stored username matches no user (a service-account upload, or a deleted user).
-- **GET** `https://api.iblai.app/dm/api/ai-index/documents/{document_id}/settings/` — retrain schedule.
+- **GET** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/{document_id}/settings/` — retrain schedule.
 - **GET** `https://api.github.com/repos/{owner}/{repo}/branches` — list GitHub branches for a repo resource (external, no auth).
 
 ## Writes
@@ -85,25 +85,28 @@ feeding an agent knowledge.
     **off** documents that should be exempt from a filter on that key — a `document_filter`
     only excludes documents that carry the key with a *different* value, so untagged/generic
     material always survives (see `/iblai-api-agent-session ## Schema`).
-- **PUT** `https://api.iblai.app/dm/api/ai-index/documents/{document_id}/` — **train / untrain + visibility (+ retag)**:
+- **PUT** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/{document_id}/` — **train / untrain + visibility (+ retag)**:
   ```json
   {
     "pathway": "{mentor}",
     "url": "string",
     "train": "boolean",
     "access": "public|private",
+    "crawler_extra_headers": { "User-Agent": "string (optional, web crawls)" },
     "custom_metadata": { "stateCode": "CA" }
   }
   ```
   `custom_metadata` here replaces the document's stored tags (same validation as `train/`);
   omit it to leave existing tags unchanged.
-- **POST** `https://api.iblai.app/dm/api/ai-index/documents/{document_id}/settings/` — **set retrain schedule**:
+- **POST** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/{document_id}/settings/` — **set retrain schedule**:
   ```json
   {
     "retrain_interval_days": "number (required)"
   }
   ```
-- **DELETE** `https://api.iblai.app/dm/api/ai-index/documents/{document_id}/` — delete a dataset. Destructive — confirm with the user first.
+  Only re-fetchable documents (URL, YouTube, GitHub, web crawl) retrain; uploaded
+  files and cloud-drive documents do not.
+- **DELETE** `https://api.iblai.app/dm/api/ai-index/orgs/{org}/users/{username}/documents/{document_id}/` — delete a dataset. Destructive — confirm with the user first.
 
 ## Example
 
@@ -139,3 +142,6 @@ curl -X POST \
 - For GitHub resources, fetch the branch list from the unauthenticated
   `api.github.com/repos/{owner}/{repo}/branches` endpoint to populate `branch`.
 - Deletion is destructive — confirm with the user first.
+- Verified against the live schema (4.411.0) on 2026-10-02: every document path
+  is scoped by `orgs/{org}/users/{username}/`; the older
+  `…/ai-index/documents/{document_id}/` form does not exist.

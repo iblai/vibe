@@ -42,16 +42,11 @@ mode unless asked. Follow the component hierarchy: ibl.ai SDK
 
 > **On vibe-starter?** The dashboard already lives at `/admin/analytics`
 > (one `AnalyticsPage` switch in `components/admin/analytics-page.tsx`;
-> `?agent=<uuid>` scopes it). Two things to fix:
->
-> 1. Its `pnpm-workspace.yaml` pins `@iblai/web-containers` to `1.16.0`
->    (an old workaround). That pin predates the revamp, so delete the
->    `overrides:` entry (data-layer ≥ 1.14.1 ships the exports it worked
->    around), then run `pnpm install`.
-> 2. It only has Overview, Users, Topics, Transcripts, Financial and Reports
->    routes, but the SDK strip also lists Courses, Programs, Audit and
->    Memory, so those tabs 404. Add the `memory` and `audit` routes below,
->    and pass `excludeTabs={["courses", "programs"]}` to its layout.
+> `?agent=<uuid>` scopes it). One thing to fix: it only has Overview, Users,
+> Topics, Transcripts, Financial and Reports routes, but the SDK strip also
+> lists Courses, Programs, Audit and Memory, so those tabs 404. Add the
+> `memory` and `audit` routes below, and pass
+> `excludeTabs={["courses", "programs"]}` to its layout.
 >
 > Read `/analytics` as `/admin/analytics` throughout.
 
@@ -291,6 +286,12 @@ silently ignored. `""` means org-wide; never pass `undefined` for `mentorId`.
 
 ![Analytics — Cost → Usage & latency by model](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-7-cost-usage-by-model.png)
 
+![Analytics — Courses (Active / Total Courses, Enrollments, Total Learners; Course Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-10-courses.png)
+
+![Analytics — Programs (Active / Total Programs, Enrollments, Total Learners; Program Overtime)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-11-programs.png)
+
+![Analytics — Data Reports (one card per report, download button)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-12-data-reports.png)
+
 ## Inside a transcript
 
 The Transcripts panel replays a conversation the way the chat rendered it,
@@ -371,13 +372,14 @@ for custom transcript UI:
 ## One agent instead of the org
 
 For analytics on a single agent (e.g.
-`app/(app)/agents/[mentorId]/analytics/`), pass the route's `mentorId` to
+`app/(app)/agents/[mentorId]/dashboards/`; keep `…/analytics/` free for the
+agent Analytics tab's hub), pass the route's `mentorId` to
 every tab and **omit `showPicker`**: the page already knows its agent. Also
 drop the groups filter, and hide Audit unless the viewer holds
 `/mentors/{mentorDbId}/#view_audit_logs` (`/iblai-vibe-rbac`):
 
 ```tsx
-const basePath = `/agents/${mentorId}/analytics`;
+const basePath = `/agents/${mentorId}/dashboards`;
 
 <AnalyticsLayout
   currentPath={pathname}
@@ -389,18 +391,22 @@ const basePath = `/agents/${mentorId}/analytics`;
 </AnalyticsLayout>
 ```
 
-The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`.
+The Audit tab alone is also its own skill: `/iblai-vibe-agent-audit`. To
+link an agent's settings to these pages, add the agent **Analytics** tab
+(`AgentAnalyticsTab`, a hub of report cards): `/iblai-vibe-agent-analytics`.
+
+**Monetization tab.** The strip also has a `monetization` tab, hidden until
+you pass `enableMonetization` (the org's `enable_monetization` flag) *and*
+the user holds `can_sell_items` on the org. It renders
+`AnalyticsMonetizationStats` (revenue, sales, paywalls, subscribers). Setup:
+`/iblai-vibe-monetization-analytics`.
 
 ## Verify
 
-```bash
-pnpm build && pnpm test
-pnpm dev &
-npx playwright screenshot http://localhost:3000/analytics /tmp/analytics.png
-```
-
-Then click every tab in the strip: none may 404. Switch the agent picker
-and the date range, and check that the numbers change.
+`pnpm build && pnpm test`, then touch test `/analytics` in the browser as
+`/iblai-vibe-ops-test` says: click every tab in the strip — none may 404; switch
+the agent picker and the date range, and check that the numbers change; read
+the console; check the phone width.
 
 ## Notes
 

@@ -263,9 +263,9 @@ DELETE {dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/ai-user-profile-memory/{
 
 ---
 
-## Chat Privacy Settings
+## Chat Privacy Settings (the Privacy tab — Default Incognito Setting)
 
-Users can control how their chat data is stored.
+The user's default for how conversations with agents are recorded.
 
 ```
 GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-config/
@@ -273,10 +273,27 @@ GET  {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 POST {dmUrl}/api/ai-account/orgs/{org}/users/{user_id}/chat-privacy-settings/
 ```
 
-**Privacy modes**: `normal`, `anonymized`, `disabled`
+**`chat_privacy_mode`** and the card it renders as:
 
-The config endpoint returns whether the platform has this feature enabled.
-The settings endpoint reads/writes the user's preference.
+| Value | Card | Meaning |
+|---|---|---|
+| `normal` | Normal | Saved to history and linked to the account; agents use prior turns |
+| `anonymized` | Anonymized | History rows are kept without the account identity; the per-turn usage record still carries the user and the text; agents use prior turns |
+| `disabled` | **Incognito** | No chat-history row and nothing to memory — the message text is withheld. Usage is still metered per turn, and the conversation's turns stay available to the agent as context for 24 hours, refreshed each turn |
+
+The cards' own copy still describes Incognito as "a single-turn Q&A"; the
+behaviour above is what the backend does.
+
+The config endpoint returns `{ allow_user_chat_privacy_control }` — the
+organization gate; the tab renders only when it is on. The settings
+endpoint reads / writes the preference (`ChatPrivacyTab`, internal, mounted
+by `Profile` at `targetTab="privacy"`; hooks `useGetUserChatPrivacySettingsQuery`
+/ `useUpdateUserChatPrivacySettingsMutation`).
+
+An agent set to **Always Incognito** or the organization can override this
+for specific conversations, and any single chat can be switched into
+Incognito from the chat header — the full picture, the resolved-mode
+endpoint and the header toggle are in `/iblai-vibe-incognito`.
 
 ---
 
@@ -468,3 +485,58 @@ These companion dialogs can be used alongside the tabs:
 | `ExperienceDialog` | `@iblai/iblai-js/web-containers` | Dialog for adding/editing experience entries |
 | `CompanyDialog` | `@iblai/iblai-js/web-containers` | Company selection dialog |
 | `InstitutionDialog` | `@iblai/iblai-js/web-containers` | Institution selection dialog |
+
+## Per-user LLM usage (the Usage tab)
+
+The profile's **Usage** tab reads one endpoint, always scoped to the profile
+on screen:
+
+| Surface | Request |
+|---|---|
+| KPI tiles, spend over time, by model / by service | `GET {dm_url}/api/analytics/llm-usage/?platform_key={org}&resource=metrics&username={user}&measures=total_cost,total_tokens,count&aggregation=sum&date_filter=30d[&granularity=day][&group_by=model]` |
+| Recent activity | `…?resource=traces&username={user}&order_by=timestamp&direction=desc&page=1&limit=10` |
+| The steps under one row | `…?resource=observations&trace_id={id}` |
+
+All three answer `{ "resource": …, "data": [...], "meta": {...} }`. `limit`
+caps at 1000; `session_id` and `mentor_unique_id` are rejected (`400`) on
+`observations`; a viewer who may not read this user's rows gets `403`, an
+unreachable tracing backend `502`. `date_filter` takes `today` / `7d` /
+`30d` / `90d` / `all_time`, or `custom` with `start_date` + `end_date`. Full
+parameter reference: [`/iblai-api-analytics`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-api-analytics/SKILL.md).
+
+> **Send the username.** Without it an admin's request returns the whole
+> organization's spend, which is not what a profile should show.
+
+### Hooks (SDK exports)
+
+To build your own user-scoped usage UI instead of using the tab, the data
+layer exports hooks that carry those guard rails for you — username
+required, `limit` capped, the rejected params unrepresentable in the types,
+and the HTTP status preserved so you can tell a `403` from a `502`:
+
+```ts
+import {
+  useUserLlmUsageSummary,      // KPI tiles
+  useUserLlmSpendOverTime,     // chart series
+  useUserLlmCostByModel,
+  useUserLlmCostByService,
+  useUserLlmRecentActivity,    // paginated traces
+  useUserLlmTraceObservations, // steps for one trace
+} from "@iblai/data-layer";
+
+const { summary, isLoading, isEmpty, error, refetch } = useUserLlmUsageSummary({
+  platformKey: org,
+  username,
+  date_filter: "30d",          // "custom" additionally takes start_date/end_date
+});
+```
+
+Every one returns the same state — `rows`, `meta`, `isIdle` (no platform key
+or username yet, so nothing was requested), `isLoading`, `isFetching`,
+`isEmpty`, `error` (`forbidden` / `not_found` / `unauthorized` /
+`unavailable` / `invalid_params` / `unknown`, with the status attached) and
+`refetch` — plus their own shaped field: `summary`, `points`, `models`,
+`services`. `useUserLlmRecentActivity` additionally takes `page` and `limit`
+(10 by default). The unwrapped `useUserLlmUsageMetrics` / `…Traces` /
+`…Observations` take the raw params when none of the wrappers fit;
+`get_hook_info("useUserLlmUsageSummary")` has the full signatures.

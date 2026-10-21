@@ -95,6 +95,7 @@
       "iblai-vibe-agent",
       "iblai-vibe-agent-chat",
       "iblai-vibe-agent-chat-sidebar",
+      "iblai-vibe-incognito",
       "iblai-vibe-agent-search",
       "iblai-vibe-agent-create",
       "iblai-vibe-project",
@@ -102,6 +103,7 @@
       "iblai-vibe-local-llm",
       "iblai-vibe-os-agent-code-mode",
       "iblai-vibe-agent-access",
+      "iblai-vibe-agent-analytics",
       "iblai-vibe-agent-api",
       "iblai-vibe-agent-audit",
       "iblai-vibe-agent-billing",
@@ -119,6 +121,8 @@
       "iblai-vibe-agent-prompt",
       "iblai-vibe-agent-safety",
       "iblai-vibe-agent-sandbox",
+      "iblai-vibe-agent-virtual-machine",
+      "iblai-vibe-agent-screenshare",
       "iblai-vibe-agent-setting",
       "iblai-vibe-agent-skills",
       "iblai-vibe-agent-support",
@@ -143,6 +147,7 @@
       "iblai-api-agent-skill",
       "iblai-api-agent-sandbox",
       "iblai-api-agent-support",
+      "iblai-api-agent-voice",
       "iblai-api-agent-session",
       "iblai-api-agent-chat",
       "iblai-api-agent-memory",
@@ -173,6 +178,7 @@
       "iblai-vibe-account",
       "iblai-vibe-org-metadata",
       "iblai-vibe-credential",
+      "iblai-vibe-virtual-machine",
       "iblai-vibe-crm-overview",
       "iblai-api-org",
       "iblai-api-integration",
@@ -184,6 +190,10 @@
       "iblai-vibe-pricing",
       "iblai-vibe-credit",
       "iblai-vibe-billing",
+      "iblai-api-billing",
+      "iblai-api-spend-caps"
+    ],
+    "monetization": [
       "iblai-vibe-monetization",
       "iblai-vibe-monetization-onboard",
       "iblai-vibe-monetization-configure",
@@ -191,10 +201,6 @@
       "iblai-vibe-monetization-subscription",
       "iblai-vibe-monetization-analytics",
       "iblai-vibe-monetization-app-paywall",
-      "iblai-api-billing",
-      "iblai-api-spend-caps"
-    ],
-    "monetization": [
       "iblai-api-stripe-payment-proxy"
     ],
     "analytics": [

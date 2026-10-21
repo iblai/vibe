@@ -21,14 +21,18 @@ env:
 
 jobs:
   # ---------------------------------------------------------------- tier 0/1/1.5
-  # Testing is opt-in per PR via the run-tests label; skills-ci is not a
-  # merge-required check.
+  # Merge-required: fails until the PR carries the run-tests label. The check is a
+  # step, not a job-level if: — a skipped job counts as a passing required check.
   deterministic:
-    if: >
-      github.event_name == 'pull_request' &&
-      contains(github.event.pull_request.labels.*.name, 'run-tests')
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - name: run-tests label present
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'run-tests') }}
+        run: |
+          echo "::error::Add the run-tests label to this PR — skills-ci must run and pass before it can merge."
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
@@ -46,6 +50,10 @@ jobs:
 
       - name: SDK pin drift
         run: node scripts/check-sdk-pins.mjs
+
+      - name: No known vulnerabilities in vibe-starter (moderate+)
+        working-directory: ${{ env.STARTER_DIR }}
+        run: pnpm audit --audit-level=moderate
 
       - name: Cross-repo links resolve
         run: node scripts/check-links.mjs

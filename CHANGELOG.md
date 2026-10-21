@@ -3,6 +3,189 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.1] - 2026-10-21
+
+### Documentation
+
+- fold #238-#254 and main into the agent settings tab stack
+- recapture the flagged-prompts shot with the moderation-only copy
+- recapture the catalog shots without e2e test fixtures
+- recapture the links and endpoints shots without the internal LMS host
+- correct the keys and tools routes, platform_key, and launch_gate
+- route skill assignment to agents/{mentor}/skills/
+- note that private skills cannot be assigned and drop the schema stamp
+- load the agent's grants on the chat page so the slash picker works
+- name iblai-vibe-agent-analytics in CLAUDE.md and the domain model
+- mount agent dashboards at /dashboards so the hub keeps /analytics
+- keep the old overview screenshot for installed copies
+- scope the flagged-prompts modal to moderation and hoist the gate
+- point safety system catches at safety-logs and drop the schema stamp
+- list SupportTicketsFilter as a type and the can_use_tools write
+- drop the resolved_at claims and fix the sender notes
+- fix the settings path and restore setup auto-provisioning
+- correct the create body, name rule, and where to store the secret
+- use the admin session token, next_page paging, and expires_in
+- remove the stale web-containers override after updating
+- list only the picker exports web-containers 1.32 ships
+- use mentor_unique_id for mentor-llms and drop the schema stamp
+- wrap the switch-model snippet in AgentSettingsProvider and add the override remedy
+- new Safety tab screenshots and the host-injected pieces
+- new Billing tab screenshots and the agents/ paths
+- new LTI tab screenshots and the lmsDomain to pass
+- new Support tab screenshots and how it saves
+- new Tasks tab screenshots and an accurate skill
+- new Privacy tab screenshots and the Allow action
+- new Evals tab screenshots and the current AgentEvaluationTab
+- new Grader tab screenshots and an accurate skill
+- new Disclaimers tab screenshots and the grant it needs
+- add the iblai-api-agent-voice REST twin
+- new screenshots and the current AgentVoiceTab
+- add the Analytics tab skill
+- document AgentSkillsTab with new screenshots
+- add the Screen tab skill and its REST twin
+- new API tab screenshots and the current AgentApiTab
+- new Tools tab screenshots and the current AgentToolsTab
+- new Datasets tab screenshots and the current AgentDatasetsTab
+- new LLM tab screenshots and the current AgentLLMTab
+- new Settings tab screenshots and SDK 2.26.0
+
+## [2.16.0] - 2026-10-20
+
+### Added
+
+- move the monetization skills to their own folder on current main
+- monetization skills update
+- monetization skills update
+
+## [2.15.0] - 2026-10-20
+
+### Added
+
+- merge main into the agent Memory tab skills on the 2.36.2 pin
+- agent Memory tab — Personal Memories + Shared Memory sub-tabs; starter to @iblai/iblai-js 2.35.1
+
+## [2.14.3] - 2026-10-20
+
+### Documentation
+
+- keep the key-borrowing switch read-only and list credential names once
+- LLM gateways, use-default-llm-key, optional course model (iblai-dm-pro#3081)
+
+## [2.14.2] - 2026-10-20
+
+### Documentation
+
+- document attachment-only turns on the merged history fields
+- document message attachments and file-only turns
+
+## [2.14.1] - 2026-10-20
+
+### Documentation
+
+- name the async-host paths production actually serves
+- document the REST vs ASGI host split and legacy alias
+
+## [2.14.0] - 2026-10-20
+
+### Added
+
+- add Spanish and Chinese catalogs; translate the admin switch overlay
+- ship English and French out of the box
+
+### Fixed
+
+- lift follow-redirects past its advisories and document the vite one
+
+## [2.13.2] - 2026-10-14
+
+### Documentation
+
+- fix the documented test command
+
+## [2.13.1] - 2026-10-14
+
+### Fixed
+
+- normalize the platform domain before building service URLs
+
+## [2.13.0] - 2026-10-14
+
+### Added
+
+- browser touch test before done
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
+## [2.12.5] - 2026-10-14
+
+### Documentation
+
+- document the learner completion proxy in iblai-api-catalog
+
+## [2.12.4] - 2026-10-14
+
+### Documentation
+
+- document windowed period_* fields and memory created_at date filters
+
+## [2.12.3] - 2026-10-14
+
+### Documentation
+
+- document llm_provider on messages list and watcher llm-usage access
+
+## [2.12.2] - 2026-10-14
+
+### Fixed
+
+- keep installed skill directories out of typecheck and git
+
+## [2.12.1] - 2026-10-14
+
+### Fixed
+
+- follow the backend rename of rbac student-llm-access to llm-access
+
+### Documentation
+
+- scope message actions and voice hook notes
+- fix review findings on actions, prompts and skill picker
+- redesigned chat screenshots and SDK 2.36.2
+
+## [2.12.0] - 2026-10-12
+
+### Added
+
+- Open Sans house style, canonical components and an ask-first rule
+- screens added from docs
+- Incognito — agent Privacy sub-tabs, profile default, chat toggle
+- Virtual Machine network policies and secrets
+- account & profile revamps skills updated
+
+### Fixed
+
+- keep the Privacy and Incognito descriptions valid YAML
+- ops-upgrade removes the web-containers hold in either quote style, then checks the lock
+- the /next provider type is exported as LLMProviderType, not Provider
+- agent-sandbox exports — drop canSwitchLLm/canSwitchProvider, LLMProviderModal and types are /next
+- Incognito review — what is withheld vs kept, both-flags, tenant row, links, screenshots
+- clear the Oct-2026 pnpm audit findings (security floors, lock refresh)
+- clear vibe-starter's Dependabot alerts (next 16.3.8, SDK pin overrides, lock refresh)
+- the agent-settings endpoints include the users/{username} segment
+
+### Changed
+
+- fold the house style into iblai-vibe-component and drop the new skil
+
+### Documentation
+
+- close the Incognito review nits
+- Code mode pictures move to assets; Codex signs in through the ChatGPT app
+- retire the dead iblai-mcp catalog in iblai-api-agent-mcp
+- Code mode skill walks users through Codex and Claude Code sign-in
+
 ## [2.10.2] - 2026-09-23
 
 ### Documentation

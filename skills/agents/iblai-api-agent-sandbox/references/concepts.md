@@ -39,7 +39,7 @@ here** for the `/iblai-api-infrastructure` pointer).
   |---|---|---|
   | `claw/agent-configs/` (has `agent` in body, integer id) | `mentors/{mentor}/claw-config/` | agent↔instance **binding** |
   | `agent-configs/<id>/` (integer id) | `mentors/{mentor}/agent-config/` | agent **workspace** config |
-  | `agent-skills/`, `agent-skill-resources/`, `agent-skill-assignments/` | see **`/iblai-api-agent-skill`** | skills CRUD |
+  | `agent-skills/`, `agent-skill-resources/`, `agents/{mentor}/skills/` | see **`/iblai-api-agent-skill`** | skills CRUD and assignment |
 
   Prefer this skill's agent-scoped endpoints. Skills CRUD is **not** duplicated here —
   it lives in `/iblai-api-agent-skill`; this file only covers how skills fit the push flow.
@@ -54,7 +54,7 @@ here** for the `/iblai-api-infrastructure` pointer).
 5. Bind agent            POST  mentors/{mentor}/claw-config/         (guide: claw/agent-configs/)
 6. Configure agent       PATCH mentors/{mentor}/agent-config/        (guide: agent-configs/{id}/)
 7. Create skills         POST  agent-skills/ + agent-skill-resources/  → /iblai-api-agent-skill
-8. Assign skills         POST  agent-skill-assignments/                → /iblai-api-agent-skill
+8. Assign skills         POST  agents/{mentor}/skills/                 → /iblai-api-agent-skill
 9. Push config           POST  mentors/{mentor}/claw-config/push-config/ (guide: claw/agent-configs/{id}/push-config/)
 ```
 
