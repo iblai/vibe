@@ -64,6 +64,16 @@ GET /api/crm/persons/?tags=7,12
 
 Both forms use OR semantics — a Person tagged with either `7` or `12` matches. The response never duplicates rows even when a record matches multiple tag IDs.
 
+**Search, ordering and created-at windows.** Every list accepts `?search=` (substring over the resource's text fields; favorites excepted), `?ordering=field` / `?ordering=-field`, and `?date_filter=today|7d|30d|90d|all_time|custom` (`start_date` + `end_date` for `custom`; they also override any preset) for rows created in a window:
+
+```
+GET /api/crm/persons/?search=ada&ordering=name
+GET /api/crm/deals/?date_filter=30d&ordering=-lead_value
+GET /api/crm/activities/?date_filter=custom&start_date=2026-06-01&end_date=2026-06-30
+```
+
+For a typeahead across people, organizations and deals at once use `GET /api/crm/search/?q=ada` instead of three list calls.
+
 ### 13.3 Custom-metadata filtering
 
 Every resource carries a free-form `metadata` JSON object. Person and Deal list endpoints support `?metadata__has_key=fieldName` to find records that have that custom key set, regardless of its value. Useful for staged migrations or external-system tracking.
@@ -83,6 +93,17 @@ A copy-paste set of common queries. Substitute `{...}` placeholders with real ID
 
 | Goal | Query |
 |---|---|
+| Typeahead across persons, organizations and deals | `/api/crm/search/?q={q}&limit=5` |
+| People by name, email or job title | `/api/crm/persons/?search={q}` |
+| A person by exact email (before creating one) | `/api/crm/persons/?primary_email={email}` |
+| An organization or tag by exact name | `/api/crm/organizations/?name__iexact={name}` |
+| Only your app's records | add `app={app}` to any call (§14.5) |
+| Hide merged / linked people | `/api/crm/persons/?active=true` |
+| Deals created in the last 30 days, biggest first | `/api/crm/deals/?date_filter=30d&ordering=-lead_value` |
+| The kanban in one call | `/api/crm/deals/board/?pipeline={id}` |
+| Dashboard figures with a weekly window | `/api/crm/overview/?date_filter=7d` |
+| An organization's timeline | `/api/crm/activities/?organization={uuid}` |
+| A record's field-change history | `/api/crm/deals/{id}/history/` |
 | Qualified leads owned by me | `/api/crm/persons/?lifecycle_stage=qualified&owner={my_user_id}` |
 | People in an Organization, created this month | `/api/crm/persons/?organization={uuid}&created_at__gte=2026-06-01T00:00:00Z` |
 | People with a custom metadata key | `/api/crm/persons/?metadata__has_key=salesforce_id` |
@@ -102,16 +123,22 @@ Quick lookup of every filter exposed, by resource. If a parameter is not listed 
 
 | Resource | Filters |
 |---|---|
-| Persons | `lifecycle_stage`, `owner`, `organization`, `created_at__gte`, `created_at__lte`, `metadata__has_key`, `tags` |
-| Organizations | `name`, `owner`, `tags` |
+| Persons | `lifecycle_stage`, `owner`, `organization`, `active`, `primary_email`, `created_at__gte`, `created_at__lte`, `metadata__has_key`, `tags` |
+| Organizations | `name`, `name__iexact`, `owner`, `tags` |
 | Pipelines | `code`, `name`, `is_default` |
 | Stages (nested) | `code`, `is_won`, `is_lost` |
 | Lead Sources | `code`, `name` |
 | Deals | `status`, `pipeline`, `stage`, `owner`, `source`, `person`, `organization`, `expected_close_date__gte`, `expected_close_date__lte`, `created_at__gte`, `created_at__lte`, `metadata__has_key`, `tags` |
-| Activities | `type`, `is_done`, `owner`, `deal`, `person`, `schedule_from__gte`, `schedule_from__lte`, `metadata__has_key` |
-| Tags | `name`, `created_at__gte`, `created_at__lte` |
+| Activities | `type`, `is_done`, `owner`, `deal`, `person`, `organization`, `schedule_from__gte`, `schedule_from__lte`, `metadata__has_key` |
+| Tags | `name`, `name__iexact`, `created_at__gte`, `created_at__lte` |
+| Saved views | `object_type`, `type` |
+| Favorites | `person`, `organization`, `deal` (ids — is this record starred?) |
+| Web forms | — (`search` over `name`, `slug`) |
+| Members | `query` (username or name) |
 
-> **No global search.** There is no cross-resource search endpoint and no substring filter on `Person.name`. Combine the filters above and do final substring matching client-side if needed.
+Plus `search` (favorites excepted), `ordering` and `date_filter` / `start_date` / `end_date` on every list (13.2), and `app` on every call (§14.5).
+
+> **Global search.** `GET /api/crm/search/?q=` queries persons, organizations and deals at once; a bucket appears only when you may `list` that resource.
 
 ---
 ## 14. Roles & Permissions
@@ -146,10 +173,20 @@ The CRM ships four roles per org. Assign them through the standard org role-mana
 | `Ibl.CRM/Tags` | `list`, `read` | ✓ | ✓ | ✓ | — |
 | `Ibl.CRM/Tags` | `action`, `write`, `delete` | — | ✓ | ✓ | — |
 | `Ibl.CRM/Invite` | `action` | — | — | ✓ | ✓ |
+| `Ibl.CRM/Favorites` | `list`, `read`, `action`, `delete` (your own stars) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/Views` | `list`, `read`, `action`, `write`, `delete` (your own saved views) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `list`, `read` (forms and their submissions) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `action`, `write` (create, update, publish) | — | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `delete` (the form and its submissions log) | — | — | ✓ | — |
 
 Notes:
 - Lead source endpoints fall under the `Ibl.CRM/Pipelines` bucket — they are administrative.
-- Stage CRUD also lives under `Ibl.CRM/Pipelines` — moving a stage is admin work; moving a deal between stages is a deal action.
+- Stage CRUD and `stages/reorder/` also live under `Ibl.CRM/Pipelines` — moving a stage is admin work; moving a deal between stages is a deal `write`.
+- `GET /api/crm/search/` and `GET /api/crm/overview/` reuse the `list` verbs of the resources they cover (a bucket / section you may not list is omitted; none at all is `403`); `GET .../{id}/history/` reuses the record's `read` verb.
+- Favorites and saved views are per user: the verbs grant access to your own rows only. Starring a record additionally needs its `read` verb.
+- `write` on web forms covers publishing: a CRM User can put a form live. The public read and submit take no credential.
+- `GET /api/crm/members/` needs the `list` verb of persons, organizations, deals or activities; members' emails need `Ibl.Core/Users/list`.
+- `PATCH .../{id}/metadata/` (the merge) reuses the record's `write` verb.
 
 ### 14.3 Action verb mapping
 
@@ -160,8 +197,13 @@ HTTP verbs map onto the five canonical action codes as follows:
 | `GET` (list endpoint) | `list` |
 | `GET` (detail endpoint) | `read` |
 | `POST` (create) | `action` |
-| `POST` (custom action: `move-stage`, `won`, `lost`, `done`, `link-user`, `merge`) | `action` |
+| `POST` (custom action: `move-stage`, `won`, `lost`, `done`, `link-user`, `merge`, `stages/reorder`) | `write` |
 | `POST` attach-tag, `DELETE` detach-tag | `write` (on `Ibl.CRM/Tags`) |
+| `GET` `.../{id}/history/` | `read` |
+| `GET` `/search/`, `/overview/`, `/deals/board/` | `list` (per resource) |
+| `GET` `/members/` | `list` (persons, organizations, deals or activities) |
+| `PATCH` `.../{id}/metadata/` | `write` |
+| `GET` / `POST` `/orgs/{org}/web-forms/{slug}/…` (public) | none — no credential |
 | `PATCH` / `PUT` | `write` |
 | `DELETE` (resource delete) | `delete` |
 
@@ -169,6 +211,15 @@ HTTP verbs map onto the five canonical action codes as follows:
 
 - **Invitation is its own bucket.** A role with `Ibl.CRM/Persons/write` does not have `Ibl.CRM/Invite/action`. Check the invitation right independently when deciding whether to expose an "Invite" affordance.
 - **Tag attach/detach require `Ibl.CRM/Tags/write`.** A role with `Ibl.CRM/Persons/write` cannot tag people unless it also has tag write. This is intentional — it lets you delegate tag-graph mutation separately from person mutation.
+
+### 14.5 Apps on one CRM (`?app=`)
+
+Several apps can share one org's CRM, each seeing only its own records. `?app=` names the app on every call, the public web form routes included; blank or absent is the CRM itself.
+
+- A create stamps the app; a list, a detail, search, the overview and the board return only that app's records; another app's record is a `404`.
+- Names and codes are unique per org and app, and linking another app's record (a deal's person, a tag, a stage) is refused.
+- It adds no permission and removes none: the same `Ibl.CRM/*` verbs apply in every app. It keeps records apart; it is not access control.
+- `GET /api/crm/overview/?app={app}` echoes `app`. A platform older than crm 1.4.0 ignores the parameter, so confirm the echo before the first write.
 
 ---
 ## 15. Error Reference
@@ -179,12 +230,16 @@ The API returns standard HTTP status codes with JSON bodies. The table below cov
 
 | Status | Class | Common causes | What to do |
 |---|---|---|---|
-| 400 | Validation | Required field missing or invalid; enum out of range; blank or whitespace-only `name`; invalid tag color hex; attempt to write a server-managed field (`Deal.status`, `Deal.closed_at`, `Activity.done_at`); Activity attached to neither deal nor person; Activity's `person` does not match `Deal.person`; `lost` action missing `lost_reason` | Fix the field and retry. For deal status changes, use the `move-stage`, `won`, or `lost` action endpoints (Section 9). |
+| 400 | Validation | Required field missing or invalid; enum out of range; blank or whitespace-only `name`; invalid tag color hex; malformed `?app=`; publishing a web form without an email field and a name field; web form answers that don't validate (`{"issues": {<field key>: [...]}}`); attempt to write a server-managed field (`Deal.status`, `Deal.closed_at`, `Activity.done_at`); Activity attached to no deal, person or organization; Activity's `person` does not match `Deal.person`; `lost` action missing `lost_reason`; bad `date_filter` / `limit` / `ordering` target; `stages/reorder` `order` not a permutation of the stages | Fix the field and retry. For deal status changes, use the `move-stage`, `won`, or `lost` action endpoints (Section 9). |
 | 401 | Unauthorized | Missing or invalid token | Provide `Authorization: Api-Token $IBLAI_API_KEY` |
 | 403 | Permission denied | RBAC role does not grant the required action; service-account API key is bound to a different org than the resource | Verify the role assignment (Section 14). The invitation action is its own bucket — check `Ibl.CRM/Invite/action` independently from `Ibl.CRM/Persons/write`. |
-| 404 | Not found | Resource does not exist OR exists on another org (existence is not leaked across orgs) | Verify the ID and that the caller's org owns it. Do not differentiate "not found" from "no access" in user-facing copy. |
-| 409 | Conflict | Tag already attached to the host (response carries the existing `assignment_id`); pending invitation already exists for the person (response carries existing `invitation_id`); pipeline or stage delete attempted while deals are attached | For tag/invitation conflicts, treat the existing assignment / invitation as the result. For pipeline / stage deletes, move or close attached deals first. |
+| 404 | Not found | Resource does not exist OR belongs to another org or another app (existence is not leaked) | Verify the ID and that the caller's org owns it. Do not differentiate "not found" from "no access" in user-facing copy. |
+| 409 | Conflict | Tag already attached to the host (response carries the existing `assignment_id`); pending invitation already exists for the person (response carries existing `invitation_id`); person, pipeline or stage delete attempted while deals reference it (`{"detail", "protected_by": {"deals": n}}`) | For tag/invitation conflicts, treat the existing assignment / invitation as the result. For protected deletes, move or delete the referencing deals first. |
 | 422 | Unprocessable | Invitation attempted on a person already linked to a Platform user | Skip the invitation — the person already has an account |
+| 413 | Too large | A web form submission over 64 KB | Trim the answers. |
+| 415 | Unsupported media | A web form submission that isn't JSON | Send `Content-Type: application/json`. |
+| 429 | Throttled | Web form submissions from one client IP over `CRM_WEB_FORM_SUBMIT_THROTTLE_RATE` (default 20 a minute) | Wait for `Retry-After`. |
+| 503 | App scope unavailable | `{"detail", "code": "app_scope_unavailable"}`: the request names an app, and the platform can't keep apps apart yet (its CRM migration isn't applied) | Stop and say so. Never retry without `?app=`: that files the records among the CRM's own. |
 
 ### 15.2 Sample error bodies
 
@@ -200,7 +255,16 @@ The API returns standard HTTP status codes with JSON bodies. The table below cov
 
 ```json
 {
-  "detail": ["Activity must attach to a `deal` or a `person`."]
+  "detail": ["Activity must attach to a `deal`, a `person` or an `organization`."]
+}
+```
+
+**Conflict (409) — protected delete**:
+
+```json
+{
+  "detail": "Cannot delete: other records still reference this one.",
+  "protected_by": {"deals": 2}
 }
 ```
 
@@ -354,5 +418,13 @@ See Section 8.4.
 When you import people from an external system, store the foreign identifier in `metadata.external_id` (or a convention of your choosing) at creation time. Do this in the same request that creates the record — not in a follow-up PATCH.
 
 That foreign ID lets you re-match the record on subsequent syncs without relying on name or email, both of which can change without notice. The `?metadata__has_key=external_id` filter then becomes a cheap way to enumerate everything you originated, separately from records created in the CRM UI. See Section 16.10 and Section 12.
+
+### 16.14 Name your app on every call, and confirm it before writing
+
+An app that shares an org's CRM sends `?app={app}` on every request, reads included, and refuses any record whose `app` isn't its own. Before its first write it checks that `GET /api/crm/overview/?app={app}` answers `"app": "{app}"`; a platform that ignores the parameter (older than crm 1.4.0) would file the write among the CRM's own records. Treat an empty list as "no records of yours", never as proof the scope works. See Section 14.5.
+
+### 16.15 Merge metadata instead of replacing it
+
+`PATCH /{host}/{id}/` with `metadata` replaces the whole object, so two writers lose each other's keys. `PATCH /{host}/{id}/metadata/` merges (RFC 7386, `null` removes a key) under a row lock: use it for any metadata write that isn't a full rewrite.
 
 ---

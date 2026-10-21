@@ -1,6 +1,6 @@
 # iblai-vibe-crm-overview
 
-> Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ — auth, seeded defaults (default Pipeline + 6 stages + 4 Lead Sources), the four CRM RBAC roles (Viewer/User/Manager/Inviter), and the workflow sub-skill map. Use when the user mentions CRM, leads, pipelines, deals, contacts, or asks where a CRM workflow lives. The CRM workflow skills live in the DM skill set (iblai-dm-pro) as `crm-*`: see `crm-foundation` for auth/RBAC/notifications, `crm-contacts` + `crm-person-onboarding` for people, `crm-pipeline` for pipelines + deals, `crm-activities` for the timeline, `crm-tags` for tags; /iblai-vibe-auth for token wiring, /iblai-vibe-rbac for role assignment.
+> Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ — auth, the per-app scope (?app=), seeded defaults (default Pipeline + 6 stages + 4 Lead Sources), the four CRM RBAC roles (Viewer/User/Manager/Inviter), public web forms, and the workflow sub-skill map. Use when the user mentions CRM, leads, pipelines, deals, contacts, lead-capture forms, or asks where a CRM workflow lives. The CRM workflow skills live in the DM skill set (iblai-dm-pro) as `crm-*` — see `crm-foundation` for auth/RBAC/notifications, `crm-contacts` + `crm-person-onboarding` for people, `crm-pipeline` for pipelines + deals, `crm-activities` for the timeline, `crm-tags` for tags; /iblai-vibe-auth for token wiring, /iblai-vibe-rbac for role assignment.
 
 # /iblai-vibe-crm-overview
 
@@ -38,6 +38,31 @@ resource, side effects) is in
 [`references/api-overview.md`](./references/api-overview.md). For
 token wiring inside a Next.js app see `/iblai-vibe-auth`.
 
+Beyond the eight resources' CRUD, the API has one-call reads a frontend
+leans on: `GET /api/crm/search/?q=` (persons, organizations and deals at
+once), `GET /api/crm/overview/` (dashboard figures, `period_*` for a
+`date_filter` window), `GET /api/crm/deals/board/` (the kanban with
+per-stage totals), `GET …/{id}/history/` on persons, organizations and
+deals (field-change history), plus `?search=`, `?ordering=` and
+`?date_filter=` on every list, and per-user `/api/crm/favorites/` and
+`/api/crm/views/`. crm 1.4.0 adds public web forms (`/api/crm/web-forms/`,
+read and submitted with no credential at
+`/api/crm/orgs/{org}/web-forms/{slug}/`), `GET /api/crm/members/` for owner
+pickers, `PATCH …/{id}/metadata/` (a merge, not a replace), and exact
+lookups (`?primary_email=`, `?name__iexact=`). Endpoint details:
+`/iblai-api-crm`.
+
+## One CRM, several apps
+
+An app built on the CRM (a recruiting app next to the CRM itself, say)
+names itself with `?app=<app>` on every call. Each app sees only its own
+records: a create stamps the app, another app's record is a `404`, and
+names and codes are unique per app. Blank or absent is the CRM itself.
+Before the first write, check that `GET /api/crm/overview/?app=<app>`
+echoes `"app": "<app>"`. A Platform older than crm 1.4.0 ignores the
+parameter, and one that can't keep apps apart yet answers `503`
+(`app_scope_unavailable`). RBAC is the same in every app.
+
 ## Seeded defaults
 
 The first time a Platform is provisioned, the CRM seeds a working
@@ -52,6 +77,9 @@ data migration.
   `is_won=true`) and `lost` (terminal, `is_lost=true`).
 - **Four default Lead Sources**: `web`, `referral`, `cold_call`,
   `advertisement`.
+
+The seeds belong to the CRM itself (blank `app`). An app on the same
+Platform sees none of them and creates its own pipeline and sources.
 
 The stage and lead-source `code` fields are stable across environments
 (dev / staging / prod) and across renames. Numeric `id` values are not
@@ -77,12 +105,17 @@ effective permissions are the union.
 | **CRM Manager** | Wildcard CRM access — pipeline / stage / lead-source administration plus invitations. |
 | **CRM Inviter** | Narrow role — read people and send invitations only. Cannot edit or create people. |
 
-Two non-obvious rules worth a second look:
+Four non-obvious rules worth a second look:
+- **Favorites and saved views are per user.** `Ibl.CRM/Favorites/*` and
+  `Ibl.CRM/Views/*` (held by Viewer, User and Manager) grant access to the
+  caller's own stars and views only; starring a record also needs its `read`.
 - **Invitation is its own bucket.** `Ibl.CRM/Persons/write` does not
   imply `Ibl.CRM/Invite/action`. Gate the "Invite" affordance
   independently.
 - **Tag attach/detach requires `Ibl.CRM/Tags/write`.** A role with
   `Ibl.CRM/Persons/write` cannot tag a person without it.
+- **Publishing a web form is a `write`.** `Ibl.CRM/WebForms/write` (CRM
+  User and Manager) puts a form live; only CRM Manager deletes one.
 
 Full HTTP-verb → action-code mapping and the action-by-action matrix
 are in [`references/rbac-matrix.md`](./references/rbac-matrix.md). For
