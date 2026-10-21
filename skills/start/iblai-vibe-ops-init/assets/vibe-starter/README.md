@@ -78,7 +78,7 @@ Any ibl.ai skill works out of the box. The ones this starter already uses are ma
 /iblai-vibe-agent-chat      ✓ customize the chat on /
 /iblai-vibe-agent-search    ✓ /agents
 /iblai-vibe-agent-create    ✓ /setup + /api/admin/agents
-/iblai-vibe-agent           # configure an agent (24 tabs, one provider)
+/iblai-vibe-agent           # configure an agent (26 tabs, one provider)
 /iblai-vibe-user-metadata   ✓ per-user settings
 /iblai-vibe-org-metadata    ✓ per-org settings
 /iblai-vibe-admin           ✓ User/Admin mode + admin area

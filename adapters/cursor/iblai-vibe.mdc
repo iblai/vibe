@@ -32,7 +32,7 @@ what: [docs/catalogue.md#core](https://raw.githubusercontent.com/iblai/vibe/refs
 | **Operate an org with no app** — from a terminal, a script, CI, or your assistant | — | `/iblai-api-login` first, then the skill for the family below |
 | Chat with an agent; customize the chat surface | `/iblai-vibe-agent-chat` (+ `/iblai-vibe-agent-chat-sidebar`, `/iblai-vibe-project`) | `iblai-api-agent-session`, `agent-chat` |
 | Find / browse agents | `/iblai-vibe-agent-search` | `iblai-api-search` |
-| ★ Create an agent; set its identity, visibility, capabilities | `/iblai-vibe-agent-create` → `/iblai-vibe-agent-setting`; all 24 tabs via `/iblai-vibe-agent` | ★ `iblai-api-agent-setting`, `agent-create` |
+| ★ Create an agent; set its identity, visibility, capabilities | `/iblai-vibe-agent-create` → `/iblai-vibe-agent-setting`; all 26 tabs via `/iblai-vibe-agent` | ★ `iblai-api-agent-setting`, `agent-create` |
 | ★ The user's profile (name, bio, image, education, résumé) | `/iblai-vibe-profile` | ★ `iblai-api-profile` |
 | ★ Custom data per user — preferences, flags, onboarding progress, app state | `/iblai-vibe-user-metadata` | ★ `iblai-api-profile-metadata` |
 | ★ Custom data per organization — settings, branding, toggles | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` | ★ `iblai-api-org` |

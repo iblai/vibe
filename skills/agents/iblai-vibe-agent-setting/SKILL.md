@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-setting
-description: Add the agent Settings tab (name, description, visibility, copy, delete) to your Next.js app
+description: Add the agent Settings tab (Basic, Discovery, Capabilities, Welcome Screen sub-tabs; copy, delete) to your Next.js app
 globs:
 alwaysApply: false
 metadata:
@@ -10,16 +10,46 @@ metadata:
 
 # /iblai-vibe-agent-setting
 
-Add the agent **Settings tab** -- the core agent-edit form with name,
-description, avatar, visibility (administrators / students / anyone),
-category, plus a Copy-to-organization action and a Delete action. This is one
+Add the agent **Settings tab** -- the core agent-edit form, split into four
+sub-tabs (**Basic**, **Discovery**, **Capabilities**, **Welcome Screen**) above
+a sticky Delete / Copy / Save footer (Delete and Copy only when allowed, see
+**Copy** below). This is one
 tab in the wider agent-settings family (`access`, `api`, `datasets`,
 `disclaimers`, `embed`, `history`, `llm`, `memory`, `prompts`, `safety`,
 `settings`, `tasks`, `tools`). Each tab is a separate skill. All tabs share the
 same `AgentSettingsProvider` wrapper -- set it up once and mount as many
 tabs as you need.
 
-![Settings Tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
+**Basic** -- name, unique ID (read-only, copyable), description, category, image.
+
+![Settings tab -- Basic](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-1-basic.png)
+
+**Discovery** -- who can view the agent (administrators / users / anyone),
+who can chat with it (authenticated users / anyone), and whether it is featured.
+
+![Settings tab -- Discovery](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-2-discovery.png)
+
+**Capabilities** -- **Surface Capabilities** sets attachments, voice record,
+and voice call separately for the in-app chat (`show_*`) and the embed widget
+(`embed_show_*`); **Global Capabilities** applies to both surfaces: verbose
+reasoning, enhanced document retrieval, in-chat model change, smart document
+retrieval, prompt caching, and under **Advanced** allow copies and show
+additional agents.
+
+![Settings tab -- Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-3-capabilities.png)
+
+**Welcome Screen** -- the heading a new chat opens with (the agent’s name or a
+personalized greeting), the starter prompts (guided, suggested, or off), and a
+live preview.
+
+**Copy** -- the footer shows Copy only when the agent’s **Allow Copies** is on
+(`forkable`), and Delete only when the agent’s `permissions` grant delete on
+`object` (see `enableRBAC` below). Copy opens `CopyMentorModal`: name the copy,
+choose whether to include training data (disabled unless the agent has
+`forkable_with_training_data`), and -- when `tenants` holds two or more
+organizations with `is_admin: true` -- pick the destination organization.
+
+![Settings tab -- Copy dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-4-copy.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -97,9 +127,9 @@ export default function AgentSettingsLayout({
 }
 ```
 
-`enableRBAC` toggles gated-action prompts (e.g., "are you sure?") for
-destructive actions. Leave `false` unless the host app wires an
-`executeGatedAction` callback.
+`enableRBAC` sets the default for any field the agent’s `permissions` map
+does not list: `false` allows read, write and delete, `true` hides the
+control. It is not a confirmation prompt.
 
 ## Step 3: Mount `AgentSettingsTab`
 
@@ -124,7 +154,11 @@ export default function AgentSettingsPage() {
       const raw = localStorage.getItem("tenants");
       const parsed = raw ? JSON.parse(raw) : [];
       setTenants(
-        parsed.map((t: any) => ({ key: t.key, name: t.name ?? t.key })),
+        parsed.map((t: any) => ({
+          key: t.key,
+          name: t.name ?? t.key,
+          is_admin: !!t.is_admin,
+        })),
       );
     } catch {}
     setIsLoadingTenants(false);
@@ -187,6 +221,12 @@ For a partial override, pass only the keys you want to change:
 />
 ```
 
+Beyond `header`, `fields`, `actions`, `toasts`, `deleteModal`, and `copyModal`,
+the bundle names the sub-tabs (`subTabs.basic` / `discovery` /
+`capabilities` / `welcomeScreen`), the Capabilities headings (`sections.chatExperience`,
+`advanced`, `perSurface`, `globalSettings`), the matrix columns
+(`surfaces.inAppChat`, `embedWidget`), and their explanatory copy (`notes.*`).
+
 ## Step 5: Use MCP Tools for Customization
 
 ```
@@ -202,7 +242,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `tenants` | `CopyMentorTenant[]` | Yes | Organizations the agent can be copied into (forwarded to `CopyMentorModal`) |
+| `tenants` | `CopyMentorTenant[]` (`{ key, name?, is_admin }`) | Yes | Organizations the agent can be copied into (forwarded to `CopyMentorModal`); only entries with `is_admin: true` are offered as destinations. Copy itself shows only when the agent allows copies |
 | `isLoadingTenants` | `boolean` | No | Loading state for the organization list |
 | `onSuccessfulSave` | `(mentor: MentorSettings) => void` | No | Fired after a successful save |
 | `onSuccessfulDelete` | `(deletedMentorId: string) => void` | No | Fired after a successful delete |
@@ -219,8 +259,8 @@ etc.) read identity from this provider via `useAgentSettings()`.
 | `tenantKey` | `string` | Current platform key |
 | `mentorId` | `string` | The agent being edited |
 | `username` | `string` | Current user |
-| `enableRBAC` | `boolean` | Toggle gated-action prompts |
-| `executeGatedAction` | `(action: () => void) => void` | Optional gate callback when `enableRBAC` is true |
+| `enableRBAC` | `boolean` | Per-field RBAC gating: `false` allows fields the agent’s `permissions` omit, `true` hides them |
+| `executeGatedAction` | `(fn: () => unknown) => unknown` | Optional paywall / free-trial interceptor around actions; omitted, actions run directly. Independent of `enableRBAC` |
 
 ## Related Exports
 
@@ -238,7 +278,7 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Touch test `/agents/<id>/setting` in the browser as `/iblai-vibe-ops-test` says: open it,
+3. Touch test `/agents/<id>/settings` in the browser as `/iblai-vibe-ops-test` says: open it,
    use every control this skill added, read the console, check the phone width.
 
 ## Important Notes
@@ -251,7 +291,9 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Shared provider**: Mount `AgentSettingsProvider` at a layout level so
   multiple tabs (`settings`, `llm`, `prompts`, ...) share one wrapper.
   Do NOT wrap each tab page individually.
-- **Tenants list**: The `tenants` prop drives the **Copy to tenant** flow.
+- **Organizations list**: The `tenants` prop drives the **Copy to organization** flow.
+  The destination picker appears only when two or more entries have
+  `is_admin: true` -- keep `is_admin` when mapping `localStorage.tenants`.
   If the user should not be able to copy cross-organization, pass an empty array.
 - **Labels ownership**: Consumer-specific bundles (agent, tutor, coach)
   live in the consuming app, not in `@iblai/iblai-js`. The package only
