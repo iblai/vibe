@@ -10,7 +10,7 @@ six data families almost every app reads or writes (the section right below).
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
-| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 61 |
+| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 62 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, credits, spend caps, and which rail to charge your users on. | 5 |
@@ -126,6 +126,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-tool`](../skills/agents/iblai-vibe-agent-tool/SKILL.md) | 🖥️ ui | Add the agent Tools tab (switch the agent's tools on and off -- web search, code interpreter, image generation, MCP, and more) to your Ne… |
 | [`/iblai-vibe-agent-virtual-machine`](../skills/agents/iblai-vibe-agent-virtual-machine/SKILL.md) | 🖥️ ui | Add the agent Sandbox "Network Access" section for the Virtual Machine Shell |
 | [`/iblai-vibe-agent-voice`](../skills/agents/iblai-vibe-agent-voice/SKILL.md) | 🖥️ ui | Add the agent Voice tab (voice calls on/off, the voice the agent reads replies in, voice instructions, voice-call style/language/provider… |
+| [`/iblai-vibe-chrome-extension`](../skills/agents/iblai-vibe-chrome-extension/SKILL.md) | 📖 guide | Use the ibl.ai Chrome extension, one of your organization's agents in a side panel beside any web page |
 | [`/iblai-vibe-incognito`](../skills/agents/iblai-vibe-incognito/SKILL.md) | 🖥️ ui | Add Incognito to your chat, the chat-header toggle that keeps a conversation out of chat history and memory, its "Enable Incognito for th… |
 | [`/iblai-vibe-local-llm`](../skills/agents/iblai-vibe-local-llm/SKILL.md) | 📖 guide | Use when adding on-device LLM inference (Ollama backend) to a vibe Next.js + Tauri app |
 | [`/iblai-vibe-os-agent-code-mode`](../skills/agents/iblai-vibe-os-agent-code-mode/SKILL.md) | 🖥️ ui | Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app |
@@ -276,4 +277,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 160 skills.
+Total: 161 skills.
