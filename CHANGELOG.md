@@ -3,6 +3,52 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.1] - 2026-10-21
+
+### Documentation
+
+- fold #238-#254 and main into the agent settings tab stack
+- recapture the flagged-prompts shot with the moderation-only copy
+- recapture the catalog shots without e2e test fixtures
+- recapture the links and endpoints shots without the internal LMS host
+- correct the keys and tools routes, platform_key, and launch_gate
+- route skill assignment to agents/{mentor}/skills/
+- note that private skills cannot be assigned and drop the schema stamp
+- load the agent's grants on the chat page so the slash picker works
+- name iblai-vibe-agent-analytics in CLAUDE.md and the domain model
+- mount agent dashboards at /dashboards so the hub keeps /analytics
+- keep the old overview screenshot for installed copies
+- scope the flagged-prompts modal to moderation and hoist the gate
+- point safety system catches at safety-logs and drop the schema stamp
+- list SupportTicketsFilter as a type and the can_use_tools write
+- drop the resolved_at claims and fix the sender notes
+- fix the settings path and restore setup auto-provisioning
+- correct the create body, name rule, and where to store the secret
+- use the admin session token, next_page paging, and expires_in
+- remove the stale web-containers override after updating
+- list only the picker exports web-containers 1.32 ships
+- use mentor_unique_id for mentor-llms and drop the schema stamp
+- wrap the switch-model snippet in AgentSettingsProvider and add the override remedy
+- new Safety tab screenshots and the host-injected pieces
+- new Billing tab screenshots and the agents/ paths
+- new LTI tab screenshots and the lmsDomain to pass
+- new Support tab screenshots and how it saves
+- new Tasks tab screenshots and an accurate skill
+- new Privacy tab screenshots and the Allow action
+- new Evals tab screenshots and the current AgentEvaluationTab
+- new Grader tab screenshots and an accurate skill
+- new Disclaimers tab screenshots and the grant it needs
+- add the iblai-api-agent-voice REST twin
+- new screenshots and the current AgentVoiceTab
+- add the Analytics tab skill
+- document AgentSkillsTab with new screenshots
+- add the Screen tab skill and its REST twin
+- new API tab screenshots and the current AgentApiTab
+- new Tools tab screenshots and the current AgentToolsTab
+- new Datasets tab screenshots and the current AgentDatasetsTab
+- new LLM tab screenshots and the current AgentLLMTab
+- new Settings tab screenshots and SDK 2.26.0
+
 ## [2.16.0] - 2026-10-20
 
 ### Added
