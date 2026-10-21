@@ -24,11 +24,6 @@ overrides:
 # though it is a Rollup build plugin nothing in an app imports, and through the
 # starter's own shadcn dependency (fast-glob, ts-morph). Neither path runs
 # braces on user input. Ignored until braces ships a fix.
-# vite 8.3.0-8.3.2 (GHSA-698v-4r3x-3vcv): launch-editor skips % escaping on
-# Windows. It reaches the starter only through vitest, and nothing passes user
-# input to it. pnpm keeps vitest's peer-resolved vite at 8.3.2 even under an
-# override, so this is ignored until the lock moves to vite 8.3.3 or later.
 auditConfig:
   ignoreGhsas:
     - GHSA-vfj7-8cjw-p6xm
-    - GHSA-698v-4r3x-3vcv
