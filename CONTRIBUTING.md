@@ -34,7 +34,7 @@ they need it, not by which team owns it:
 | `users/` | Profiles, per-user data, memories, roles and admins, invitations, notifications, onboarding |
 | `organizations/` | Organization settings and metadata, branding, integrations and tokens, CRM |
 | `billing/` | How you are charged: credits, spend caps, choosing a pricing rail |
-| `monetization/` | Charging your users: app paywall, Stripe Connect onboarding, item paywalls, checkout, subscriptions, revenue analytics |
+| `monetization/` | Charging your users: the Stripe payment proxy, app paywall, Stripe Connect onboarding, item paywalls, checkout, subscriptions, revenue analytics |
 | `analytics/` | Usage, users, topics, transcripts, costs, reports |
 | `content/` | Courses, catalog, credentials, admissions, other LMSs |
 | `ship/` | Test, deploy, native builds, stores, icons, polish, self-hosting |

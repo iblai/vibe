@@ -200,7 +200,8 @@
       "iblai-vibe-monetization-checkout",
       "iblai-vibe-monetization-subscription",
       "iblai-vibe-monetization-analytics",
-      "iblai-vibe-monetization-app-paywall"
+      "iblai-vibe-monetization-app-paywall",
+      "iblai-api-stripe-payment-proxy"
     ],
     "analytics": [
       "iblai-vibe-analytics",

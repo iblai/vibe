@@ -294,3 +294,7 @@ curl -X POST \
   platform `subscribers/`, `paywalls/`, `my-subscriptions/`) use the standard
   page-number paginator. Internal USD amounts are never exposed in transaction
   history — only the user-facing payment/credit fields.
+- **The organization's own Stripe account is a different surface.** Selling access to a
+  whole app on the organization's own key or Connect-with-Stripe link — customers,
+  products, prices, payment links, checkout sessions, the app paywall — is
+  `/iblai-api-stripe-payment-proxy`, not this skill.
