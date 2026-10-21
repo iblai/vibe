@@ -102,6 +102,7 @@
       "iblai-vibe-workflow",
       "iblai-vibe-local-llm",
       "iblai-vibe-os-agent-code-mode",
+      "iblai-vibe-chrome-extension",
       "iblai-vibe-agent-access",
       "iblai-vibe-agent-analytics",
       "iblai-vibe-agent-api",
