@@ -234,7 +234,8 @@ them to agents. All endpoints are prefixed with
 | POST | `mcp-servers/` | Register a new server (multipart for image upload) |
 | PATCH/PUT | `mcp-servers/{id}/` | Update |
 | DELETE | `mcp-servers/{id}/` | Delete |
-| GET | `mcp-servers/oauth-find/` | Resolve OAuth provider/service for a server URL |
+| POST | `mcp-servers/oauth-find/` | Resolve or set up the OAuth service for a server URL (see below) |
+| GET/PUT/DELETE | `mcp-servers/{id}/credentials/` | The organization's own OAuth client or API key for a server (secrets masked) |
 
 **Create body:**
 
@@ -256,6 +257,53 @@ them to agents. All endpoints are prefixed with
 - `mentor`: `null` for organization-wide, agent UUID for agent-bound
 - For `auth_type=token`, set `credentials` to the full header value
   (e.g. `"Bearer abc123"`).
+
+Featured and registry servers come pre-populated: their names are Title
+Case and their `image` is set from the registry (or the vendor's site).
+Custom servers take the `name` and `image` you send.
+
+### OAuth setup for a new server (`oauth-find`)
+
+Call this before creating an `oauth2` server; pass the returned `id` as the
+server's `oauth_service`. It reuses an existing service for the URL, else
+discovers the server's OAuth metadata and registers a client automatically.
+
+```json
+{
+  "url": "https://osi.ai/mcp",
+  "name": "OSI",
+  "callback_url": "https://your-app.example.com/google-oauth-callback/",
+  "mentor": ""
+}
+```
+
+- `callback_url` defaults to `https://{SPA_DOMAIN}/google-oauth-callback/`
+  (the platform frontend). Send your own when the app runs on another
+  domain; it must be the page that finishes the OAuth popup.
+- **Manual client** — when automatic registration is impossible, add the
+  client created in the vendor's console. `callback_url` is then
+  required (it must match the redirect URI registered with the vendor):
+
+  | Field | Notes |
+  |---|---|
+  | `client_id` | Switches on manual setup. |
+  | `client_secret` | `""` for a public client. |
+  | `authorization_url`, `token_url` | https. Only for a server that publishes no OAuth metadata (`diagnostic.failed_step = "authorization_server_metadata"`); refused when it does. Stored for your organization only. |
+  | `token_endpoint_auth_method` | `client_secret_post` / `client_secret_basic` / `none`. Optional. |
+  | `scopes` | Optional list. |
+
+  A server that publishes metadata but refuses registration
+  (`failed_step = "client_registration"`, e.g. GitHub) needs only
+  `client_id` and `client_secret`.
+- `200` → the OAuth service (`{ id, oauth_provider, name, display_name, … }`).
+  `400` → `{ error, diagnostic: { failed_step, hint, discovered, attempts } }`;
+  `discovered` lists the endpoints found, for filling a manual client.
+  `failed_step = "manual_client"` means the client fields were rejected
+  (`hint` says why); `tenant_client_configured` means your organization
+  already has a client for that provider — edit it via `credentials/`.
+- `GET mcp-servers/{id}/credentials/` then reports `source: "manual"` with
+  `authorization_url` / `token_url`. `PUT` accepts the same fields (omit to
+  keep, `""` to clear).
 
 ### 3. MCP Server Connections
 

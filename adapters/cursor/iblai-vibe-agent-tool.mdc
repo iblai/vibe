@@ -197,7 +197,7 @@ unchanged (`null` is a 400); `[]` clears all tools.
 | POST | `mcp-servers/` | Register a new server |
 | PATCH/PUT | `mcp-servers/{id}/` | Update |
 | DELETE | `mcp-servers/{id}/` | Delete |
-| GET | `mcp-servers/oauth-find/` | Find a server by OAuth provider/service |
+| POST | `mcp-servers/oauth-find/` | Resolve or set up the OAuth service for a server URL (see `/iblai-vibe-agent-mcp`) |
 
 **Create body:**
 
