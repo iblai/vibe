@@ -22,7 +22,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, listSkills } from "./lib/skills.mjs";
+import { ROOT, listSkills, onlySkills } from "./lib/skills.mjs";
 
 const SCHEMA_URL = "https://api.iblai.app/dm/api/docs/schema/?format=json";
 const ALLOW_FILE = join(ROOT, "scripts", "endpoint-schema-allow.json");
@@ -321,7 +321,9 @@ async function main() {
   // Select by the frontmatter `kind: api` — but read the WHOLE frontmatter
   // block, not a fixed prefix: `kind` sits under `metadata:` after the (often
   // long) description, so a char cap would silently skip skills.
+  const only = onlySkills();
   const apiSkills = listSkills().filter((s) => {
+    if (only && !only.includes(s.name)) return false;
     const src = readFileSync(s.file, "utf8");
     const fm = /^---\n([\s\S]*?)\n---/.exec(src)?.[1] ?? "";
     return /\bkind:\s*api\b/.test(fm);

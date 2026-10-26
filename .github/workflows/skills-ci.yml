@@ -34,6 +34,39 @@ jobs:
           exit 1
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Every check below is scoped to what the PR changed (an empty list means
+      # "all" to the scripts). The audit runs only when vibe-starter changed; a
+      # PR that touches scripts/, .github/ or vibe-starter runs everything.
+      - name: Changed files
+        id: changed
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          git diff --name-only "$BASE_REF...HEAD" > "$RUNNER_TEMP/changed"
+          full=false; starter=false; any_skill=false
+          if grep -qE "^(scripts/|\.github/|$STARTER_DIR/)" "$RUNNER_TEMP/changed"; then full=true; fi
+          if grep -q "^$STARTER_DIR/" "$RUNNER_TEMP/changed"; then starter=true; fi
+          if grep -q "^skills/" "$RUNNER_TEMP/changed"; then any_skill=true; fi
+          files=""; dirs=(); skills=(); api=()
+          if [ "$full" = false ]; then
+            files=$(paste -sd' ' "$RUNNER_TEMP/changed")
+            for d in $(awk -F/ '$1=="skills" && NF>3 {print $1"/"$2"/"$3}' "$RUNNER_TEMP/changed" | sort -u); do
+              if [ -d "$d" ]; then dirs+=("$d"); fi
+            done
+            for d in "${dirs[@]}"; do
+              skills+=("$(basename "$d")")
+              if grep -qE '^\s*kind:\s*api\b' "$d/SKILL.md" 2>/dev/null; then api+=("$(basename "$d")"); fi
+            done
+          fi
+          echo "$(wc -l < "$RUNNER_TEMP/changed") changed files; full=$full starter=$starter skills=${skills[*]} api=${api[*]}"
+          {
+            echo "full=$full"; echo "starter=$starter"; echo "any_skill=$any_skill"
+            echo "files=$files"; echo "dirs=${dirs[*]}"
+            echo "skills=$(IFS=,; echo "${skills[*]}")"; echo "api=$(IFS=,; echo "${api[*]}")"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: pnpm/action-setup@v4
         with:
@@ -46,52 +79,71 @@ jobs:
           cache-dependency-path: ${{ env.STARTER_DIR }}/pnpm-lock.yaml
 
       - name: Validate skills (spec conformance)
-        run: bash scripts/validate-skills.sh
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.dirs != ''
+        env:
+          DIRS: ${{ steps.changed.outputs.dirs }}
+        run: bash scripts/validate-skills.sh $DIRS
 
       - name: SDK pin drift
-        run: node scripts/check-sdk-pins.mjs
+        env:
+          FILES: ${{ steps.changed.outputs.files }}
+        run: node scripts/check-sdk-pins.mjs $FILES
 
       - name: No known vulnerabilities in vibe-starter (moderate+)
+        if: steps.changed.outputs.starter == 'true'
         working-directory: ${{ env.STARTER_DIR }}
         run: pnpm audit --audit-level=moderate
 
       - name: Cross-repo links resolve
-        run: node scripts/check-links.mjs
+        env:
+          FILES: ${{ steps.changed.outputs.files }}
+        run: node scripts/check-links.mjs $FILES
 
       - name: API endpoints & request fields match the live schema
         # Fetch once with retries (the schema is ~7.5MB) so a flaky network is a
         # distinct, retryable step; the check itself runs deterministically
         # against the file. Guards against api skills documenting an endpoint
         # the backend renamed/removed, or a request field it no longer accepts.
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.api != ''
+        env:
+          API: ${{ steps.changed.outputs.api }}
         run: |
           curl -sS --retry 3 --retry-delay 5 -m 150 \
             "https://api.iblai.app/dm/api/docs/schema/?format=json" \
             -o "$RUNNER_TEMP/iblai_schema.json"
           IBLAI_SCHEMA_FILE="$RUNNER_TEMP/iblai_schema.json" \
-            node scripts/check-endpoint-schema.mjs
+            node scripts/check-endpoint-schema.mjs ${API:+--skills $API}
 
       - name: Skill catalogue matches skills/ (CLAUDE.md + docs/catalogue.md)
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.any_skill == 'true' || contains(steps.changed.outputs.files, 'CLAUDE.md') || contains(steps.changed.outputs.files, 'README.md') || contains(steps.changed.outputs.files, 'docs/catalogue.md')
         run: node scripts/check-skill-tables.mjs
 
       - name: Every skill declares a valid metadata.kind
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.any_skill == 'true'
         run: node scripts/check-skill-kinds.mjs
 
       - name: No overlay clobbers between skills
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.any_skill == 'true'
         run: node scripts/test-skills-compose.mjs
 
       - name: Adapters are regenerated
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.any_skill == 'true' || contains(steps.changed.outputs.files, 'adapters/')
         run: |
           node scripts/build-adapters.mjs
           git diff --exit-code adapters/ || {
             echo "::error::adapters/ out of date — run 'node scripts/build-adapters.mjs' and commit"; exit 1; }
 
       - name: Render + typecheck skills against vibe-starter
-        run: node scripts/test-skills-render.mjs --build
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.skills != ''
+        env:
+          SKILLS: ${{ steps.changed.outputs.skills }}
+        run: node scripts/test-skills-render.mjs ${{ steps.changed.outputs.starter == 'true' && '--build' || '' }} ${SKILLS:+--skills $SKILLS}
 
       - name: App boot smoke (scaffold renders, not just typechecks)
         # Builds vibe-starter and boots it under Playwright — proves the scaffold
         # a user gets actually mounts, catching "compiles but blank/crashes on
         # mount" that tsc can't see. Deterministic, no LLM, no secrets.
+        if: steps.changed.outputs.full == 'true'
         run: node scripts/test-skills-boot.mjs
 
   # ---------------------------------------------------------------- tier 2
