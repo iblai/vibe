@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.3] - 2026-10-26
+
+### Changed
+
+- Add permissions check endpoint
+
 ## [2.16.2] - 2026-10-26
 
 ### Fixed
