@@ -1,6 +1,6 @@
 # Testing the skills
 
-Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual.
+Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual. Every check is scoped to what the PR changed — the scripts take file or `--skills` arguments, and no argument means all — the `pnpm audit` step runs only when vibe-starter changed, and a PR that touches `scripts/`, `.github/` or vibe-starter runs everything.
 
 | Tier | Command | What it proves |
 |---|---|---|

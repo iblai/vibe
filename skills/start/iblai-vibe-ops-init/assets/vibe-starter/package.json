@@ -31,7 +31,7 @@
     "clsx": "^2.1.1",
     "livekit-client": "^2.20.1",
     "lucide-react": "^1.14.0",
-    "next": "16.3.8",
+    "next": "16.4.3",
     "next-intl": "4.13.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -55,7 +55,8 @@
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vitest": "^4.1.11"
+    "vite": "^8.3.5",
+    "vitest": "^4.1.12"
   },
   "packageManager": "pnpm@10.11.1"
 }

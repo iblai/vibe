@@ -20,7 +20,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { ROOT, SKILLS_DIR, STARTER_DIR as STARTER_SRC, listSkills, skillDir } from "./lib/skills.mjs";
+import { ROOT, SKILLS_DIR, STARTER_DIR as STARTER_SRC, listSkills, onlySkills, skillDir } from "./lib/skills.mjs";
 const WORK = join(ROOT, ".skill-tests");
 const SCRATCH = join(WORK, "starter");
 const SKIPS = existsSync(join(ROOT, "scripts", "skill-render-skips.json"))
@@ -30,8 +30,7 @@ const SKIPS = existsSync(join(ROOT, "scripts", "skill-render-skips.json"))
 const skillDir_ = (name) => skillDir(name) ?? join(SKILLS_DIR, name);
 const args = process.argv.slice(2);
 const RUN_BUILD = args.includes("--build");
-const onlyArg = args.find((a) => a.startsWith("--skills"));
-const ONLY = onlyArg ? (onlyArg.split("=")[1] ?? args[args.indexOf(onlyArg) + 1]).split(",") : null;
+const ONLY = onlySkills(args);
 
 const failures = [];
 const log = (msg) => console.log(msg);
