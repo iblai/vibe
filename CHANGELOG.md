@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.16.2] - 2026-10-26
+
+### Fixed
+
+- clear the audit and scope skills-ci to the files a PR changes
+- lift markdown-it and vite past the advisories published this week
+
 ## [2.16.1] - 2026-10-21
 
 ### Documentation

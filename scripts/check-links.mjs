@@ -28,8 +28,16 @@ function* walk(dir) {
   }
 }
 
+// File args narrow the scan to those paths (CI passes the PR's changed files); default is the whole repo.
+const FILES = process.argv.slice(2);
+const checkable = (full) =>
+  existsSync(full) &&
+  CHECKED_EXTENSIONS.test(full) &&
+  !relative(ROOT, full).split("/").some((p) => p.startsWith(".") || SKIP_DIRS.has(p) || SKIP_FILES.has(p));
+const files = FILES.length ? FILES.map((f) => join(ROOT, f)).filter(checkable) : [...walk(ROOT)];
+
 const sources = new Map(); // url -> ["file:line", ...]
-for (const file of walk(ROOT)) {
+for (const file of files) {
   const rel = relative(ROOT, file);
   readFileSync(file, "utf8").split("\n").forEach((line, i) => {
     for (const match of line.matchAll(URL_PATTERN)) {
@@ -73,7 +81,7 @@ for (let i = 0; i < urls.length; i += 8) {
   }));
 }
 
-console.log(`check-links: ${urls.length} distinct iblai URLs checked.`);
+console.log(`check-links: ${urls.length} distinct iblai URLs checked in ${files.length} files.`);
 for (const [url, s] of flaky) console.warn(`  warn ${s}  ${url} (transient — not failing the check)`);
 if (dead.length) {
   console.error(`\ncheck-links — ${dead.length} dead link(s):\n`);
