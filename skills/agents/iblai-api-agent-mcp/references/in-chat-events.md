@@ -17,8 +17,8 @@ socket while waiting; resolution arrives on the same one.
 |---|---|---|---|
 | `oauth_required` | `server_name` (str), `server_id` (int), `auth_url` (str), `message` (str) | about to call an MCP server with no connection for this user; before polling starts | open `auth_url` in a new tab/popup (providers block framing), name the server, show a waiting indicator |
 | `oauth_connection_resolved` | `server_name` (str), `server_id` (int), `message` (str) | polling found a valid connection for the user | dismiss the prompt; the reply follows shortly |
-| `mcp_tools_retrieved` | `session_id` (str, uuid), `mentor_id` (str) | an initial tool fetch failed but a retry succeeded | none — log or ignore |
-| `warning` | `message` (str), `developer_error` (str), `code` (int = 503) | tools failed to load for a **non-OAuth** reason; chat continues without MCP tools | non-blocking banner from `message`; log `developer_error` (never show it to users) |
+| `mcp_tools_retrieved` | `session_id` (str, uuid), `mentor_id` (str) | the MCP tools were loaded for this turn | none — log or ignore |
+| `warning` | `message` (str), `code` (int = 503), `developer_error` (str, optional) | tools failed to load for a **non-OAuth** reason; chat continues. A server that can't be reached, authorized or list its tools within 15s is skipped alone and named in `message`; the other servers' tools still load | non-blocking banner from `message`; log `developer_error` when present (never show it to users) |
 | *(error frame)* | `error` (str), `status_code` (int = 400) | a `ChatValidationError` ends the turn | show `error` (it is user-safe); offer Retry |
 
 ### The three `error` cases
@@ -43,5 +43,5 @@ All carry `status_code: 400`; tell them apart by the message text:
   eventually completes is still saved, so their **next message** resolves
   automatically. Offer Retry rather than forcing a fresh setup.
 - **`warning` ≠ error frame.** `warning` (503) degrades gracefully — the reply
-  still arrives, minus MCP tools; keep the chat open. Only the error frame (400)
+  still arrives, minus the skipped servers' tools; keep the chat open. Only the error frame (400)
   ends the turn, and on WebSocket transports the socket then closes.

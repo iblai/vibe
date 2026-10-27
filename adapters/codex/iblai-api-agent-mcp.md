@@ -290,8 +290,8 @@ succeeds automatically on their **next message**, so offer a retry.
 |---|---|---|
 | `oauth_required` | `server_name`, `server_id`, `auth_url`, `message` | show a prompt naming the server; open `auth_url` in a new tab; show a waiting indicator |
 | `oauth_connection_resolved` | `server_name`, `server_id`, `message` | dismiss the prompt; the chat resumes automatically |
-| `mcp_tools_retrieved` | `session_id`, `mentor_id` | informational: tool fetch succeeded on retry (3 attempts, backoff 1s/2s/4s) — log or ignore |
-| `warning` | `message`, `developer_error`, `code: 503` | non-OAuth tool failure; the chat continues **without** MCP tools — surface `message`, log `developer_error`, never show it to end users |
+| `mcp_tools_retrieved` | `session_id`, `mentor_id` | informational: the MCP tools were loaded for this turn — log or ignore |
+| `warning` | `message`, `code: 503`, sometimes `developer_error` | non-OAuth tool failure; the chat continues. A server that can't be reached, authorized or list its tools within 15s is skipped alone: `message` names it (`Couldn't load tools from X. Continuing without them.`) and the other servers' tools still load. Surface `message`; log `developer_error` when present, never show it to end users |
 | `error` | `error`, `status_code: 400` (**no `type` field** — detect by the top-level `error` key) | OAuth timeout / URL build failure / missing connected service; the turn terminates — offer retry |
 
 Constants: max wait 300s (`MCP_OAUTH_MAX_WAIT_SECONDS`), poll interval 10s

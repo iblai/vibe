@@ -274,9 +274,10 @@ discovers the server's OAuth metadata and registers a client automatically.
 }
 ```
 
-- `callback_url` defaults to `https://{SPA_DOMAIN}/google-oauth-callback/`
-  (the platform frontend). Send your own when the app runs on another
-  domain; it must be the page that finishes the OAuth popup.
+- `callback_url` defaults to the platform's configured callback
+  (`MCP_OAUTH_REDIRECT_URI`, by default
+  `https://{SPA_DOMAIN}/google-oauth-callback/`). Send your own when the app
+  runs on another domain; it must be the page that finishes the OAuth popup.
 - **Manual client** — when automatic registration is impossible, add the
   client created in the vendor's console. `callback_url` is then
   required (it must match the redirect URI registered with the vendor):
@@ -298,6 +299,11 @@ discovers the server's OAuth metadata and registers a client automatically.
   `failed_step = "manual_client"` means the client fields were rejected
   (`hint` says why); `tenant_client_configured` means your organization
   already has a client for that provider — edit it via `credentials/`.
+- Discovery is time-bounded, so the call answers well within a proxy's
+  limit. An unreachable server fails at `failed_step = "mcp_server_url"`
+  in about 5s ("Couldn't connect to the MCP server"); check the URL. A run
+  longer than 15s stops with `diagnostic.timed_out = true`; retry later. In
+  both cases no manual client is stored, even if one was sent.
 - `GET mcp-servers/{id}/credentials/` then reports `source: "manual"` with
   `authorization_url` / `token_url`. `PUT` accepts the same fields (omit to
   keep, `""` to clear).
