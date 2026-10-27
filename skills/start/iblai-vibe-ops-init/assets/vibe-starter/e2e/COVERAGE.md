@@ -4,6 +4,8 @@ Checkpoint-tracked journeys (see `/iblai-vibe-ops-test`). Every user-visible
 surface in vibe-starter has a checkpoint; a change to a surface updates its
 row. `coverage.json` is the machine-readable twin. Member journeys (M*) sign in
 as the member test account, the rest as the admin; `pnpm e2e:accounts` creates both.
+The default run is Chrome desktop + a phone (the `mobile` project, a Pixel 7 viewport);
+`pnpm test:e2e:all` adds Firefox and WebKit.
 
 | # | Journey | Checkpoint | Spec |
 |---|---|---|---|
@@ -19,6 +21,8 @@ as the member test account, the rest as the admin; `pnpm e2e:accounts` creates b
 | D3 | admin | /admin/analytics renders the tab strip | `journeys/admin.journey.spec.ts` |
 | D4 | admin | /admin/organization shows the app settings form | `journeys/admin.journey.spec.ts` |
 | D5 | admin | /setup asks for the app name first | `journeys/admin.journey.spec.ts` |
+| P1 | mobile | a phone shows home, agents, profile and the admin pages without sideways overflow | `journeys/mobile.journey.spec.ts` |
+| P2 | mobile | the drawer reaches Agents | `journeys/mobile.journey.spec.ts` |
 
 Not yet covered: completing `/setup` end to end (needs a fresh org), saving a
 preference and reading it back on a second device, the invite email round trip

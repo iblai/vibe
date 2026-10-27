@@ -14,6 +14,7 @@
     "assets/shared/e2e/custom-reporter.ts": "e2e/custom-reporter.ts",
     "assets/shared/e2e/playwright.config.ts": "e2e/playwright.config.ts",
     "assets/shared/e2e/journeys/auth.journey.spec.ts": "e2e/journeys/auth.journey.spec.ts",
+    "assets/shared/e2e/journeys/mobile.journey.spec.ts": "e2e/journeys/mobile.journey.spec.ts",
     "assets/agent/e2e/journeys/chat.journey.spec.ts": "e2e/journeys/chat.journey.spec.ts",
     "assets/base/app/(app)/layout.tsx": "app/(app)/layout.tsx",
     "assets/base/components/ui/sonner.tsx": "components/ui/sonner.tsx",

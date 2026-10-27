@@ -426,7 +426,8 @@ pnpm build           # Production build
 pnpm typecheck       # Type-check
 pnpm test            # Vitest
 pnpm e2e:accounts    # Create the e2e test admin + member (once)
-pnpm test:e2e        # Playwright (signs in as them)
+pnpm test:e2e        # Playwright: Chrome desktop + a phone, signed in as them
+pnpm test:e2e:all    # Playwright: every browser
 ```
 ```
 

@@ -24,8 +24,8 @@ browser window; `pnpm test:e2e` signs in as two test accounts that
 1. `pnpm build` — zero errors.
 2. `pnpm test` — green.
 3. The touch test below, on every route the change touched.
-4. `pnpm e2e:accounts`, then `pnpm test:e2e --project=chromium` (it reuses the
-   running dev server). The first creates an org admin and a member in the
+4. `pnpm e2e:accounts`, then `pnpm test:e2e` (Chrome desktop and a phone; it reuses
+   the running dev server; `pnpm test:e2e:all` adds Firefox and WebKit). The first creates an org admin and a member in the
    organization `iblai.env` names (`PLATFORM`, never `main`) with the Platform
    API Token in `.env.local`, after the platform confirms the token belongs to
    that organization, and saves them in the gitignored `e2e/.env.development`;

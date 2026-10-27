@@ -33,7 +33,8 @@ pnpm typecheck          # TypeScript type checking
 
 # E2E tests
 pnpm e2e:accounts       # Create the e2e test admin + member (once)
-pnpm test:e2e           # Headless (Chromium + Firefox + WebKit), signed in as them
+pnpm test:e2e           # Headless: Chrome desktop + a phone, signed in as them
+pnpm test:e2e:all       # Headless: every browser
 pnpm test:e2e:ui        # Interactive Playwright UI
 pnpm test:e2e:headed    # Headed browser mode
 

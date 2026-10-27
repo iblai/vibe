@@ -103,8 +103,19 @@ export default defineConfig({
     {
       name: 'chromium',
       testDir: './journeys',
+      testIgnore: 'mobile.journey.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'mobile',
+      testDir: './journeys',
+      testMatch: 'mobile.journey.spec.ts',
+      use: {
+        ...devices['Pixel 7'],
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],

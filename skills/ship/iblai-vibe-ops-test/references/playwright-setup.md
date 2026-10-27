@@ -38,7 +38,8 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: 'mobile.journey.spec.ts' },
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: 'mobile.journey.spec.ts' },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
@@ -99,7 +100,8 @@ instead — see [references/real-sso-auth-setup.md](real-sso-auth-setup.md).
 ```json
 {
   "scripts": {
-    "test:e2e": "playwright test --config=e2e/playwright.config.ts"
+    "test:e2e": "playwright test --config=e2e/playwright.config.ts --project=chromium --project=mobile",
+    "test:e2e:all": "playwright test --config=e2e/playwright.config.ts"
   }
 }
 ```
