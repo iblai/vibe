@@ -25,9 +25,9 @@ export function newAccount(prefix) {
 /** The organization to create the accounts in: the one the user connected, never the shared one. */
 export function resolveOrg({ iblai = {}, env = {}, local = {} }) {
   const org = iblai.PLATFORM || env.IBLAI_ORG || local.NEXT_PUBLIC_MAIN_TENANT_KEY || "";
-  if (!org) throw new Error("No PLATFORM in iblai.env (nor IBLAI_ORG, NEXT_PUBLIC_MAIN_TENANT_KEY): run /iblai-vibe-connect first.");
+  if (!org) throw new Error("No PLATFORM in iblai.env: run /iblai-vibe-connect and pick your organization on the connect page.");
   // The shared community org and the example placeholders are never a test target.
-  if (org === "main" || org.startsWith("your-")) throw new Error(`PLATFORM is "${org}": connect your own organization first (/iblai-vibe-connect).`);
+  if (org === "main" || org.startsWith("your-")) throw new Error(`PLATFORM is "${org}", a placeholder: run /iblai-vibe-connect and pick your own organization on the connect page.`);
   return org;
 }
 
@@ -59,7 +59,7 @@ async function main() {
 
   // A Platform API Token acts in one organization; the platform answers 200 only for that one.
   const probe = await fetch(`${api}/core/platform/users/?platform_key=${org}&page_size=1`, { headers });
-  if (probe.status !== 200) fail(`The token in .env.local is not a Platform API Token for "${org}" (HTTP ${probe.status}): run /iblai-vibe-connect, or check PLATFORM in iblai.env.`);
+  if (probe.status !== 200) fail(`The token in .env.local is not a Platform API Token for "${org}" (HTTP ${probe.status}): run /iblai-vibe-connect --org ${org} to mint one there.`);
 
   const post = async (path, body, type = "application/json") => {
     const res = await fetch(api + path, {

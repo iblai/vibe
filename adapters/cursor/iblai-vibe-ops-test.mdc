@@ -27,9 +27,10 @@ browser window; `pnpm test:e2e` signs in as two test accounts that
    that organization, and saves them in the gitignored `e2e/.env.development`;
    once they exist it does nothing. Never read or print that file: report the two usernames it prints.
    If it or a sign-in fails, report its message and stop — there is no other
-   way in; when it stops on `PLATFORM`, `/iblai-vibe-connect` says how to find
-   the organization. No `e2e:accounts` script (not vibe-starter)? Run `pnpm test:e2e`
-   only when `e2e/.env.development` is filled in.
+   way in. One exception: when it stops on `PLATFORM` (a placeholder), run
+   `/iblai-vibe-connect` without `--org` — the user picks the organization on
+   the connect page — then run it again. No `e2e:accounts` script (not
+   vibe-starter)? Run `pnpm test:e2e` only when `e2e/.env.development` is filled in.
 
 A change with no screen (a script, a server route nothing renders yet) reports
 "no screen to touch" in place of step 3. Never say "done", "ready" or

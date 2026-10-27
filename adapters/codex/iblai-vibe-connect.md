@@ -24,12 +24,11 @@ Any time credentials are missing or unusable:
 
 ## Which organization?
 
-Not sure which organization the user means — no `PLATFORM`, or `main`? If a
-browser tool runs on the user's own Chrome (the DevTools MCP attached to it, or
-Claude in Chrome), open `https://login.iblai.app/me`: the Organizations section
-lists the ones they belong to, the default first. Take the key, confirm it with
-the user when there is more than one, and run the script with `--org <key>`.
-Never read a token out of that page; this skill mints one. No such tool → ask.
+The connect page is where the user chooses: it lists the organizations they
+belong to, with `main` disabled. A placeholder `PLATFORM` — missing,
+`your-platform`, or `main` — means run the script **without** `--org` and let
+them pick. A real key means `--org <key>`, which preselects it. Never look the
+key up for the user or guess it.
 
 ## Step 1: Run the script
 
@@ -70,7 +69,7 @@ Options, all optional:
 | `--domain <host>` | `iblai.app` |
 | `--name <label>` | `<package.json name or folder name> on <hostname>` — the name the token gets, so it can be recognized and revoked later |
 | `--origin <url>` | `http://localhost:3000` when a `package.json` with `next` is present — the hosted page adds it to the organization's allowed redirect origins, which is the step new apps most often miss |
-| `--org <key>` | preselects an organization when you already know the key |
+| `--org <key>` | preselects an organization whose key is already real; leave it out for a placeholder `PLATFORM` so the user picks |
 | `--dry-run` | prints the file changes it would make, token masked, and writes nothing |
 | `--paste` | reads the manual-mode block from stdin; no browser (Step 2) |
 

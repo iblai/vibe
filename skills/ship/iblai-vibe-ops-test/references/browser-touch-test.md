@@ -30,7 +30,7 @@ attaches to the user's own Chrome instead (below).
 
 `chrome-devtools-main` runs the same server with `--autoConnect`: on Chrome 144 or
 newer it attaches to the running Chrome's default profile, signed in as the user
-is, so a touch test or a look at `login.iblai.app/me` needs no second sign-in.
+is, so a touch test needs no second sign-in.
 The user enables it once on `chrome://inspect/#remote-debugging` and clicks
 Allow when Chrome asks; until then every call answers "Could not connect to
 Chrome" (measured with chrome-devtools-mcp 1.12.0: it never launches its own
