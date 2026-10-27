@@ -38,7 +38,8 @@ window in this mode), and the agent falls back to `chrome-devtools`. Older
 Chrome: use `chrome-devtools` and sign in once in its window.
 
 Claude Code — `.mcp.json` at the project root (vibe-starter and the scaffold
-ship it; Claude Code asks once to approve a project server):
+ship it, with a `.claude/settings.json` whose `enabledMcpjsonServers` pre-approves
+the servers once the folder is trusted; elsewhere Claude Code asks once):
 
 ```json
 {
@@ -55,7 +56,8 @@ To skip the per-call prompts the user may add `"mcp__chrome-devtools__*"` to
 `permissions.allow` in `.claude/settings.json` — their choice, not the skill's,
 since it also pre-approves `evaluate_script`.
 
-Codex — `~/.codex/config.toml`:
+Codex — `.codex/config.toml` in the project (vibe-starter and the scaffold ship
+it; Codex reads it in a trusted project), or `~/.codex/config.toml` for every project:
 
 ```toml
 [mcp_servers.chrome-devtools]
@@ -63,8 +65,16 @@ command = "npx"
 args = ["-y", "chrome-devtools-mcp@latest"]
 ```
 
-Cursor — `.cursor/mcp.json`, the same shape as `.mcp.json`. Restart the agent
-after adding a server.
+Cursor — `.cursor/mcp.json`, the same shape as `.mcp.json` (vibe-starter and the
+scaffold ship it). Restart the agent after adding a server.
+
+opencode — `opencode.json` at the project root, an `mcp` block with `type: "local"`
+and a `command` array (vibe-starter and the scaffold ship it; the ibl.ai desktop
+app's Code mode runs opencode in the project directory, so it reads the file):
+
+```json
+{ "mcp": { "chrome-devtools": { "type": "local", "command": ["npx", "-y", "chrome-devtools-mcp@latest"], "enabled": true } } }
+```
 
 Flags (`npx -y chrome-devtools-mcp@latest --help`): `--headless` (no window —
 only routes that need no sign-in can be touched), `--isolated` (a throwaway

@@ -164,11 +164,13 @@ e2e/                              # Playwright journeys + COVERAGE.md
 .env.example                      # → .env.local: org key, IBLAI_API_KEY, optional agent/app name
 iblai.env.example                 # → iblai.env: DOMAIN, PLATFORM, TOKEN
 .mcp.json                         # @iblai/mcp (SDK docs) + chrome-devtools (the touch-test browser)
+.claude/settings.json             # Pre-approves those servers in Claude Code (once you trust the folder)
+.cursor/mcp.json, .codex/config.toml, opencode.json   # The same servers for Cursor, Codex and opencode
 ```
 
 ## AI-Assisted Development
 
-The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. `.mcp.json` ships the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server for component-level lookups and the `chrome-devtools` server that `/iblai-vibe-ops-test` drives for the touch test.
+The starter ships with a curated `CLAUDE.md`/`AGENTS.md` so Claude Code (and any other agent that reads them) gets deep knowledge of the ibl.ai platform from the first prompt. `.mcp.json` ships the [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server for component-level lookups and the `chrome-devtools` server that `/iblai-vibe-ops-test` drives for the touch test. `.claude/settings.json` pre-approves them, so Claude Code asks nothing once you trust the folder; `.cursor/mcp.json`, `.codex/config.toml` and `opencode.json` carry the same servers for Cursor, Codex and opencode.
 
 The [@iblai/mcp](https://www.npmjs.com/package/@iblai/mcp) server gives your AI assistant access to:
 

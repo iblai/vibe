@@ -73,7 +73,10 @@ runtime (`NEXT_PUBLIC_MAIN_TENANT_KEY`, `NEXT_PUBLIC_DEFAULT_AGENT_ID`, …).
 - **[`assets/shared/`](assets/shared/)** — in **every** app: root `app/layout.tsx`,
   the `(auth)/sso-login-complete` callback, `components/app-shell.tsx`,
   `providers/store-provider.tsx`, `hooks/use-user.ts`, `lib/{utils,hooks}.ts`,
-  `AGENTS.md` (copy or symlink it to `CLAUDE.md`), `.mcp.json`, `public/env.js`,
+  `AGENTS.md` (copy or symlink it to `CLAUDE.md`), the MCP servers for Claude Code
+  (`.mcp.json` + the `.claude/settings.json` that pre-approves them), Cursor
+  (`.cursor/mcp.json`), Codex (`.codex/config.toml`) and opencode (`opencode.json`),
+  `public/env.js`,
   the tooling configs (eslint/tsconfig/tailwind/postcss/vitest), and the
   Playwright `e2e/` suite.
 - **[`assets/agent/`](assets/agent/)** — the agent app's two files on top: the

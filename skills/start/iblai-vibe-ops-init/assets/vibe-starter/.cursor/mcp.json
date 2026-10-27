@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "iblai": {
+      "command": "pnpm",
+      "args": ["dlx", "@iblai/mcp"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "chrome-devtools-main": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest", "--autoConnect"]
+    }
+  }
+}
