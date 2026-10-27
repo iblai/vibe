@@ -376,6 +376,9 @@ provider/service before a `MCPServerConnection` can reference a
 
 ### Common errors
 
+- `400 "The provider didn't respond in time. Try signing in again."` from
+  `connected-services/callback/` — the vendor's token endpoint timed out;
+  restart the sign-in.
 - `400 "No credentials found"` — admin must configure `auth_{provider}`
   in the credential store.
 - `400 OAuth2 connections require a connected service.` — finish the

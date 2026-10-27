@@ -134,6 +134,9 @@ existed for the same (user, provider, org, service), it is updated in place.
   (`{id, name, display_name, logo}`), `username`, `user_email`,
   `user_full_name`) — the same `ConnectedServiceSerializer` the
   connected-services list read returns.
+  If the provider's token endpoint doesn't answer (5s to connect, 20s to
+  read), it returns `400 {"error": "The provider didn't respond in time. Try
+  signing in again."}`; restart the flow.
 
 ## Writes
 
