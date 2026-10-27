@@ -52,8 +52,9 @@ The script also copies each shot into the skill that documents it:
 
 Needs a running starter (`pnpm dev` in a scaffolded app or in
 `skills/start/iblai-vibe-ops-init/assets/vibe-starter` with a real `.env.local`) and
-the Playwright credentials in `e2e/.env.development` (an **admin** of the demo
-org). From the repo root:
+an **admin** of the demo org in `e2e/.env.development` — yours (the captures
+show the account's name), or the one `pnpm e2e:accounts` creates. From the
+repo root:
 
 ```bash
 node scripts/capture-screenshots.mjs --app http://localhost:3000 \

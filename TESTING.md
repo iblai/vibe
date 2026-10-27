@@ -21,9 +21,8 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs t
 1. **Assets** declared in `skills/<name>/test.json`:
    ```json
    {
-     "vars": { "app_name": "…" },              // minimal-Jinja vars ({{ var }}, {% if %}, {% raw %}, {{ '{{' }})
-     "overlay": { "assets/x.tsx.j2": "app/x.tsx" },  // rendered into the scratch app, then pnpm typecheck
-     "render_only": ["assets/package.json.j2"],      // must render clean; .json must parse
+     "overlay": { "assets/x.tsx": "app/x.tsx" },  // copied into the scratch app, then pnpm typecheck
+     "render_only": ["assets/package.json"],      // must exist; .json must parse
      "assert_files": ["app/x.tsx"]             // used by the agent tier
    }
    ```
@@ -60,7 +59,7 @@ Scope (v1): `/dm` REST only (not `/edx` or the asgi streaming host); request bod
 
 ## Tier 3 — live platform
 
-`RUN_LIVE=1` starts the built scratch app and drives vibe-starter's Playwright SSO setup (`e2e/auth.setup.ts`) against a real tenant.
+`RUN_LIVE=1` starts the built scratch app and drives vibe-starter's Playwright SSO setup (`e2e/auth.setup.ts`) against a real tenant. It signs in the admin only; the member sign-in skips without `PLAYWRIGHT_MEMBER_*`.
 
 Local env: `AUTH_HOST`, `PLAYWRIGHT_USERNAME`, `PLAYWRIGHT_PASSWORD`, `IBLAI_TEST_TENANT_KEY`, `IBLAI_TEST_API_KEY`.
 
@@ -72,7 +71,7 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 - The agent tier runs on dummy credentials only; real secrets exist only in the live step's process env, after the agent has exited.
 - Playwright: `--reporter=dot --trace=off`, failure details go to a file (`.live.log`) — never the console, because SSO redirect URLs can carry authorization codes.
 - Server output (`pnpm start`) goes to `.server.log`, never the console.
-- No artifact uploads from the live job (storage state under `e2e/.auth/` holds session cookies).
+- No artifact uploads from the live job (storage state under `playwright/.auth/` holds session cookies).
 - No `set -x` in any harness script.
 
 ## Tier 4 — selection eval (local, subscription)

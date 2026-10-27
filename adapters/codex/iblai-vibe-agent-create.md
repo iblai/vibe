@@ -27,14 +27,14 @@ UUID every other agent skill needs. The SDK has no creation component
 
 ## Step 1: Install
 
-Render the assets (strip `.j2`; no variables):
+Copy the assets:
 
 | Asset | Destination | Does |
 |---|---|---|
-| `admin-agents-route.ts.j2` | `app/api/admin/agents/route.ts` | `GET` lists the org's agents; `POST` creates one |
-| `admin-client.ts.j2` | `lib/iblai/admin-client.ts` | browser `adminFetch()` that forwards the session token |
-| `setup-screen.tsx.j2` | `components/setup/setup-screen.tsx` | name the app → pick or create the agent → save to org metadata |
-| `setup-page.tsx.j2` | `app/setup/page.tsx` | admin-only page, outside the navbar |
+| `admin-agents-route.ts` | `app/api/admin/agents/route.ts` | `GET` lists the org's agents; `POST` creates one |
+| `admin-client.ts` | `lib/iblai/admin-client.ts` | browser `adminFetch()` that forwards the session token |
+| `setup-screen.tsx` | `components/setup/setup-screen.tsx` | name the app → pick or create the agent → save to org metadata |
+| `setup-page.tsx` | `app/setup/page.tsx` | admin-only page, outside the navbar |
 
 The setup screen saves through `useOrgSettings` (`/iblai-vibe-org-metadata`)
 and uses the SDK's `OnboardingShell` / `StepHeader`. Needs shadcn `input`, `label`.

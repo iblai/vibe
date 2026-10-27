@@ -79,12 +79,13 @@ text or screenshots.
 
 ## 4. Ship code with it (when it creates files)
 
-Put templates in `assets/` (Jinja `.j2`, `{{ platform_key }}` etc.) and map them
-to app paths in `test.json` so the render gate typechecks them against the
-pinned SDK:
+Put the real files in `assets/` — no `.j2`, no placeholders: a literal default
+the agent renames (`my-app`, `My App`) or a value read from env at runtime —
+and map them to app paths in `test.json` so the render gate typechecks them
+against the pinned SDK:
 
 ```json
-{ "overlay": { "assets/thing.tsx.j2": "app/(app)/thing/page.tsx" } }
+{ "overlay": { "assets/thing.tsx": "app/(app)/thing/page.tsx" } }
 ```
 
 If the starter should ship it, put the file in

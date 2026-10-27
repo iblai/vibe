@@ -423,7 +423,8 @@ pnpm dev             # Dev server (localhost:3000)
 pnpm build           # Production build
 pnpm typecheck       # Type-check
 pnpm test            # Vitest
-pnpm test:e2e        # Playwright (needs e2e/.env.development)
+pnpm e2e:accounts    # Create the e2e test admin + member (once)
+pnpm test:e2e        # Playwright (signs in as them)
 ```
 ```
 

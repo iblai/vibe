@@ -13,7 +13,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
-const CHECKED_EXTENSIONS = /\.(md|j2|json|ts|tsx|mjs|js|sh|yaml|yml)$/;
+const CHECKED_EXTENSIONS = /\.(md|json|ts|tsx|mjs|js|sh|yaml|yml)$/;
 const SKIP_DIRS = new Set(["node_modules", "adapters", "templates"]); // adapters mirror skills/; templates hold placeholder URLs
 const SKIP_FILES = new Set(["CHANGELOG.md", "pnpm-lock.yaml"]);
 const URL_PATTERN = /https:\/\/(?:raw\.githubusercontent\.com|github\.com)\/iblai\/[^\s)"'`<>\]*]+/g;

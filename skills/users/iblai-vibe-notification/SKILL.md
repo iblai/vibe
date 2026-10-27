@@ -18,8 +18,7 @@ navbar and a full notification center page with Inbox and Alerts tabs.
 ![Alerts tab — predefined alerts with Active/Inactive toggles and Edit (admins)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-notification/iblai-vibe-notification-2-alerts.png)
 
 > **Template:** the bell this skill creates is bundled as
-> [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`assets/notification-bell.tsx`](assets/notification-bell.tsx).
 
 Do NOT add custom styles to ibl.ai SDK components — they ship with their
 own styling. Do NOT implement dark mode unless asked.
@@ -66,9 +65,8 @@ If they prefer to add notifications to an existing app, continue below.
 
 ## Create the Bell
 
-Render [`assets/notification-bell.tsx.j2`](assets/notification-bell.tsx.j2)
-into `components/iblai/notification-bell.tsx` (substitute `{{ }}`
-placeholders) — a bell with unread badge. Reads `userData` and `tenant` from
+Copy [`assets/notification-bell.tsx`](assets/notification-bell.tsx)
+into `components/iblai/notification-bell.tsx` — a bell with unread badge. Reads `userData` and `tenant` from
 localStorage; returns `null` when unauthenticated.
 
 ## Components

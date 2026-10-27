@@ -13,13 +13,28 @@ Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
 iOS, Android, macOS/Linux desktop, and Surface tablet builds.
 
 > **Building:** run Tauri directly — `pnpm exec tauri <cmd>` (e.g.
-> `pnpm exec tauri dev`, `pnpm exec tauri ios build`). The Tauri
-> shell templates live in [`assets/tauri/`](assets/tauri/) (copy into
-> `src-tauri/`), the CI workflows in
-> [`assets/tauri/workflows/`](assets/tauri/workflows/), and the default app
-> icons in [`assets/icons/`](assets/icons/). The build commands,
-> prerequisites, and MSIX notes are in
+> `pnpm exec tauri dev`, `pnpm exec tauri ios build`). The Tauri shell
+> files live in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/) (copy
+> into `src-tauri/`), the CI workflows in
+> [`assets/tauri/workflows/`](assets/tauri/workflows/) (copy into
+> `.github/workflows/`), and the default app icons in
+> [`assets/icons/`](assets/icons/) (copy into `src-tauri/icons/`). They are
+> real files under placeholder names — set the names below once. The build
+> commands, prerequisites, package scripts and MSIX notes are in
 > [`references/tauri-commands.md`](references/tauri-commands.md).
+
+## Names to set after copying
+
+The shell ships as `my-app`. Set these together; the sign-in and the Windows
+build break when they disagree:
+
+| Value | Default | Where |
+|---|---|---|
+| App slug | `my-app` | `src-tauri/Cargo.toml` package name, `src-tauri/tauri.conf.json` `productName`, `AppxManifest.xml` `Executable="my-app.exe"`, `build-msix.ps1` `$AppName` |
+| Bundle identifier | `com.example.myapp` | `tauri.conf.json` `identifier`, `AppxManifest.xml` `Identity Name` — no hyphens, never ending in `.app`; the stores lock it at the first release |
+| Display name | `My App` | the six display fields in `AppxManifest.xml`, the window title in `src-tauri/src/lib.rs` |
+| Auth URL scheme | `my-app` | `tauri.conf.json` deep-link `scheme`, `AUTH_SCHEME` in `src-tauri/src/lib.rs`, `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local`, `TAURI_CUSTOM_SCHEME` in `iblai.env`, the organization's allowed redirect origins |
+| MSIX publisher | `CN=my-app-dev` | `AppxManifest.xml` `Publisher`, `setup-test-cert.ps1` `$Subject` (the Store replaces it) |
 
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
@@ -37,7 +52,7 @@ a device name from the output.
 
 - **Tauri support** added to your project:
   ```bash
-  # add the Tauri shell: copy assets/tauri/ into src-tauri/ + add @tauri-apps deps
+  # add the Tauri shell: copy assets/tauri/src-tauri/ into src-tauri/, set the names above, add the package scripts (references/tauri-commands.md)
   pnpm install --ignore-scripts
   ```
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
@@ -73,10 +88,10 @@ scheme instead of `https://`. Set `TAURI_CUSTOM_SCHEME` in `iblai.env`:
 TAURI_CUSTOM_SCHEME=myapp
 ```
 
-This configures:
-- `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local` — the frontend uses
-  this to pass `redirect-to=myapp://` to the auth SPA
-- The Tauri deep-link handler to listen for `myapp://` callbacks
+Set the same value in `.env.local` as `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` (the
+frontend passes `redirect-to=myapp://` to the auth SPA), in
+`src-tauri/tauri.conf.json` (`deep-link` → `scheme`) and as `AUTH_SCHEME` in
+`src-tauri/src/lib.rs` (the handler that listens for `myapp://` callbacks).
 
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.

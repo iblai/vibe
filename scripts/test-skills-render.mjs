@@ -3,7 +3,7 @@
 // copy of vibe-starter and typecheck it against the currently-pinned SDK.
 //
 // Two code sources:
-//   1. assets/ declared in skills/<name>/test.json  ({overlay, render_only, vars})
+//   1. assets/ declared in skills/<name>/test.json  ({overlay, render_only})
 //   2. ts/tsx fences inside every SKILL.md (mirrored under __fences__/<skill>/,
 //      skippable via scripts/skill-render-skips.json)
 //
@@ -34,33 +34,6 @@ const ONLY = onlySkills(args);
 
 const failures = [];
 const log = (msg) => console.log(msg);
-
-// ---------- minimal Jinja subset ----------
-// Supports: {{ var }}, {% if var %}…{% else %}…{% endif %} (non-nested),
-// {% raw %}…{% endraw %}, and literal escapes like {{ '{{' }} / {{ '}' }}.
-function renderJ2(source, vars, file) {
-  const shelf = [];
-  const shelve = (body) => {
-    shelf.push(body);
-    return `\x00RAW${shelf.length - 1}\x00`;
-  };
-  source = source.replace(/\{%\s*raw\s*%\}([\s\S]*?)\{%\s*endraw\s*%\}/g, (_, body) => shelve(body));
-  source = source.replace(/\{\{\s*'([^']*)'\s*\}\}/g, (_, lit) => shelve(lit));
-  let out = source.replace(
-    /\{%\s*if\s+([a-z_0-9]+)\s*%\}([\s\S]*?)(?:\{%\s*else\s*%\}([\s\S]*?))?\{%\s*endif\s*%\}/g,
-    (_, name, thenBody, elseBody) => {
-      if (/\{%\s*if/.test(thenBody)) throw new Error(`${file}: nested {% if %} not supported by the test renderer`);
-      return vars[name] ? thenBody : (elseBody ?? "");
-    },
-  );
-  out = out.replace(/\{\{\s*([a-z_0-9]+)\s*\}\}/g, (_, name) => {
-    if (!(name in vars)) throw new Error(`${file}: no test var for {{ ${name} }} — add it to the skill's test.json "vars"`);
-    return String(vars[name]);
-  });
-  const leftover = out.match(/\{%\s*(if|endif|else|for)[^%]*%\}/);
-  if (leftover) throw new Error(`${file}: unrendered template tag ${leftover[0]}`);
-  return out.replace(/\x00RAW(\d+)\x00/g, (_, i) => shelf[Number(i)]);
-}
 
 // ---------- scratch management ----------
 function copyStarterSources(dest) {
@@ -115,17 +88,13 @@ function run(cmd, cmdArgs, cwd) {
 // ---------- source 1: assets via test.json ----------
 function testAssetSkill(name, manifest) {
   const skillDir = skillDir_(name);
-  const vars = manifest.vars ?? {};
-  const renderFile = (rel) => {
-    const raw = readFileSync(join(skillDir, rel), "utf8");
-    return rel.endsWith(".j2") ? renderJ2(raw, vars, `${name}/${rel}`) : raw;
-  };
+  const readAsset = (rel) => readFileSync(join(skillDir, rel), "utf8");
 
-  // render_only: template must render clean; .json must parse.
+  // render_only: the file must exist; .json must parse.
   for (const rel of manifest.render_only ?? []) {
     try {
-      const out = renderFile(rel);
-      if (/\.json(\.j2)?$/.test(rel)) JSON.parse(out);
+      const out = readAsset(rel);
+      if (/\.json$/.test(rel)) JSON.parse(out);
     } catch (err) {
       failures.push(`${name}: ${err.message}`);
     }
@@ -136,7 +105,7 @@ function testAssetSkill(name, manifest) {
   const dir = newScratch(name);
   for (const [src, dest] of Object.entries(overlay)) {
     try {
-      const out = renderFile(src);
+      const out = readAsset(src);
       const destPath = join(dir, dest);
       mkdirSync(dirname(destPath), { recursive: true });
       writeFileSync(destPath, out);

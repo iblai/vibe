@@ -27,6 +27,15 @@ Any time credentials are missing or unusable:
 | The platform API answers `401` | Run this skill — the token was revoked or expired |
 | `iblai.env` already has real values, or the host exports `IBLAI_API_KEY` | Skip it; those already answer the question |
 
+## Which organization?
+
+Not sure which organization the user means — no `PLATFORM`, or `main`? If a
+browser tool runs on the user's own Chrome (the DevTools MCP attached to it, or
+Claude in Chrome), open `https://login.iblai.app/me`: the Organizations section
+lists the ones they belong to, the default first. Take the key, confirm it with
+the user when there is more than one, and run the script with `--org <key>`.
+Never read a token out of that page; this skill mints one. No such tool → ask.
+
 ## Step 1: Run the script
 
 The script lives next to this file, in whichever skills directory this skill was

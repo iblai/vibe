@@ -155,6 +155,16 @@ for skill_dir in "${skill_dirs[@]}"; do
     fi
 done
 
+# Assets are real files: a Jinja template (.j2, {% raw %}, {% if %}) is a bug since 2026-10.
+asset_dirs=()
+for d in "${skill_dirs[@]}"; do [[ -d "${d%/}/assets" ]] && asset_dirs+=("${d%/}/assets"); done
+stray=$( { find "${skill_dirs[@]}" -name '*.j2' 2>/dev/null; [[ ${#asset_dirs[@]} -gt 0 ]] && rg -l '\{%-?\s*(raw|endraw|if)\b' "${asset_dirs[@]}" 2>/dev/null; } | sort -u )
+if [[ -n "$stray" ]]; then
+    echo -e "${RED}❌ Jinja templates are not allowed in assets — ship the real file:${NC}"
+    echo "$stray" | sed 's/^/   /'
+    ((ISSUES++))
+fi
+
 echo ""
 echo "======================================================"
 echo "Summary:"

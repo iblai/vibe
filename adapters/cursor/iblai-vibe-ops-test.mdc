@@ -1,5 +1,5 @@
 ---
-description: "Test an ibl.ai Next.js app before showing it or saying done — pnpm build, pnpm test, then a touch test that drives the running app in a real browser (Claude in Chrome or the Chrome DevTools MCP) through every control you added, reads the console and the failed requests, and checks the phone width; the user signs in by hand, never with a password. Also sets up Vitest and Playwright journeys, lifts coverage above 95%, and keeps e2e/COVERAGE.md + coverage.json. Use when the user says \"is it done\", \"show me\", \"test this\", \"touch test\", \"add tests\", \"write tests\", \"increase coverage\", \"set up Vitest\", \"set up Playwright\", or \"track e2e coverage\". For the deployed URL see /iblai-vibe-ops-deploy."
+description: "Test an ibl.ai Next.js app before showing it or saying done — pnpm build, pnpm test, then a touch test that drives the running app in a real browser (Claude in Chrome or the Chrome DevTools MCP) through every control you added, reads the console and the failed requests, and checks the phone width; the user signs in by hand, never with a password; Playwright signs in as two test accounts the skill creates. Also sets up Vitest and Playwright journeys, lifts coverage above 95%, and keeps e2e/COVERAGE.md + coverage.json. Use when the user says \"is it done\", \"show me\", \"test this\", \"touch test\", \"add tests\", \"write tests\", \"increase coverage\", \"set up Vitest\", \"set up Playwright\", or \"track e2e coverage\". For the deployed URL see /iblai-vibe-ops-deploy."
 globs:
 alwaysApply: false
 ---
@@ -12,16 +12,24 @@ app in a real browser. **When the user asks for tests or coverage**: Steps 0–5
 set up Vitest and Playwright journeys and lift coverage above 95%.
 
 Never ask for a password. The touch test lets the user sign in by hand in the
-browser window; `pnpm test:e2e` signs in with `e2e/.env.development`, which only
-the user fills in. Use `pnpm`; fall back to `npm` if it is not installed.
+browser window; `pnpm test:e2e` signs in as two test accounts that
+`pnpm e2e:accounts` creates. Use `pnpm`; fall back to `npm` if it is not installed.
 
 ## Before you say "done"
 
 1. `pnpm build` — zero errors.
 2. `pnpm test` — green.
 3. The touch test below, on every route the change touched.
-4. `pnpm test:e2e` when `e2e/.env.development` is filled in (it reuses the
-   running dev server). Never ask for those credentials.
+4. `pnpm e2e:accounts`, then `pnpm test:e2e --project=chromium` (it reuses the
+   running dev server). The first creates an org admin and a member in the
+   organization `iblai.env` names (`PLATFORM`, never `main`) with the Platform
+   API Token in `.env.local`, after the platform confirms the token belongs to
+   that organization, and saves them in the gitignored `e2e/.env.development`;
+   once they exist it does nothing. Never read or print that file: report the two usernames it prints.
+   If it or a sign-in fails, report its message and stop — there is no other
+   way in; when it stops on `PLATFORM`, `/iblai-vibe-connect` says how to find
+   the organization. No `e2e:accounts` script (not vibe-starter)? Run `pnpm test:e2e`
+   only when `e2e/.env.development` is filled in.
 
 A change with no screen (a script, a server route nothing renders yet) reports
 "no screen to touch" in place of step 3. Never say "done", "ready" or
@@ -37,6 +45,11 @@ the code and run it again.
    deferred; load them with ToolSearch):
    - `mcp__claude-in-chrome__*` — Claude in Chrome, the user's own signed-in
      Chrome (they started `claude --chrome`, or turned it on under `/chrome`).
+   - else `mcp__chrome-devtools-main__*` — the Chrome DevTools MCP attached to
+     the user's own Chrome (Chrome 144+). Its first call fails with "Could not
+     connect to Chrome" until the user enables remote debugging on
+     `chrome://inspect/#remote-debugging` and clicks Allow in Chrome's dialog:
+     ask for that once, then retry; on an older Chrome fall through.
    - else `mcp__chrome-devtools__*` — the Chrome DevTools MCP: vibe-starter and
      the scaffold ship it in `.mcp.json`; its Chrome keeps its own profile, so
      the sign-in survives between runs.
@@ -91,6 +104,7 @@ the code and run it again.
    Console: clean | <errors>. Network: clean | <url → status>
    Phone 412 px: no sideways scroll | <what overflowed>
    Not touched: <control>, <why>
+   E2E: <n> passed, <n> skipped, as <admin> + <member> | not run: <why>
    ```
 
 Something broke: fix it, run `pnpm build` and `pnpm test` again, touch test
@@ -258,8 +272,9 @@ if (typeof window.ResizeObserver === 'undefined') {
 ## Step 2: Playwright infrastructure
 
 vibe-starter ships it: `e2e/playwright.config.ts`, the real sign-in in
-`e2e/auth.setup.ts` (it reads `e2e/.env.development`, which the user fills in),
-auth, member and admin journeys, and `e2e/COVERAGE.md`; run `pnpm test:e2e`
+`e2e/auth.setup.ts` (an admin and a member, from the `e2e/.env.development`
+that `pnpm e2e:accounts` writes), auth, member and admin journeys, and
+`e2e/COVERAGE.md`; run `pnpm test:e2e`
 against a running `pnpm dev`. `playwright/.auth/` holds live tokens: keep
 `/playwright/` gitignored and never `git add -A` after a run.
 
@@ -456,5 +471,6 @@ threshold to 90 temporarily — but flag it so it doesn't quietly stick.
 | Coverage report missing | Install `@vitest/coverage-v8` (not bundled with vitest) |
 | Browser tool says "No page found" | Its Chrome restarted: `list_pages`, then navigate again |
 | Sign-in never comes back to the app | The origin (port included) is missing from the organization's allowed redirect origins |
+| `auth.setup.ts` says the login page offers no password sign-in it recognises | The page changed: read the controls it printed, update the four resolver rules at the top of `e2e/auth.setup.ts` (structure, never copy: a password field, a button named like password, an email field, a submit button), rerun. Never type credentials by hand |
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

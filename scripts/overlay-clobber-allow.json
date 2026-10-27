@@ -20,10 +20,6 @@
     {
       "dest": "types/iblai-web-mentor.d.ts",
       "reason": "harmless: the scaffold agent template re-uses iblai-vibe-agent-chat's OWN asset (same source file)."
-    },
-    {
-      "dest": "lib/config.ts",
-      "reason": "latent: iblai-vibe-scaffold maps BOTH its base and agent template variants (assets/base/lib/config.ts.j2 and assets/agent/lib/config.ts.j2) to one dest, so the render test only exercises the last. Split the variants or test them separately, then remove this entry."
     }
   ]
 }

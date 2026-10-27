@@ -1,5 +1,5 @@
 {
   "overlay": {
-    "assets/org-settings.tsx.j2": "components/settings/org-settings.tsx"
+    "assets/org-settings.tsx": "components/settings/org-settings.tsx"
   }
 }

@@ -25,9 +25,8 @@ auth session. This text describes the redesigned chat that ships from
 > **Template (legacy `<mentor-ai>` widget):** a full-screen `<mentor-ai>`
 > web-component ChatWidget (distinct from the in-process `Chat` component
 > this skill documents) — bundled as
-> [`assets/chat-widget.tsx.j2`](assets/chat-widget.tsx.j2) +
-> [`assets/iblai-web-mentor.d.ts`](assets/iblai-web-mentor.d.ts). See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`assets/chat-widget.tsx`](assets/chat-widget.tsx) +
+> [`assets/iblai-web-mentor.d.ts`](assets/iblai-web-mentor.d.ts).
 
 > **What you get:** the SDK's `Chat` component wired directly into your
 > app (in-process, not an iframe). Full feature surface, intercept
