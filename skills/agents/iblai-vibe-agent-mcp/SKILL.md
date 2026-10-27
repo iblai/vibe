@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-mcp
-description: Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialogs) to your Next.js app
+description: Add the agent MCP tab (Model Context Protocol connector management with featured connectors, custom connectors, OAuth, and add/edit dialogs) to your Next.js app, or build a custom connector screen on the MCP REST API. Use when the user mentions MCP, connectors, MCP servers, signing in to a connector, or OAuth for an agent's tools. For the exact endpoints and chat events see /iblai-api-agent-mcp; for the tools tab see /iblai-vibe-agent-tool.
 globs:
 alwaysApply: false
 metadata:
@@ -12,8 +12,8 @@ metadata:
 Add the agent **MCP tab** -- Model Context Protocol connector management
 with a Featured Connectors gallery, a custom Connectors section with
 add/edit/delete, OAuth connection flow, token-based auth, per-connector
-scope (organization or this-agent), transport selection (SSE / WebSocket /
-Streamable HTTP), and search/date/transport filters. This is one tab in
+scope (organization or this-agent), transport selection (Streamable HTTP / SSE),
+and search/date/transport filters. This is one tab in
 the wider agent-settings family. All tabs share the same
 `AgentSettingsProvider` wrapper.
 
@@ -100,7 +100,8 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 - **Header** — "MCP" title and description.
 - **Filters bar** — search by name, date-range picker, transport
-  multiselect (SSE / WebSocket / Streamable HTTP / All).
+  multiselect. The backend accepts only `streamable_http` and `sse`
+  (`websocket` was removed): `?transport=websocket` returns 400, so hide that choice.
 - **Featured Connectors** — global, platform-curated MCP servers
   (Ahrefs, Asana, Atlassian, GitHub, Google Drive, …). Each card shows
   the logo, name, connection state, auth-type chip (`OAuth` / `Token`),
@@ -123,9 +124,9 @@ Opened from the **Add Connector** button. Collects:
 | Connector Server | Required. Must be a valid URL. |
 | Description | Optional. |
 | Connector Scope | `All Agents` (organization) or `This Agent` (agent-bound). |
-| Transport | `SSE` / `WebSocket` / `Streamable Http` (default). |
+| Transport | `Streamable Http` (default) / `SSE`. The backend rejects `websocket`. |
 | Authentication Method | `No Authentication` / `API Key` / `OAuth`. |
-| Authentication Scope | OAuth-only: `Tenant` / `Mentor` / `User`. |
+| Authentication Scope | OAuth-only: `Tenant` / `Mentor` / `User` (wire values `platform` / `mentor` / `user`; the backend default is `user`). |
 | Token Type + Token | API-Key only: `Bearer` / `Basic` / `API-Key` / `API-Token` / `Token` / `Other` (custom alphanumeric+hyphen, ≤50 chars). |
 
 For OAuth, submitting the form opens the provider's consent screen in a
@@ -150,7 +151,7 @@ Server` URL restarts the OAuth handshake.
    `oauth_connection_complete` to `localStorage`.
 4. The MCP tab observes either signal and creates a
    `MCPServerConnection` record bound to the configured scope (`user`,
-   `mentor`, or `tenant`).
+   `mentor`, or `platform` on the wire — the UI's *Tenant*).
 5. Refetches Featured / Custom / ConnectedServices /
    MCPServerConnections / agent settings — the card flips to
    **Disconnect**.
@@ -205,187 +206,67 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
   tools tab.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 
-## MCP Servers REST API
+## Building a custom MCP UI (REST)
 
-For custom UI beyond `<McpTab>` — register external MCP servers and bind
-them to agents. All endpoints are prefixed with
-`${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` where `dmUrl` is
-`NEXT_PUBLIC_API_BASE_URL`. Organization admins only.
+For custom UI beyond `<McpTab>`. Endpoints are under
+`${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/` (`…`) and
+`${dmUrl}/api/ai-account/` (`ACCOUNT`), where `dmUrl` is
+`NEXT_PUBLIC_API_BASE_URL`. The exact request/response shapes, permissions
+and errors live in **`/iblai-api-agent-mcp`** (and its `references/`); this
+section is the UI-builder's map.
 
-### Workflow
+### What to build, and the endpoint behind each control
 
-1. **Enable the MCP tool on the agent** (so the runtime will use MCP servers).
-2. **Register an MCP server** record (URL, transport, auth_type).
-3. **Create a connection** binding credentials to a scope (`tenant`,
-   `user`, or `mentor`).
-4. **Assign servers to the agent** via the agent settings endpoint.
+| Control | Endpoint |
+|---|---|
+| Catalog (one ranked list: this agent → org → featured → directory) | `GET …/mcp-servers/?mentor_unique_id={id}&include_global=true&page_size=24` — filters `search` (debounce 300 ms), `transport`, `auth_type`, `supports_dcr`, `registry`, `trust_tier`, `is_featured` |
+| Card text / icon / badges | `description`; `image ?? registry.icon_url`; *Official* / *Curated* (`registry.trust_tier`), *Legacy transport* (`transport_deprecated`), *Deprecated* (`status`) |
+| Card primary action | derived from `mcp_server_connections` + `registry.setup` (`none` / `oauth` / `oauth_client` / `api_key`) — see the state table in `/iblai-api-agent-mcp` `references/catalog.md` |
+| *Use with this agent* switch | `PUT …/mentors/{id}/settings/` — full `mcp_servers` list, plus `mcp` in `tool_slugs` (lists are replaced, not merged) |
+| Add MCP server form | `POST …/mcp-servers/` — `transport` `streamable_http` (default) / `sse`; `auth_scope` default **`user`** (*Each user signs in*); `user_can_disable`; `mentor` for *This agent only* (attach it in the same save) |
+| OAuth discovery before saving an OAuth server | `POST …/mcp-servers/oauth-find/` with `callback_url` = your callback page; on `400` show `diagnostic` (message per `failed_step`; `timed_out`) and, for `client_registration` / `authorization_server_metadata`, an inline OAuth-app form (client ID/secret; endpoints only for the latter) |
+| OAuth app / org API key form (admin) | `GET`/`PUT`/`DELETE …/mcp-servers/{id}/credentials/` — copyable redirect URI; confirm before `DELETE` (signs everyone out) |
+| *Test connection* (admin) | `POST …/mcp-servers/{id}/verify/` — show `diagnostic`, `tools`, `tools_error` |
+| *Whose account is used* per agent (admin) | `GET`/`PUT …/mcp-servers/{id}/mentor-auth-scope/` (`user` / `mentor` / `platform` / `null`) |
+| Mandatory server | `PATCH …/mcp-servers/{id}/` `{"user_can_disable": false}` — locked switch "Required by your organization" |
+| *Sign in* | `GET ACCOUNT/connected-services/orgs/{org}/users/{user}/{oauth_service_data.oauth_provider}/{oauth_service_data.name}/` → open `auth_url` in a popup; the callback page relays `code`/`state` to `ACCOUNT/connected-services/callback/`; then `POST …/mcp-server-connections/` `{server, scope: "user", auth_type: "oauth2", connected_service}` |
+| *Add your API key* | `POST …/mcp-server-connections/` `scope: "user"`, form built from `registry.declared_headers` |
+| On/off (permanent / this conversation) | `PUT …/mcp-servers/{id}/preference/` / `…/session-preference/`; render the chat composer's menu from the catalog with `session_id` (`user_enabled`) |
+| Connections page | `GET`/`DELETE ACCOUNT/connected-services/orgs/{org}/users/{user}/[{id}/]` |
 
-### 1. Enable MCP tool on the agent
+Show *Edit*/*Delete* only for your org's servers and only when
+`permissions.object.write` / `delete` are true — featured and directory
+servers return `404` on write.
 
-| Method | Path | Body |
-|---|---|---|
-| PUT | `mentors/{mentor_id}/settings/` | `{ "tool_slugs": ["mcp", ...], "can_use_tools": true }` |
+### OAuth callback page
 
-### 2. MCP Servers
+The default redirect URI registered for every automatically registered OAuth
+app is `https://{SPA_DOMAIN}/google-oauth-callback/` (configurable by staff
+as `MCP_OAUTH_REDIRECT_URI`). That page must relay `code` and `state`
+unchanged to `GET ${dmUrl}/api/ai-account/connected-services/callback/` for
+**every** provider, then notify the opener (`postMessage`) and close. A `400
+"The provider didn't respond in time…"` from the callback means the vendor
+timed out — offer *Sign in again*.
 
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `mcp-servers/` | List organization + featured servers (filters: `is_featured`, `transport`, `search`, `mentor_unique_id`, `include_global`) |
-| POST | `mcp-servers/` | Register a new server (multipart for image upload) |
-| PATCH/PUT | `mcp-servers/{id}/` | Update |
-| DELETE | `mcp-servers/{id}/` | Delete |
-| POST | `mcp-servers/oauth-find/` | Resolve or set up the OAuth service for a server URL (see below) |
-| GET/PUT/DELETE | `mcp-servers/{id}/credentials/` | The organization's own OAuth client or API key for a server (secrets masked) |
+### In-chat events
 
-**Create body:**
-
-```json
-{
-  "name": "Google Drive MCP",
-  "description": "Search and index Drive documents",
-  "url": "https://drive-mcp.example.com/mcp",
-  "transport": "streamable_http",
-  "auth_type": "oauth2",
-  "auth_scope": "user",
-  "mentor": null
-}
-```
-
-- `transport`: `sse` | `websocket` | `streamable_http`
-- `auth_type`: `none` | `token` | `oauth2`
-- `auth_scope` (oauth only): `tenant` | `mentor` | `user`
-- `mentor`: `null` for organization-wide, agent UUID for agent-bound
-- For `auth_type=token`, set `credentials` to the full header value
-  (e.g. `"Bearer abc123"`).
-
-Featured and registry servers come pre-populated: their names are Title
-Case and their `image` is set from the registry (or the vendor's site).
-Custom servers take the `name` and `image` you send.
-
-### OAuth setup for a new server (`oauth-find`)
-
-Call this before creating an `oauth2` server; pass the returned `id` as the
-server's `oauth_service`. It reuses an existing service for the URL, else
-discovers the server's OAuth metadata and registers a client automatically.
-
-```json
-{
-  "url": "https://osi.ai/mcp",
-  "name": "OSI",
-  "callback_url": "https://your-app.example.com/google-oauth-callback/",
-  "mentor": ""
-}
-```
-
-- `callback_url` defaults to the platform's configured callback
-  (`MCP_OAUTH_REDIRECT_URI`, by default
-  `https://{SPA_DOMAIN}/google-oauth-callback/`). Send your own when the app
-  runs on another domain; it must be the page that finishes the OAuth popup.
-- **Manual client** — when automatic registration is impossible, add the
-  client created in the vendor's console. `callback_url` is then
-  required (it must match the redirect URI registered with the vendor):
-
-  | Field | Notes |
-  |---|---|
-  | `client_id` | Switches on manual setup. |
-  | `client_secret` | `""` for a public client. |
-  | `authorization_url`, `token_url` | https. Only for a server that publishes no OAuth metadata (`diagnostic.failed_step = "authorization_server_metadata"`); refused when it does. Stored for your organization only. |
-  | `token_endpoint_auth_method` | `client_secret_post` / `client_secret_basic` / `none`. Optional. |
-  | `scopes` | Optional list. |
-
-  A server that publishes metadata but refuses registration
-  (`failed_step = "client_registration"`, e.g. GitHub) needs only
-  `client_id` and `client_secret`.
-- `200` → the OAuth service (`{ id, oauth_provider, name, display_name, … }`).
-  `400` → `{ error, diagnostic: { failed_step, hint, discovered, attempts } }`;
-  `discovered` lists the endpoints found, for filling a manual client.
-  `failed_step = "manual_client"` means the client fields were rejected
-  (`hint` says why); `tenant_client_configured` means your organization
-  already has a client for that provider — edit it via `credentials/`.
-- Discovery is time-bounded, so the call answers well within a proxy's
-  limit. An unreachable server fails at `failed_step = "mcp_server_url"`
-  in about 5s ("Couldn't connect to the MCP server"); check the URL. A run
-  longer than 15s stops with `diagnostic.timed_out = true`; retry later. In
-  both cases no manual client is stored, even if one was sent.
-- `GET mcp-servers/{id}/credentials/` then reports `source: "manual"` with
-  `authorization_url` / `token_url`. `PUT` accepts the same fields (omit to
-  keep, `""` to clear).
-
-### 3. MCP Server Connections
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `mcp-server-connections/` | List connections |
-| POST | `mcp-server-connections/` | Create a connection |
-| PATCH/PUT | `mcp-server-connections/{id}/` | Update / toggle `is_active` / change scope |
-| DELETE | `mcp-server-connections/{id}/` | Delete |
-
-**OAuth (user scope)** — requires an existing `ConnectedService`:
-
-```json
-{
-  "server": 9,
-  "scope": "user",
-  "auth_type": "oauth2",
-  "user": "alice",
-  "connected_service": 77
-}
-```
-
-**Agent scope** — bind credentials to a single agent while keeping
-the server reusable:
-
-```json
-{
-  "server": 9,
-  "scope": "mentor",
-  "auth_type": "oauth2",
-  "mentor": "mentor-uuid",
-  "connected_service": 77
-}
-```
-
-Returned credentials are **masked**; only send a new value when the
-user intentionally rotates the secret.
-
-### 4. Assign servers to an agent
-
-| Method | Path | Body |
-|---|---|---|
-| PUT | `mentors/{mentor}/settings/` | `{ "mcp_servers": [1, 2] }` |
-
-The `mcp_servers` array replaces the agent's current list.
-
-### Connection resolution at runtime
-
-1. User-scoped connection (matching invoking user)
-2. Agent-scoped connection (matching active agent)
-3. Organization-scoped connection
-4. Featured server fallback (`is_featured=true` global)
-
-## OAuth Connectors REST API
-
-For OAuth-backed MCP servers, each user must grant permission once per
-provider/service before a `MCPServerConnection` can reference a
-`ConnectedService`. All endpoints are under `${dmUrl}/api/accounts/`.
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `orgs/{org}/oauth-services/` | List enabled services across providers |
-| GET | `connected-services/orgs/{org}/users/{user_id}/{provider}/{service}/` | Start flow — returns `{ auth_url }` |
-| GET | `connected-services/callback/?code=...&state=...` | Handle vendor redirect |
-| GET | `connected-services/orgs/{org}/users/{user_id}/` | List the user's connected services |
-| DELETE | `connected-services/orgs/{org}/users/{user_id}/{id}/` | Revoke a connection |
+The chat stream carries `oauth_required` (turn pauses ≤ 5 min — show a
+*Sign in* card keyed by `server_id`, plus *Skip in this conversation*),
+`oauth_connection_resolved`, `oauth_authentication_timeout` (turn ends —
+*Sign in* + *Retry*), `mcp_tools_retrieved`, and `warning` (one server was
+skipped and is named in `message`; the rest still work). Full frame
+reference: `/iblai-api-agent-mcp` `references/in-chat-events.md`.
 
 ### Common errors
 
-- `400 "The provider didn't respond in time. Try signing in again."` from
-  `connected-services/callback/` — the vendor's token endpoint timed out;
-  restart the sign-in.
-- `400 "No credentials found"` — admin must configure `auth_{provider}`
-  in the credential store.
-- `400 OAuth2 connections require a connected service.` — finish the
-  OAuth handshake first and pass `connected_service` when creating the
-  `MCPServerConnection`.
-- `400 Selected MCP server is not available to the current tenant.` —
-  the server belongs to another organization and is not `is_featured=true`.
+- `oauth-find` `400` with `diagnostic.failed_step = "mcp_server_url"` — the
+  server didn't answer within 5s; check the URL.
+- Start sign-in `400 "Could not build OAuth authorization URL…"` — no OAuth
+  client for the org; show "This connector isn't set up yet" (admins: the
+  OAuth app form). Don't retry.
+- Callback `400 "The provider didn't respond in time. Try signing in again."`.
+- `400 OAuth2 connections require a connected service.` — finish the sign-in
+  first and pass `connected_service`.
+- `400 Selected MCP server is not available to the current tenant.` — the
+  server isn't your org's, featured, or a listed directory server.
+- `400 "This MCP server is required by your organization and cannot be turned off."`.
