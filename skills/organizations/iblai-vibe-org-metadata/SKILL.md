@@ -59,8 +59,8 @@ Writes need an org admin; the platform answers `403` otherwise.
 ## Step 1: Install
 
 `useOrgSettings` ships in `lib/iblai/metadata.ts` — run
-`/iblai-vibe-user-metadata` Step 2 if the app does not have it. Then render
-`assets/org-settings.tsx.j2` → `components/settings/org-settings.tsx` (needs
+`/iblai-vibe-user-metadata` Step 2 if the app does not have it. Then copy
+`assets/org-settings.tsx` → `components/settings/org-settings.tsx` (needs
 shadcn `card`, `input`, `label`).
 
 ## Step 2: Use it

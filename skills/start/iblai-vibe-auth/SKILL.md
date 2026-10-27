@@ -14,10 +14,9 @@ unauthenticated users are redirected to login.iblai.app and returned with
 a session -- no API tokens to manage.
 
 > **Templates:** the auth files this skill creates (providers, store, SSO
-> callback, `lib/iblai/*`) are bundled here as Jinja2 assets —
-> [`assets/`](assets/). You render them into the project in Step 3. See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` variable
-> contract and the shared patch mechanics.
+> callback, `lib/iblai/*`) are bundled here as ready-to-copy files —
+> [`assets/`](assets/). Step 3 copies them into the project; see
+> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the shared patch mechanics.
 
 If `.env.local` already has `NEXT_PUBLIC_MAIN_TENANT_KEY` set to a real
 value (not a placeholder like `your-main-platform`, `your-tenant`, `your-platform`,
@@ -106,21 +105,21 @@ Fetch the org's `platform_name` (`GET https://api.{domain}/dm/api/core/orgs/{pla
 
 ## Step 3: Create the auth files
 
-Render the bundled [`assets/`](assets/) Jinja2 templates into the project —
-strip the `.j2` suffix and substitute `{{ platform_key }}` with the platform
-key. For a `src/` layout, place files under `src/lib`, `src/store`,
+Copy the bundled [`assets/`](assets/) files into the project — nothing to
+substitute: the org key comes from `NEXT_PUBLIC_MAIN_TENANT_KEY` at runtime.
+For a `src/` layout, place files under `src/lib`, `src/store`,
 `src/providers` accordingly.
 
 | Template (`assets/…`) | Destination |
 |---|---|
-| `config.ts.j2` | `lib/iblai/config.ts` |
-| `auth-utils.ts.j2` | `lib/iblai/auth-utils.ts` |
-| `storage-service.ts.j2` | `lib/iblai/storage-service.ts` |
-| `tenant.ts.j2` | `lib/iblai/tenant.ts` |
-| `iblai-store.ts.j2` | `store/iblai-store.ts` |
-| `iblai-providers.tsx.j2` | `providers/iblai-providers.tsx` |
-| `iblai-styles.css.j2` | `app/iblai-styles.css` |
-| `sso-login-complete-page.tsx.j2` | `app/sso-login-complete/page.tsx` |
+| `config.ts` | `lib/iblai/config.ts` |
+| `auth-utils.ts` | `lib/iblai/auth-utils.ts` |
+| `storage-service.ts` | `lib/iblai/storage-service.ts` |
+| `tenant.ts` | `lib/iblai/tenant.ts` |
+| `iblai-store.ts` | `store/iblai-store.ts` |
+| `iblai-providers.tsx` | `providers/iblai-providers.tsx` |
+| `iblai-styles.css` | `app/iblai-styles.css` |
+| `sso-login-complete-page.tsx` | `app/sso-login-complete/page.tsx` |
 
 Then apply the project patches (each is idempotent — check for a marker
 before editing; full mechanics in
@@ -133,7 +132,7 @@ before editing; full mechanics in
 - **`.env.local`** — set `NEXT_PUBLIC_MAIN_TENANT_KEY=<platform key>` (←
   `PLATFORM`) and, for server-side platform calls, `IBLAI_API_KEY` (←
   `TOKEN`). Nothing else needs deriving — the URL vars default in the
-  rendered `lib/iblai/config.ts`.
+  copied `lib/iblai/config.ts`.
 
 The SSO callback at `app/sso-login-complete/page.tsx` must stay **outside**
 the providers (Step 5 / Troubleshooting), or it deadlocks on login.
@@ -249,7 +248,7 @@ right value (edit the line directly if not):
 NEXT_PUBLIC_MAIN_TENANT_KEY=your-main-platform
 ```
 
-The API URLs default to hosted `iblai.app` in the rendered
+The API URLs default to hosted `iblai.app` in the copied
 `lib/iblai/config.ts`; override them in `.env.local` only when
 self-hosting.
 
@@ -269,8 +268,8 @@ If these lines are missing, add them near the top of `globals.css`.
 After adding auth, check if `app/page.tsx` still has the default Next.js
 content (look for `next/image`, `vercel.svg`, `Vercel`, or
 `Get started by editing`). If it does, replace it with the ibl.ai home page —
-render [`assets/home-page.tsx.j2`](assets/home-page.tsx.j2) into
-`app/(app)/page.tsx` (or `app/page.tsx`), substituting `{{ }}` placeholders.
+copy [`assets/home-page.tsx`](assets/home-page.tsx) into
+`app/(app)/page.tsx` (or `app/page.tsx`), then change the heading, tagline and links.
 
 If the user has already customized their home page, skip this step.
 

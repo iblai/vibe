@@ -30,7 +30,7 @@ by design.
 
 ## Step 1: Install the helper
 
-Render [`assets/platform.ts.j2`](assets/platform.ts.j2) → `lib/iblai/platform.ts`.
+Copy [`assets/platform.ts`](assets/platform.ts) → `lib/iblai/platform.ts`.
 It exports:
 
 - `platformFetch(path, init?)` — server-only `fetch` against
@@ -58,9 +58,10 @@ await fetch("/api/admin/whatever", {
 
 ## Step 2: Write the route
 
-Render [`assets/route-example.ts.j2`](assets/route-example.ts.j2) →
-`app/api/admin/example/route.ts` as the pattern to copy: verify the caller,
-validate the body, call the platform, return its answer, map errors.
+Copy [`assets/route-example.ts`](assets/route-example.ts) →
+`app/api/admin/example/route.ts`, then change the platform path, the methods
+and the body checks. It shows the pattern: verify the caller, validate the
+body, call the platform, return its answer, map errors.
 
 Status mapping to keep: platform `401` → your `401`; `403` → `403` (not an
 admin / not allowed); `404` → `404`; `429` → `429` (spend cap hit — pass the
@@ -167,7 +168,7 @@ routes with `/lms`.
 ## Verify
 
 1. `pnpm typecheck` and `pnpm test` (the helper ships with a unit test in
-   `assets/platform.test.ts.j2` → `__tests__/platform.test.ts`).
+   `assets/platform.test.ts` → `__tests__/platform.test.ts`).
 2. Exercise the route with a signed-in browser (the token header) — expect
    `401` without it, `403` as a non-admin, `200` as an admin.
 3. Nothing prints the key: `grep -rn "IBLAI_API_KEY" app components lib | grep -v "config.apiKey\|process.env.IBLAI_API_KEY"` returns nothing.

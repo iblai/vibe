@@ -18,8 +18,7 @@ headings, not four.
 ![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-page.png)
 
 > **Template:** the page this skill creates is bundled as
-> [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`assets/account-page.tsx`](assets/account-page.tsx).
 
 > **Navbar:** If the user wants a navbar with links to the account page,
 > guide them to `/iblai-vibe-navbar` first. That skill creates the full navbar
@@ -69,8 +68,8 @@ template and fill in your values:
 
 ## Step 2: Create the Page
 
-Render [`assets/account-page.tsx.j2`](assets/account-page.tsx.j2) into
-`app/(app)/account/page.tsx` (substitute `{{ }}` placeholders), or just use
+Copy [`assets/account-page.tsx`](assets/account-page.tsx) into
+`app/(app)/account/page.tsx`, or just use
 the reference implementation in Step 3.
 
 ## Files created

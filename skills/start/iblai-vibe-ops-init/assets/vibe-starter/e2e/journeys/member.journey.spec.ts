@@ -5,9 +5,20 @@ import { test, expect } from '@playwright/test';
  * with the app's agent, or the honest empty state), the agents browser, and
  * the profile with its app preferences. Never an admin link.
  *
- * Requires auth.setup.ts (pre-authenticated storage state).
+ * Signed in as the member test account (auth.setup.ts, "authenticate the member").
  */
 const appHost = process.env.APP_HOST || 'http://localhost:3000';
+
+test.skip(
+  !process.env.PLAYWRIGHT_MEMBER_USERNAME || !process.env.PLAYWRIGHT_MEMBER_PASSWORD,
+  'no member account in e2e/.env.development: pnpm e2e:accounts creates one',
+);
+// The member's session, saved per browser by auth.setup.ts.
+test.use({
+  storageState: async ({ browserName }, use) => {
+    await use(`playwright/.auth/member-${browserName}.json`);
+  },
+});
 
 test.describe('member journey', () => {
   test('home shows a chat or the "No agent yet" state, never a crash', async ({ page }) => {
@@ -32,25 +43,18 @@ test.describe('member journey', () => {
     await expect(page.getByRole('switch').first()).toBeVisible();
   });
 
-  test('a member in User mode never sees admin links', async ({ page }) => {
+  test('a member never sees admin links or the Admin mode switch', async ({ page }) => {
     await page.goto(appHost);
-    await page.waitForLoadState('domcontentloaded');
-    const isAdmin = await page.evaluate(() => {
-      try {
-        const tenants = JSON.parse(localStorage.getItem('tenants') ?? '[]');
-        const key = localStorage.getItem('app_tenant');
-        return !!tenants.find((t: any) => t.key === key)?.is_admin;
-      } catch {
-        return false;
-      }
-    });
-    if (isAdmin) {
-      // Flip to User mode first: the switch is what makes an admin a member.
-      await page.getByRole('switch', { name: /admin mode/i }).click();
-    }
+    await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('switch', { name: /admin mode/i })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Users' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Billing' })).toHaveCount(0);
     await page.goto(`${appHost}/admin/users`);
     await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 });
+  });
+
+  test('/setup tells a member only admins can set it up', async ({ page }) => {
+    await page.goto(`${appHost}/setup`);
+    await expect(page.getByText('Only organization admins can set up this app.')).toBeVisible({ timeout: 30_000 });
   });
 });

@@ -212,7 +212,7 @@ pnpm test            # Vitest
 pnpm test:e2e        # Playwright E2E
 ```
 
-> `pnpm test:e2e` needs Playwright credentials: `cp e2e/.env.development.example e2e/.env.development` and set `PLAYWRIGHT_USERNAME` / `PLAYWRIGHT_PASSWORD` (the auth setup refuses to run without them; the file is gitignored).
+> `pnpm test:e2e` signs in as two test accounts. `pnpm e2e:accounts` creates them once — an org admin and a member in the organization `iblai.env` names, made with the `IBLAI_API_KEY` in `.env.local` once the platform confirms the two belong together — and saves their credentials in the gitignored `e2e/.env.development`.
 
 ## Deploy Anywhere
 

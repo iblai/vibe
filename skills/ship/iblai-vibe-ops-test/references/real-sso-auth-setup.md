@@ -132,6 +132,11 @@ PLAYWRIGHT_USERNAME=admin@example.com
 PLAYWRIGHT_PASSWORD=actual-password
 ```
 
+vibe-starter's `pnpm e2e:accounts`
+([`e2e/create-accounts.mjs`](../../../start/iblai-vibe-ops-init/assets/vibe-starter/e2e/create-accounts.mjs))
+creates an org admin and a member with the Platform API Token and writes this
+file. Copy it rather than asking for passwords.
+
 Add to `.gitignore`:
 
 ```
@@ -147,11 +152,11 @@ second setup file:
 // e2e/auth-nonadmin.setup.ts
 import { test as setup } from '@playwright/test'
 
-const STORAGE_STATE = 'playwright/.auth/user-nonadmin.json'
+const STORAGE_STATE = 'playwright/.auth/user-member.json'
 
-setup('authenticate non-admin', async ({ page }) => {
+setup('authenticate the member', async ({ page }) => {
   // ... same flow as auth.setup.ts but reads
-  // PLAYWRIGHT_NONADMIN_USERNAME / PLAYWRIGHT_NONADMIN_PASSWORD ...
+  // PLAYWRIGHT_MEMBER_USERNAME / PLAYWRIGHT_MEMBER_PASSWORD ...
   await page.context().storageState({ path: STORAGE_STATE })
 })
 ```

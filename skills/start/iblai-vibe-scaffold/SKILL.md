@@ -14,8 +14,8 @@ metadata:
 How an ibl.ai app gets its skeleton: the **project templates** that scaffold
 a new app or add a feature, and the steps that assemble them. The templates
 here record what a generated app contains; the references document the
-assembly steps so the skills can perform them directly — render the
-`assets/` templates, then apply the patches described in each reference.
+assembly steps so the skills can perform them directly — copy the
+`assets/` files, then apply the patches described in each reference.
 
 > Do NOT add custom styles / colors to ibl.ai SDK components — they ship
 > with their own styling. See
@@ -28,7 +28,7 @@ assembly steps so the skills can perform them directly — render the
 
 | Path | How | Result |
 |---|---|---|
-| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md)), or render the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page, Tauri-ready |
+| **New app** | scaffold from **vibe-starter** (bundled with [`/iblai-vibe-ops-init`](../../start/iblai-vibe-ops-init/SKILL.md)), or copy the `base`+`agent` templates | A complete app — auth, providers, Redux store, a chat page; `/iblai-vibe-ops-build` adds the Tauri shell |
 | **Existing app** | [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md), then the feature skills | ibl.ai features layered onto a vanilla Next.js project |
 
 Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
@@ -42,46 +42,55 @@ Both map `PLATFORM`/`TOKEN`/`DOMAIN` from `iblai.env` into the
 
 ## Env: `.env.local` before build
 
-A vibe app (scaffolded from **vibe-starter** or rendered from these templates)
+A vibe app (scaffolded from **vibe-starter** or copied from these templates)
 reads its config from `.env.local`. **Always ensure one exists before
 `pnpm build`** — a missing file is the usual cause of a mis-tenanted build.
 (vibe-starter apps carry the URL defaults in code, so only the organization key
-and `IBLAI_API_KEY` are at stake; template-rendered apps need the full set):
+and `IBLAI_API_KEY` are at stake; apps copied from these templates carry the full set in `.env.example`):
 
 ```bash
 [ -f .env.local ] || cp .env.example .env.local
 ```
 
-No `.env.example` in the project? Seed one from this skill's canonical copy
-(the vibe-starter `.env.example`): [`assets/env.example`](assets/env.example).
+No `.env.example` in the project? Seed one from
+[`assets/base/.env.example`](assets/base/.env.example).
 Then map `PLATFORM` → `NEXT_PUBLIC_MAIN_TENANT_KEY` and `TOKEN` →
 `IBLAI_API_KEY` from `iblai.env` (see
 [`references/config-command.md`](references/config-command.md)).
 
 ## The templates
 
-The Jinja2 (`.j2`) templates live as assets beside this skill. They use
-`{{ variable }}` placeholders you fill in when rendering
-(platform key, app name, agent id, …) — see
-[`references/template-system.md`](references/template-system.md) for the
-variable contract.
+The templates are real files under `assets/`, named as they land in the app;
+nothing to render. Two literal defaults are what an agent renames — the
+package name `my-app` (`package.json`) and the title `My App`
+(`app/layout.tsx`); everything per organization is read from `.env.local` at
+runtime (`NEXT_PUBLIC_MAIN_TENANT_KEY`, `NEXT_PUBLIC_DEFAULT_AGENT_ID`, …).
 
-- **[`assets/base/`](assets/base/)** — the non-shared foundation:
-  `app/(app)/{layout,page}.tsx`, `providers/index.tsx`, `store/index.ts`,
+- **[`assets/base/`](assets/base/)** — the foundation: `app/(app)/{layout,page}.tsx`
+  (a welcome home page), `providers/index.tsx`, `store/index.ts`,
   `lib/iblai/{auth-utils,config}.ts`, `lib/config.ts`, `next.config.ts`,
   `components/ui/{button,sonner}.tsx`, `package.json`, `.env.example`.
-- **[`assets/shared/`](assets/shared/)** — rendered into **every** app
-  (base *and* agent): root `app/layout.tsx`, the `(auth)/sso-login-complete`
-  callback, `components/app-shell.tsx`, `providers/store-provider.tsx`,
-  `hooks/use-user.ts`, `lib/{utils,hooks}.ts`, `CLAUDE.md`, `.mcp.json`,
-  `public/env.js`, the tooling configs (eslint/tsconfig/tailwind/postcss/
-  vitest), and the Playwright `e2e/` suite.
-- **[`assets/agent/`](assets/agent/)** — the agent-app overlay on top of
-  base+shared: a chat `app/(app)/page.tsx`, `lib/config.ts`,
-  `components.json`, `package.json`, `.env.example`.
+- **[`assets/shared/`](assets/shared/)** — in **every** app: root `app/layout.tsx`,
+  the `(auth)/sso-login-complete` callback, `components/app-shell.tsx`,
+  `providers/store-provider.tsx`, `hooks/use-user.ts`, `lib/{utils,hooks}.ts`,
+  `AGENTS.md` (copy or symlink it to `CLAUDE.md`), `.mcp.json`, `public/env.js`,
+  the tooling configs (eslint/tsconfig/tailwind/postcss/vitest), and the
+  Playwright `e2e/` suite.
+- **[`assets/agent/`](assets/agent/)** — the agent app's two files on top: the
+  chat home page `app/(app)/page.tsx` (full-screen `ChatWidget`) and its
+  `e2e/journeys/chat.journey.spec.ts`.
 
-The Tauri desktop/mobile shell templates (`src-tauri/`, CI workflows)
-that the build skill renders live with it:
+Assemble an app in this order (the `/.` form keeps the dotfiles):
+
+```bash
+cp -R assets/base/. my-app/ && cp -R assets/shared/. my-app/
+cp -R assets/agent/. my-app/              # agent app only
+cd my-app && cp .env.example .env.local   # then set the org key, token and agent id
+pnpm install --ignore-scripts
+```
+
+The Tauri desktop/mobile shell (`src-tauri/`, CI workflows) lives with the
+build skill:
 [`iblai-vibe-ops-build/assets/tauri/`](../../ship/iblai-vibe-ops-build/assets/tauri/).
 
 Per-feature templates (auth, account, analytics, chat, notification,
@@ -92,7 +101,7 @@ profile) live with **their** skill's assets, not here — e.g.
 
 ## Feature skills
 
-Each feature has its own skill that renders its assets and applies its
+Each feature has its own skill that copies its assets and applies its
 patches: `/iblai-vibe-auth` (SSO, store, providers — run first), then
 `/iblai-vibe-agent-chat`, `/iblai-vibe-profile`, `/iblai-vibe-account`,
 `/iblai-vibe-analytics`, `/iblai-vibe-notification`, `/iblai-vibe-ops-build`,
@@ -113,9 +122,8 @@ scaffolding by hand.
 
 ## References
 
-- [`references/add-command.md`](references/add-command.md) — adding a feature by hand — the render→patch contract.
+- [`references/add-command.md`](references/add-command.md) — adding a feature by hand — the copy→patch contract.
 - [`references/config-command.md`](references/config-command.md) — `.env.local` reference — known variables and defaults.
-- [`references/template-system.md`](references/template-system.md) — the Jinja2 template/variable contract.
 
 ## Related skills
 

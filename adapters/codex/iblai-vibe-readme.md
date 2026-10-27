@@ -206,7 +206,7 @@ pnpm exec tauri ios init                          # one-time
 xcrun simctl list devices                            # list simulators
 pnpm exec tauri ios dev "iPhone 16 Pro Max"       # run on simulator
 pnpm exec tauri ios build                         # produce .ipa
-# CI: copy assets/tauri/workflows/tauri-build-ios.yml.j2 (see /iblai-vibe-ops-build)                 # generate App Store CI
+# CI: copy assets/tauri/workflows/tauri-build-ios.yml (see /iblai-vibe-ops-build)                 # generate App Store CI
 ```
 
 }}
