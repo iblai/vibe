@@ -40,6 +40,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
 | "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, then its touch test — the route in a real browser, every new control, the console, the phone width |
 | "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
+| "make an ibl.ai official app" (said in those words) | `/iblai-vibe-house-journeys` — the OS's first-run journeys: a `main`-only user gets the app trial-gated with Upgrade for free, a visitor on another organization a preview with Join / Create your own, an admin the SDK setup flow then the Stripe path. Never for any other app |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -313,6 +314,7 @@ selling items via Stripe Connect: `/iblai-vibe-monetization-onboard`,
 `/iblai-vibe-monetization-subscription`, `/iblai-vibe-monetization-analytics`), `/iblai-vibe-application` (admissions gate),
 `/iblai-vibe-course-access`, `/iblai-vibe-course-create`,
 `/iblai-vibe-crm-overview`, `/iblai-vibe-workflow`, `/iblai-vibe-onboard`,
+`/iblai-vibe-house-journeys` (official apps only: the OS's three first-run journeys),
 `/iblai-vibe-local-llm`, `/iblai-vibe-os-agent-code-mode` (the OS app's
 agentic Code mode in a Tauri build — opencode, permission cards, phone pairing).
 

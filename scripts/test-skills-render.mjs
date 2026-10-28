@@ -78,7 +78,9 @@ function newScratch(name) {
 
 function run(cmd, cmdArgs, cwd) {
   try {
-    execFileSync(cmd, cmdArgs, { cwd, stdio: "pipe", encoding: "utf8" });
+    // SKILL_RENDER marks the scratch: a skill's overlay carries files no starter
+    // journey visits, so the starter's own e2e-coverage test stands down there.
+    execFileSync(cmd, cmdArgs, { cwd, stdio: "pipe", encoding: "utf8", env: { ...process.env, SKILL_RENDER: "1" } });
     return null;
   } catch (err) {
     return (err.stdout || "") + (err.stderr || "") || String(err);

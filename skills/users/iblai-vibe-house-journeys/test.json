@@ -1,0 +1,19 @@
+{
+  "overlay": {
+    "assets/lib/iblai/house-journeys.ts": "lib/iblai/house-journeys.ts",
+    "assets/__tests__/house-journeys.test.ts": "__tests__/house-journeys.test.ts",
+    "assets/components/house/organization-preview.tsx": "components/house/organization-preview.tsx",
+    "assets/components/house/upgrade-modal.tsx": "components/house/upgrade-modal.tsx",
+    "assets/components/house/credit-badge.tsx": "components/house/credit-badge.tsx",
+    "assets/components/house/first-run-gate.tsx": "components/house/first-run-gate.tsx",
+    "assets/components/house/onboarding-page.tsx": "components/house/onboarding-page.tsx",
+    "assets/e2e/journeys/house.journey.spec.ts": "e2e/house-journeys.spec.ts"
+  },
+  "render_only": [
+    "assets/messages/house-journeys.en.json",
+    "assets/messages/house-journeys.es.json",
+    "assets/messages/house-journeys.fr.json",
+    "assets/messages/house-journeys.zh.json"
+  ],
+  "run_tests": true
+}

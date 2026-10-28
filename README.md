@@ -181,7 +181,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 |---|---|---|
 | [`start/`](skills/start) | The first conversation, connecting your organization, sign-in, the starter | 11 |
 | [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 61 |
-| [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
+| [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations, the official apps' first-run journeys | 19 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
 | [`billing/`](skills/billing) | How you are charged, credits, spend caps, choosing a pricing rail | 5 |
 | [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 7 |
