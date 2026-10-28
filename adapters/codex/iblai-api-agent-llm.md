@@ -64,7 +64,10 @@ curl -X PUT \
   model allow-list hides models only when a key ibl.ai lends would pay, never
   when the org's own key does.
 - Gateway rule: of the gateways that serve the model, the org's own key first,
-  then ibl.ai's key if the org may borrow it. Credential names are in
-  `/iblai-api-integration`.
+  then ibl.ai's key if the org may borrow it. Among the keys of one level: the
+  ibl.ai key, then the model's author's own API (an Anthropic key serves Claude
+  ahead of a Vertex key), then the other gateways by the org's gateway rows; a
+  row scoped to one author moves that author's models only. Credential names
+  are in `/iblai-api-integration`.
 - Selection persists through the shared `settings/` endpoint, so it sits
   alongside the other configuration fields on the same agent.
