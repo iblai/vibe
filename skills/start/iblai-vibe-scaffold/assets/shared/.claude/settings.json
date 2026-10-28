@@ -3,7 +3,6 @@
   "enabledMcpjsonServers": [
     "iblai-js-mcp",
     "chrome-devtools",
-    "chrome-devtools-main",
     "shadcn"
   ]
 }

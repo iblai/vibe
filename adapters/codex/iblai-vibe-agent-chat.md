@@ -533,6 +533,11 @@ Two SDK defects were found against `web-containers@1.6.14`: voice "Processing…
 
 ## Step 7: Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 1. `pnpm build` — must pass with zero errors. (Watch for
    `Module not found` on the Step 3 peers, esp. `@iblai/agent-ai`.)
 2. `pnpm test` — host unit suite still green (esp. any slices you

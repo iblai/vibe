@@ -27,7 +27,10 @@
     "assets/base/store/index.ts": "store/index.ts",
     "assets/base/lib/config.ts": "lib/config.ts",
     "assets/agent/app/(app)/page.tsx": "app/(app)/page.tsx",
-    "assets/base/app/(app)/page.tsx": "app/(base-home)/page.tsx"
+    "assets/base/app/(app)/page.tsx": "app/(base-home)/page.tsx",
+    "assets/shared/e2e/coverage.mjs": "e2e/coverage.mjs",
+    "assets/shared/e2e/global-setup.ts": "e2e/global-setup.ts",
+    "assets/shared/e2e/journeys/helpers.ts": "e2e/journeys/helpers.ts"
   },
   "render_only": [
     "assets/base/package.json",
@@ -47,6 +50,10 @@
     "assets/shared/vitest.config.ts",
     "assets/shared/public/env.js",
     "assets/shared/public/README.md",
-    "assets/shared/e2e/.env.development.example"
+    "assets/shared/e2e/.env.development.example",
+    "assets/shared/e2e/coverage.json",
+    "assets/shared/e2e/COVERAGE.md",
+    "assets/agent/e2e/coverage.json",
+    "assets/agent/e2e/COVERAGE.md"
   ]
 }

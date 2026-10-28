@@ -167,6 +167,11 @@ routes with `/lms`.
 
 ## Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 1. `pnpm typecheck` and `pnpm test` (the helper ships with a unit test in
    `assets/platform.test.ts` → `__tests__/platform.test.ts`).
 2. Exercise the route with a signed-in browser (the token header) — expect

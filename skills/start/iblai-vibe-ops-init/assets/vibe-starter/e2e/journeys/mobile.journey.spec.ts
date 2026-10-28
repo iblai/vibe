@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { test, expect } from './helpers';
 
 /**
  * Mobile journey — the app on a phone-sized viewport (the `mobile` project, a
@@ -6,7 +7,12 @@ import { test, expect, type Page } from '@playwright/test';
  */
 const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
-const PAGES = ['/', '/agents', '/profile', '/admin/users', '/admin/analytics', '/admin/organization', '/setup'];
+// Every page but the SSO landing, which only a sign-in reaches.
+const PAGES = [
+  '/', '/agents', '/profile', '/account', '/notifications', '/setup',
+  '/admin/users', '/admin/analytics', '/admin/analytics/users', '/admin/analytics/topics', '/admin/analytics/transcripts',
+  '/admin/analytics/financial', '/admin/analytics/reports', '/admin/billing', '/admin/memory', '/admin/organization',
+];
 
 /** The document is never wider than the phone: nothing scrolls sideways. */
 async function expectNoSidewaysOverflow(page: Page) {
@@ -20,8 +26,8 @@ async function expectNoSidewaysOverflow(page: Page) {
 }
 
 test.describe('mobile journey', () => {
-  test('P1 · a phone shows home, agents, profile and the admin pages without sideways overflow', async ({ page }) => {
-    test.setTimeout(120_000);
+  test('P1 · a phone shows every page without sideways overflow', async ({ page }) => {
+    test.setTimeout(360_000);
     for (const path of PAGES) {
       await page.goto(`${appHost}${path}`);
       await expect(page).toHaveURL((url) => url.pathname === path, { timeout: 15_000 });

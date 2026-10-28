@@ -7,7 +7,3 @@ args = ["dlx", "@iblai/mcp"]
 [mcp_servers.chrome-devtools]
 command = "npx"
 args = ["-y", "chrome-devtools-mcp@latest"]
-
-[mcp_servers.chrome-devtools-main]
-command = "npx"
-args = ["-y", "chrome-devtools-mcp@latest", "--autoConnect"]

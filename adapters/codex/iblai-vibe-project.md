@@ -242,6 +242,11 @@ fields.
 
 ## Step 4: Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 1. `pnpm build` — must pass with zero errors.
 2. `pnpm dev`, log in, navigate to
    `http://localhost:3000/agents/<mentorId>/projects/<projectId>`.

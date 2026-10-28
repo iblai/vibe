@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers';
 
 /**
  * Member journey — what everyone sees after sign-in: the home page (a chat
@@ -21,7 +21,7 @@ test.use({
 });
 
 test.describe('member journey', () => {
-  test('home shows a chat or the "No agent yet" state, never a crash', async ({ page }) => {
+  test('M1 · home shows a chat or the "No agent yet" state, never a crash', async ({ page }) => {
     await page.goto(appHost);
     await page.waitForLoadState('domcontentloaded');
     const chatOrEmpty = page
@@ -30,20 +30,20 @@ test.describe('member journey', () => {
     await expect(chatOrEmpty).toBeVisible({ timeout: 30_000 });
   });
 
-  test('the agents page lists agents', async ({ page }) => {
+  test('M2 · the agents page lists agents', async ({ page }) => {
     await page.goto(`${appHost}/agents`);
     await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible({ timeout: 30_000 });
     // The SDK browser renders a search box once loaded.
     await expect(page.getByRole('textbox').first()).toBeVisible({ timeout: 30_000 });
   });
 
-  test('the profile page carries the app preferences card', async ({ page }) => {
+  test('M3 · the profile page carries the app preferences card', async ({ page }) => {
     await page.goto(`${appHost}/profile`);
     await expect(page.getByText('App preferences')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('switch').first()).toBeVisible();
   });
 
-  test('a member never sees admin links or the Admin mode switch', async ({ page }) => {
+  test('M4 · a member never sees admin links or the Admin mode switch', async ({ page }) => {
     await page.goto(appHost);
     await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('switch', { name: /admin mode/i })).toHaveCount(0);
@@ -53,7 +53,7 @@ test.describe('member journey', () => {
     await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 });
   });
 
-  test('/setup tells a member only admins can set it up', async ({ page }) => {
+  test('M5 · /setup tells a member only admins can set it up', async ({ page }) => {
     await page.goto(`${appHost}/setup`);
     await expect(page.getByText('Only organization admins can set up this app.')).toBeVisible({ timeout: 30_000 });
   });

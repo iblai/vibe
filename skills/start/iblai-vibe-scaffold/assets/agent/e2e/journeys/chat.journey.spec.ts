@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers';
 
 /**
  * Chat journey — verifies the ChatWidget (mentor-ai) renders correctly.
@@ -6,10 +6,10 @@ import { test, expect } from '@playwright/test';
  * Requires auth.setup.ts to have run first (via the "setup" dependency).
  */
 test.describe('chat journey', () => {
-  test('ChatWidget renders the mentor-ai web component', async ({ page }) => {
+  test('C1 · ChatWidget renders the mentor-ai web component', async ({ page }) => {
     const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
-    await page.goto(appHost);
+    await page.goto(`${appHost}/`);
 
     // Wait for the page to load and the ChatWidget to dynamically import
     // @iblai/iblai-web-mentor and register the <mentor-ai> element
@@ -21,10 +21,10 @@ test.describe('chat journey', () => {
     await expect(chatWidget).toHaveAttribute('extraparams', 'hide-navbar=1');
   });
 
-  test('mentor-ai iframe loads', async ({ page }) => {
+  test('C2 · mentor-ai iframe loads', async ({ page }) => {
     const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
-    await page.goto(appHost);
+    await page.goto(`${appHost}/`);
 
     // Wait for the mentor-ai element
     await page.waitForSelector('mentor-ai', { timeout: 30_000 });

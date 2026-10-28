@@ -15,7 +15,9 @@ const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
  * then journey tests inherit the pre-authenticated state.
  *
  * To run tests:
- *   pnpm test:e2e              # headless: Chrome desktop + a phone (chromium, mobile)
+ *   pnpm test:e2e              # headless: Chrome desktop + a phone (chromium, mobile);
+ *                              # stops when no server answers, creates the test accounts when missing
+ *   pnpm e2e:coverage          # the checkpoint ledger + approximate coverage from the journeys
  *   pnpm test:e2e:all          # every browser; --project=<name> on either adds one
  *   pnpm test:e2e:ui           # interactive UI
  *   pnpm test:e2e:headed       # headed browser
@@ -24,6 +26,7 @@ const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
  */
 export default defineConfig({
   testDir: '.',
+  globalSetup: './global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

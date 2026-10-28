@@ -32,9 +32,10 @@ pnpm lint               # ESLint
 pnpm typecheck          # TypeScript type checking
 
 # E2E tests
-pnpm e2e:accounts       # Create the e2e test admin + member (once)
-pnpm test:e2e           # Headless: Chrome desktop + a phone, signed in as them
+pnpm test:e2e           # Headless: Chrome desktop + a phone, as the two test accounts it creates
 pnpm test:e2e:all       # Headless: every browser
+pnpm e2e:coverage       # Ledger check + approximate e2e coverage from the journeys (≥ 95%)
+pnpm e2e:accounts       # Create the two test accounts ahead of time
 pnpm test:e2e:ui        # Interactive Playwright UI
 pnpm test:e2e:headed    # Headed browser mode
 
@@ -48,11 +49,15 @@ pnpm tauri:build:msix:arm64         # Windows MSIX package (arm64)
 
 ## Before you say "done"
 
-Run `/iblai-vibe-ops-test`: `pnpm build`, `pnpm test`, then its touch test.
+Run `/iblai-vibe-ops-test`: `pnpm build`, `pnpm test`, `pnpm e2e:coverage` (the
+ledger check and approximate e2e coverage, ≥ 95%), then its touch test.
 Open each route you changed in a real browser (the `chrome-devtools` server in
 `.mcp.json`, or `claude --chrome`), use every control you added, read the
 console, check the phone width. The user signs in by hand in that window; never
-ask for a password. No browser tool? Say so: the work is not done.
+ask for a password. No browser tool? Say so: the work is not done. Journeys are
+exhaustive: every page, route, control and state you add gets a checkpoint titled
+`<ID> · …` in `e2e/journeys/` and `e2e/coverage.json`; `pnpm e2e:coverage` fails
+below 95% of app lines or six checkpoints per 1,000.
 
 ## Architecture
 

@@ -67,7 +67,7 @@ A pre-wired Next.js 16 + Tailwind v4 + shadcn/ui project with the [`@iblai/iblai
 | **Custom data on the platform** | `useUserSettings` (per user × org) and `useOrgSettings` (per org, GET-merge-PUT) in `lib/iblai/metadata.ts`; example cards on `/profile` and `/admin/organization`; an admin route for other users' data |
 | **Profile · Account · Notifications** | `/profile` (SDK `Profile` + app preferences), `/account` (SDK `Account`), `/notifications/[[...id]]` (SDK `NotificationDisplay`) |
 | **Server helper** | `lib/iblai/platform.ts` — `platformFetch` (Api-Token), `verifyCaller`, `requireAdmin` for any REST call without a component |
-| **Tests** | Vitest (config, organization, metadata, platform helper) and Playwright journeys (auth, member, admin) with `e2e/COVERAGE.md` |
+| **Tests** | Vitest (config, organization, metadata, platform helper) and Playwright journeys (auth, member, admin, pages, api, mobile) with `e2e/COVERAGE.md` and `pnpm e2e:coverage` |
 | **Mobile safe areas** | `globals.css` insets and viewport metadata wired for iOS/Android (Tauri v2 ready) |
 
 ## Adding Features
@@ -160,7 +160,7 @@ lib/iblai/                        # config, storage-service, auth-utils, tenant,
 providers/iblai-providers.tsx     # Redux + Auth + Tenant + service worker + toaster
 store/iblai-store.ts              # RTK store (slice keys fixed by the SDK)
 public/sw.js                      # Offline service worker the SDK <Chat> registers
-e2e/                              # Playwright journeys + COVERAGE.md
+e2e/                              # Playwright journeys, COVERAGE.md + coverage.json, coverage.mjs (pnpm e2e:coverage)
 .env.example                      # → .env.local: org key, IBLAI_API_KEY, optional agent/app name
 iblai.env.example                 # → iblai.env: DOMAIN, PLATFORM, TOKEN
 .mcp.json                         # @iblai/mcp (SDK docs) + chrome-devtools (the touch-test browser)
@@ -212,9 +212,10 @@ pnpm dev             # Dev server (localhost:3000)
 pnpm build           # Production build
 pnpm test            # Vitest
 pnpm test:e2e        # Playwright E2E
+pnpm e2e:coverage    # Approximate e2e coverage from the journeys (≥ 95%)
 ```
 
-> `pnpm test:e2e` runs Chrome desktop and a phone viewport (`pnpm test:e2e:all` adds Firefox and WebKit) and signs in as two test accounts. `pnpm e2e:accounts` creates them once — an org admin and a member in the organization `iblai.env` names, made with the `IBLAI_API_KEY` in `.env.local` once the platform confirms the two belong together — and saves their credentials in the gitignored `e2e/.env.development`.
+> `pnpm test:e2e` runs Chrome desktop and a phone viewport (`pnpm test:e2e:all` adds Firefox and WebKit) against the server you run on :3000 and signs in as two test accounts, which it creates when they are missing (`pnpm e2e:accounts` does the same ahead of time) — an org admin and a member in the organization `iblai.env` names, made with the `IBLAI_API_KEY` in `.env.local` once the platform confirms the two belong together — saving their credentials in the gitignored `e2e/.env.development`. `pnpm e2e:coverage` checks `e2e/coverage.json` against the specs and the app and approximates coverage from the pages the journeys visit; under 95% it fails and names the gaps.
 
 ## Deploy Anywhere
 

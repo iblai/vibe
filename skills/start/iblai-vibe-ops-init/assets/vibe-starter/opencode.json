@@ -18,16 +18,6 @@
         "chrome-devtools-mcp@latest"
       ],
       "enabled": true
-    },
-    "chrome-devtools-main": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--autoConnect"
-      ],
-      "enabled": true
     }
   }
 }

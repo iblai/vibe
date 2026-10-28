@@ -101,7 +101,8 @@ instead — see [references/real-sso-auth-setup.md](real-sso-auth-setup.md).
 {
   "scripts": {
     "test:e2e": "playwright test --config=e2e/playwright.config.ts --project=chromium --project=mobile",
-    "test:e2e:all": "playwright test --config=e2e/playwright.config.ts"
+    "test:e2e:all": "playwright test --config=e2e/playwright.config.ts",
+    "e2e:coverage": "node e2e/coverage.mjs"
   }
 }
 ```

@@ -75,9 +75,15 @@ export async function signIn(page: Page, email: string, password: string, file: 
         "organization's allowed redirect origins: /iblai-vibe-connect does, or ask your ibl.ai operator.",
     );
   }
-  await page.waitForFunction(() => !!(localStorage.getItem('axd_token') || localStorage.getItem('dm_token')), {
-    timeout: 30_000,
-  });
+  const signedIn = () => !!(localStorage.getItem('axd_token') || localStorage.getItem('dm_token'));
+  await page.waitForFunction(signedIn, { timeout: 30_000 });
+  // The SDK makes one re-auth round trip through the login host a few seconds
+  // after a session's first load; a state saved after it never makes another.
+  const left = await page.waitForURL((url) => !url.href.startsWith(APP_HOST), { timeout: 20_000 }).then(() => true, () => false);
+  if (left) {
+    await page.waitForURL((url) => url.href.startsWith(APP_HOST) && url.pathname === '/', { timeout: 60_000 });
+    await page.waitForFunction(signedIn, { timeout: 30_000 });
+  }
   fs.mkdirSync(AUTH_DIR, { recursive: true });
   await page.context().storageState({ path: `${AUTH_DIR}/${file}` });
 }

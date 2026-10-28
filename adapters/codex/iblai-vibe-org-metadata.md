@@ -83,6 +83,11 @@ end that opens the org.
 
 ## Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 1. `pnpm typecheck && pnpm test`.
 2. Before and after saving, compare
    `curl -s https://api.$DOMAIN/dm/api/core/orgs/$PLATFORM/metadata/ | python3 -m json.tool` —

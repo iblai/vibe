@@ -23,19 +23,7 @@ drives the user's signed-in Chrome in a visible window.
 
 Google's [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp):
 one `.mcp.json` entry, any MCP client, its own Chrome with a persistent profile
-(the user signs in once per machine). A second entry, `chrome-devtools-main`,
-attaches to the user's own Chrome instead (below).
-
-### Your own Chrome
-
-`chrome-devtools-main` runs the same server with `--autoConnect`: on Chrome 144 or
-newer it attaches to the running Chrome's default profile, signed in as the user
-is, so a touch test needs no second sign-in.
-The user enables it once on `chrome://inspect/#remote-debugging` and clicks
-Allow when Chrome asks; until then every call answers "Could not connect to
-Chrome" (measured with chrome-devtools-mcp 1.12.0: it never launches its own
-window in this mode), and the agent falls back to `chrome-devtools`. Older
-Chrome: use `chrome-devtools` and sign in once in its window.
+(the user signs in once per machine).
 
 Claude Code — `.mcp.json` at the project root (vibe-starter and the scaffold
 ship it, with a `.claude/settings.json` whose `enabledMcpjsonServers` pre-approves
@@ -44,8 +32,7 @@ the servers once the folder is trusted; elsewhere Claude Code asks once):
 ```json
 {
   "mcpServers": {
-    "chrome-devtools": { "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] },
-    "chrome-devtools-main": { "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest", "--autoConnect"] }
+    "chrome-devtools": { "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] }
   }
 }
 ```
@@ -78,10 +65,10 @@ app's Code mode runs opencode in the project directory, so it reads the file):
 
 Flags (`npx -y chrome-devtools-mcp@latest --help`): `--headless` (no window —
 only routes that need no sign-in can be touched), `--isolated` (a throwaway
-profile, so the sign-in is lost), `--autoConnect` (the user's running Chrome,
-see above), `--browserUrl http://127.0.0.1:9222` (attach to a Chrome started
-with `--remote-debugging-port=9222` and its own `--user-data-dir` — the
-sandbox and CI option, never the main profile), `--channel`, `--executablePath`.
+profile, so the sign-in is lost), `--browserUrl http://127.0.0.1:9222` (attach
+to a Chrome started with `--remote-debugging-port=9222` and its own
+`--user-data-dir` — the sandbox and CI option, never the main profile),
+`--channel`, `--executablePath`.
 
 ### The tools, step by step
 

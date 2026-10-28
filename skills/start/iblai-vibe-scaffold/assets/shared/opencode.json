@@ -19,16 +19,6 @@
       ],
       "enabled": true
     },
-    "chrome-devtools-main": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--autoConnect"
-      ],
-      "enabled": true
-    },
     "shadcn": {
       "type": "local",
       "command": [

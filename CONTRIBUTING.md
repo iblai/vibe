@@ -141,7 +141,8 @@ A core skill meets everything above, plus:
 - **The twin linked both ways**: the `ui` skill names its `iblai-api-*` twin,
   the `api` skill names the component that mounts the same data.
 - **A starter journey**: vibe-starter exercises the surface in
-  `e2e/journeys/` (or the skill says why it cannot).
+  `e2e/journeys/`, with its checkpoint in `e2e/coverage.json` (`pnpm e2e:coverage`
+  there checks it), or the skill says why it cannot.
 - **Endpoints verified against the live schema** (`https://api.iblai.app/dm/api/docs/schema/`), with the date.
 
 Adding a seventh family is a decision, not a PR detail: propose it in the PR

@@ -108,7 +108,10 @@ Derive `isAdmin` from the `tenants` array in localStorage.
 
 ## Verify
 
-Run `/iblai-vibe-ops-test` before reporting done:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 `pnpm build && pnpm test`, then touch test `/notifications` and the navbar bell
 in the browser as `/iblai-vibe-ops-test` says.

@@ -84,6 +84,11 @@ To copy an existing agent instead, use **fork** in `/iblai-vibe-agent-setting`.
 
 ## Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 1. `pnpm typecheck && pnpm build`.
 2. As an admin, open `/setup`, create an agent, land on `/` chatting with it;
    the new agent appears on os.ibl.ai → Explore → Custom.
