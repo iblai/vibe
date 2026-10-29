@@ -27,7 +27,7 @@ because the host has no route for them (vibe-starter's case).
 ## Prerequisites
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
-- `@iblai/iblai-js@^2.36.2` (resolves `@iblai/web-containers` 1.41.1).
+- `@iblai/iblai-js@^2.55.0` (resolves `@iblai/web-containers` 1.56.1).
 - Analytics pages to land on: vibe-starter's `/admin/analytics/*`, or the
   agent-scoped layout in `/iblai-vibe-analytics` ("One agent instead of the
   org"), mounted at `/agents/<uuid>/dashboards`.
