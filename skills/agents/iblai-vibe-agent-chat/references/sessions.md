@@ -6,14 +6,18 @@ Moved out of `SKILL.md` to keep the skill scannable; this is the full text.
 
 `<Chat>` has **no `sessionId` prop** and does **not** read a `session`
 URL param. Sessions live in `localStorage` via `useCachedSessionId()`
-→ `{ [mentorId]: sessionId }`, read once at mount.
+→ `{ [sessionCacheKey(tenantKey, mentorId)]: sessionId }` (the key is
+`"<org>:<agent>"`; build it with the exported `sessionCacheKey`, never
+by hand), read once at mount.
 
 - **Resume** (e.g. host history link → `?session=<id>`): seed
-  `cachedSessionId[mentorId] = id` before mount, gate render, key
+  `cachedSessionId[key] = id` before mount, gate render, key
   `<Chat>` on the id (Step 6).
-- **New chat:** `delete cachedSessionId[mentorId]` + remount via a
+- **New chat:** `delete cachedSessionId[key]` + remount via a
   changing key nonce (`?new=<ts>`). Just navigating does **not** start a
   new chat — the SDK resumes the persisted session.
+- An entry under the agent id alone is never read: seeding or clearing it
+  does nothing.
 - **There is no host-readable "conversation loaded" signal.**
   `isLoadingChats` is internal to `useAdvancedChat`; `chatSliceShared`
   is not reset between sessions, so `selectSessionId` /

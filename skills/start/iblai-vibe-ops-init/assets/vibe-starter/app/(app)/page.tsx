@@ -10,6 +10,7 @@ import {
   useUserTenants,
   useVisitingTenant,
   useCachedSessionId,
+  sessionCacheKey,
 } from "@iblai/iblai-js/web-utils";
 import { Bot } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
@@ -45,29 +46,32 @@ function AgentChat() {
     searchParams.get("agent") || config.defaultAgentId() || org.defaultAgentId || "";
 
   // Resume (`?session=<id>`) or new chat (`?new=<nonce>`). The SDK reads its
-  // per-agent cached-session map once at <Chat> mount, so seed or clear it
-  // before mounting and key <Chat> on the params so a switch remounts it.
+  // cached-session map, keyed by `sessionCacheKey(org, agent)`, once at <Chat>
+  // mount, so seed or clear that entry before mounting and key <Chat> on the
+  // params so a switch remounts it.
   // That key is the ONLY legitimate remount: any other remount wedges voice.
   const restoreSessionId = searchParams.get("session") ?? undefined;
   const newParam = searchParams.get("new") ?? undefined;
+  const [tenantKey] = useState(resolveAppTenant);
   const [cachedSessionId, saveCachedSessionId] = useCachedSessionId();
   const [seededFor, setSeededFor] = useState<string | undefined>(
     restoreSessionId || newParam ? undefined : "none",
   );
   useEffect(() => {
-    if (!mentorId) {
+    if (!mentorId || !tenantKey) {
       setSeededFor("none");
       return;
     }
+    const key = sessionCacheKey(tenantKey, mentorId);
     const map = { ...((cachedSessionId ?? {}) as Record<string, string>) };
     if (restoreSessionId) {
-      if (map[mentorId] !== restoreSessionId) {
-        saveCachedSessionId({ ...map, [mentorId]: restoreSessionId });
+      if (map[key] !== restoreSessionId) {
+        saveCachedSessionId({ ...map, [key]: restoreSessionId });
       }
       setSeededFor(restoreSessionId);
     } else if (newParam) {
-      if (map[mentorId]) {
-        delete map[mentorId];
+      if (map[key]) {
+        delete map[key];
         saveCachedSessionId(map);
       }
       setSeededFor(`new:${newParam}`);
@@ -75,14 +79,13 @@ function AgentChat() {
       setSeededFor("none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restoreSessionId, newParam, mentorId]);
+  }, [restoreSessionId, newParam, mentorId, tenantKey]);
   const sessionReady = restoreSessionId
     ? seededFor === restoreSessionId
     : newParam
       ? seededFor === `new:${newParam}`
       : true;
 
-  const [tenantKey] = useState(resolveAppTenant);
   const username = useUsername();
   const axdToken = useAxdToken();
   const { userTenants } = useUserTenants();

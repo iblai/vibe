@@ -3,17 +3,12 @@
  * No React, no SDK — unit-tested in __tests__/metadata.test.ts and shared by
  * lib/iblai/metadata.ts (browser hooks) and the admin routes (server).
  */
-import config from "./config";
 
-/** Keys under which this app's data lives: `metadata.apps[APP_SLUG]`. */
-export const APP_SLUG = slugify(config.appName() || "vibe-starter");
-
-export function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "app";
-}
+/**
+ * Keys under which this app's data lives: `metadata.apps[APP_SLUG]`. Set once at
+ * scaffold (/iblai-vibe-ops-init); a new value strands everything already saved.
+ */
+export const APP_SLUG = "vibe-starter";
 
 export type Metadata = Record<string, unknown>;
 

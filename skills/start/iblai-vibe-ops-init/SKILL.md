@@ -94,6 +94,24 @@ pnpm install --ignore-scripts
 git init   # only if the project is not already a git repo
 ```
 
+### Give the app its own slug
+
+Still in the project root, right after the copy: `package.json` `name` and
+`APP_SLUG` in `lib/iblai/metadata-core.ts` both become the directory's lowercase
+name. `APP_SLUG` is where the app keeps its data on the platform
+(`metadata.apps.<slug>`, in the organization's metadata and in each user's), so
+two apps on one organization never share it. Set it now, once: a new value
+after `/setup` strands everything already saved. The display name (`/setup`, or
+`NEXT_PUBLIC_APP_NAME`) is separate and never moves the data.
+
+```bash
+APP=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-*//; s/-*$//')
+sed -i.bak "s/\"name\": \"vibe-starter\"/\"name\": \"$APP\"/" package.json
+sed -i.bak "s/APP_SLUG = \"vibe-starter\"/APP_SLUG = \"$APP\"/" lib/iblai/metadata-core.ts
+rm package.json.bak lib/iblai/metadata-core.ts.bak
+grep -n 'APP_SLUG = ' lib/iblai/metadata-core.ts   # the project's name, not vibe-starter
+```
+
 ### Resolve platform credentials and write env files
 
 After the copy completes, climb this ladder and stop at the first rung that
@@ -366,10 +384,10 @@ components), the wiring in BRAND.md.
 | `lib/iblai/config.ts` | Env accessors; `apiKey()` is server-only |
 | `lib/iblai/tenant.ts` | `resolveAppTenant()`, `readTenants()`, `isTenantAdmin()` (not the SDK's `useIsAdmin`) |
 | `lib/iblai/admin-mode.tsx` | `AdminModeProvider` / `useAdminMode` — the User/Admin view |
-| `lib/iblai/metadata.ts` (+ `metadata-core.ts`) | `useUserSettings`, `useOrgSettings` — namespaced under `apps.<slug>`; org writes GET-merge-PUT |
+| `lib/iblai/metadata.ts` (+ `metadata-core.ts`) | `useUserSettings`, `useOrgSettings` — namespaced under `apps.<APP_SLUG>`, set once at scaffold (never change it after `/setup`); org writes GET-merge-PUT |
 | `lib/iblai/platform.ts` | `platformFetch`, `verifyCaller`, `requireAdmin`, `platformFailure` |
 | `lib/iblai/admin-client.ts` | browser `adminFetch()` for `/api/admin/*` |
-| `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard); the store's slice keys are fixed by the SDK — keep them |
+| `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard, `AppTitle`: the name saved on `/setup` in the tab); the store's slice keys are fixed by the SDK — keep them |
 | `e2e/` | Playwright: auth, member, admin journeys; `COVERAGE.md` + `coverage.json` |
 
 ## Invariants (and why)
@@ -383,6 +401,9 @@ components), the wiring in BRAND.md.
   `false` (SDK voice bug). Keep `public/sw.js` — `ServiceWorkerProvider` registers it.
 - Org metadata is a public read and PUT replaces it: write only through
   `useOrgSettings` / `mergeAppNamespace`; never a secret.
+- `APP_SLUG` (`lib/iblai/metadata-core.ts`) never changes: the app's data lives
+  under it, so a new value strands what `/setup` saved. The app's name is
+  display only.
 - Admin UI gates on `useAdminMode().adminMode`; admin *writes* gate on the server.
 - No `output: 'export'` — the admin routes need a server.
 

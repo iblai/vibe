@@ -17,6 +17,9 @@ row. `coverage.json` is the machine-readable twin.
 | D3 | admin | /admin/analytics renders the tab strip | `journeys/admin.journey.spec.ts` |
 | D4 | admin | /admin/organization shows the app settings form | `journeys/admin.journey.spec.ts` |
 | D5 | admin | /setup asks for the app name first | `journeys/admin.journey.spec.ts` |
+| C1 | chat | `?new=` starts a fresh chat instead of reopening the cached one | `journeys/chat.journey.spec.ts` |
+| C2 | chat | `?session=<id>` reopens that chat | `journeys/chat.journey.spec.ts` |
+| C3 | chat | the tab carries the name saved on `/setup` | `journeys/chat.journey.spec.ts` |
 
 Not yet covered (needs a second, non-admin test account or a fresh org):
 completing `/setup` end to end, saving a preference and reading it back on a

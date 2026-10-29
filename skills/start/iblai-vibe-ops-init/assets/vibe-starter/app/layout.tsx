@@ -4,6 +4,8 @@ import "./globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { IblaiProviders } from "@/providers/iblai-providers";
+import config from "@/lib/iblai/config";
+import { APP_SLUG } from "@/lib/iblai/metadata-core";
 
 // Open Sans is the ibl.ai face; globals.css maps --font-open-sans to --font-sans.
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" });
@@ -14,8 +16,9 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" })
 // deployed app. Remove this only if the CSP middleware goes too.
 export const dynamic = "force-dynamic";
 
+// The tab until the org's settings load; AppTitle then shows the name saved on /setup.
 export const metadata: Metadata = {
-  title: "vibe-starter",
+  title: config.appName() || APP_SLUG,
   description: "Built on the ibl.ai platform",
 };
 

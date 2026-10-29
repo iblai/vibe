@@ -27,6 +27,7 @@ import { AuthProvider, TenantProvider, ServiceWorkerProvider } from "@iblai/ibla
 import { Toaster } from "sonner";
 import { RadixPointerEventsGuard } from "@/components/radix-pointer-events-guard";
 import { LoadingScreen } from "@/components/loading-screen";
+import { AppTitle } from "@/components/app-title";
 
 import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
@@ -184,6 +185,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           username={username}
           fallback={LOADING}
         >
+          <AppTitle />
           {children}
         </TenantProvider>
       </AuthProvider>

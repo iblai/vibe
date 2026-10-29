@@ -110,8 +110,9 @@ const config = {
   // stores the choice in the org's metadata (lib/iblai/metadata.ts); env wins
   // when both are set.
   defaultAgentId: () => getEnv("NEXT_PUBLIC_DEFAULT_AGENT_ID", ""),
-  // What the browser tab and the setup screen call the app. Two or three
-  // Title Case words ("Acme Support"), never a slug.
+  // What the browser tab and the setup screen call the app until /setup saves
+  // a name. Two or three Title Case words ("Acme Support"), never a slug.
+  // Display only: the app's data lives under APP_SLUG (metadata-core.ts).
   appName: () => getEnv("NEXT_PUBLIC_APP_NAME", ""),
   supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
 
