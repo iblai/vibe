@@ -91,7 +91,7 @@ picking a provider opens its models.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.55.0` (resolves `@iblai/web-containers` 1.56.1). Check with
+- `@iblai/iblai-js@^2.58.1` (resolves `@iblai/web-containers` 1.58.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Evals are for admins: pass `userIsStudent` from the app's admin check (Step 2).

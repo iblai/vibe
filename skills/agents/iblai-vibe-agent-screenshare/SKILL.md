@@ -42,7 +42,7 @@ during a call and edit these prompts." The switch saves immediately.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.55.0` (resolves `@iblai/web-containers` 1.56.1, which
+- `@iblai/iblai-js@^2.58.1` (resolves `@iblai/web-containers` 1.58.1, which
   ships the in-tab switch). Check with `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Voice calls on for the agent (`/iblai-vibe-agent-voice`): screen sharing
