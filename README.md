@@ -89,7 +89,7 @@ What each skill does:
 - `/iblai-vibe-analytics` -- adds analytics dashboards and reporting views.
 - `/iblai-vibe-notification` -- adds notifications UI and notification center flows.
 - `/iblai-vibe-invite` -- adds user invitation dialogs for tenant admin.
-- `/iblai-vibe-workflow` -- adds agent workflows: the per-agent list and the visual editor (`WorkflowsList`, `WorkflowEditor`).
+- `/iblai-vibe-workflow` -- adds agent workflows: the organization's list (opened from an agent) and the visual editor (`WorkflowsList`, `WorkflowEditor`).
 - `/iblai-vibe-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
 - `/iblai-vibe-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
 - `/iblai-vibe-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
@@ -250,7 +250,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-analytics` | Add analytics dashboard |
 | `/iblai-vibe-notification` | Add notification bell + center page |
 | `/iblai-vibe-invite` | Add user invitation dialogs |
-| `/iblai-vibe-workflow` | Agent workflows: per-agent list + visual editor |
+| `/iblai-vibe-workflow` | Agent workflows: the organization's list + visual editor |
 | `/iblai-vibe-local-llm` | Contract for on-device LLM (Ollama / Foundry) in a Tauri desktop build — command names, event names, hook shape the SDK reads via `localLLMProps` |
 | `/iblai-vibe-course-access` | Add course-content pages (edX user UI) |
 | `/iblai-vibe-course-create` | Generate, edit, and publish edX courses via the ibl.ai Course Creation API |

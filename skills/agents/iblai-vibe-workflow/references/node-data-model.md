@@ -2,9 +2,10 @@
 
 What `WorkflowEditor` writes into `definition.nodes[].data` for each step,
 and what the backend's validator and compiler read. The API types
-`definition.nodes` / `edges` as `unknown[]`; these shapes are owned by
-`@iblai/iblai-js/web-containers` (`workflow-definition.ts`) and mirrored by
-the backend's workflow compiler. **The backend ignores keys it does not
+`definition.nodes` / `edges` as `unknown[]`; these shapes are the
+`NodeConfig` type and definition helpers exported from
+`@iblai/iblai-js/web-containers`, mirrored by the backend's workflow
+compiler. **The backend ignores keys it does not
 know** — a misnamed field does not fail, it silently turns the step into a
 no-op.
 
@@ -51,7 +52,9 @@ interface NodeConfig {
   // Start
   stateVariables?: Variable[];            // { id, name, type, defaultValue? }
 
-  // Agent ('mentor')
+  // Agent ('mentor') — the run reads only mentor_id (and outputSchema);
+  // the rest is editor state. Model is read-only in the panel and the
+  // Tools switches write the agent's own settings, not this step.
   entry_mentor_id?: string;
   mentor_id?: string;
   instructions?: string;
@@ -125,7 +128,10 @@ Older definitions are converted for display and the editor shows
 | `transformMode`, `transformExpressions[{ key, value }]` | `expressions[{ target, expression }]` |
 | `setStateAssignments[{ variable, value }]` | `assignments[{ variable, expression }]` |
 | rows still holding the prototype default `input.foo + 1` | dropped — it never meant anything and fails validation |
-| condition edge ids | re-indexed to `e-<source>-<handle>-<target>` with a `-n` suffix on collisions |
+| two-way If / else connections (`true` / `false`) | `condition-0` / `else` |
+| old While connections | `continue` / `done` |
+| connections into a Note | dropped (the backend cannot compile them) |
+| duplicate edge ids | renamed with a `-n` suffix only where they collide |
 
 A published workflow keeps running unchanged until someone edits and saves
 it — opening alone never writes.
@@ -133,5 +139,7 @@ it — opening alone never writes.
 ## Validation copy the editor rewrites
 
 The backend's connectivity check only exempts Start and End, so it warns
-about every Note; `withoutNoteConnectivityWarnings` drops those. Messages
-that say "mentor" are reworded to "agent" for display.
+about every Note; `withoutNoteConnectivityWarnings` drops those. Two
+specific messages — the agent-is-checked-at-run-time notice and "an Agent
+step has no agent selected" — are reworded to "agent"; everything else is
+shown as the backend sent it.

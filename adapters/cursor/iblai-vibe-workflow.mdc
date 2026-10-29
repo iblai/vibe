@@ -1,5 +1,5 @@
 ---
-description: "Add agent workflows to your Next.js app — the per-agent Workflows list and the visual workflow editor (step sidebar, canvas with If/else, While, User approval, Transform, Set state, File search, MCP and Guardrails steps, the step config panel with workflow variables, validation, Save / Publish / Activate, and a preview chat), both shipped as two SDK components. Use when the user mentions workflows, multi-step agents, branching or looping an agent, \"chain agents\", state variables, or a workflow builder. For the agent itself see /iblai-vibe-agent-setting; for the chat transport the preview reuses see /iblai-vibe-agent-chat; for datasets and MCP connectors the steps pick from see /iblai-vibe-agent-dataset and /iblai-vibe-agent-mcp"
+description: "Add agent workflows to your Next.js app — the organization's Workflows list (opened from an agent, which seeds new workflows) and the visual workflow editor (step sidebar, canvas with Agent, If/else, While, Transform and Set state steps, the step config panel with workflow variables, validation, Save / Publish / Activate, and a preview chat), both shipped as two SDK components. Use when the user mentions workflows, multi-step agents, branching or looping an agent, \"chain agents\", state variables, or a workflow builder. For the agent itself see /iblai-vibe-agent-setting; for the chat transport the preview reuses see /iblai-vibe-agent-chat; for datasets and MCP connectors the steps pick from see /iblai-vibe-agent-dataset and /iblai-vibe-agent-mcp"
 globs:
 alwaysApply: false
 ---
@@ -10,12 +10,21 @@ Add **agent workflows** -- multi-step flows that start from one agent and
 branch, loop, call tools and set state. Two SDK components mount the whole
 feature:
 
-- **`WorkflowsList`** — the per-agent list: search, status (Active / Draft),
-  **Create Workflow**.
+- **`WorkflowsList`** — the organization's workflows: search, status (Active
+  / Draft), **Create Workflow**. It is opened from an agent, whose id seeds
+  the Agent step of every workflow created there — the list itself is the
+  same for every agent.
 - **`WorkflowEditor`** — the editor: a step sidebar (Core / Tools / Logic /
   Data), the canvas, the step config panel, workflow variables, validation,
   inline rename, **Save**, **Publish**, **Activate / Deactivate / Delete**,
   and a **Preview** chat that runs the workflow.
+
+Four steps the sidebar offers — **User approval**, **File search**,
+**Guardrails** and **MCP** — are not executable yet: the backend marks them
+`executable: false` in `node-types/`, validation skips them, and a run drops
+the step but keeps its connections, so a workflow that connects one fails
+on every run. Build with Agent, If / else, While, Transform, Set state and
+End until that changes.
 
 The canvas, the config panel, the preview chat and the node data model used
 to live in the host app; they are now in `@iblai/iblai-js/web-containers/next`
@@ -27,9 +36,9 @@ and the host keeps only two thin pages plus a side-menu entry.
 
 ![If / else step panel — case name, expression, Step IDs with Copy Reference](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-panel-if-else.png)
 
-![Guardrails step panel — PII, Moderation, Jailbreak, Hallucination, Continue on Error](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-panel-guardrails.png)
+![Guardrails step panel (not executable yet) — PII, Moderation, Jailbreak, Hallucination, Continue on Error](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-panel-guardrails.png)
 
-![User approval step — Approve / Reject branches on the canvas](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-user-approval.png)
+![User approval step (not executable yet) — Approve / Reject branches on the canvas](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-user-approval.png)
 
 ![Preview — the workflow runs in a chat beside the canvas; the validation banner above](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-workflow/iblai-vibe-workflow-preview.png)
 
@@ -50,8 +59,11 @@ and the host keeps only two thin pages plus a side-menu entry.
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- An agent to start from: workflows are listed **per agent** (`mentorId`),
-  and every new workflow begins with a **Start → Agent** pair bound to it.
+- An agent to open the list from (`mentorId`): every new workflow begins
+  with a **Start → Agent** pair bound to it. The list itself shows the whole
+  organization's workflows.
+- A signed-in user: the editor loads each Agent step's settings by
+  `username` and stays on its spinner without one.
 - `workflowsApiSlice` registered in the Redux store (Step 3) — it is **not**
   part of `mentorReducer`.
 
@@ -72,12 +84,15 @@ template and fill in your values:
 // app/(app)/workflows/[mentorId]/page.tsx
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { WorkflowsList } from "@iblai/iblai-js/web-containers/next";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
-export default function WorkflowsPage({ tenantKey }: { tenantKey: string }) {
+export default function WorkflowsPage() {
   const router = useRouter();
   const { mentorId } = useParams<{ mentorId: string }>();
+  const [tenantKey] = useState(resolveAppTenant);
 
   return (
     <WorkflowsList
@@ -93,10 +108,12 @@ export default function WorkflowsPage({ tenantKey }: { tenantKey: string }) {
 }
 ```
 
-`onOpenWorkflow` receives the full `Workflow`; route on its
-`entry_mentor_id` (the agent the Start step hands off to — which may
-differ from the list's `mentorId`) and keep the list's agent in a query
-parameter so **Back** / **Delete** can return to the right list.
+A Next.js page receives only `params` and `searchParams`, so resolve the
+organization inside the page (the starter's `resolveAppTenant`), never as a
+prop. `onOpenWorkflow` receives the full `Workflow`; route on its
+`entry_mentor_id` (the workflow's own run agent — see Important Notes) and
+keep the list's agent in a query parameter so **Back** / **Delete** can
+return to the right list.
 
 ### The editor — `app/(app)/workflows/[mentorId]/[id]/page.tsx`
 
@@ -104,32 +121,29 @@ parameter so **Back** / **Delete** can return to the right list.
 // app/(app)/workflows/[mentorId]/[id]/page.tsx
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { WorkflowEditor } from "@iblai/iblai-js/web-containers/next";
+import { useAxdToken, useUsername } from "@iblai/iblai-js/web-utils";
 import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import config from "@/lib/iblai/config";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
 
-export default function WorkflowEditorPage({
-  tenantKey,
-  username,
-  axdToken,
-  baseWsUrl,
-}: {
-  tenantKey: string;
-  username: string;
-  axdToken: string;
-  baseWsUrl: string;
-}) {
+export default function WorkflowEditorPage() {
   const router = useRouter();
   const { mentorId, id } = useParams<{ mentorId: string; id: string }>();
   const listMentorId = useSearchParams().get("listMentorId") ?? mentorId;
+  const [tenantKey] = useState(resolveAppTenant);
+  const username = useUsername();
+  const axdToken = useAxdToken();
 
   return (
     <WorkflowEditor
       tenantKey={tenantKey}
       workflowId={id}
-      username={username}
-      axdToken={axdToken}
-      baseWsUrl={baseWsUrl}
+      username={username ?? ""}
+      axdToken={axdToken ?? ""}
+      baseWsUrl={config.baseWsUrl()}
       redirectToAuthSpa={(to, key, logout) => void redirectToAuthSpa(to, key, logout)}
       onBack={() => router.back()}
       onDeleted={() => router.push(`/workflows/${listMentorId}`)}
@@ -140,9 +154,10 @@ export default function WorkflowEditorPage({
 ```
 
 `axdToken`, `baseWsUrl` and `redirectToAuthSpa` are the same three values
-the chat surface takes — reuse what `/iblai-vibe-agent-chat` wires
-(`useAxdToken()`, `config.baseWsUrl()`, `lib/iblai/auth-utils`). Both pages
-take `tenantKey` / `username` the way the rest of your app resolves them.
+the chat surface takes — the same `useAxdToken()`, `config.baseWsUrl()` and
+`lib/iblai/auth-utils` that `/iblai-vibe-agent-chat` wires. Resolve all of
+them inside the page, as the starter's home page does; a page component gets
+no other props from Next.js.
 
 ### Side-menu entry
 
@@ -211,7 +226,6 @@ their error state.
 ```
 get_component_info("WorkflowEditor")
 get_component_info("WorkflowsList")
-get_hook_info("useGetWorkflowsQuery")
 ```
 
 ## Component Props
@@ -223,7 +237,7 @@ Both import from `@iblai/iblai-js/web-containers/next`.
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
 | `tenantKey` | `string` | Yes | Organization key |
-| `mentorId` | `string` | Yes | The agent whose workflows are listed; new workflows start with an Agent step bound to it |
+| `mentorId` | `string` | Yes | The agent the list was opened from — it seeds the Agent step of workflows created here; the list itself is organization-wide |
 | `onOpenWorkflow` | `(workflow: Workflow) => void` | Yes | Called with the full record on card click **and** right after **Create** |
 
 ### `<WorkflowEditor>`
@@ -232,7 +246,7 @@ Both import from `@iblai/iblai-js/web-containers/next`.
 |------|------|----------|-------------|
 | `tenantKey` | `string` | Yes | Organization key |
 | `workflowId` | `string` | Yes | The workflow's `unique_id` |
-| `username` | `string` | Yes | Signed-in user — loads each Agent step's settings and tools; pass `""` for a signed-out preview |
+| `username` | `string` | Yes | Signed-in user — loads each Agent step's settings and tools; with an empty username the editor never leaves its spinner |
 | `axdToken` | `string` | Yes | Chat token for the preview chat |
 | `baseWsUrl` | `string` | Yes | WebSocket origin for the preview chat (`${baseWsUrl}/ws/langflow/`) |
 | `redirectToAuthSpa` | `(redirectTo?, platformKey?, logout?) => void` | Yes | Host auth redirect (wrap an async helper to `=> void`) |
@@ -270,7 +284,8 @@ Sections come from the organization's `node-types` endpoint (falling back
 to the built-in set): **Core** — Agent, End, Note · **Tools** — File search,
 Guardrails, MCP · **Logic** — If / else, While, User approval · **Data** —
 Transform, Set state. Drag a step onto the canvas, or click it to drop it
-next to the selected step.
+next to the selected step. Each entry in `node-types` carries `executable`;
+File search, Guardrails, MCP and User approval are `false` today.
 
 ### Canvas
 
@@ -288,13 +303,13 @@ Opens on click (not on drag). What each step edits:
 | Step | Fields |
 |---|---|
 | Start | **State Variables** — name, type, optional default (validated per type) |
-| Agent | the agent (**Change**), **Instructions**, **Model**, **Tools** switches, output format, continue on error |
-| File search | **Dataset**, **Max Results**, **Query** (variables in `{{ double curly braces }}`) |
-| MCP | **Connected Tools** — the agent's MCP connectors |
-| Guardrails | PII · Moderation · Jailbreak · Hallucination checks; **Continue on Error** |
+| Agent | runs the chosen agent as configured: **Change** picks it, **Model** is read-only, the **Tools** switches edit *that agent's own* settings (`tool_slugs`, `can_use_tools` — every chat with it, not just this workflow), **Instructions** is stored on the step but the run reads only `mentor_id`, and the editor shows the agent's prompt again on reopen |
+| File search *(not executable yet)* | **Dataset**, **Max Results**, **Query** (variables in `{{ double curly braces }}`) |
+| MCP *(not executable yet)* | **Connected Tools** — the agent's MCP connectors |
+| Guardrails *(not executable yet)* | PII · Moderation · Jailbreak · Hallucination checks; **Continue on Error** |
 | If / else | **If** + **Else If n** rows: case name (optional) + expression |
 | While | **Condition**, **Max Iterations** (default 10) |
-| User approval | **Message** shown to the person |
+| User approval *(not executable yet)* | **Message** shown to the person |
 | Transform | **Key** / **Value** expressions |
 | Set state | **Assign Value** → **To Variable** rows; **New** creates a variable |
 | End | finishes with the last step's reply |
@@ -321,10 +336,14 @@ Opens on click (not on drag). What each step edits:
 - **Auto-save**: 1 s after the last change the definition is `PATCH`ed and
   then validated; errors and warnings appear in a collapsible banner. Merely
   opening a workflow never saves it.
-- **Save** patches now. **Publish** patches and publishes in one call; a
-  `400` with `is_valid: false` fills the banner instead.
-- **Activate** saves first, then activates; **Deactivate** and **Delete**
-  act directly. **Preview** also saves first so the run matches the canvas.
+- **Save** patches now. **Publish** saves, validates and makes the workflow
+  **Active** in one call — it is not a draft save; a `400` with
+  `is_valid: false` fills the banner instead. A new workflow is created
+  Active.
+- **Activate** saves first, then activates; **Deactivate** (`unpublish/` is
+  an alias) and **Delete** act directly. **Preview** also saves first so the
+  run matches the canvas — and it runs only while the workflow is Active:
+  after Deactivate the preview chat refuses with "Workflow is not active".
 - Connectivity warnings about Notes are filtered out (the backend's check
   does not know Notes are decorative).
 
@@ -339,8 +358,8 @@ Also exported, for a host that composes its own editor:
   `nodeType`, `nodeData`, `onUpdateNode`, `onDeleteNode`,
   `workflowVariables`, `stepReferences`, `variableUsages`, …),
   `WorkflowPreviewChat`, and their `*Props` types.
-- From `@iblai/iblai-js/web-containers`: `WorkflowSidebar` (`nodeTypes?:
-  NodeTypeSection[]`), `CreateWorkflowModal` (`open`, `onOpenChange`,
+- From `@iblai/iblai-js/web-containers`: `WorkflowSidebar` (`onDragStart`,
+  `onItemClick`, `nodeTypes?: NodeTypeSection[]`), `CreateWorkflowModal` (`open`, `onOpenChange`,
   `onCreateWorkflow`, `isCreating`), `DeleteWorkflowModal` (`isOpen`,
   `onClose`, `onConfirm`, `isDeleting`, `workflowName`),
   `ConnectorManagementDialog` (`open`, `onClose`), `ToolDialogs`, and the
@@ -378,20 +397,17 @@ From `@iblai/iblai-js/data-layer` (`workflowsApiSlice`):
   `updated_at`, …), `WorkflowDefinition`, `PaginatedWorkflowList`,
   `NodeTypeInfo`, `NodeTypesResponse`.
 
-SDK source: `packages/web-containers/src/components/workflows/` and
-`packages/data-layer/src/features/workflows/`.
-
 ## Step 5: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Start dev server and touch test:
-   ```bash
-   pnpm dev &
-   npx playwright screenshot http://localhost:3000/workflows/<agentId> /tmp/workflows.png
-   ```
+3. Touch test in the browser, signed in, as `/iblai-vibe-ops-test` says:
+   open `/workflows/<agentId>` — the list renders with the organization's
+   workflows (not "No workflows found"); **Create Workflow** opens the new
+   workflow's editor; the editor shows the canvas, not "Failed to load
+   workflow"; the console is clean.
 
 Stable selectors: the editor's step panel is `workflow-node-panel`; the
 list and dialogs expose their buttons by accessible name (**Create
@@ -410,9 +426,14 @@ Workflow**, **Publish**, **More workflow options**).
   `@iblai/iblai-js/web-containers/next` (they use `next/dynamic` and
   `next/navigation`); the sidebar, dialogs and definition helpers from
   `@iblai/iblai-js/web-containers`.
-- **Two agent ids**: the list is per `mentorId`; a workflow's
-  `entry_mentor_id` is the agent its Start step hands to. Route the editor
-  on `entry_mentor_id` and carry the list's id along (`?listMentorId=`).
+- **Two agent ids**: `mentorId` is the agent the list was opened from — it
+  only seeds new workflows. `entry_mentor_id` is a **dedicated agent the
+  backend creates for every workflow**, named after it and deleted with it:
+  chatting with that agent runs the workflow, and it is what Preview talks
+  to. The Agent step's own agent is `definition.nodes[].data.mentor_id`.
+  Route the editor on `entry_mentor_id` and carry the list's id along
+  (`?listMentorId=`). That run agent, and `POST …/chat/`, refuse an
+  inactive workflow.
 - **A new workflow is Start → Agent**, both selectable and connectable,
   with the Agent step bound to the list's agent.
 - **Agent steps are checked at run time**: the editor loads each Agent
@@ -425,7 +446,8 @@ Workflow**, **Publish**, **More workflow options**).
 ## Workflows REST API
 
 All endpoints are under `${dmUrl}/api/ai-mentor/orgs/{org}/workflows/`
-where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`.
+where `dmUrl` is `${NEXT_PUBLIC_API_BASE_URL}/dm` (the starter's
+`config.dmUrl()`) — without the `/dm` prefix every path answers 404.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -433,7 +455,7 @@ where `dmUrl` is `NEXT_PUBLIC_API_BASE_URL`.
 | POST | `workflows/` | Create `{ name, description?, definition? }` |
 | GET / PUT / PATCH / DELETE | `workflows/{unique_id}/` | One workflow; PATCH any of `name`, `description`, `definition`, `chat_name`, `chat_proactive_response` |
 | POST | `workflows/{unique_id}/validate/` | `{ is_valid, errors[], warnings[] }` |
-| POST | `workflows/{unique_id}/publish/` · `unpublish/` | Publish accepts an optional `{ definition }` to save first; a failed validation is a `400` with the same shape |
+| POST | `workflows/{unique_id}/publish/` · `unpublish/` | Publish saves (optional `{ definition }`), validates and makes the workflow Active; a failed validation is a `400` with the same shape. `unpublish/` is an alias of `deactivate/` |
 | POST | `workflows/{unique_id}/activate/` · `deactivate/` | Activate validates and answers the validation shape |
-| POST | `workflows/{unique_id}/chat/` | `{ message }` → `{ response, workflow_id, session_id }` |
+| POST | `workflows/{unique_id}/chat/` | `{ message }` → `{ response, workflow_id, session_id }`; `400 {"detail": "Workflow is not active"}` unless the workflow is Active |
 | GET | `workflows/node-types/` | The step catalogue: `{ node_types: { [id]: { label, category, executable, description, required_fields, optional_fields } }, categories }` |
