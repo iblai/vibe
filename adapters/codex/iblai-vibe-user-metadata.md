@@ -55,9 +55,10 @@ vibe-starter ships all of this already; on an existing app, install per Step 2.
 - **Cross-user:** `&username=<other>` — org admins only (`403` otherwise,
   `404` for an unknown user). Confirm with the user before writing to someone
   else's record.
-- **Namespace:** this skill writes under `metadata.apps.<slug>` (slug from
-  `NEXT_PUBLIC_APP_NAME`, else `vibe-starter`) so other apps on the same org
-  keep their own keys. The same convention `vibe-agent` uses.
+- **Namespace:** this skill writes under `metadata.apps.<slug>` (`APP_SLUG` in
+  `lib/iblai/metadata-core.ts`) so other apps on the same org keep their own
+  keys. The slug is set once and never derived from the app's display name, so
+  renaming the app never moves its data — the convention `vibe-agent` uses.
 
 ## Step 2: Install
 
@@ -70,6 +71,12 @@ Render the assets (strip `.j2`; no variables):
 | `assets/app-preferences.tsx.j2` | `components/settings/app-preferences.tsx` |
 | `assets/admin-user-metadata-route.ts.j2` | `app/api/admin/user-metadata/route.ts` |
 | `assets/metadata.test.ts.j2` | `__tests__/metadata.test.ts` |
+
+Then set `APP_SLUG` in `lib/iblai/metadata-core.ts` to the app's lowercase name
+(the `package.json` `name`), once: a new value later strands every saved
+setting. An app that already saved settings keeps the key they are under (the
+`apps` object of `GET …/orgs/<org>/metadata/`); a vibe-starter app already has
+its slug from `/iblai-vibe-ops-init`.
 
 `metadata.ts` imports `resolveAppTenant` from `lib/iblai/tenant.ts` and the
 route imports `lib/iblai/platform.ts` (from `/iblai-vibe-api`) — install that

@@ -98,10 +98,10 @@ components), the wiring in BRAND.md.
 | `lib/iblai/config.ts` | Env accessors; `apiKey()` is server-only |
 | `lib/iblai/tenant.ts` | `resolveAppTenant()`, `readTenants()`, `isTenantAdmin()` (not the SDK's `useIsAdmin`) |
 | `lib/iblai/admin-mode.tsx` | `AdminModeProvider` / `useAdminMode` — the User/Admin view |
-| `lib/iblai/metadata.ts` (+ `metadata-core.ts`) | `useUserSettings`, `useOrgSettings` — namespaced under `apps.<slug>`; org writes GET-merge-PUT |
+| `lib/iblai/metadata.ts` (+ `metadata-core.ts`) | `useUserSettings`, `useOrgSettings` — namespaced under `apps.<APP_SLUG>`, set once at scaffold (never change it after `/setup`); org writes GET-merge-PUT |
 | `lib/iblai/platform.ts` | `platformFetch`, `verifyCaller`, `requireAdmin`, `platformFailure` |
 | `lib/iblai/admin-client.ts` | browser `adminFetch()` for `/api/admin/*` |
-| `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard); the store's slice keys are fixed by the SDK — keep them |
+| `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard, `AppTitle`: the name saved on `/setup` in the tab); the store's slice keys are fixed by the SDK — keep them |
 | `e2e/` | Playwright: auth, member, admin journeys; `COVERAGE.md` + `coverage.json` |
 
 ## Invariants (and why)
@@ -115,6 +115,9 @@ components), the wiring in BRAND.md.
   `false` (SDK voice bug). Keep `public/sw.js` — `ServiceWorkerProvider` registers it.
 - Org metadata is a public read and PUT replaces it: write only through
   `useOrgSettings` / `mergeAppNamespace`; never a secret.
+- `APP_SLUG` (`lib/iblai/metadata-core.ts`) never changes: the app's data lives
+  under it, so a new value strands what `/setup` saved. The app's name is
+  display only.
 - Admin UI gates on `useAdminMode().adminMode`; admin *writes* gate on the server.
 - No `output: 'export'` — the admin routes need a server.
 

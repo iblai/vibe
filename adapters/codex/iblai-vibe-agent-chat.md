@@ -299,7 +299,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Chat, type ChatConfig } from "@iblai/iblai-js/web-containers/next";
 import {
   useUsername, useAxdToken, useUserTenants, useVisitingTenant,
-  useIsAdmin, useCachedSessionId,
+  useIsAdmin, useCachedSessionId, sessionCacheKey,
 } from "@iblai/iblai-js/web-utils";
 import { redirectToAuthSpa } from "@/lib/iblai/auth-utils";
 import config from "@/lib/iblai/config";
@@ -319,40 +319,6 @@ function AgentChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Resume (`?session=<id>`) or new chat (`?new=<nonce>`). The SDK reads
-  // its per-mentor cached-session map (`useCachedSessionId`,
-  // localStorage `{ [mentorId]: sessionId }`) ONCE at <Chat> mount
-  // (`isNewSession = cachedSessionId[mentorId] ? false : true`). So seed
-  // (resume) or clear (new) BEFORE mount, gate the render until done,
-  // and key <Chat> on session/new so switching remounts it.
-  const restoreSessionId = searchParams.get("session") ?? undefined;
-  const newParam = searchParams.get("new") ?? undefined;
-  const [cachedSessionId, saveCachedSessionId] = useCachedSessionId();
-  const [seededFor, setSeededFor] = useState<string | undefined>(
-    restoreSessionId || newParam ? undefined : "none",
-  );
-  useEffect(() => {
-    if (!mentorId) { setSeededFor("none"); return; }
-    const map = { ...((cachedSessionId ?? {}) as Record<string, string>) };
-    if (restoreSessionId) {
-      if (map[mentorId] !== restoreSessionId) {
-        saveCachedSessionId({ ...map, [mentorId]: restoreSessionId });
-      }
-      setSeededFor(restoreSessionId);
-    } else if (newParam) {
-      if (map[mentorId]) { delete map[mentorId]; saveCachedSessionId(map); }
-      setSeededFor(`new:${newParam}`);
-    } else {
-      setSeededFor("none");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restoreSessionId, newParam, mentorId]);
-  const sessionReady = restoreSessionId
-    ? seededFor === restoreSessionId
-    : newParam
-      ? seededFor === `new:${newParam}`
-      : true;
-
   const [tenantKey, setTenantKey] = useState("");
   useEffect(() => {
     const appTenant = localStorage.getItem("app_tenant");
@@ -364,6 +330,41 @@ function AgentChatPage() {
     } catch {}
     setTenantKey(appTenant || currentTenant || tenant || config.mainTenantKey());
   }, []);
+
+  // Resume (`?session=<id>`) or new chat (`?new=<nonce>`). The SDK reads its
+  // cached-session map (`useCachedSessionId`, keyed by
+  // `sessionCacheKey(tenantKey, mentorId)`) ONCE at <Chat> mount: seed (resume)
+  // or clear (new) that entry BEFORE mount, gate the render until done, and
+  // key <Chat> on session/new so switching remounts it.
+  const restoreSessionId = searchParams.get("session") ?? undefined;
+  const newParam = searchParams.get("new") ?? undefined;
+  const [cachedSessionId, saveCachedSessionId] = useCachedSessionId();
+  const [seededFor, setSeededFor] = useState<string | undefined>(
+    restoreSessionId || newParam ? undefined : "none",
+  );
+  useEffect(() => {
+    if (!tenantKey) return; // resolved after mount, above
+    if (!mentorId) { setSeededFor("none"); return; }
+    const key = sessionCacheKey(tenantKey, mentorId);
+    const map = { ...((cachedSessionId ?? {}) as Record<string, string>) };
+    if (restoreSessionId) {
+      if (map[key] !== restoreSessionId) {
+        saveCachedSessionId({ ...map, [key]: restoreSessionId });
+      }
+      setSeededFor(restoreSessionId);
+    } else if (newParam) {
+      if (map[key]) { delete map[key]; saveCachedSessionId(map); }
+      setSeededFor(`new:${newParam}`);
+    } else {
+      setSeededFor("none");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restoreSessionId, newParam, mentorId, tenantKey]);
+  const sessionReady = restoreSessionId
+    ? seededFor === restoreSessionId
+    : newParam
+      ? seededFor === `new:${newParam}`
+      : true;
 
   const username = useUsername();
   const axdToken = useAxdToken();
@@ -419,7 +420,7 @@ function AgentChatPage() {
 |------|-----|
 | `"use client"` + `dynamic = "force-dynamic"` | `Chat` is client-only; prevent static pre-render |
 | `<Suspense>` wrapper | `useSearchParams()` requires a Suspense boundary in App Router |
-| `useCachedSessionId` seeding + render gate | only way to resume / start-new (no `sessionId` prop, no URL handling — see "Resuming / starting sessions") |
+| `useCachedSessionId` seeding + render gate | only way to resume / start-new (no `sessionId` prop, no URL handling — see "Resuming / starting sessions"); the map is keyed by `sessionCacheKey(tenantKey, mentorId)`, never the agent id alone |
 | `key={mentor:session:new}` | the ONLY safe remount; switching session needs it |
 | `void redirectToAuthSpa(...)` wrapper | SDK type is `(…) => void`; host helper is often `async` |
 | env fallback for `supportEmail` | host `config` may not expose it |

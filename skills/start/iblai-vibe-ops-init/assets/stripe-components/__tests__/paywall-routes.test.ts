@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { APP_SLUG } from "../lib/iblai/metadata-core";
 
 /**
  * The /api/paywall/admin routes are the app's only server rail and the only
@@ -280,9 +281,8 @@ describe("POST /api/paywall/admin/setup", () => {
       "POST /products/": () => ({ id: "prod_new" }),
       "POST /prices/": () => ({ id: "price_new" }),
     });
-    // The starter keeps its settings under apps.<slugified NEXT_PUBLIC_APP_NAME>,
-    // `vibe-starter` while that is unset (lib/iblai/metadata-core.ts).
-    stubFetch({ apps: { "vibe-starter": { appName: "Caveman Coach" } }, dm: stripeDm(products()) });
+    // The starter keeps its settings under apps.<APP_SLUG> (lib/iblai/metadata-core.ts).
+    stubFetch({ apps: { [APP_SLUG]: { appName: "Caveman Coach" } }, dm: stripeDm(products()) });
     let { POST } = await loadSetup();
     expect((await POST(post({ access: "monthly", amount: 2900 }))).status).toBe(200);
     expect(sentBody(0)).toEqual({ name: "Caveman Coach", metadata: { app: "demo-app" } });
