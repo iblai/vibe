@@ -1,91 +1,124 @@
-# MCP & OAuth — concepts and backend model
+# MCP & OAuth: concepts and backend model
 
-> Complements the parent `/iblai-api-agent-mcp` skill. The endpoints, the
-> `auth_type` × `auth_scope` matrix, the resolution order, the OAuth flow, and
-> the in-chat events all live in `SKILL.md`. This file adds only what SKILL.md
-> doesn't: the backend data model, the design "why", and the security and
-> extensibility rules — for engineers operating or extending the subsystem.
+> Complements the parent `/iblai-api-agent-mcp` skill. `SKILL.md` has the
+> endpoints, the scope matrix and the chat events. This file covers the
+> backend data model, the design reasons behind it, and the security and
+> runtime rules. It's for engineers who operate or extend the subsystem.
 
 ## Backend data model
 
-Five Django models back the three wire objects (server / connection / agent
-wiring). An **org is a `Platform`** in the backend — the `org` / `platform_key`
-you send resolves to a `Platform` row.
+An **org is a `Platform`** in the backend: the `org` / `platform_key` you send
+resolves to a `Platform` row.
 
 | Model | Role |
 |---|---|
-| `OauthProvider` | a vendor (`google`, `dropbox`); holds `auth_url`, `token_url`, `is_enabled` |
-| `OauthService` | one surface of a provider (`drive`, `calendar`); carries the requested `scope` |
-| `ConnectedService` | a user's persisted token grant for one service; unique on `(user, provider, platform, service)` |
-| `MCPServer` | registered on a `Platform`; the `auth_type` × `auth_scope` metadata |
-| `MCPServerConnection` | credential binding; optionally references a `ConnectedService`, optionally scoped to an agent |
+| `MCPServer` | A registered endpoint: URL, transport, `auth_type`, default `auth_scope`, `user_can_disable`, optional `mentor` (agent-only server), `oauth_service`. Featured and directory servers live on `main`. |
+| `MCPServerConnection` | A credential binding at `user`, `mentor` or `platform` scope: an API key / headers, or a link to a `ConnectedService`. |
+| `MentorMCPServer` | Attaches a server to an agent (`Mentor.mcp_servers`). Its `auth_scope_override` is the agent's credential scope. |
+| `UserMCPServerPreference` / `SessionMCPServerToggle` | A user's permanent and per-conversation on/off choices. |
+| `OauthProvider` / `OauthService` | A vendor and one of its surfaces. MCP providers are discovered and named `mcp_<host>`. Their auth and token URLs come from discovery only. |
+| `TenantOAuthClient` | An org's own OAuth client for a provider: `source` `dcr` / `manual` / `legacy_backfill`, an encrypted secret, `redirect_uri`, scopes, request params, and optional per-org `authorization_url` / `token_url`. One per (org, provider). |
+| `ConnectedService` | A user's token grant for one service: encrypted tokens, refreshed on demand, plus the client that issued it. |
+| `MCPRegistryEntry` / `MCPRegistryOverride` / `MCPRegistryPublisher` / `MCPRegistrySyncRun` | The directory, synced from the MCP Registry, together with staff curation (feature, block, override URL or title) and the sync audit log. |
 
-`OauthProvider` → many `OauthService` → many `ConnectedService` (per user, per
-org). `MCPServer` → many `MCPServerConnection`; an `oauth2` connection points at
-exactly one `ConnectedService`. The unique constraint is what enforces "one
-grant per surface" — re-running OAuth updates that row in place instead of
-duplicating it.
+All secrets use encrypted fields and are masked on every read. The Django
+admin shows them as write-only inputs: blank keeps the stored value, a new
+value replaces it, and *Clear* removes it.
 
-### Modules
+## Credential resolution (scopes are enforced)
 
-| Concern | Where |
-|---|---|
-| MCP server / connection CRUD | `MCPServerViewSet`, `MCPServerConnectionViewSet` |
-| OAuth discovery + flow | account views; `get_cred`, connected-services utils |
-| In-chat handshake | chat consumer + `MCPOAuthCoordinator` |
-| Runtime resolution (LangChain tool layer) | `MCPServer.resolve_connection` (async `aresolve_connection`, `.afirst()`) → `render_headers()` |
+`effective_auth_scope = agent's override ?? server.auth_scope`. In chat, the
+first match wins:
 
-## Runtime resolution
+| Effective scope | Tried, in order | When nothing matches |
+|---|---|---|
+| `user` | the chatting user's own connection | OAuth: the in-chat `oauth_required` prompt. API key: the server is skipped. |
+| `mentor` | the user's own, then the agent's | the server is skipped |
+| `platform` | the user's own, the agent's, the org's, then a key stored on the server, then the featured server's global connection | the server is skipped |
 
-SKILL.md lists the first-match order (`user` → `mentor` → `platform` → featured →
-401/in-chat-OAuth). Implementation: `resolve_connection(platform, user, agent)`
-runs it; the async twin (`aresolve_connection` + `.afirst()`) keeps the event
-loop unblocked; `render_headers()` builds the outbound headers, merging
-`extra_headers` and letting explicit `credentials` win. For `oauth2` it ensures
-a fresh access token — refreshing via the provider adapter — before returning.
+A shared credential **never** satisfies a `user`-scoped server. `verify/`
+follows the same rule.
 
-## OAuth model — the "why"
+## Which OAuth client signs a user in
 
-The connector flow exists so a user (or admin) grants the platform permission
-to act on their behalf against a vendor, without the platform ever holding the
-user's vendor password. The endpoint flow (discover → start → callback →
-list/delete) is in SKILL.md; the design points that explain its constraints:
+Every OAuth call goes through one resolver: the authorize URL, the callback
+code exchange, both refresh paths, and the Google tools. It picks, in order:
 
-- **State is a checked round-trip.** `start` stores a UUID hash in the cache and
-  returns `state = org:provider:service:username:hash`. The callback splits it
-  apart and verifies the hash against the cache before exchanging the code —
-  that is why `state` must be relayed byte-for-byte and why the flow dies after
-  the **1-hour** cache TTL (the replay window).
-- **Tokens are stored raw, server-side only.** `access_token`, `refresh_token`,
-  and `token_type` are persisted as returned (provider/service ids lowercased
-  for schema consistency) and refreshed on demand — clients never see or handle
-  tokens.
-- **Fail-fast.** A missing org credential fails the start call (`404`/`400`;
-  SKILL.md: `400 No credentials found`); more than one service per connection
-  raises `ValueError` early. Credentials come from one source, `get_cred("auth_{provider}", <org>)`,
-  with a global `main` default an org can override.
+1. the connection's own issuing client (a connection keeps refreshing with the
+   client that created it);
+2. the org's `TenantOAuthClient`;
+3. the client shared by ibl.ai. Featured servers only, when
+   `allow_global_client_fallback` is set; directory servers never use it.
 
-## Validation & access control
+For a directory server that supports DCR, the org's client is registered on
+its **first sign-in**. A DCR client the provider rejects (`invalid_client`) is
+re-registered on the next sign-in. A manual client is never replaced by DCR.
 
-SKILL.md enumerates the per-field connection rules. The reasons behind two:
-`platform` and `user` are **read-only on write** because the backend derives
-them from the request context (org from the token, user from the caller), so
-sending them can only conflict; the featured exception lets a `platform`
-connection target a server owned by another org **only if** that server is
-`is_featured`.
+The callback exchanges the code with the same client the authorize URL was
+built with. That client is pinned in the cache next to the `state`.
 
-Access control:
+## The OAuth round trip: why it's built this way
 
-- OAuth connector endpoints allow only `GET` / `DELETE` — a `ConnectedService`
-  is **never** created directly; only the managed callback creates one.
-- MCP server / connection create-update-delete require **org-admin** privileges.
+- **State is a checked round trip.** `start` caches a hash and returns
+  `state`. The callback verifies it before exchanging the code, so `state`
+  must be relayed byte for byte, and the flow dies after the **1-hour** cache
+  TTL.
+- **PKCE (S256) and RFC 8707 `resource`** are sent for clients registered by
+  discovery. The verifier is single-use and cached under its own key.
+- **Redirect URI.** By default it's the app's frontend callback page,
+  configured by the `MCP_OAUTH_REDIRECT_URI` setting (default
+  `https://{SPA_DOMAIN}/google-oauth-callback/`, overridable per org by
+  staff). The backend callback route returns JSON and is never registered as a
+  redirect URI.
+- **Tokens are server-side only.** Clients never see or handle tokens. Refresh
+  sends the same `resource` as the exchange, and public clients send no
+  secret.
 
-## Extensibility
+## Discovery (oauth-find, verify, first sign-in)
 
-- **New provider or service:** seed `OauthProvider` + `OauthService` (management
-  command) and install the `auth_{provider}` credential. Discovery is
-  data-driven — no endpoint changes needed to surface it.
-- **New auth type:** add the `MCPServer.AuthType` enum member, extend connection
-  validation, and teach `render_headers()` the new header shape.
-- **Cross-org sharing:** `is_featured=true` lets other orgs create their own
-  connections while the owning org keeps control of the server metadata.
+The steps follow the MCP auth spec:
+1. an unauthenticated `initialize`, read from the 401 challenge;
+2. the RFC 9728 protected-resource metadata, which must **cover** the server
+   URL (same origin, at or above its path), so tokens can't be minted for
+   another audience;
+3. RFC 8414 / OIDC metadata, with path insertion;
+4. RFC 7591 registration.
+
+Scopes come from the challenge, else the resource's `scopes_supported`, else
+none.
+
+Every URL passes the SSRF guard. Discovery is also **bounded in time**:
+- 5s to connect and 10s to read;
+- an origin that refuses a connection isn't tried again;
+- a 15s budget per run.
+
+An unreachable server fails at `mcp_server_url` in about 5s, and
+`diagnostic.timed_out` marks a run cut short. Token exchange and refresh are
+bounded too: 5s to connect, 20s to read.
+
+## Runtime (chat) behavior
+
+- **Isolation:**
+  - each server lists its tools in parallel, within 15s;
+  - a quick failure is retried once;
+  - a failing server is skipped **alone**, with one `warning` naming it.
+- **Elicitation:** server-initiated input requests are declined, so a remote
+  server can't stall a turn.
+- **Sanitization:**
+  - every MCP tool result is wrapped in `[BEGIN/END MCP CONTENT]` markers;
+  - HTML is stripped unless the server's admin-only `clean_output` is off.
+- **Transports:** `streamable_http` and `sse` only. The `websocket` transport
+  was removed, and existing rows were moved to `streamable_http`.
+
+## Access control
+
+- A `ConnectedService` is created only by the managed callback, never directly.
+- Creating an org server and running `oauth-find` need
+  `Ibl.Mentor/MCPServers/action`. On a specific agent, that permission is
+  checked on the agent.
+- `credentials/`, `verify/` and `mentor-auth-scope/` need their verbs **and**
+  platform admin. Those verbs are seeded to nobody.
+- Members hold `Ibl.Mentor/MCPServers/UserPreference/*`,
+  `Ibl.Mentor/GetRedirectUrl/action`, their own connected services, and
+  user-scoped connections.
+- Featured and directory servers can't be modified by orgs (`404`).

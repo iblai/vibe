@@ -11,12 +11,18 @@
 
 ## Order of operations
 
+- **OAuth servers: `oauth-find` first.** Run it before enabling **Save** on an
+  OAuth server and pass the returned `id` as `oauth_service`. On `400`, render
+  the `diagnostic` (message per `failed_step`) and, for `client_registration` /
+  `authorization_server_metadata`, show the manual-client form inline and
+  resubmit (see [`admin-setup.md`](admin-setup.md)).
 - **Server first, then connection.** The connection endpoints require a valid
   server `id`, so create the `MCPServer` record before offering a connection
   form.
-- **Then wire the agent.** After saving a connection, prompt the admin to enable
-  `mcp-tool` and attach the server on the agent settings — a connection with no
-  agent wiring is never called in chat (the most common "nothing happens" cause).
+- **Then wire the agent.** A server created for one agent is not attached
+  automatically: add its id to `mcp_servers` (and `mcp` to `tool_slugs`) in
+  the same save — a server with no agent wiring is never called in chat (the
+  most common "nothing happens" cause).
 
 ## Drive the connection form off the server's `auth_type`
 
@@ -63,9 +69,13 @@ its offending input rather than as one banner:
 - **If you use a modal or popup**, capture the provider's redirect in that
   context and forward its query params to the callback endpoint unchanged. Relay
   `state` byte-for-byte — the backend hashes and verifies it (SKILL.md).
-- **Handle `400` on start** with actionable copy (e.g. "an admin must configure
-  the `auth_{provider}` credential — client_id, client_secret, redirect_uri")
-  rather than a generic error.
+- **The redirect lands on your callback page** (`/google-oauth-callback/` by
+  default). It must relay `code` and `state` to
+  `GET /api/ai-account/connected-services/callback/` for **every** provider,
+  then `postMessage` the opener and close.
+- **Handle `400` on start** ("Could not build OAuth authorization URL…") as
+  "this connector isn't set up yet" — for admins, link to the OAuth app form
+  (`credentials/`) — rather than a generic error. Don't reload or retry.
 - **After a grant, re-list** `connected-services` to pick up refreshed
   `expires_at` values — the platform refreshes tokens server-side; the client
   only needs to re-read, never to handle tokens itself.
