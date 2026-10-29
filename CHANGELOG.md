@@ -3,6 +3,20 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.17.0] - 2026-10-29
+
+### Added
+
+- rewrite /iblai-vibe-workflow for the SDK-hosted builder; starter to @iblai/iblai-js 2.55.0
+
+### Fixed
+
+- /iblai-vibe-workflow review — pages resolve their own identity, /dm prefix, what runs and what doesn't
+
+### Documentation
+
+- six captures of the SDK workflow builder for /iblai-vibe-workflow
+
 ## [2.16.3] - 2026-10-26
 
 ### Changed
