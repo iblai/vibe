@@ -5,9 +5,15 @@
 # /iblai-vibe-course-access
 
 ![Course Content Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/course-content-page.png)
-![Progress tab — course completion, grade vs passing grade, grade summary](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-2-progress.png)
-![Dates tab — important dates timeline](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-3-dates.png)
-![Discussion tab — My posts / All posts / Topics / Learners, Add a post](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-4-discussion.png)
+![Progress tab — completion donut with complete/incomplete breakdown, current vs passing grade bar, grade summary table](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-2-progress.png)
+![Dates tab — Important dates timeline with a Today marker](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-3-dates.png)
+![Discussions tab — All posts / My posts / Topics / Learners menu, search, type/status/sort filters, Add a post](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/content/iblai-vibe-course-access/iblai-vibe-course-access-4-discussion.png)
+
+> The Progress, Dates, and Discussions captures are from the ibl.ai Agentic
+> LMS, which renders those three tabs natively against the edX course-home
+> and discussion APIs. `CourseContentTabPage` in the SDK still renders them
+> through the learning MFE iframe, so your app shows the MFE's version of
+> each tab.
 
 Add a full edX course-content experience -- hierarchical course outline
 sidebar, collapsible modules/lessons/sublessons with progress indicators,
