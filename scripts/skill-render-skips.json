@@ -20,10 +20,6 @@
     "fences": [1, 4],
     "reason": "snippets assume @testing-library/jest-dom matcher typings, which the skill installs into the target app; vibe-starter does not ship them"
   },
-  "iblai-vibe-workflow": {
-    "all": true,
-    "reason": "documents v1-era workflow hooks (useGetWorkflowsQuery, workflowsApiSlice, …) that are absent from the v2 runtime entirely — the skill needs a v2 rewrite"
-  },
   "iblai-vibe-monetization-checkout": {
     "all": true,
     "reason": "documents v1-era monetization hooks: useCheckAccessQuery/useGetPublicPricingQuery are absent from the v2 runtime, the rest from typings — needs an SDK/API verification pass and a skill refresh"
