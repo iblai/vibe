@@ -55,8 +55,14 @@ curl -X PUT \
 - Pull the provider/model cards first, then send exactly one `llm_provider` +
   `llm_name` pair that appears in that list — values must match a real card.
 - Each card carries an `availability` status: `byok_configured` (the org's own
-  key pays), `byok_main_fallback` (ibl.ai's key pays), `gateway_credits` (served
-  under another host), `byok_missing` (add a key first). The status comes from
+  key pays, on whichever gateway that key opens, e.g. its Vertex key serving
+  Claude), `byok_main_fallback` (ibl.ai's key pays), `gateway_credits` (served
+  on ibl.ai credits, including an org-held `iblai` key), `byok_missing` (add a
+  key first). Only `byok_missing` sets `requires_credential`.
+- Each card also carries `gateway` / `gateway_label` (e.g. `"vertex"` /
+  `"Google Vertex AI"`): the gateway that will serve the model by the org's
+  gateway priority, set only when the org's own key pays; `null` on ibl.ai
+  credits. The status comes from
   the same gateway resolver chat uses, so the picker and runtime agree. The org's
   model allow-list hides models only when a key ibl.ai lends would pay, never
   when the org's own key does.
