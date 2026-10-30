@@ -185,7 +185,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
 | [`billing/`](skills/billing) | How you are charged, credits, spend caps, choosing a pricing rail | 5 |
-| [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 7 |
+| [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 8 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
 | [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores | 12 |

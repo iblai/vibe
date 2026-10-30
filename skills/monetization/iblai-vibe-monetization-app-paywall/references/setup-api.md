@@ -7,7 +7,9 @@ token (§4). This page is the reference behind that screen: every platform call 
 what each answers — and, for CI or debugging only, the same calls as curls with the
 organization's **platform API key** (`Authorization: Api-Token $TOKEN`, acting as
 `$IBLAI_USERNAME`). Never collect a Stripe key: it lives in the platform's credential store,
-and every call below goes through the platform's proxy.
+and every call below goes through the platform's proxy. The endpoint reference for that proxy —
+every route, field and status — is `/iblai-api-stripe-payment-proxy`; this page keeps the app's
+own sequence.
 
 ## 0. Shorthand
 

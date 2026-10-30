@@ -8,7 +8,7 @@ it produces. Both are enforced by `scripts/check-skill-kinds.mjs`.
 | `kind` | Prefix | What it does | What it produces | Credentials it uses | Count |
 |---|---|---|---|---|---|
 | **`ui`** | `iblai-vibe-*` | Mounts an SDK **visual component** in a Next.js app (a page, a tab, a dialog, a widget) | Files in your app: routes, components, providers; a screen you can screenshot | The signed-in user's session (SSO) in the browser; `IBLAI_API_KEY` only in server routes | 59 |
-| **`api`** | `iblai-api-*` (and three `iblai-vibe-*` that drive an API without a screen) | Operates the platform **headlessly** — exact REST endpoints (method, URL, body, errors), `curl` first | Nothing in your app unless you want it: the endpoint contract, a script, a CI job, a server route | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`; org key; username | 67 |
+| **`api`** | `iblai-api-*` (and three `iblai-vibe-*` that drive an API without a screen) | Operates the platform **headlessly** — exact REST endpoints (method, URL, body, errors), `curl` first | Nothing in your app unless you want it: the endpoint contract, a script, a CI job, a server route | `IBLAI_API_KEY` (Platform API Token) as `Authorization: Api-Token`; org key; username | 68 |
 | **`guide`** | either | Orients and decides — an index, a decision page, a reference. Builds nothing | A pointer to the skill that builds | — | 15 |
 | **`ops`** | `iblai-vibe-ops-*` and friends | Runs, tests, builds, deploys, releases, upgrades, polishes | Builds, URLs, store submissions, a refreshed project | `IBLAI_API_KEY` for deploys | 11 |
 | **`security`** | `iblai-vibe-security-*` | Authorized-use security work unrelated to the platform | Reports | — | 8 |
@@ -48,6 +48,7 @@ Most capabilities exist in both families. Pick by *where the code runs*:
 | Analytics | `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit` | `/iblai-api-analytics` |
 | Notifications | `/iblai-vibe-notification` | `/iblai-api-notification` |
 | Billing, credits, spend caps, paywalls | `/iblai-vibe-pricing` → `credit`, `billing`, `monetization*` | `/iblai-api-billing`, `/iblai-api-spend-caps` |
+| App paywall on the organization's own Stripe account | `/iblai-vibe-monetization-app-paywall` | `/iblai-api-stripe-payment-proxy` |
 | Courses, catalog, credentials, applications | `/iblai-vibe-course-access`, `/iblai-vibe-application` | `/iblai-api-catalog`, `-course-create`, `-credential`, `-apply`, `-milestone`, `-catalog-media`, `-catalog-invitation` |
 | Deploying and hosting the app | `/iblai-vibe-ops-deploy` (a guided runbook, kind `ops` — not a component) | `/iblai-api-hosting` |
 | Anything without a component | `/iblai-vibe-api` (server route + `Api-Token`) | the `iblai-api-*` skill for that family |

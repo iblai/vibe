@@ -14,7 +14,7 @@ six data families almost every app reads or writes (the section right below).
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, credits, spend caps, and which rail to charge your users on. | 5 |
-| [`monetization/`](#monetization) | Charge your users: pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics. | 7 |
+| [`monetization/`](#monetization) | Charge your users: the Stripe payment proxy, a pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics. | 8 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
 | [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 26 |
 | [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 12 |
@@ -188,10 +188,11 @@ word ("memory", "settings", "metadata") exists at four scopes.
 
 ## Monetization
 
-`skills/monetization/` — Charge your users: pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics.
+`skills/monetization/` — Charge your users: the Stripe payment proxy, a pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics.
 
 | Skill | Kind | What it does |
 |---|---|---|
+| [`/iblai-api-stripe-payment-proxy`](../skills/monetization/iblai-api-stripe-payment-proxy/SKILL.md) | 🔌 api | Drive an ibl.ai organization's own Stripe account through the platform's Stripe payment proxy |
 | [`/iblai-vibe-monetization`](../skills/monetization/iblai-vibe-monetization/SKILL.md) | 📖 guide | Reference and family index for ibl.ai's item-level monetization system |
 | [`/iblai-vibe-monetization-analytics`](../skills/monetization/iblai-vibe-monetization-analytics/SKILL.md) | 🖥️ ui | Add revenue analytics for ibl.ai's item monetization |
 | [`/iblai-vibe-monetization-app-paywall`](../skills/monetization/iblai-vibe-monetization-app-paywall/SKILL.md) | 🖥️ ui | Put a Stripe "pay to enter" gate on a whole app on the organization's OWN Stripe account |
@@ -276,4 +277,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 160 skills.
+Total: 161 skills.

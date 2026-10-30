@@ -8,7 +8,7 @@ only puts the two rails side by side.
 The app holds no platform key: the admin's setup page and the buyer's pay modal run on each
 person's own session token (`Authorization: Token <dm_token>`), on their own username path.
 Base: `…/dm/api/ai-mentor/orgs/{org}/users/{username}/providers/stripe/` — `payments/` (the
-Stripe proxy) and `connect/` (Connect with Stripe).
+Stripe proxy) and `connect/` (Connect with Stripe). Endpoint reference: `/iblai-api-stripe-payment-proxy`.
 
 | Step | Who, how | Call | Notes |
 |---|---|---|---|
