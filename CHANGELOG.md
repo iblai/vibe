@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.18.0] - 2026-10-30
+
+### Added
+
+- user/admin switch + help center + course content progress, dates, discussions new ui update
+
 ## [2.17.0] - 2026-10-29
 
 ### Added
