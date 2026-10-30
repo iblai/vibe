@@ -34,6 +34,7 @@ const env = {
     process.env.NEXT_PUBLIC_PLATFORM_BASE_DOMAIN,
   NEXT_PUBLIC_TAURI_CUSTOM_SCHEME: process.env.NEXT_PUBLIC_TAURI_CUSTOM_SCHEME,
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 };
 
 const runtimeEnv = () =>
@@ -104,6 +105,12 @@ export const config = {
   supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
   // What the browser tab and the setup screen call the app (two or three Title Case words).
   appName: () => getEnv("NEXT_PUBLIC_APP_NAME", ""),
+  // Where a $0 checkout returns the user: this page's origin unless set. An
+  // ibl.ai official app sets its hosted origin (https://<app>.iblai.me).
+  appUrl: () =>
+    (getEnv("NEXT_PUBLIC_APP_URL") ||
+      (typeof window !== "undefined" ? window.location.origin : "")
+    ).replace(/\/+$/, ""),
   tauriCustomScheme: () => getEnv("NEXT_PUBLIC_TAURI_CUSTOM_SCHEME", ""),
   platformBaseDomain: () => domain(),
 } as const;

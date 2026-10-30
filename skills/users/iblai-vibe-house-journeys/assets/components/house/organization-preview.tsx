@@ -59,7 +59,7 @@ export function OrganizationPreview({ org, app = "mentor" }: { org: string; app?
             type="button"
             className={outlined}
             onClick={() =>
-              window.location.assign(createOrganizationUrl(window.location.origin, readUserEmail(), app))
+              window.location.assign(createOrganizationUrl(config.appUrl(), readUserEmail(), app))
             }
           >
             {t("create")}

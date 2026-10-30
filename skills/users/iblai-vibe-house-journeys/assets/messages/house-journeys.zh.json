@@ -6,6 +6,9 @@
       "create": "创建你自己的组织",
       "back": "返回我的组织"
     },
+    "sample": {
+      "body": "您正在查看示例数据。您自己的组织从空白开始，由您管理。"
+    },
     "onboarding": {
       "meetTitle": "认识 {name}",
       "meetBody": "你的组织的智能体随时为你服务。",

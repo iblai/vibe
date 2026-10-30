@@ -6,6 +6,9 @@
       "create": "Crear tu propia organización",
       "back": "Volver a mi organización"
     },
+    "sample": {
+      "body": "Estás viendo datos de muestra. Tu propia organización empieza vacía y es tuya para dirigirla."
+    },
     "onboarding": {
       "meetTitle": "Conoce a {name}",
       "meetBody": "El agente de tu organización está listo cuando tú lo estés.",

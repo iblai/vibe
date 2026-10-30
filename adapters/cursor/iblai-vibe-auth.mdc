@@ -401,7 +401,13 @@ version is `providers/index.tsx` in [iblai/os](https://github.com/iblai/os):
    `useParams()`; keep `resolveAppTenant()` for the default org.
 2. **Providers** — `TenantProvider currentTenant={stored} requestedTenant={fromRoute}`
    with `saveUserTokens`, `saveUserTenants`, `saveCurrentTenant`, `saveTenant`
-   implemented (the starter's `iblai-providers.tsx` already has them).
+   implemented (the starter's `iblai-providers.tsx` already has them). Replace the
+   starter's single-org `handleTenantSwitch`, which re-authenticates into
+   `resolveAppTenant()`: hand the SDK's own `(tenant, saveRedirect)` to the switch of
+   move 3. The SDK moves a user holding exactly `[main, X]` to X, and any other
+   target leaves the loading screen up or loops through the sign-in. Add
+   `onTenantMismatch` that goes to `/` unless `isTenantSwitchInProgress()`, so a
+   route still naming another org lands on the user's own.
 3. **Switching** — `UserProfileDropdown showTenantSwitcher` (or `TenantSwitcher`)
    → `handleTenantSwitch(org, { authUrl })` from `@iblai/iblai-js/web-utils`:
    clears storage, re-enters the SPA with `tenant=`, broadcasts to other tabs.

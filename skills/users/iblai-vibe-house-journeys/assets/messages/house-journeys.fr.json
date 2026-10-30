@@ -6,6 +6,9 @@
       "create": "Créer votre propre organisation",
       "back": "Retour à mon organisation"
     },
+    "sample": {
+      "body": "Vous consultez des données fictives. Votre propre organisation démarre vide et vous appartient."
+    },
     "onboarding": {
       "meetTitle": "Rencontrez {name}",
       "meetBody": "L’agent de votre organisation est prêt quand vous l’êtes.",

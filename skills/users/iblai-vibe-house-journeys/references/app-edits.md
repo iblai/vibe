@@ -1,6 +1,6 @@
 # The app edits, in full
 
-The seven edits `/iblai-vibe-house-journeys` Step 3 makes to a house-shell app, shown on the
+The eight edits `/iblai-vibe-house-journeys` Step 3 makes to a house-shell app, shown on the
 SIS's files (the CRM and the wallet differ only in paths). Each hunk is what the rehearsal
 applied; copy them, then `pnpm typecheck && pnpm lint && pnpm test`.
 
@@ -59,6 +59,27 @@ through the SDK's own query — a cold load right after sign-in has none in stor
 `onAuthFailure` stays as it is: the once-only re-sign-in without an organization when a
 remembered community organization refused the user, then the 403 page.
 
+The switch, if the providers still carry vibe-starter's single-org handler: the $0 checkout
+leaves the user holding `main` and their new organization, and the SDK moves such a user to
+the new one through `handleTenantSwitch`. Hand it the SDK's own tenant (the app's wrapper
+around the SDK switch in `lib/iblai/auth-utils.ts`), and send a route still naming another
+organization home:
+
+```diff
+-          handleTenantSwitch={async () => {
+-            const tenant = resolveAppTenant();
+-            redirectToAuthSpa(undefined, tenant, false, true);
+-          }}
++          handleTenantSwitch={async (tenant: string, saveRedirect: boolean) => {
++            await handleTenantSwitch(tenant, saveRedirect);
++          }}
++          onTenantMismatch={() => {
++            // A stale tab legitimately sees its old route during a switch window.
++            if (isTenantSwitchInProgress()) return;
++            window.location.href = "/";
++          }}
+```
+
 ## 2. `lib/iblai/tenant.ts` — the landing organization
 
 A user whose only organization is the community one lands on it (the trial-gated shell)
@@ -87,12 +108,13 @@ and is null when signed out").
 -import { NOTICE_PRIMARY, NOTICE_SECONDARY, NoticeCard } from "@/components/notice-card";
 +import { FirstRunGate } from "@/components/house/first-run-gate";
 +import { OrganizationPreview } from "@/components/house/organization-preview";
++import { SampleNotice } from "@/components/house/sample-notice";
 +import { UpgradeModal } from "@/components/house/upgrade-modal";
  …
 -import { handleLogout, handleTenantSwitch } from "@/lib/iblai/auth-utils";
 -import { tenantDisplayName } from "@/lib/iblai/tenant";
 +import { readStoredTenantKey } from "@/lib/iblai/tenant";
-+import { decideEntry } from "@/lib/iblai/house-journeys";
++import { decideEntry, isTrialUser } from "@/lib/iblai/house-journeys";
  …
  export default function TenantLayout({ children }: { children: ReactNode }) {
 -  const { isAdmin, tenantKey } = useSession();
@@ -111,6 +133,7 @@ and is null when signed out").
        <TooltipProvider>
  …
                          >
++                          {isTrialUser(tenantKey, tenants) ? <SampleNotice /> : null}
 -                          {children}
 +                          <FirstRunGate org={tenantKey} isAdmin={isAdmin}>
 +                            {children}
@@ -120,7 +143,8 @@ and is null when signed out").
 
 The `NoSchoolNotice` component and the imports only it used (`useTranslations`,
 `NoticeCard`, `handleLogout`, `handleTenantSwitch`, `tenantDisplayName`) go. The community
-organization renders the shell like any other; your pages show their empty state there.
+organization renders the shell like any other, and a trial user's pages render the sample
+under the notice (edit 8).
 
 ## 4. `components/sis/app-sidebar.tsx` — the trial-gated cluster
 
@@ -184,15 +208,20 @@ organization renders the shell like any other; your pages show their empty state
     { "id": "H5", "name": "an admin who has not finished the setup flow is sent to it once: organization, sector, team, done" },
     { "id": "H6", "name": "an admin who finished it stays home" },
     { "id": "H7", "name": "a member is sent to the organization's form, answers it, sees the final step and lands home" },
-    { "id": "H8", "name": "with nothing configured, /onboarding says so and Continue goes home" }
+    { "id": "H8", "name": "with nothing configured, /onboarding says so and Continue goes home" },
+    { "id": "H9", "name": "the community organization runs on the sample, and its notice opens the upgrade dialog" },
+    { "id": "H10", "name": "Upgrade for free opens this app's $0 checkout" },
+    { "id": "H11", "name": "still on the community organization while the platform lists their own, the SDK moves them to it" }
   ]
 }
 ```
 
-`summary.totalCheckpoints` + 8, `summary.totalJourneys` + 1, and a `house` row in
-`e2e/COVERAGE.md`: "the three first-run journeys: the community organization trial-gated with
-the upgrade dialog, the preview of another organization (Join, Create your own), the admin
-setup flow and the member form at `/onboarding`".
+`summary.totalCheckpoints` + 11, `summary.totalJourneys` + 1, and a `house` row in
+`e2e/COVERAGE.md`: "the three first-run journeys: the community organization trial-gated on
+the sample with the upgrade dialog, the preview of another organization (Join, Create your
+own), the admin setup flow and the member form at `/onboarding`, and the session a checkout
+returns to". The app's own sample checkpoints (a record opens, a write upgrades and sends
+nothing) join the journey of the pages they visit.
 
 ## 7. `e2e/auth.setup.ts` — the admin's first run, once
 
@@ -222,6 +251,40 @@ own journeys (which open Setup as the admin) keep working. Idempotent: the secon
      // 1. Year and term.
      await open(page, "/setup?tab=terms", /^Setup\b/);
 ```
+
+## 8. The base query — the sample's seam
+
+Every slice the app defines goes through one base query; wrap it once:
+
+```diff
++import { withSample } from "@/lib/iblai/sample-seam";
++import { sampleResponse } from "@/lib/<app>/sample/respond";
+ …
+ export const appApi = createApi({
+   reducerPath: "appApi",
+-  baseQuery: rawBaseQuery,
++  // On the community organization the sample answers; nothing reaches the platform.
++  baseQuery: withSample(rawBaseQuery, sampleResponse),
+```
+
+`sampleResponse` answers the app's own reads from `lib/<app>/sample/data.ts` and returns
+`undefined` for the rest, which the seam turns into the upgrade dialog:
+
+```text
+// lib/<app>/sample/respond.ts
+export function sampleResponse(method: string, url: string): unknown {
+  if (method !== "GET") return undefined;
+  const path = new URL(url, "https://sample.invalid").pathname;
+  if (/\/things\/$/.test(path)) return { results: THINGS, count: THINGS.length };
+  const one = path.match(/\/things\/([^/]+)\/$/);
+  return one ? THINGS.find((t) => t.id === one[1]) : undefined;
+}
+```
+
+An app with several base queries (the SIS has one per backend) wraps each. The SIS, the CRM
+and recruit carry this seam inside their own base query; the wallet, which reads through
+SDK hooks, swaps its data source instead (`isSampleWallet` → a read-only source whose every
+action opens the dialog).
 
 ## The 402
 

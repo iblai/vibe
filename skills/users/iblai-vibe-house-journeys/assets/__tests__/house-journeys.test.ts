@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createOrganizationUrl,
   decideEntry,
@@ -8,6 +8,12 @@ import {
   onboardingFlow,
   ownOrg,
 } from "../lib/iblai/house-journeys";
+import { onSample, withSample } from "../lib/iblai/sample-seam";
+
+// The seam's one SDK call: the upgrade dialog's action.
+vi.mock("@iblai/iblai-js/web-utils", () => ({
+  setOpenPricingModal: (open: boolean) => ({ type: "subscription/setOpenPricingModal", payload: open }),
+}));
 
 const main = "main";
 const mainOnly = [{ key: "main", is_admin: false }];
@@ -104,5 +110,36 @@ describe("firstRunTarget", () => {
     expect(firstRunTarget({ isAdmin: false, completed: false, formReady: true, submitted: false })).toBe("user");
     expect(firstRunTarget({ isAdmin: false, completed: false, formReady: true, submitted: true })).toBeNull();
     expect(firstRunTarget({ isAdmin: false, completed: false, formReady: false, submitted: false })).toBeNull();
+  });
+});
+
+describe("withSample", () => {
+  const live = vi.fn(async () => ({ data: "live" }));
+  const respond = (method: string, url: string) => (method === "GET" && url === "/things/" ? ["sample"] : undefined);
+
+  it("leaves a real organization's calls to the platform", async () => {
+    const dispatch = vi.fn();
+    expect(await withSample(live, respond, () => false)("/things/", { dispatch } as never, {})).toEqual({ data: "live" });
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+  it("answers a sample read without the platform", async () => {
+    live.mockClear();
+    expect(await withSample(live, respond, () => true)("/things/", { dispatch: vi.fn() } as never, {})).toEqual({
+      data: ["sample"],
+    });
+    expect(live).not.toHaveBeenCalled();
+  });
+  it("turns anything else into the upgrade dialog and sends nothing", async () => {
+    live.mockClear();
+    const dispatch = vi.fn();
+    const write = { url: "/things/", method: "POST", body: { name: "x" } };
+    expect(await withSample(live, respond, () => true)(write, { dispatch } as never, {})).toEqual({
+      error: { status: "SAMPLE" },
+    });
+    expect(dispatch).toHaveBeenCalledWith({ type: "subscription/setOpenPricingModal", payload: true });
+    expect(live).not.toHaveBeenCalled();
+  });
+  it("is off where there is no page", () => {
+    expect(onSample()).toBe(false);
   });
 });

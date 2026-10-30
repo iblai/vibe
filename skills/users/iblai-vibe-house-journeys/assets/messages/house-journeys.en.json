@@ -6,6 +6,9 @@
       "create": "Create your own organization",
       "back": "Back to my organization"
     },
+    "sample": {
+      "body": "You’re looking at sample data. Your own organization starts empty and is yours to run."
+    },
     "onboarding": {
       "meetTitle": "Meet {name}",
       "meetBody": "Your organization’s agent is ready whenever you are.",

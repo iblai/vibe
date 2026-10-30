@@ -3,8 +3,9 @@ import { test, expect, type Page } from "@playwright/test";
 /**
  * House journeys — the first-run paths of an ibl.ai official app
  * (/iblai-vibe-house-journeys): a user whose only organization is the
- * community one (H1–H2), a visitor on an organization they do not belong to
- * (H3–H4), an admin's first run (H5–H6) and a member's (H7–H8).
+ * community one (H1–H2, the sample H9–H10), a visitor on an organization they
+ * do not belong to (H3–H4), an admin's first run (H5–H6), a member's (H7–H8),
+ * and the session a $0 checkout returns to (H11).
  * Organization-wide state is served with page.route and never written; the
  * accounts' own metadata writes are answered by the route, so they stay fresh.
  * Signed in through auth.setup.ts; the member tests skip until
@@ -12,6 +13,10 @@ import { test, expect, type Page } from "@playwright/test";
  */
 const appHost = process.env.APP_HOST || "http://localhost:3000";
 const MAIN = process.env.NEXT_PUBLIC_MAIN_TENANT_KEY || "main";
+// Where the $0 checkout returns: `config.appUrl()`. An app whose config defaults to its hosted origin puts it here.
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || appHost).replace(/\/+$/, "");
+// Answers a navigation the test only inspects; a 204 never commits, and a click waits for it.
+const stub = { contentType: "text/html", body: "<title>stub</title>" };
 const stamp = Date.now().toString(36);
 const noMember = !process.env.PLAYWRIGHT_MEMBER_USERNAME || !process.env.PLAYWRIGHT_MEMBER_PASSWORD;
 const NO_MEMBER = "no member account in e2e/.env.development (PLAYWRIGHT_MEMBER_*): pnpm e2e:accounts creates one";
@@ -27,6 +32,18 @@ async function landedOrg(page: Page): Promise<string> {
   return decodeURIComponent(new URL(page.url()).pathname.split("/")[2]);
 }
 
+/** web-utils 2.18 reads an organization's metadata from the membership list: serve `edit` there too. */
+async function editListedMetadata(page: Page, edit: (metadata: Record<string, unknown>) => Record<string, unknown>) {
+  await page.route(/\/api\/core\/users\/platforms\//, async (route) => {
+    const res = await route.fetch();
+    const all = (await res.json()) as { key: string; metadata?: Record<string, unknown> }[];
+    await route.fulfill({
+      response: res,
+      json: all.map((p) => (p.key === MAIN ? p : { ...p, metadata: edit(p.metadata ?? {}) })),
+    });
+  });
+}
+
 const memberState = async ({ browserName }: { browserName: string }, use: (state: string) => Promise<void>) => {
   await use(`playwright/.auth/member-${browserName}.json`);
 };
@@ -35,11 +52,17 @@ test.describe("a user whose only organization is the community one", () => {
   test.skip(noMember, NO_MEMBER);
   test.use({ storageState: memberState });
   // The member account's session, told it belongs to the community organization
-  // only — in storage and by the platform's membership list, which the SDK
-  // re-reads on every load.
+  // only — in storage and by both membership lists, which the SDK re-reads on
+  // every load.
   test.beforeEach(async ({ page }) => {
     const entry = { key: MAIN, org: MAIN, platform_name: "ibl.ai", is_admin: false, show_paywall: true };
     await page.route(/\/api\/ibl\/users\/manage\/platform\//, (route) => route.fulfill({ json: [entry] }));
+    // The list newer web-utils reads: the member's real memberships, `main` alone kept.
+    await page.route(/\/api\/core\/users\/platforms\//, async (route) => {
+      const res = await route.fetch();
+      const all = (await res.json()) as { key: string }[];
+      await route.fulfill({ response: res, json: all.filter((p) => p.key === MAIN) });
+    });
     await page.addInitScript((only: typeof entry) => {
       localStorage.setItem("tenants", JSON.stringify([only]));
       localStorage.setItem("tenant", only.key);
@@ -62,6 +85,28 @@ test.describe("a user whose only organization is the community one", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
   });
+
+  test("H9 · the community organization runs on the sample, and its notice opens the upgrade dialog", async ({ page }) => {
+    await page.goto(`${appHost}/platform/${encodeURIComponent(MAIN)}`);
+    const notice = page.getByTestId("sample-notice");
+    await expect(notice).toContainText("sample data", { timeout: 30_000 });
+    await notice.getByRole("button", { name: "Create your own organization" }).click();
+    await expect(page.getByRole("dialog")).toContainText("Upgrade for free", { timeout: 15_000 });
+  });
+
+  test("H10 · Upgrade for free opens this app's $0 checkout", async ({ page }) => {
+    let checkout = "";
+    await page.route(/credits-free-plan/, (route) => {
+      checkout = route.request().url();
+      return route.fulfill(stub);
+    });
+    await page.goto(`${appHost}/platform/${encodeURIComponent(MAIN)}`);
+    await page.getByTestId("sample-notice").getByRole("button", { name: "Create your own organization" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Upgrade for free" }).click();
+    await expect.poll(() => checkout).toContain("/api/service/stripe/checkout/redirect/credits-free-plan/");
+    const back = new URL(new URL(checkout).searchParams.get("redirect_url") ?? "");
+    expect(back.searchParams.get("redirect-to")).toBe(appUrl);
+  });
 });
 
 test.describe("a visitor on an organization they do not belong to", () => {
@@ -73,7 +118,7 @@ test.describe("a visitor on an organization they do not belong to", () => {
     let joinUrl = "";
     await page.route(/\/join\?tenant=/, (route) => {
       joinUrl = route.request().url();
-      return route.fulfill({ status: 204, body: "" });
+      return route.fulfill(stub);
     });
     await page.goto(`${appHost}/platform/${stranger}`);
     const preview = page.getByTestId("organization-preview");
@@ -90,7 +135,7 @@ test.describe("a visitor on an organization they do not belong to", () => {
     let checkout = "";
     await page.route(/credits-free-plan/, (route) => {
       checkout = route.request().url();
-      return route.fulfill({ status: 204, body: "" });
+      return route.fulfill(stub);
     });
     await page.goto(`${appHost}/platform/${stranger}`);
     await page
@@ -99,7 +144,7 @@ test.describe("a visitor on an organization they do not belong to", () => {
       .click();
     await expect.poll(() => checkout).toContain("/api/service/stripe/checkout/redirect/credits-free-plan/");
     const back = new URL(checkout).searchParams.get("redirect_url") ?? "";
-    expect(new URL(back).searchParams.get("redirect-to")).toBe(appHost);
+    expect(new URL(back).searchParams.get("redirect-to")).toBe(appUrl);
   });
 });
 
@@ -176,6 +221,7 @@ test.describe("a member's first run", () => {
       written = sent?.metadata ?? sent ?? {};
       return route.fulfill({ json: { metadata: written } });
     });
+    await editListedMetadata(page, (metadata) => ({ ...metadata, ...written, user_onboarding_form: form }));
     const org = await landedOrg(page);
     await expect(page).toHaveURL(onboarding(org), { timeout: 30_000 });
     await page.getByLabel("Your role").fill("Student");
@@ -192,5 +238,28 @@ test.describe("a member's first run", () => {
     await expect(empty).toBeVisible({ timeout: 30_000 });
     await empty.getByRole("button").click();
     await expect(page).toHaveURL(home(org), { timeout: 30_000 });
+  });
+});
+
+test.describe("the session a $0 checkout returns to", () => {
+  test("H11 · still on the community organization while the platform lists their own, the SDK moves them to it", async ({
+    page,
+  }) => {
+    await page.route(/\/login\/complete\?/, (route) => route.fulfill(stub));
+    const own = await landedOrg(page);
+    const keys = await page.evaluate(() =>
+      (JSON.parse(localStorage.getItem("tenants") ?? "[]") as { key: string }[]).map((t) => t.key),
+    );
+    // The SDK's two-organization rule: a user holding exactly [main, X] is moved to X.
+    expect(keys.sort()).toEqual([MAIN, own].sort());
+    await page.evaluate((main) => {
+      const entry = { key: main, org: main, platform_name: "ibl.ai", is_admin: false };
+      localStorage.setItem("tenant", main);
+      localStorage.setItem("current_tenant", JSON.stringify(entry));
+      localStorage.setItem("tenants", JSON.stringify([entry]));
+    }, MAIN);
+    await page.goto(`${appHost}/`);
+    await page.waitForURL(/\/login\/complete\?/, { timeout: 30_000 });
+    expect(new URL(page.url()).searchParams.get("tenant")).toBe(own);
   });
 });

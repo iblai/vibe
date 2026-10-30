@@ -36,6 +36,7 @@ const env = {
   NEXT_PUBLIC_DEFAULT_AGENT_ID: process.env.NEXT_PUBLIC_DEFAULT_AGENT_ID,
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
   NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 };
 
 declare global {
@@ -114,6 +115,12 @@ const config = {
   // Title Case words ("Acme Support"), never a slug.
   appName: () => getEnv("NEXT_PUBLIC_APP_NAME", ""),
   supportEmail: () => getEnv("NEXT_PUBLIC_SUPPORT_EMAIL", "support@ibl.ai"),
+  // Where a $0 checkout returns the user: this page's origin unless set. An
+  // ibl.ai official app sets its hosted origin (https://<app>.iblai.me).
+  appUrl: () =>
+    (getEnv("NEXT_PUBLIC_APP_URL") ||
+      (typeof window !== "undefined" ? window.location.origin : "")
+    ).replace(/\/+$/, ""),
 
   // Server-only: IBLAI_API_KEY is a secret and not NEXT_PUBLIC_*, so Next.js
   // never inlines it into the client bundle — in the browser this returns "".

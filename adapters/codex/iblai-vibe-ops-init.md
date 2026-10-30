@@ -399,7 +399,7 @@ import { SsoLogin, UserProfileDropdown, Account, Chat, AgentSearch } from "@ibla
 `TOKEN`, optional `IBLAI_USERNAME`. `.env.local` (gitignored) is what Next.js
 reads: `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`), `IBLAI_API_KEY`
 (= `TOKEN`), optional `NEXT_PUBLIC_DEFAULT_AGENT_ID`, `NEXT_PUBLIC_APP_NAME`,
-`NEXT_PUBLIC_SUPPORT_EMAIL`. The API/auth/websocket URLs default to hosted
+`NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_APP_URL` (where a $0 checkout returns). The API/auth/websocket URLs default to hosted
 iblai.app in `lib/iblai/config.ts`; override only when self-hosting
 (`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN`, `NEXT_PUBLIC_API_BASE_URL`, the sign-in
 URL). When the host exports `IBLAI_API_KEY` / `IBLAI_PLATFORM_KEY` /

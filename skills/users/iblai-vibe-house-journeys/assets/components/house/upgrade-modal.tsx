@@ -3,7 +3,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import { UpgradePackageModal } from "@iblai/iblai-js/web-containers";
 import { setOpenPricingModal } from "@iblai/iblai-js/web-utils";
-import { loginReturnUrl, mainOrg, readUserEmail } from "@/lib/iblai/house-journeys";
+import config from "@/lib/iblai/config";
+import { createOrganizationUrl, loginReturnUrl, mainOrg, readUserEmail } from "@/lib/iblai/house-journeys";
 
 type State = { subscription?: { openPricingModal?: boolean } };
 
@@ -11,7 +12,8 @@ type State = { subscription?: { openPricingModal?: boolean } };
  * The SDK's "Upgrade for free" dialog — the $0 checkout that gives a user on
  * the community organization one of their own. Opened by any trial-gated
  * click (`setOpenPricingModal(true)`) and by a 402 that carries a pricing
- * table; the platform returns them into this app on the new organization.
+ * table. Upgrade for free goes straight to the $0 checkout, which returns them
+ * into this app (`config.appUrl()`) on the new organization.
  * Mount once in the platform layout.
  */
 export function UpgradeModal({ org, app = "mentor" }: { org: string; app?: string }) {
@@ -22,7 +24,8 @@ export function UpgradeModal({ org, app = "mentor" }: { org: string; app?: strin
     <UpgradePackageModal
       open
       onClose={() => dispatch(setOpenPricingModal(false))}
-      redirectUrl={loginReturnUrl(window.location.origin, app)}
+      redirectUrl={loginReturnUrl(config.appUrl(), app)}
+      checkoutUrl={createOrganizationUrl(config.appUrl(), readUserEmail(), app)}
       sourcePlatformKey={org}
       mainPlatformKey={mainOrg()}
       currentUserEmail={readUserEmail()}
