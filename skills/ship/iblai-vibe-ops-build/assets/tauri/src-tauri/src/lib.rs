@@ -216,25 +216,23 @@ fn open_with_auth_session(url: &str, app_handle: &tauri::AppHandle) -> Result<()
         };
 
         let app_handle_clone = app_handle.clone();
-        let block = ConcreteBlock::new(
-            move |callback_url: *mut Object, error: *mut Object| unsafe {
-                if !callback_url.is_null() {
-                    let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
-                    let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
-                    if !url_c_str.is_null() {
-                        let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
-                        handle_deep_link_url(&app_handle_clone, &url_str);
-                    }
-                } else if !error.is_null() {
-                    let description: *mut Object = msg_send![error, localizedDescription];
-                    let c_str: *const i8 = msg_send![description, UTF8String];
-                    if !c_str.is_null() {
-                        let error_str = CStr::from_ptr(c_str);
-                        println!("[ibl.ai] ASWebAuthenticationSession error: {:?}", error_str);
-                    }
+        let block = ConcreteBlock::new(move |callback_url: *mut Object, error: *mut Object| {
+            if !callback_url.is_null() {
+                let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
+                let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
+                if !url_c_str.is_null() {
+                    let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
+                    handle_deep_link_url(&app_handle_clone, &url_str);
                 }
-            },
-        );
+            } else if !error.is_null() {
+                let description: *mut Object = msg_send![error, localizedDescription];
+                let c_str: *const i8 = msg_send![description, UTF8String];
+                if !c_str.is_null() {
+                    let error_str = CStr::from_ptr(c_str);
+                    println!("[ibl.ai] ASWebAuthenticationSession error: {:?}", error_str);
+                }
+            }
+        });
         let block = block.copy();
 
         let session: *mut Object = msg_send![auth_session_class, alloc];
@@ -361,28 +359,26 @@ fn open_with_auth_session_macos(url: &str, app_handle: &tauri::AppHandle) -> Res
         };
 
         let app_handle_clone = app_handle.clone();
-        let block = ConcreteBlock::new(
-            move |callback_url: *mut Object, error: *mut Object| unsafe {
-                if !callback_url.is_null() {
-                    let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
-                    let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
-                    if !url_c_str.is_null() {
-                        let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
-                        handle_auth_session_callback_macos(&app_handle_clone, &url_str);
-                    }
-                } else if !error.is_null() {
-                    let description: *mut Object = msg_send![error, localizedDescription];
-                    let c_str: *const i8 = msg_send![description, UTF8String];
-                    if !c_str.is_null() {
-                        let error_str = CStr::from_ptr(c_str);
-                        println!(
-                            "[ibl.ai] macOS ASWebAuthenticationSession error: {:?}",
-                            error_str
-                        );
-                    }
+        let block = ConcreteBlock::new(move |callback_url: *mut Object, error: *mut Object| {
+            if !callback_url.is_null() {
+                let url_string_ns: *mut Object = msg_send![callback_url, absoluteString];
+                let url_c_str: *const i8 = msg_send![url_string_ns, UTF8String];
+                if !url_c_str.is_null() {
+                    let url_str = CStr::from_ptr(url_c_str).to_string_lossy().to_string();
+                    handle_auth_session_callback_macos(&app_handle_clone, &url_str);
                 }
-            },
-        );
+            } else if !error.is_null() {
+                let description: *mut Object = msg_send![error, localizedDescription];
+                let c_str: *const i8 = msg_send![description, UTF8String];
+                if !c_str.is_null() {
+                    let error_str = CStr::from_ptr(c_str);
+                    println!(
+                        "[ibl.ai] macOS ASWebAuthenticationSession error: {:?}",
+                        error_str
+                    );
+                }
+            }
+        });
         let block = block.copy();
 
         let session: *mut Object = msg_send![auth_session_class, alloc];
