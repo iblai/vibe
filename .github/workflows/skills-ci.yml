@@ -25,7 +25,8 @@ jobs:
   # step, not a job-level if: — a skipped job counts as a passing required check.
   deterministic:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    # Pinned: the starter's Playwright must know the runner's Ubuntu release.
+    runs-on: ubuntu-24.04
     steps:
       - name: run-tests label present
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'run-tests') }}
@@ -197,6 +198,7 @@ jobs:
         if: steps.changed.outputs.shell == 'true'
         with:
           workspaces: .skill-tests/tauri-shell/src-tauri
+          cache-on-failure: true
 
       - uses: actions/setup-node@v4
         if: steps.changed.outputs.shell == 'true'
@@ -215,7 +217,7 @@ jobs:
       github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'run-tests') &&
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -260,7 +262,7 @@ jobs:
   # Playwright output stay in files; no artifacts are uploaded.
   live:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

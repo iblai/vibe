@@ -3,9 +3,9 @@
 #
 # A scratch app is built from the skill's assets alone (src-tauri + icons) with
 # its frontendDist pointed at a local page, then: cargo fmt --check, cargo test
-# with warnings denied, `tauri build --bundles appimage`, and a headless run
-# under xvfb whose log must show the navigation guard blocking a foreign iframe
-# and a redirect while the app's own origin and an allowed iframe load.
+# with warnings denied, `tauri build --bundles appimage`, and a headless run of
+# the release binary under xvfb: the page and an allowed iframe must be served,
+# and the guard must log a foreign iframe and a redirect as blocked.
 #
 #   bash scripts/test-tauri-shell.sh            # everything
 #   bash scripts/test-tauri-shell.sh --prepare  # only sync the scratch (CI runs it before the Rust cache step)
@@ -96,23 +96,34 @@ say "AppImage contents"
 ls "$SCRATCH"/squashfs-root/*.desktop >/dev/null 2>&1 || fail "no .desktop entry in the AppImage"
 cat "$SCRATCH"/squashfs-root/*.desktop
 
-say "headless run (xvfb, 20 s) against http://127.0.0.1:$PORT"
-python3 -I -m http.server "$PORT" --bind 127.0.0.1 --directory "$SCRATCH/site" >/dev/null 2>&1 &
+# The run uses the release binary on the system WebKitGTK (no AppRun env);
+# WEBKIT_DISABLE_COMPOSITING_MODE is Tauri's recipe for VMs and headless X.
+BIN="$SCRATCH/src-tauri/target/release/my-app"
+[[ -x "$BIN" ]] || fail "no release binary at $BIN"
+LOG="$SCRATCH/run.log"
+SRVLOG="$SCRATCH/server.log"
+say "headless run (xvfb, 25 s) of the release binary against http://127.0.0.1:$PORT"
+python3 -I -m http.server "$PORT" --bind 127.0.0.1 --directory "$SCRATCH/site" >"$SRVLOG" 2>&1 &
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$SRV" 2>/dev/null || fail "the test server did not start (is port $PORT busy?)"
-LOG="$SCRATCH/run.log"
-WEBKIT_DISABLE_DMABUF_RENDERER=1 xvfb-run -a timeout 20 "$SCRATCH/squashfs-root/AppRun" >"$LOG" 2>&1 || true
+rc=0
+WEBKIT_DISABLE_COMPOSITING_MODE=1 xvfb-run -a timeout 25 "$BIN" >"$LOG" 2>&1 || rc=$?
+echo "app exit code: $rc (124 = ran until the cap, as expected)"
 
 ok=1
+grep -q 'GET / ' "$SRVLOG" || { echo "missing: the page was never requested — the webview did not load the app"; ok=0; }
+grep -q 'GET /ok.html' "$SRVLOG" || { echo "missing: the allowed iframe was never requested"; ok=0; }
 grep -q 'blocked navigation: https://example.com/' "$LOG" || { echo "missing: the foreign iframe was not blocked"; ok=0; }
 grep -q 'blocked navigation: https://example.org/' "$LOG" || { echo "missing: the redirect was not blocked"; ok=0; }
 grep -q 'blocked navigation: http://127.0.0.1' "$LOG" && { echo "wrong: the app's own origin was blocked"; ok=0; }
 grep -q 'blocked navigation: http://localhost' "$LOG" && { echo "wrong: the allowed iframe was blocked"; ok=0; }
 if [[ "$ok" == 1 ]]; then
-  echo "PASS: the app and the allowed iframe loaded; the foreign iframe and the redirect were blocked"
+  echo "PASS: the app and the allowed iframe were served; the foreign iframe and the redirect were blocked"
 else
+  say "server.log"; cat "$SRVLOG"
   say "run.log"; cat "$LOG"
-  fail "the navigation guard did not behave as expected (see run.log above)"
+  say "webkit2gtk"; pkg-config --modversion webkit2gtk-4.1 2>/dev/null || echo "pkg-config: no webkit2gtk-4.1"
+  fail "the navigation guard did not behave as expected (see the logs above)"
 fi
