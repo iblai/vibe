@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.18.1] - 2026-11-02
+
+### Documentation
+
+- address re-review — enableRBAC, gated saves, Context Limits
+- address review — executeGatedAction type, enableRBAC meaning, copy and caching notes
+- address review — tenant-admin import, provider-wrapped switch dialog, picker shots
+- four sub-tabs, in-chat model change moved to the LLM tab
+- in-chat model change and the user models picker
+
 ## [2.18.0] - 2026-10-30
 
 ### Added
