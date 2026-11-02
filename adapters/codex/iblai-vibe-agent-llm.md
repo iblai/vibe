@@ -200,8 +200,9 @@ longer offered and offers **Remove It**; unticking the last model asks
 first (**Save with No Models?**). Users who are not admins see only the
 allowed models in the chat's model picker. The endpoints are in [`/iblai-api-rbac`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-api-rbac/SKILL.md).
 
-Under RBAC (`enableRBAC`) the switch follows the agent's field permissions
-for `enable_in_chat_llm_change` and is read-only without write access.
+The switch follows the agent's `permissions` entry for
+`enable_in_chat_llm_change`; with no entry, `enableRBAC` decides (`false`
+allows it, `true` hides it).
 
 ## Test ids
 

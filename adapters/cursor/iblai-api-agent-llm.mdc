@@ -72,7 +72,9 @@ curl -X PUT \
   credits. The status comes from
   the same gateway resolver chat uses, so the picker and runtime agree. The org's
   model allow-list hides models only when a key ibl.ai lends would pay, never
-  when the org's own key does.
+  when the org's own key does. It is a different list from User Models
+  (`/iblai-api-rbac` `llm-access`), which limits the models users who are not
+  admins can pick in the chat.
 - Gateway rule: of the gateways that serve the model, the org's own key first,
   then ibl.ai's key if the org may borrow it. Credential names are in
   `/iblai-api-integration`.
