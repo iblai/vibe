@@ -32,12 +32,12 @@ the servers once the folder is trusted; elsewhere Claude Code asks once):
 ```json
 {
   "mcpServers": {
-    "chrome-devtools": { "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] }
+    "chrome-devtools": { "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest", "--redactNetworkHeaders"] }
   }
 }
 ```
 
-For every project instead: `claude mcp add --scope user chrome-devtools -- npx -y chrome-devtools-mcp@latest`.
+For every project instead: `claude mcp add --scope user chrome-devtools -- npx -y chrome-devtools-mcp@latest --redactNetworkHeaders`.
 The first `npx` start can exceed the MCP startup timeout — `MCP_TIMEOUT=60000 claude`.
 To skip the per-call prompts the user may add `"mcp__chrome-devtools__*"` to
 `permissions.allow` in `.claude/settings.json` — their choice, not the skill's,
@@ -49,7 +49,7 @@ it; Codex reads it in a trusted project), or `~/.codex/config.toml` for every pr
 ```toml
 [mcp_servers.chrome-devtools]
 command = "npx"
-args = ["-y", "chrome-devtools-mcp@latest"]
+args = ["-y", "chrome-devtools-mcp@latest", "--redactNetworkHeaders"]
 ```
 
 Cursor — `.cursor/mcp.json`, the same shape as `.mcp.json` (vibe-starter and the
@@ -60,7 +60,7 @@ and a `command` array (vibe-starter and the scaffold ship it; the ibl.ai desktop
 app's Code mode runs opencode in the project directory, so it reads the file):
 
 ```json
-{ "mcp": { "chrome-devtools": { "type": "local", "command": ["npx", "-y", "chrome-devtools-mcp@latest"], "enabled": true } } }
+{ "mcp": { "chrome-devtools": { "type": "local", "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--redactNetworkHeaders"], "enabled": true } } }
 ```
 
 Flags (`npx -y chrome-devtools-mcp@latest --help`): `--headless` (no window —
@@ -68,7 +68,9 @@ only routes that need no sign-in can be touched), `--isolated` (a throwaway
 profile, so the sign-in is lost), `--browserUrl http://127.0.0.1:9222` (attach
 to a Chrome started with `--remote-debugging-port=9222` and its own
 `--user-data-dir` — the sandbox and CI option, never the main profile),
-`--channel`, `--executablePath`.
+`--channel`, `--executablePath`, and `--redactNetworkHeaders` (every config on
+this page sets it: without it `get_network_request` prints the request headers,
+the session token included).
 
 ### The tools, step by step
 
@@ -88,7 +90,7 @@ to a Chrome started with `--remote-debugging-port=9222` and its own
 
 ```bash
 claude -p "Run the /iblai-vibe-ops-test touch test on /" \
-  --mcp-config '{"mcpServers":{"chrome-devtools":{"command":"npx","args":["-y","chrome-devtools-mcp@latest","--headless"]}}}' \
+  --mcp-config '{"mcpServers":{"chrome-devtools":{"command":"npx","args":["-y","chrome-devtools-mcp@latest","--headless","--redactNetworkHeaders"]}}}' \
   --strict-mcp-config --allowedTools "mcp__chrome-devtools__*" --permission-mode dontAsk
 ```
 
