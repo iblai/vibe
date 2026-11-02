@@ -96,21 +96,39 @@ say "AppImage contents"
 ls "$SCRATCH"/squashfs-root/*.desktop >/dev/null 2>&1 || fail "no .desktop entry in the AppImage"
 cat "$SCRATCH"/squashfs-root/*.desktop
 
-# The run uses the release binary on the system WebKitGTK (no AppRun env);
-# WEBKIT_DISABLE_COMPOSITING_MODE is Tauri's recipe for VMs and headless X.
+# The run uses the release binary on the system WebKitGTK (no AppRun env). It
+# stops as soon as the redirect is logged, under a 90 s cap: on a machine with
+# no desktop session, WebKitGTK and tao wait for the desktop portal before the
+# first window shows (about 30 s together) unless the portal's D-Bus service
+# file is absent — skills-ci removes it, as Tauri's own CI does.
 BIN="$SCRATCH/src-tauri/target/release/my-app"
 [[ -x "$BIN" ]] || fail "no release binary at $BIN"
 LOG="$SCRATCH/run.log"
 SRVLOG="$SCRATCH/server.log"
-say "headless run (xvfb, 25 s) of the release binary against http://127.0.0.1:$PORT"
+CAP=90
+say "headless run (xvfb, up to $CAP s) of the release binary against http://127.0.0.1:$PORT"
 python3 -I -m http.server "$PORT" --bind 127.0.0.1 --directory "$SCRATCH/site" >"$SRVLOG" 2>&1 &
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$SRV" 2>/dev/null || fail "the test server did not start (is port $PORT busy?)"
+setsid xvfb-run -a timeout "$CAP" "$BIN" >"$LOG" 2>&1 &
+APP=$!
+t=0
+while (( t < CAP )); do
+  grep -q 'blocked navigation: https://example.org/' "$LOG" 2>/dev/null && break
+  kill -0 "$APP" 2>/dev/null || break
+  sleep 1
+  t=$((t + 1))
+done
+kill -TERM -- -"$APP" 2>/dev/null || true
 rc=0
-WEBKIT_DISABLE_COMPOSITING_MODE=1 xvfb-run -a timeout 25 "$BIN" >"$LOG" 2>&1 || rc=$?
-echo "app exit code: $rc (124 = ran until the cap, as expected)"
+wait "$APP" 2>/dev/null || rc=$?
+if grep -q 'blocked navigation: https://example.org/' "$LOG"; then
+  echo "redirect logged after ${t}s; app stopped (exit $rc)"
+else
+  echo "no redirect logged within ${t}s (exit $rc)"
+fi
 
 ok=1
 grep -q 'GET / ' "$SRVLOG" || { echo "missing: the page was never requested — the webview did not load the app"; ok=0; }
