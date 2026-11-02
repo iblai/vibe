@@ -33,7 +33,8 @@ they need it, not by which team owns it:
 | `agents/` | Chatting with, browsing, creating, and configuring agents — every settings tab, `ui` and `api` alike |
 | `users/` | Profiles, per-user data, memories, roles and admins, invitations, notifications, onboarding |
 | `organizations/` | Organization settings and metadata, branding, integrations and tokens, CRM |
-| `billing/` | Credits, spend caps, charging users |
+| `billing/` | How you are charged: credits, spend caps, choosing a pricing rail |
+| `monetization/` | Charging your users: app paywall, Stripe Connect onboarding, item paywalls, checkout, subscriptions, revenue analytics |
 | `analytics/` | Usage, users, topics, transcripts, costs, reports |
 | `content/` | Courses, catalog, credentials, admissions, other LMSs |
 | `ship/` | Test, deploy, native builds, stores, icons, polish, self-hosting |

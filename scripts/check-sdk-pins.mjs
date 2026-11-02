@@ -18,7 +18,7 @@
 // just major.minor), then run the check on the fixed content. Retired and
 // unknown-package violations are never auto-fixed and still exit 1.
 
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
@@ -43,6 +43,8 @@ const RETIRED = new Set([
 const ALLOWLIST = [];
 
 const FIX = process.argv.includes("--fix");
+// File args narrow the check to those paths (CI passes the PR's changed files); default is all of skills/.
+const FILES = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 
 const starterDeps = (() => {
   const pkg = JSON.parse(readFileSync(STARTER_PKG, "utf8"));
@@ -78,8 +80,13 @@ const MENTION_PATTERNS = [
 ];
 
 const violations = [];
+const subjects = FILES.length
+  ? FILES.map((f) => join(ROOT, f)).filter(
+      (f) => f.startsWith(`${SKILLS_DIR}/`) && !f.startsWith(`${STARTER_DIR}/`) && CHECKED_EXTENSIONS.test(f) && existsSync(f),
+    )
+  : [...walk(SKILLS_DIR)];
 
-for (const file of walk(SKILLS_DIR)) {
+for (const file of subjects) {
   const rel = relative(ROOT, file);
   let content = readFileSync(file, "utf8");
 
@@ -140,4 +147,4 @@ if (violations.length) {
   console.error("\nCanonical versions live in skills/start/iblai-vibe-ops-init/assets/vibe-starter/package.json.");
   process.exit(1);
 }
-console.log("check-sdk-pins: all @iblai version mentions agree with vibe-starter.");
+console.log(`check-sdk-pins: ${subjects.length} files, all @iblai version mentions agree with vibe-starter.`);

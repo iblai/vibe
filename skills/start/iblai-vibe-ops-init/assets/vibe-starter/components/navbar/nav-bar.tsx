@@ -12,6 +12,7 @@ import {
 import { useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 export interface NavLink {
   name: string;
@@ -60,6 +61,7 @@ export function NavBar({
   showCreditBalance = true,
   creditRedirectUrl,
 }: NavBarProps) {
+  const t = useTranslations('Nav');
   const router = useRouter();
   const pathname = usePathname() ?? '/';
 
@@ -77,7 +79,7 @@ export function NavBar({
           <button
             onClick={onMenuClick}
             className="mr-3 rounded-sm text-[var(--navbar-text,var(--text-secondary))] hover:bg-[var(--navbar-hover-bg,var(--hover-bg))] hover:text-[var(--navbar-hover-text,var(--text-primary))] focus:ring-2 focus:ring-[var(--primary-color)] focus:outline-none focus:ring-inset md:hidden"
-            aria-label="Open sidebar"
+            aria-label={t('openSidebar')}
           >
             <Menu className="h-6 w-6" />
           </button>

@@ -68,10 +68,20 @@ In the authenticated layout: read the session once, wrap the tree in
 `AdminModeProvider`, split nav links into member and admin arrays, render the
 admin ones only when `isAdmin && adminMode`, and redirect `/admin/*` home
 otherwise. vibe-starter's `app/(app)/layout.tsx` is the reference — copy it.
+It and the Step 1 switch read their labels with next-intl's
+`useTranslations("Nav")` (catalogs in `messages/*.json`, config in `i18n/`), so
+an app without next-intl either adds `next-intl` 4.13.0 with vibe-starter's
+`i18n/` and `messages/` folders and its wiring in `next.config.ts` (the plugin)
+and `app/layout.tsx` (`NextIntlClientProvider`), or replaces the `t('…')` calls
+with its own strings.
 
 ```tsx
 const liveAdmin = isAdmin && adminMode;
-const links = liveAdmin ? [...MEMBER_LINKS, ...ADMIN_LINKS] : MEMBER_LINKS;
+const t = useTranslations("Nav");
+const links: NavLink[] = useMemo(() => {
+  const source = liveAdmin ? [...MEMBER_LINKS, ...ADMIN_LINKS] : MEMBER_LINKS;
+  return source.map(({ key, ...rest }) => ({ ...rest, name: t(key) }));
+}, [liveAdmin, t]);
 useEffect(() => {
   if (pathname.startsWith("/admin") && !liveAdmin) router.replace("/");
 }, [pathname, liveAdmin, router]);

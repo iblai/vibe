@@ -26,3 +26,9 @@ export function listSkills() {
 export function skillDir(name) {
   return listSkills().find((s) => s.name === name)?.dir;
 }
+
+/** `--skills a,b` on argv narrows a script to those names (CI passes the PR's); null = every skill. */
+export function onlySkills(argv = process.argv.slice(2)) {
+  const i = argv.findIndex((a) => a.startsWith("--skills"));
+  return i < 0 ? null : (argv[i].split("=")[1] ?? argv[i + 1] ?? "").split(",").filter(Boolean);
+}

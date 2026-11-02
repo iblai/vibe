@@ -26,7 +26,11 @@ echo ""
 # SKILL.md: under 500 lines
 # Optional dirs: references/, scripts/, assets/
 
-for skill_dir in "$SKILLS_DIR"/*/*/; do
+# Skill directories as args narrow the run (CI passes the PR's); default is every skill.
+if [[ $# -gt 0 ]]; then skill_dirs=("$@"); else skill_dirs=("$SKILLS_DIR"/*/*/); fi
+
+for skill_dir in "${skill_dirs[@]}"; do
+    skill_dir="${skill_dir%/}/"
     skill_name=$(basename "$skill_dir")
     skill_file="$skill_dir/SKILL.md"
     skill_errors=()

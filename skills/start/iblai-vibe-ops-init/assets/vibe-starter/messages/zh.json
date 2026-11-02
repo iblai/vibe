@@ -1,0 +1,17 @@
+{
+  "Nav": {
+    "home": "首页",
+    "agents": "智能体",
+    "profile": "个人资料",
+    "users": "用户",
+    "analytics": "分析",
+    "billing": "账单",
+    "memory": "记忆",
+    "organization": "组织",
+    "navigation": "导航",
+    "openSidebar": "打开侧边栏",
+    "user": "用户",
+    "admin": "管理员",
+    "adminMode": "管理员模式"
+  }
+}

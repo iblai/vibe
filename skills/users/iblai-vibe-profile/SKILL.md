@@ -339,14 +339,17 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `currentTenant` | `Tenant?` | Full active-tenant object (from `current_tenant`) — labels the organization switcher |
 | `userTenants` | `Tenant[]` | **Required for the organization switcher** -- the full `tenants` list from localStorage |
 | `userIsAdmin` | `boolean` | Shows admin badge + gates the organization switcher |
-| `userIsStudent` | `boolean?` | Non-admin flag (`!isAdmin`) |
+| `userIsStudent` | `boolean?` | `true` when the viewer sees the member view — `!isAdmin`, or `!adminMode` when you have a User/Admin switch. Labels the dropdown's switch row "User" or "Admin" |
 | `enableGravatarOnProfilePic` | `boolean?` | Gravatar fallback when the user has no uploaded image (default `true`) |
 | `showProfileTab` | `boolean` | Show profile link |
 | `showAccountTab` | `boolean` | Show the dedicated "Account" item (keep `false` — account lives on `/account`) |
 | `showTenantSwitcher` | `boolean` | Show organization switcher (needs `userTenants` + `currentTenant`); gate on `userIsAdmin` |
 | `showLogoutButton` | `boolean` | Show logout button |
-| `showHelpLink` | `boolean` | Show help link |
-| `showLearnerModeSwitch` | `boolean?` | Show learner/instructor mode toggle (admins) |
+| `showHelpLink` | `boolean` | Show the **Help** item (opens the help URL in a new tab). Renders only once `metadataLoaded` is `true`, and not when `metadata.show_help === false` or no URL resolves |
+| `helpCenterUrl` | `string?` | Fallback help URL, used when the org metadata has neither `support_url` nor `help_center_url` |
+| `onHelpClick` | `(url: string) => void` | Called with the resolved URL when **Help** is clicked |
+| `showLearnerModeSwitch` | `boolean?` | Show the User/Admin switch row. Also needs `userIsAdmin` and `LearnerModeSwitchComponent`; never shown on the `main` org. The row is `xl:hidden` — put the inline switch in the navbar from `xl` up |
+| `LearnerModeSwitchComponent` | `ComponentType?` | The control the row renders — a bare `<Switch>` bound to `useAdminMode()` (`/iblai-vibe-admin`). Not `AdminModeSwitch`: the row already prints the "User"/"Admin" label |
 | `currentSPA` | `string?` | Current app id (e.g. `"mentor"`) — used for conditional SDK rendering |
 | `currentPlatformBaseDomain` | `string?` | Base domain for custom-domain settings (`config.platformBaseDomain()`) |
 | `authURL` | `string` | Auth service URL |
@@ -356,8 +359,8 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `className` | `string?` | Additional CSS class |
 | `dropdownClassName` | `string?` | CSS class for dropdown panel |
 | `avatarSize` | `number?` | Avatar size in pixels |
-| `metadata` | `{ help_center_url?: string; show_help?: boolean }` | Platform metadata for help link |
-| `metadataLoaded` | `boolean?` | Whether metadata has finished loading |
+| `metadata` | `{ support_url?: string; help_center_url?: string; show_help?: boolean }` | Org metadata (`useTenantMetadata({ org }).metadata`). Help URL precedence: `support_url` → `help_center_url` → `helpCenterUrl` |
+| `metadataLoaded` | `boolean?` | Whether metadata has finished loading (`useTenantMetadata().metadataLoaded`); the Help item waits for it |
 | `enableMemoryTab` | `boolean?` | Show AI memory management tab |
 | `enableCatalogInvite` | `boolean?` | Enable catalog invite feature |
 | `enableRbac` | `boolean?` | Enable RBAC permission checks |

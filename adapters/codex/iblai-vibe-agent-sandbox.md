@@ -299,9 +299,10 @@ From `@iblai/iblai-js/web-containers`:
 
 From `@iblai/iblai-js/web-containers/next`:
 
-- `LLMProviderModal` — provider/model picker used by the Model row.
-  Mountable standalone (e.g. for an "override default model" flow
-  outside the sandbox).
+- `LLMProviderModal` — the LLM tab's provider/model picker
+  (`/iblai-vibe-agent-llm`), mountable standalone (e.g. for an "override
+  default model" flow outside the sandbox). The Model row's own picker is
+  internal and not exported.
 - `LLMProvider`, `LLMProviderType` — types for the picker (`LLMProviderType`
   is the `{ name, chat_models }` provider row; `LLMProvider` the full row
   with `display_name` and `logo`).

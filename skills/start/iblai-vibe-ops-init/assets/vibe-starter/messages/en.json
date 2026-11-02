@@ -1,0 +1,17 @@
+{
+  "Nav": {
+    "home": "Home",
+    "agents": "Agents",
+    "profile": "Profile",
+    "users": "Users",
+    "analytics": "Analytics",
+    "billing": "Billing",
+    "memory": "Memory",
+    "organization": "Organization",
+    "navigation": "Navigation",
+    "openSidebar": "Open sidebar",
+    "user": "User",
+    "admin": "Admin",
+    "adminMode": "Admin mode"
+  }
+}

@@ -26,6 +26,7 @@ Third-party model provider keys. DM base: `/api/ai-account/…`.
 - **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/masked-llm-credential/` — list configured providers (masked).
 - **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/credential/schema/` — provider field schema.
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor/llms/` — available provider list.
+- **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/users/{username}/default-llm-key-usage` — whether the organization may borrow ibl.ai’s LLM keys: `{"use_main_llm_key": true}` (or `false`) once the switch is stored, `{"use_main_credentials": false}` when it never was. It reports the stored switch only, which ibl.ai sets; a free trial or the deployment default can still let the organization borrow.
 
 ### Data Sources
 
@@ -131,3 +132,10 @@ curl -X POST \
   endpoint to learn which fields a provider expects before POSTing.
 - The API-token endpoints are shared with `/iblai-api-token`; tokens
   created via either skill are the same Platform API tokens.
+- LLM credential `name`s and what each holds: `openai` (OpenAI key),
+  `anthropic` (Anthropic key), `gemini_google_api_key` (Gemini API key),
+  `google` (Google Cloud service account, Vertex AI), `bedrock` (AWS Bedrock),
+  `gateway_azure_foundry` (Azure AI Foundry), `iblai` (ibl.ai’s built-in access); `groq`,
+  `xai`, `deepseek`, `perplexity` and `nvidia` hold that provider’s key. A model
+  uses the organization’s own key first, then ibl.ai’s if the organization may
+  borrow it (`default-llm-key-usage` above).

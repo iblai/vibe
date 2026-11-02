@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-setting
-description: Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, reasoning, prompt caching, private mode, forkable, additional agents). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
+description: Read and write an ibl.ai agent's core settings via the platform API — name, description, category, profile image, visibility, and feature flags (anonymous, featured, LTI, attachments, voice, memory, multi-query RAG, reasoning, prompt caching, incognito, forkable, additional agents). Also fork/duplicate and delete an agent. Use when configuring an agent's basic identity and capabilities.
 metadata:
   core: true
   kind: api
@@ -13,7 +13,7 @@ metadata:
 Read and write an agent's core settings: identity (name, description, category,
 profile image), discovery/visibility, and capability flags (anonymous, featured,
 LTI, attachments, voice, memory, multi-query RAG, reasoning, prompt caching,
-private mode, forkable, additional agents) — all of which save
+incognito, forkable, additional agents) — all of which save
 through the single `settings/` endpoint — plus forking (copy) and deletion. Use
 when configuring an agent's basic identity and capabilities.
 
@@ -66,16 +66,16 @@ when configuring an agent's basic identity and capabilities.
   }
   ```
   `show_explore_mentors` shows the additional-agents section on the agent's
-  welcome screen ("Show additional agents"). `disable_chathistory` is private
-  mode — no chat history or memory is stored for any user of this agent; the
-  Settings tab offers it only when the organization allows chat-privacy
-  control. `show_reasoning` shows the agent's reasoning steps while it
-  responds; `enable_prompt_caching` caches repeated prompt context to cut
-  latency and cost, and also leaves the current date and time out of the
-  system prompt and can skip document retrieval; `enable_multi_query_rag` is
-  "Enhanced document retrieval". The embed-widget counterparts of
-  `show_attachment` / `show_voice_record` / `show_voice_call` (`embed_show_*`)
-  save through the same PUT — see `/iblai-api-agent-embed`.
+  welcome screen ("Show additional agents"). `disable_chathistory` makes every
+  conversation with this agent incognito; the Privacy tab’s Incognito policy
+  sets it (see `/iblai-vibe-incognito`). `show_reasoning` shows the agent’s
+  reasoning steps while it responds; `enable_prompt_caching` caches repeated
+  prompt context to cut latency and cost on Anthropic models, and also turns
+  off document retrieval, memory and the current date/time in the system
+  prompt; `enable_multi_query_rag` is "Enhanced document retrieval". The
+  embed-widget counterparts of `show_attachment` / `show_voice_record` /
+  `show_voice_call` (`embed_show_*`) save through the same PUT — see
+  `/iblai-api-agent-embed`.
   The three `virtual_machine_*` keys configure the agent's Linux VM sandbox;
   the network policies and secrets they reference are managed per organization
   — see `/iblai-vibe-agent-sandbox` ("Virtual machine network policies & secrets").
@@ -105,7 +105,5 @@ curl -X PUT \
 
 - A field left out of the PUT is left unchanged — never resend the whole object.
 - `categories` expects numeric category ids from the categories endpoint, not names.
-- `enable_in_chat_llm_change` saves through the same endpoint, but its switch
-  is on the LLM tab, not the Settings tab — see `/iblai-api-agent-llm`.
 - Deletion and forking are scoped to `{username}`; settings reads/writes use the
   `users/{username}/mentors/{mentor}/` path.

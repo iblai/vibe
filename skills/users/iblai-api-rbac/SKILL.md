@@ -95,6 +95,28 @@ and roles (platform is taken from the token; service accounts pass `platform_key
 - **GET** `https://api.iblai.app/dm/api/core/rbac/actions/tree/` — hierarchical catalog of all actions.
 - **GET** `https://api.iblai.app/dm/api/core/rbac/actions/definitions/` — action definitions with human descriptions and each action's `assignable_resources`.
 
+### Effective permissions
+
+- **GET** `https://api.iblai.app/dm/v1/rbac/permissions/` — the raw `actions` / `data_actions` patterns an identity holds at each requested resource path. Context comes from headers, not `platform_key`:
+  - `iblai-org` — the org key. Optional for platform tokens (must match the token's org, else `403`).
+  - `iblai-user` — whose grants to return. Omit it for the caller's own grants. Naming another user needs `Ibl.Core/UserPermissions/read` on `/users/{user_pk}/` (org admins hold it), else `403`.
+  - A token-policies Platform API Token without `iblai-user` returns the token's own grants. Naming any user, even the token's owner, needs the grant.
+  - `resource_paths` — repeatable query param, platform-relative, max 50, default `/`. Must start with `/`; empty, `.` and `..` segments → `400`.
+  - `recursive=true` — also return every resource the identity's policies name under a requested path.
+
+  Response, keyed by normalized path (trailing slash added):
+  ```json
+  {
+    "/mentors/": {"actions": ["Ibl.Mentor/Mentors/list"], "data_actions": []},
+    "/mentors/5/": {"actions": ["Ibl.Mentor/*"], "data_actions": ["Ibl.Mentor/Settings/*/read"]}
+  }
+  ```
+  - Grants on a parent path are included at its children.
+  - Patterns are returned as stored (`Ibl.Mentor/*`), not expanded.
+  - Owner-derived grants are not included; use `rbac/permissions/check/` for an ownership-aware answer.
+  - An unknown user returns the same `403` as a denial; callers holding the action on `/users/` get `404` instead.
+- **Custom namespace.** `/custom/` is reserved for your app's own actions. Org admins hold `*` there, so they can create roles with any action string (e.g. `MyApp.Reports/Export/action`), grant them through policies on `/custom/...`, and read them back with this endpoint. ibl.ai never enforces anything under `/custom/`; your app does.
+
 ### Agent access
 
 - **GET** `https://api.iblai.app/dm/api/core/rbac/agent-access/?platform_key={org}&mentor_id={id}` — list the users and groups that currently have access to an agent, each with its role. (Canonical `rbac/mentor-access/`.)

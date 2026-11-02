@@ -8,7 +8,8 @@ Manage an agent's human-support tickets through the API: list and filter the
 tickets users raised with an agent, read a ticket's reply thread, respond as
 the support team, move tickets through their lifecycle, and close or delete
 them. Use when triaging or responding to support requests escalated from
-agent chats.
+agent chats. The UI twin is
+[`/iblai-vibe-agent-support`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/SKILL.md).
 
 ## Auth & conventions
 
@@ -34,9 +35,9 @@ agent chats.
 - **Visibility:** org admins see every ticket in the org; other users see only the
   tickets they raised themselves.
 - **Lifecycle:** `status` walks `open` → `in_progress` → `closed`. The dedicated
-  `close/` endpoint both sets `status: closed` and stamps `resolved_at`.
+  `close/` endpoint sets `status: closed`, the same as patching `status`.
 - **Conversation thread:** each ticket has `TicketMessage` replies. `sender` is the
-  numeric user id of the author — the requester's replies carry their `user` id,
+  numeric user id of the author (always the caller who posted it) — the requester's replies carry their `user` id,
   support-team replies carry the responder's id, and `null` marks a
   system-generated message.
 - **Prerequisite:** the agent only offers escalation while its human-support tool
@@ -52,7 +53,7 @@ agent chats.
 
 ### Messages
 
-- **GET** `{u}/support-ticket-messages/?ticket={ticketId}&sender={userId}&page={n}&page_size={n}` — paged message list; pass `ticket` to load one ticket's conversation thread.
+- **GET** `{u}/support-ticket-messages/?ticket={ticketId}&sender={senderUsername}&page={n}&page_size={n}` — paged message list; pass `ticket` to load one ticket's conversation thread. The `sender` filter matches the sender's **username**, not the numeric id the message carries (`?sender=42` matches nothing).
 - **GET** `{u}/support-ticket-messages/{id}/` — one message.
 
 ## Writes
@@ -68,7 +69,7 @@ agent chats.
   }
   ```
 - **PATCH** `{u}/support-tickets/{id}/` — edit a subset (e.g. `{ "status": "in_progress" }`).
-- **POST** `{u}/support-tickets/{id}/close/` — close a ticket (no body): sets `status: closed` and stamps `resolved_at`. Prefer this over patching `status` to `closed`.
+- **POST** `{u}/support-tickets/{id}/close/` — close a ticket (no body): sets `status: closed` and returns the ticket. Admins and the requester can call it.
 - **DELETE** `{u}/support-tickets/{id}/` — delete a ticket (no body). Destructive — confirm with the user first.
 
 ### Messages
@@ -77,13 +78,14 @@ agent chats.
   ```json
   {
     "ticket": "integer (required, ticket id)",
-    "message": "string (required)",
-    "sender": "integer | null (optional; defaults to the caller)"
+    "message": "string (required)"
   }
   ```
+  The server always saves the caller as `sender`; a `sender` in the body is ignored.
 - **PUT** `{u}/support-ticket-messages/{id}/` — replace a message (same fields as create).
 - **PATCH** `{u}/support-ticket-messages/{id}/` — edit a subset (e.g. `{ "message": "string" }`).
 - **DELETE** `{u}/support-ticket-messages/{id}/` — delete a message (no body). Destructive — confirm with the user first.
+- PUT, PATCH and DELETE reach only the caller's own messages.
 
 ## Example
 
@@ -113,8 +115,8 @@ curl -X POST \
   (the caller).
 - `description` is agent-authored and frequently arrives as a full HTML document
   or Markdown — don't assume plain text when displaying or diffing it.
-- Closing via `close/` is what stamps `resolved_at`; a plain `PATCH` to
-  `status: closed` flips the status without the resolution timestamp.
+- `resolved_at` is never set by the API (it stays `null`, even after
+  `close/`); use `updated_at` on a closed ticket if you need a close time.
 - To load a conversation thread, filter messages by `ticket` and sort by
   `timestamp` ascending; match `sender` against the ticket's `user` to tell
   requester replies from support replies.
@@ -133,7 +135,7 @@ curl -X POST \
 | `status` | rw | `open` \| `in_progress` \| `closed` |
 | `mentor_id` | ro | unique id of the agent the ticket belongs to |
 | `created_at`, `updated_at` | ro | ISO 8601 |
-| `resolved_at` | ro | ISO 8601 or null; stamped by `close/` |
+| `resolved_at` | ro | always `null`; nothing in the API sets it |
 
 **Message object** (`TicketMessage`): `id` (ro), `ticket` (ticket id), `sender`
 (numeric user id or null for system messages), `message`, `timestamp` (ro, ISO 8601).
