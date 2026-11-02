@@ -1,6 +1,6 @@
 # Testing the skills
 
-Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual. Every check is scoped to what the PR changed — the scripts take file or `--skills` arguments, and no argument means all — the `pnpm audit` step runs only when vibe-starter changed, and a PR that touches `scripts/`, `.github/` or vibe-starter runs everything.
+Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual. Every check is scoped to what the PR changed — the scripts take file or `--skills` arguments, and no argument means all — the `pnpm audit` step runs only when vibe-starter changed, and a PR that touches `scripts/`, `.github/` or vibe-starter runs everything. A second check, `tauri-linux`, compiles and runs the Tauri shell `/iblai-vibe-ops-build` ships (`scripts/test-tauri-shell.sh`) when a PR touches the shell, that script or the workflow; any other PR passes it in seconds.
 
 | Tier | Command | What it proves |
 |---|---|---|
@@ -11,6 +11,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs t
 | 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
 | 1.5 | `node scripts/check-skill-kinds.mjs` | Every skill declares `metadata.kind` (`ui`/`api`/`guide`/`ops`/`security`) and it agrees with its name prefix |
 | 1.5 | `node scripts/build-catalogue.mjs` + `node scripts/check-skill-tables.mjs` | `docs/catalogue.md` is regenerated from frontmatter; every skill is in CLAUDE.md's tier table and the catalogue, and nothing named there is missing |
+| 1.9 | `bash scripts/test-tauri-shell.sh` | The Tauri shell `/iblai-vibe-ops-build` ships compiles with warnings denied, its guard tests pass, it bundles an AppImage and, run headless, blocks a foreign iframe and a redirect while the app's own origin loads (Linux; `--prepare` only syncs the scratch, `SMOKE=0` skips the run) |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 

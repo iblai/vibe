@@ -458,6 +458,7 @@ bash scripts/validate-skills.sh           # spec conformance: name/description/f
 node scripts/check-sdk-pins.mjs           # no @iblai/* version mention may drift from vibe-starter's package.json (--fix rewrites drifted mentions)
 node scripts/check-links.mjs              # every github.com/iblai cross-repo link must still resolve (404/410 fail, transient warns)
 node scripts/test-skills-render.mjs       # skill assets + SKILL.md ts/tsx fences typecheck against the pinned SDK
+bash scripts/test-tauri-shell.sh          # the Tauri shell /iblai-vibe-ops-build ships: fmt, warnings denied, guard tests, AppImage, headless guard run (Linux)
 scripts/test-skills-agent.sh --changed    # headless-agent execution of changed skills (needs claude CLI)
 bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)
 ```
