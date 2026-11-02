@@ -37,6 +37,14 @@ runs on.
     "llm_name": "string (required)"
   }
   ```
+- **PUT** `…/users/{username}/mentors/{mentor}/settings/` — let users switch
+  the model in their own chat session (Allow In-Chat Model Change; it resets
+  to the agent's model on a new chat):
+  ```json
+  {
+    "enable_in_chat_llm_change": "boolean"
+  }
+  ```
 
 ## Example
 
@@ -65,9 +73,15 @@ curl -X PUT \
   credits. The status comes from
   the same gateway resolver chat uses, so the picker and runtime agree. The org's
   model allow-list hides models only when a key ibl.ai lends would pay, never
-  when the org's own key does.
+  when the org's own key does. It is a different list from User Models
+  (`/iblai-api-rbac` `llm-access`), which limits the models users who are not
+  admins can pick in the chat.
 - Gateway rule: of the gateways that serve the model, the org's own key first,
   then ibl.ai's key if the org may borrow it. Credential names are in
   `/iblai-api-integration`.
 - Selection persists through the shared `settings/` endpoint, so it sits
   alongside the other configuration fields on the same agent.
+- Which models users may pick when in-chat model change is on is an
+  organization-wide list, not an agent setting: `GET`/`POST`
+  `/api/core/rbac/llm-access/…` in `/iblai-api-rbac`. The LLM tab's User
+  Models dialog (`/iblai-vibe-agent-llm`) edits it.

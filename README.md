@@ -104,7 +104,7 @@ What each skill does:
 - `/iblai-vibe-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
 - `/iblai-vibe-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
 - `/iblai-vibe-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
-- `/iblai-vibe-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
+- `/iblai-vibe-agent-setting` -- adds the agent Settings tab (Basic, Discovery, Capabilities and Welcome Screen sub-tabs, plus copy and delete) built on `AgentSettingsProvider`.
 - `/iblai-vibe-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
 - `/iblai-vibe-agent-api` -- adds the agent API tab (API key management).
 - `/iblai-vibe-agent-dataset` -- adds the agent Datasets tab (searchable dataset table with upload).
