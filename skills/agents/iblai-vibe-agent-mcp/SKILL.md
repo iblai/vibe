@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-mcp
-description: Add the agent MCP tab (outside services the agent can use in chats — Featured and Directory connectors, each switched on or off per agent, custom connectors with OAuth, API key or no auth, per-agent sign-in scope, "Allow Users to Turn Off", the organization's own OAuth app when a service can't register one, and the chat composer's MCP panel where users switch connectors per chat) to your Next.js app. Use when the user mentions MCP, connectors, connecting GitHub / Google Drive / Linear to an agent, OAuth client id and secret for a connector, letting users turn a connector off, or MCP in the chat box. For the Tools switch see /iblai-vibe-agent-tool; for the chat itself see /iblai-vibe-agent-chat; for the REST contract see /iblai-api-agent-mcp.
+description: Add the agent MCP tab (outside services the agent can use in chats: Featured and Directory connectors switched on or off per agent, custom connectors with OAuth, API key or no auth, per-agent sign-in scope, "Allow Users to Turn Off", the organization's own OAuth app when a service can't register one, and the chat composer's MCP panel where users switch connectors per chat) to your Next.js app. Use when the user mentions MCP, connectors, connecting GitHub / Google Drive / Linear to an agent, OAuth client id and secret for a connector, letting users turn a connector off, or MCP in the chat box. For the Tools switch see /iblai-vibe-agent-tool; for the chat itself see /iblai-vibe-agent-chat; for the REST contract see /iblai-api-agent-mcp.
 globs:
 alwaysApply: false
 metadata:
@@ -95,15 +95,78 @@ import { McpTab } from "@iblai/iblai-js/web-containers/next";
 />;
 ```
 
-## Step 3: Add the sign-in return page
+## Step 3: Register `mcpApiSlice` in the store
 
-A **Connect** opens the service's sign-in in a new tab and names
-`${window.location.origin}/google-oauth-callback/` as the return address
-(the path is fixed by the SDK, whatever the provider). vibe-starter does
-not ship that page, so add it; without it every OAuth sign-in ends on a 404
-and the tab keeps waiting. The page finishes the handshake through the
-SDK's callback query and tells the opener two ways, as the SDK listens for
-both: a `postMessage` and a `localStorage` key.
+The MCP endpoints live on their own slice that `mentorReducer` /
+`mentorMiddleware` do not include, and from `@iblai/web-containers` 1.58.1
+the `Chat` composer queries them in every signed-in chat (for the `+`
+menu's MCP row). Without this step `pnpm dev` throws
+`Middleware for RTK-Query API at reducerPath "mcpApiSlice" has not been
+added to the store` on the home chat, and a production build silently
+stores no MCP response: no MCP row, and the tab never gets its lists.
+vibe-starter ships the two lines; an older store needs them added:
+
+```typescript
+// store/iblai-store.ts
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  coreApiSlice,
+  mentorReducer,
+  mentorMiddleware,
+  mcpApiSlice,
+} from "@iblai/iblai-js/data-layer";
+import {
+  hostChatReducer,
+  chatInputSliceReducer,
+  chatSliceReducerShared,
+  filesReducer,
+  rbacReducer,
+  subscriptionReducer,
+  topBannerReducer,
+} from "@iblai/iblai-js/web-utils";
+
+export const iblaiStore = configureStore({
+  reducer: {
+    [coreApiSlice.reducerPath]: coreApiSlice.reducer,
+    ...mentorReducer,
+    [mcpApiSlice.reducerPath]: mcpApiSlice.reducer, // + MCP
+    chat: hostChatReducer,
+    chatInput: chatInputSliceReducer,
+    chatSliceShared: chatSliceReducerShared,
+    files: filesReducer,
+    rbac: rbacReducer,
+    subscription: subscriptionReducer,
+    topBanner: topBannerReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false })
+      .concat(coreApiSlice.middleware)
+      .concat(mcpApiSlice.middleware) // + MCP
+      .concat(...mentorMiddleware),
+});
+
+export type IblaiRootState = ReturnType<typeof iblaiStore.getState>;
+export type IblaiAppDispatch = typeof iblaiStore.dispatch;
+```
+
+## Step 4: Add the sign-in return page
+
+A **Connect** opens the service's sign-in in a new tab. Where the user
+lands afterwards is the redirect URI stored on the organization's OAuth
+client for that service, which the SDK sets to this app's
+`/google-oauth-callback/` (the path is fixed) when the client is registered
+from this app: **Add** with OAuth sends this origin's page as `oauth-find`'s
+`callback_url`, and **App Credentials** defaults the Redirect URI to it.
+Featured connectors on the shared ibl.ai app return to the platform's own
+page; the tab still completes, since it also polls the user's connected
+services every 5 s for five minutes. vibe-starter does not ship the page,
+so add it. It finishes the handshake through the SDK's callback query and
+tells the opener both ways the SDK listens: `postMessage` and `localStorage`.
+
+The stored address is **organization-wide**: an OAuth connector first added
+from `http://localhost:3000` sends that service's sign-ins for the whole
+organization, os.ibl.ai included, to localhost. Add OAuth connectors from
+the deployed host, never from a dev server.
 
 ```tsx
 // app/google-oauth-callback/page.tsx
@@ -176,13 +239,23 @@ function readPendingServer(): { serverId?: number } | null {
 }
 ```
 
-The user is already signed in to your app, so the query carries their
-session token. For a connector that signs in through the organization's own
-OAuth app, `https://<your host>/google-oauth-callback/` is the **Redirect
-URI** to register with the service (the Configure dialog shows and copies
-it).
+Keep the page outside `AuthProvider` / `TenantProvider`, as the starter
+does for `/sso-login`: the callback endpoint needs no session, and if the
+auth check fails in the tab (an expired token, a sign-out elsewhere) the
+redirect keeps only the pathname, so `code` and `state` are lost and the
+opener gives up after five minutes. In `providers/iblai-providers.tsx`,
+widen the one check both providers' `skip` reads:
 
-## Step 4: Use MCP Tools for Customization
+```ts
+const isSsoRoute =
+  (pathname?.startsWith("/sso-login") || pathname?.startsWith("/google-oauth-callback")) ?? false;
+```
+
+For a connector that signs in through the organization's own OAuth app,
+`https://<your host>/google-oauth-callback/` is the **Redirect URI** to
+register with the service (the Configure dialog shows and copies it).
+
+## Step 5: Use MCP Tools for Customization
 
 ```
 get_component_info("McpTab")
@@ -201,10 +274,10 @@ Import from `@iblai/iblai-js/web-containers/next`.
 
 ## What the tab renders
 
-- **Header** -- "MCP" and "Outside services your agent can use in chats.
-  Turn each one on or off for this agent."
+- **Header** -- "MCP" and its one-line description.
 - **Filters bar** -- search by name, a date-range picker (by `created_at`),
-  and a transport filter (All / SSE / WebSocket / Streamable HTTP).
+  and a transport filter (All / SSE / WebSocket / Streamable HTTP; the
+  WebSocket choice makes the list requests fail, see below).
 - **Featured / Directory** sub-tabs, shown as soon as the organization has
   featured connectors. **Featured** is the platform-curated set
   (`is_featured`), **Directory** is everything else the agent may use: the
@@ -237,7 +310,7 @@ Import from `@iblai/iblai-js/web-containers/next`.
 | Description | Optional -- shows on the card. |
 | Connector Scope | **All Agents** (`mentor: null`) or **This Agent** (`mentor: <uuid>`) -- which agents in the organization may use it. |
 | Allow Users to Turn Off | On (default): people can switch it off in their own chats. Off: it stays on in every chat and nobody can switch it off (`user_can_disable: false`). |
-| Transport | Streamable Http (default), SSE or Websocket. |
+| Transport | Streamable Http (default) or SSE. Websocket is still offered, but the platform refuses it (`transport` accepts `sse` and `streamable_http` only; Connect answers 400). |
 | Authentication Method | **No Authentication**, **API Key** or **OAuth**. |
 | Token Type / Token | API Key only: Bearer or a custom scheme, and the key (hidden after save; leave it to keep the stored one). |
 | Authentication Scope | OAuth only: **User** (each person signs in with their own account from the chat), **Agent** (one shared account for everyone who chats with this agent) or **Organization** (one shared account for every agent). |
@@ -268,8 +341,10 @@ directory** connector the fields are read-only; only two settings, both
   connector's own scope; the card's pill follows it. Choosing Agent or
   Organization while the agent has no such sign-in turns the connector off
   until it is switched on again (which opens the sign-in).
-- **Allow Users to Turn Off** -- the platform may refuse it for a featured
-  or directory connector ("Your organization can't change this setting").
+- **Allow Users to Turn Off** -- shown, but the platform refuses it for a
+  featured or directory connector (404 unless your organization owns the
+  connector; the tab says "Your organization can't change this setting").
+  Only the owning organization can make such a connector mandatory.
 
 Under Authentication Scope, **Connection** shows Connected / Not Connected
 with **Connect** or **Disconnect** for the saved scope: the admin's own
@@ -297,22 +372,31 @@ connectors (name, logo, description) with one switch each:
   once per user; pop-ups must be allowed) and the agent uses it from the
   next message. Shared sign-ins are never done from the chat.
 
-No grant beyond chatting is needed: a student can use the panel. Embedded
-chats (`embed`) never show the row.
+With RBAC off, anyone who can chat gets the panel. With RBAC on, the row
+needs read access to the agent's `mcp_servers` field
+(`Ibl.Mentor/Settings/mcp_servers/read`): the seeded chat role does not
+have it, the settings read then omits the servers, and students see no MCP
+row until the role is granted it. Embedded chats (`embed`) never show the
+row.
 
 ## Who sees what
 
-| Control | Needs |
-|---|---|
-| The tab's cards and switches | an agent editor with read access to the agent's `mcp_servers` field; the switch needs write access |
-| Add Connector, App Credentials | `/mcpservers/#create` |
-| Delete | the connector's object delete permission (own connectors only) |
-| Configure on a featured / directory connector | write access to `mcp_servers` |
-| The chat's MCP panel | signing in and chatting |
+The tab shows a control when the RBAC grant allows it; the platform then
+decides for itself, and the two do not always agree:
 
-With `enableRBAC` off on the provider, everything is shown.
+| Control | The tab shows it with | The platform accepts it from |
+|---|---|---|
+| Cards and the per-agent switch | read / write on the agent's `mcp_servers` field | whoever may write the agent's settings |
+| Add Connector | `/mcpservers/#create` | the same |
+| Delete | the connector's object delete permission (own connectors only) | the owning organization |
+| Authentication Scope (Configure) | write on `mcp_servers` | an **organization admin** or the Platform API Token (`mentor-auth-scope/` answers 403 "A mentor's MCP connection mode is set by platform admins." to anyone else, and 404 while the connector is off for the agent, which is why the tab stores the choice when the switch goes on) |
+| App Credentials | `/mcpservers/#create` | an **organization admin** or the Platform API Token (`credentials/` answers 403 "MCP server credentials are limited to platform admins.") |
+| Allow Users to Turn Off on a featured / directory connector | write on `mcp_servers` | the owning organization only (404 otherwise) |
+| The chat's MCP panel | signing in, plus read on `mcp_servers` when RBAC is on | the user's own preferences |
 
-## The four switches, side by side
+With `enableRBAC` off, everything is shown; the platform's rules still apply.
+
+## The five switches, side by side
 
 | Setting | Where | Wire | Who it affects |
 |---|---|---|---|
@@ -324,8 +408,7 @@ With `enableRBAC` off on the provider, everything is shown.
 
 ## Custom composer: `McpServersMenu`
 
-The chat's panel is also exported on its own, from
-`@iblai/iblai-js/web-containers`, for a composer of your own.
+The chat's panel is also exported on its own, from `@iblai/iblai-js/web-containers`.
 
 | Prop | Type | Required | Description |
 |---|---|---|---|
@@ -336,7 +419,7 @@ The chat's panel is also exported on its own, from
 | `onClose` | `() => void` | Yes | The panel's close button. |
 | `onConnectingChange` | `(connecting: boolean) => void` | No | True while a sign-in is in flight: keep the panel mounted until it settles, or the sign-in is lost. |
 
-## Step 5: Verify
+## Step 6: Verify
 
 Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
@@ -350,19 +433,17 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 
 ## Important Notes
 
-- **Redux store**: Must include `mentorReducer` and `mentorMiddleware`
-  (the MCP endpoints are part of them).
-- **`initializeDataLayer()`**: 5 args (v1.2+)
-- **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
+- **Redux store**: `mentorReducer` and `mentorMiddleware` **plus**
+  `mcpApiSlice` (Step 3); the MCP endpoints are not part of the first two.
+- **`initializeDataLayer()`**: 5 args (v1.2+); **`@reduxjs/toolkit`** deduplicated via webpack aliases in `next.config.ts`
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
 - **Shared provider**: `AgentSettingsProvider` must wrap the route at a
   layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
-- **The return page** (Step 3) is part of this skill, not optional: the
-  sign-in tab only ever comes back to `/google-oauth-callback/`. Its origin
-  must be one the service accepts -- the shared ibl.ai app is set up for
-  the platform's hosts; for your own app at your own host, register the
-  Redirect URI the Configure dialog shows.
+- **The return page** (Step 4) is part of this skill, not optional: every
+  OAuth client registered from this app sends its sign-ins there. Register
+  it from the deployed host; for a hand-entered app, register the Redirect
+  URI the Configure dialog shows at the service.
 - **Sign-in from the chat** needs the agent's connector to be User scope;
   Agent and Organization sign-ins are made from this tab by someone who
   manages the agent, as the shared account everyone will use.
