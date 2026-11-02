@@ -1,0 +1,116 @@
+name: Release Linux AppImage (Tauri)
+
+# Builds the AppImage for x64 + arm64 and attaches both to a GitHub Release.
+# Push an `app-v*` tag to build + publish; "Run workflow" (workflow_dispatch)
+# produces build-only artifacts with no Release. Setup: references/signed-release.md.
+#
+# Linux has no code signing: the AppImage is published as built. Running it
+# needs FUSE 2 (`libfuse2`) or `./<app>.AppImage --appimage-extract-and-run`.
+# arm64 builds natively on the arm runner — the AppImage tooling runs on, and
+# takes the WebKit helpers from, the build machine.
+#
+# Optional repo/org Actions variables:
+#   IBL_ALLOW_IN_APP_PURCHASE   "true" to enable in-app purchase UI
+#   IBL_TENANT                  organization key to lock the build to
+
+on:
+  push:
+    tags:
+      - 'app-v*'
+  workflow_dispatch:
+
+concurrency:
+  group: release-linux-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write # attach the AppImages to the Release
+
+jobs:
+  build-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runs_on: ubuntu-22.04
+            rust_target: x86_64-unknown-linux-gnu
+          - arch: arm64
+            runs_on: ubuntu-22.04-arm
+            rust_target: aarch64-unknown-linux-gnu
+    runs-on: ${{ matrix.runs_on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # WebKitGTK 4.1 and GTK 3 are what the shell links against; patchelf is
+      # used by the AppImage tooling. ubuntu-22.04 keeps the glibc floor low.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.arch }}
+
+      # No tagName is passed, so tauri-action creates no Release; the AppImage is
+      # attached below so it lands on the app-v<X> Release.
+      - name: Build AppImage
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This app shell's compile-time flags (read via option_env! in Rust).
+          IBL_ALLOW_IN_APP_PURCHASE: ${{ vars.IBL_ALLOW_IN_APP_PURCHASE }}
+          IBL_TENANT: ${{ vars.IBL_TENANT }}
+        with:
+          args: --target ${{ matrix.rust_target }} --bundles appimage
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-linux-${{ matrix.arch }}-${{ github.sha }}
+          path: src-tauri/target/${{ matrix.rust_target }}/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
+
+      # Release builds only (tag push): attach the AppImage to the tag's Release.
+      - name: Attach AppImage to release
+        if: ${{ github.ref_type == 'tag' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPIMAGE_GLOB: src-tauri/target/${{ matrix.rust_target }}/release/bundle/appimage/*.AppImage
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=($APPIMAGE_GLOB) # intentional glob expansion of the path pattern
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No AppImage found at $APPIMAGE_GLOB"; exit 1
+          fi
+          # The x64 and arm64 legs run concurrently; tolerate a lost create race.
+          # Their file names carry the architecture, so --clobber never pits them
+          # against each other.
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --title "$RELEASE_TAG" \
+              --notes "Automated desktop build." || true
+          fi
+          gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
+          echo "Attached ${#files[@]} AppImage(s) to $RELEASE_TAG"

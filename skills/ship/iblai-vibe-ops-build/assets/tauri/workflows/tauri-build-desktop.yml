@@ -23,7 +23,7 @@ jobs:
             os: macos-latest
             rust_target: aarch64-apple-darwin
           - label: Linux (x64)
-            os: ubuntu-latest
+            os: ubuntu-22.04
             rust_target: x86_64-unknown-linux-gnu
           - label: Windows (x64)
             os: windows-latest
@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,7 +46,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -100,9 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-linux
-          path: |
-            src-tauri/target/*/release/bundle/deb/*.deb
-            src-tauri/target/*/release/bundle/appimage/*.AppImage
+          path: src-tauri/target/*/release/bundle/appimage/*.AppImage
           if-no-files-found: warn
 
       - name: Upload artifacts (Windows)

@@ -7,7 +7,6 @@
   "remote": {
     "urls": [
       "https://*.iblai.app/*",
-      "https://*.vercel.app/*",
       "http://127.0.0.1:*/*",
       "http://localhost:*/*"
     ]
@@ -25,6 +24,7 @@
     "core:webview:default",
     "core:window:allow-create",
     "opener:default",
-    "deep-link:default"
+    "deep-link:default",
+    "os:default"
   ]
 }

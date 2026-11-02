@@ -122,7 +122,7 @@ Declare both with the same desktop `cfg` gate as `opencode_acp`.
 tauri::Builder::default()
     .plugin(tauri_plugin_shell::init())      // open the workspace folder
     .plugin(tauri_plugin_opener::init())
-    .plugin(tauri_plugin_os::init())         // the SDK's isTauriDesktop() reads platform()
+    .plugin(tauri_plugin_os::init())         // already in the shell template
     .plugin(tauri_plugin_dialog::init())     // "Select Workspace" folder picker
     // mobile only: the phone scans the desktop's pairing QR
     #[cfg(any(target_os = "ios", target_os = "android"))]

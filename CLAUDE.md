@@ -31,7 +31,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
-| "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
+| "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
 | "workflow", "multi-step agent", "branch / loop an agent", "chain agents", "state variables" | `/iblai-vibe-workflow` — `WorkflowsList` + `WorkflowEditor` from `/web-containers/next`; the list is organization-wide, opened from an agent |
 | "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, policy, secrets), `/iblai-vibe-virtual-machine` (the org's policies + secrets) |
@@ -490,8 +490,8 @@ and outside the catalogue. Name it without a leading slash in this file:
 Deploy through the platform's hosting API — see
 [`/iblai-vibe-ops-deploy`](skills/ship/iblai-vibe-ops-deploy/SKILL.md). It zips
 the app (project source; for static `output: 'export'` builds, `out/`),
-uploads it with the platform API key, polls until READY, and updates
-`devUrl`. No Vercel token or CLI.
+uploads it with the platform API key, polls until READY, and writes the URL
+into `tauri.conf.json` for the native builds. No Vercel token or CLI.
 
 ### Docker
 ```bash

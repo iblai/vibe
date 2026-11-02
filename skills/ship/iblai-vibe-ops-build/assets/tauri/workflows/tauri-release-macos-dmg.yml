@@ -41,12 +41,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Node/pnpm let tauri-action resolve the package manager; the frontend is a
-      # static export produced by beforeBuildCommand.
+      # Node/pnpm let tauri-action resolve the package manager; nothing is built
+      # here — the shell loads the deployed app (build.frontendDist).
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4

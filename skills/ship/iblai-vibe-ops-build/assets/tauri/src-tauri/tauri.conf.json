@@ -4,12 +4,13 @@
   "identifier": "com.example.myapp",
   "version": "0.1.0",
   "build": {
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../out"
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "pnpm dev",
+    "frontendDist": "https://my-app.example.com"
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "app", "nsis", "msi", "deb", "appimage"],
+    "targets": ["dmg", "app", "nsis", "msi", "appimage"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

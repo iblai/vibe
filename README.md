@@ -94,7 +94,7 @@ What each skill does:
 - `/iblai-vibe-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
 - `/iblai-vibe-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-vibe-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
-- `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (macOS, Windows x64 + ARM64 / Surface, Linux, iOS, Android).
 - `/iblai-vibe-ops-test` -- builds, tests and touch tests the app in a real browser before it is presented to the user.
 - `/iblai-vibe-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
 - `/iblai-vibe-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
@@ -256,7 +256,7 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-component` | Overview of all components + app creation paths |
 | `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
-| `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
+| `/iblai-vibe-ops-build` | Build and run on desktop and mobile (macOS, Windows x64 + ARM64, Linux, iOS, Android) |
 | `/iblai-vibe-ops-test` | Build, test and touch test your app in a real browser before showing work |
 | `/iblai-vibe-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
@@ -310,7 +310,7 @@ npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
 
 Build native apps for macOS, Windows, Linux, iOS, and Android:
 
-Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md)), then:
+Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/ship/iblai-vibe-ops-build/SKILL.md)), then:
 
 ```bash
 pnpm exec tauri build           # Desktop build for current platform

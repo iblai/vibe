@@ -307,7 +307,7 @@ record the answers here:
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "notifications" | `/iblai-vibe-notification` (already on `/notifications`) |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
-| "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
+| "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill |
 | "tests", "before you show me", "is it done?" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, then its touch test: the route in a real browser, every control you added, the console, the phone width |
 

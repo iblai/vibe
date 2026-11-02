@@ -1,6 +1,6 @@
 # iblai-vibe-ops-deploy
 
-> Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web — it deploys through the ibl.ai platform's hosting API (Vercel-backed) using only the platform API key in iblai.env (no Vercel account, token, or CLI), then updates devUrl in tauri.conf.json for mobile dev builds. Also covers deploying to infrastructure the team controls — a container on their own server, on-prem, Cloud Run, Kubernetes — and to any static host. For desktop/mobile native builds, see /iblai-vibe-ops-build.
+> Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web — it deploys through the ibl.ai platform's hosting API (Vercel-backed) using only the platform API key in iblai.env (no Vercel account, token, or CLI), then writes the deployed URL into tauri.conf.json (build.frontendDist) so the Tauri desktop and mobile builds load it. Also covers deploying to infrastructure the team controls — a container on their own server, on-prem, Cloud Run, Kubernetes — and to any static host. For desktop/mobile native builds, see /iblai-vibe-ops-build.
 
 # /iblai-vibe-ops-deploy
 
@@ -326,7 +326,8 @@ the URL and say the live touch test did not run.
 ## Step 5: Update Tauri (if present)
 
 If `src-tauri/tauri.conf.json` exists and `APP_URL` is known, set
-`build.devUrl` to it so mobile/desktop dev builds load the hosted frontend.
+`build.frontendDist` to it: every installed desktop and mobile build loads
+that URL. Leave `build.devUrl` alone (`tauri dev` runs the local dev server).
 (Skip if it is empty — never write a guessed one.)
 
 ## Errors
@@ -412,18 +413,20 @@ symptom looks like a broken app, not a missing setting.
 
 ## When to Deploy
 
-- Before running dev builds (`pnpm exec tauri dev`, `… tauri ios dev`,
-  `… tauri android dev`) so the WebView loads from a network URL
-- After frontend changes when iterating on dev builds
+- Before a Tauri release build (`pnpm exec tauri build`, the `app-v*`
+  workflows): the shell loads the deployed URL
+- After frontend changes: installed desktop and mobile apps pick them up on
+  their next launch
 - When sharing a preview URL
 - When handing an app to someone who has to run it on their own
   infrastructure — that is the container path, and it is worth setting up
   before they ask
 
-## Going Back to Local
+## Dev builds against the hosted app
 
-Remove `devUrl` from `src-tauri/tauri.conf.json`; the WebView loads local
-static files again.
+`tauri dev` runs the local dev server; to open the deployed app in a dev
+build instead, override per run:
+`pnpm exec tauri dev -c '{"build":{"devUrl":"<APP_URL>","beforeDevCommand":""}}'`.
 
 ## Reference
 

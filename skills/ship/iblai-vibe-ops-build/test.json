@@ -12,6 +12,7 @@
     "assets/tauri/workflows/tauri-build-desktop.yml",
     "assets/tauri/workflows/tauri-build-ios.yml",
     "assets/tauri/workflows/tauri-build-windows-msix.yml",
+    "assets/tauri/workflows/tauri-release-linux.yml",
     "assets/tauri/workflows/tauri-release-macos-dmg.yml",
     "assets/tauri/workflows/tauri-release-windows.yml"
   ]

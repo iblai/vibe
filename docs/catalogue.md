@@ -255,7 +255,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-design`](../skills/ship/iblai-vibe-design/SKILL.md) | 🛠️ ops | Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize… |
 | [`/iblai-vibe-deslop`](../skills/ship/iblai-vibe-deslop/SKILL.md) | 🛠️ ops | Audit and harden existing codebases (especially AI-generated / vibe-coded ones) for production readiness |
 | [`/iblai-vibe-iconography`](../skills/ship/iblai-vibe-iconography/SKILL.md) | 🛠️ ops | Generate every required app-icon size for Tauri desktop, iOS, Windows MSIX, and macOS builds from a single source image |
-| [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface) |
+| [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app as a native app with Tauri v2 |
 | [`/iblai-vibe-ops-deploy`](../skills/ship/iblai-vibe-ops-deploy/SKILL.md) | 🛠️ ops | Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web |
 | [`/iblai-vibe-ops-release`](../skills/ship/iblai-vibe-ops-release/SKILL.md) | 🛠️ ops | Generate a Makefile + Fastlane config that builds and submits your Tauri app to the Apple App Store and Google Play |
 | [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | Test an ibl.ai Next.js app before showing it or saying done |

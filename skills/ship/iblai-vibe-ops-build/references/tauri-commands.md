@@ -28,9 +28,8 @@ pnpm exec tauri ios init|dev|build     # iOS (macOS + Xcode)
 pnpm exec tauri android init|dev|build
 ```
 
-For `dev`, build the frontend first **unless** `src-tauri/tauri.conf.json`
-has a `devUrl` set (i.e. the frontend is already hosted, e.g. after
-deploying with `/iblai-vibe-ops-deploy`) — then the local build is skipped.
+`dev` runs `beforeDevCommand` (`pnpm dev`) and loads `devUrl`; for the hosted
+app override per run: `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`.
 After `ios init` / `android init`, regenerate platform icons from
 `src-tauri/icons/icon.png`.
 
@@ -54,7 +53,7 @@ Add to `package.json` (`@tauri-apps/cli` as a devDependency):
   "tauri:dev": "tauri dev",
   "tauri:build": "tauri build",
   "tauri:build:debug": "next build && tauri build --debug",
-  "tauri:dev:android": "tauri android dev --host",
+  "tauri:dev:android": "tauri android dev",
   "tauri:build:android": "tauri android build",
   "tauri:dev:ios": "tauri ios dev",
   "tauri:build:ios": "tauri ios build",
@@ -62,11 +61,12 @@ Add to `package.json` (`@tauri-apps/cli` as a devDependency):
   "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
   "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1"
 },
-"devDependencies": { "@tauri-apps/cli": "^2.5.0" }
+"devDependencies": { "@tauri-apps/cli": "^2.12.0" }
 ```
 
-An app with no server routes can ship the frontend inside the binary — in
-`next.config.ts`:
+The shell loads the deployed app (`build.frontendDist` in `tauri.conf.json`);
+vibe-starter keeps its server routes, so `next.config.ts` is unchanged. An app
+with no server routes may ship a static export instead — in `next.config.ts`:
 
 ```ts
 output: "export",
@@ -74,8 +74,8 @@ images: { unoptimized: true, remotePatterns: [{ protocol: "https", hostname: "**
 allowedDevOrigins: ["tauri://localhost", "https://login.iblai.app"],
 ```
 
-vibe-starter keeps its server routes and points `devUrl` at the deployed
-app instead (see "Common commands").
+and in `tauri.conf.json` `"frontendDist": "../out"` with
+`"beforeBuildCommand": "pnpm build"`.
 
 ## Windows MSIX
 

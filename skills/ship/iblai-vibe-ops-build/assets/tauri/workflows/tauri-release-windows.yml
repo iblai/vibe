@@ -47,7 +47,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -121,8 +121,8 @@ jobs:
           Set-Content -Path $conf -Value $text -NoNewline -Encoding utf8
           Write-Host "Injected certificateThumbprint $thumb"
 
-      # Build + sign the NSIS installer. MSI/WiX doesn't support arm64, so NSIS is
-      # the only bundle type that builds for both x64 and arm64.
+      # Build + sign the NSIS installer only: one installer type is enough, and
+      # WiX would give the x64 and arm64 MSIs the same default UpgradeCode.
       - name: Build & sign NSIS installer
         uses: tauri-apps/tauri-action@v0
         env:
@@ -178,7 +178,7 @@ jobs:
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \
               --title "$RELEASE_TAG" \
-              --notes "Automated, self-signed Windows build." || true
+              --notes "Automated desktop build." || true
           fi
           gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           echo "Attached ${#files[@]} installer(s) to $RELEASE_TAG"

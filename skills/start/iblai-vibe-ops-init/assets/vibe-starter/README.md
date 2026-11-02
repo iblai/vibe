@@ -223,8 +223,9 @@ pnpm e2e:coverage    # Approximate e2e coverage from the journeys (≥ 95%)
 
 Run `/iblai-vibe-ops-deploy` — zips the app, uploads it to the ibl.ai
 platform's hosting API using your platform API key (no Vercel account or
-token), polls until the build is READY, and updates `devUrl` in
-`tauri.conf.json`. The app lands on the `*.vercel.app` URL the API reports.
+token), polls until the build is READY, and writes the URL into
+`tauri.conf.json` (`build.frontendDist`) for the native builds. The app
+lands on the address the API reports.
 
 ### Tauri (Desktop & Mobile)
 

@@ -1,15 +1,15 @@
-# Signed desktop release builds (macOS DMG + Windows NSIS)
+# Desktop release builds (macOS DMG, Windows NSIS, Linux AppImage)
 
-The two release workflows in
-[`assets/tauri/workflows/`](../assets/tauri/workflows/) build **distributable,
-signed** desktop installers and attach them to a GitHub Release — separate from
-the unsigned, build-only `tauri-build-desktop.yml` (which is fine for quick CI
-checks and also covers Linux).
+The three release workflows in
+[`assets/tauri/workflows/`](../assets/tauri/workflows/) build **distributable**
+desktop installers and attach them to a GitHub Release — separate from the
+unsigned, build-only `tauri-build-desktop.yml` (quick CI checks on all three).
 
 | Workflow | Output | Signing |
 |---|---|---|
 | `tauri-release-macos-dmg.yml` | Universal `.dmg` (Intel + Apple Silicon) | Developer ID + **notarized + stapled** — opens with no Gatekeeper warning |
 | `tauri-release-windows.yml` | NSIS `-setup.exe` for **x64 + arm64** | Authenticode (stored `.pfx` or a runner-generated self-signed cert) |
+| `tauri-release-linux.yml` | `.AppImage` for **x64 + arm64** | none — Linux has no code signing |
 
 Copy them into `.github/workflows/` alongside your project.
 
@@ -21,7 +21,7 @@ Copy them into `.github/workflows/` alongside your project.
 
 ## How they trigger
 
-Both run on:
+All three run on:
 
 - **`app-v*` tag push** → build, sign, and **attach the installer to that tag's
   Release** (created as a fallback if it doesn't exist).
@@ -172,15 +172,28 @@ Leave `WINDOWS_CERTIFICATE` unset to use the auto-generated cert path.
 ### arm64 note
 
 arm64 is cross-compiled on the x64 `windows-latest` runner — the GitHub-hosted
-image already ships the MSVC ARM64 tools + Windows 11 SDK. Only **NSIS** builds
-for both architectures (MSI/WiX has no arm64 target), so the workflow restricts
-bundling to `--bundles nsis`.
+image already ships the MSVC ARM64 tools + Windows 11 SDK. The workflow builds
+**NSIS** only (`--bundles nsis`): one installer type is enough, and WiX would
+give the x64 and arm64 MSIs the same default UpgradeCode unless
+`bundle.windows.wix.upgradeCode` is set per architecture.
+
+---
+
+## Linux — AppImage (unsigned)
+
+`tauri-release-linux.yml` builds `--bundles appimage` on `ubuntu-22.04` (x64)
+and `ubuntu-22.04-arm` (arm64) — natively on each, because the AppImage tooling
+runs on, and takes the WebKit helpers from, the build machine — and attaches
+`<app>_<version>_amd64.AppImage` and `…_aarch64.AppImage` to the Release. No
+secrets: Linux has no code signing. Users `chmod +x` the file and run it; it
+needs FUSE 2 (`libfuse2`) or `./<app>.AppImage --appimage-extract-and-run`.
+`ubuntu-22.04` keeps the glibc floor low enough for current distributions.
 
 ---
 
 ## Compile-time app flags
 
-Both workflows forward this shell's build-time flags to `tauri-action` from repo
+All three workflows forward this shell's build-time flags to `tauri-action` from repo
 variables (empty = the "off" default), so a signed release can also be
 organization-locked or IAP-enabled without editing the workflow:
 
