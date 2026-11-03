@@ -32,7 +32,7 @@ because the host has no route for them (vibe-starter's case).
 ## Prerequisites
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
-- `@iblai/iblai-js@^2.55.0` (resolves `@iblai/web-containers` 1.56.1).
+- `@iblai/iblai-js@^2.59.0` (resolves `@iblai/web-containers` 1.56.1).
 - Analytics pages to land on: vibe-starter's `/admin/analytics/*`, or the
   agent-scoped layout in `/iblai-vibe-analytics` ("One agent instead of the
   org"), mounted at `/agents/<uuid>/dashboards`.
@@ -148,7 +148,10 @@ for the hooks and the REST twin
 
 ## Step 5: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors.
 2. `pnpm test` -- vitest must pass.

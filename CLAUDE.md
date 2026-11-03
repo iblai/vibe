@@ -31,7 +31,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
-| "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
+| "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
 | "workflow", "multi-step agent", "branch / loop an agent", "chain agents", "state variables" | `/iblai-vibe-workflow` — `WorkflowsList` + `WorkflowEditor` from `/web-containers/next`; the list is organization-wide, opened from an agent |
 | "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, policy, secrets), `/iblai-vibe-virtual-machine` (the org's policies + secrets) |
@@ -41,6 +41,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "chat with a deployed agent from my assistant" | `/iblai-api-agent-chat` (hosted MCP server) or `/iblai-api-agent-session` (raw REST/SSE) |
 | "is it done?", "show me" | `/iblai-vibe-ops-test` first: `pnpm build`, `pnpm test`, then its touch test — the route in a real browser, every new control, the console, the phone width |
 | "looks off-brand", "the font", "font size", "match the OS look", "page header", "empty state", "status badge" | `/iblai-vibe-component` — House components; diverging from the ibl.ai look is a question for the user, not a decision |
+| "make an ibl.ai official app" (said in those words) | `/iblai-vibe-house-journeys` — the OS's first-run journeys: a `main`-only user gets the app trial-gated with Upgrade for free, a visitor on another organization a preview with Join / Create your own, an admin the SDK setup flow then the Stripe path. Never for any other app |
 
 **Freshness rule:** skills are a copy. If `.claude/skills/start/iblai-vibe/SKILL.md`
 is older than 14 days, or older than the latest release
@@ -314,6 +315,7 @@ selling items via Stripe Connect: `/iblai-vibe-monetization-onboard`,
 `/iblai-vibe-monetization-subscription`, `/iblai-vibe-monetization-analytics`), `/iblai-vibe-application` (admissions gate),
 `/iblai-vibe-course-access`, `/iblai-vibe-course-create`,
 `/iblai-vibe-crm-overview`, `/iblai-vibe-workflow`, `/iblai-vibe-onboard`,
+`/iblai-vibe-house-journeys` (official apps only: the OS's three first-run journeys),
 `/iblai-vibe-local-llm`, `/iblai-vibe-os-agent-code-mode` (the OS app's
 agentic Code mode in a Tauri build — opencode, permission cards, phone pairing).
 
@@ -456,6 +458,7 @@ bash scripts/validate-skills.sh           # spec conformance: name/description/f
 node scripts/check-sdk-pins.mjs           # no @iblai/* version mention may drift from vibe-starter's package.json (--fix rewrites drifted mentions)
 node scripts/check-links.mjs              # every github.com/iblai cross-repo link must still resolve (404/410 fail, transient warns)
 node scripts/test-skills-render.mjs       # skill assets + SKILL.md ts/tsx fences typecheck against the pinned SDK
+bash scripts/test-tauri-shell.sh          # the Tauri shell /iblai-vibe-ops-build ships: fmt, warnings denied, guard tests, AppImage, headless guard run (Linux)
 scripts/test-skills-agent.sh --changed    # headless-agent execution of changed skills (needs claude CLI)
 bash scripts/validate-skills-official.sh  # deeper audit via the upstream skills-ref Python library (manual)
 ```
@@ -488,8 +491,8 @@ and outside the catalogue. Name it without a leading slash in this file:
 Deploy through the platform's hosting API — see
 [`/iblai-vibe-ops-deploy`](skills/ship/iblai-vibe-ops-deploy/SKILL.md). It zips
 the app (project source; for static `output: 'export'` builds, `out/`),
-uploads it with the platform API key, polls until READY, and updates
-`devUrl`. No Vercel token or CLI.
+uploads it with the platform API key, polls until READY, and writes the URL
+into `tauri.conf.json` for the native builds. No Vercel token or CLI.
 
 ### Docker
 ```bash

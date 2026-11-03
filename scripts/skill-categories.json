@@ -14,7 +14,7 @@
   "core": [
     {
       "capability": "Custom data per user",
-      "scope": "one schemaless JSON object per user × organization — preferences, flags, onboarding, app state",
+      "scope": "one schemaless JSON object per user \u00d7 organization \u2014 preferences, flags, onboarding, app state",
       "ui": [
         "iblai-vibe-user-metadata"
       ],
@@ -24,7 +24,7 @@
     },
     {
       "capability": "The user's own profile",
-      "scope": "account fields, image, education, experience, résumé",
+      "scope": "account fields, image, education, experience, r\u00e9sum\u00e9",
       "ui": [
         "iblai-vibe-profile"
       ],
@@ -34,7 +34,7 @@
     },
     {
       "capability": "Memory",
-      "scope": "user-global · per user × agent (by category) · agent knowledge",
+      "scope": "user-global \u00b7 per user \u00d7 agent (by category) \u00b7 agent knowledge",
       "ui": [
         "iblai-vibe-memory-guide",
         "iblai-vibe-memory",
@@ -46,7 +46,7 @@
     },
     {
       "capability": "Custom data per organization",
-      "scope": "one metadata object per organization (GET-merge-PUT) — branding, feature toggles, defaults",
+      "scope": "one metadata object per organization (GET-merge-PUT) \u2014 branding, feature toggles, defaults",
       "ui": [
         "iblai-vibe-org-metadata"
       ],
@@ -165,6 +165,7 @@
       "iblai-vibe-rbac",
       "iblai-vibe-notification",
       "iblai-vibe-onboard",
+      "iblai-vibe-house-journeys",
       "iblai-api-profile",
       "iblai-api-profile-metadata",
       "iblai-api-management",

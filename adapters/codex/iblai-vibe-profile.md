@@ -17,8 +17,7 @@ organization (see the tab table below).
 ![Profile Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/users/iblai-vibe-profile/profile-page.png)
 
 > **Template:** the dropdown this skill creates is bundled as
-> [`assets/profile-dropdown.tsx.j2`](assets/profile-dropdown.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`assets/profile-dropdown.tsx`](assets/profile-dropdown.tsx).
 
 > **Navbar:** If the user wants a navbar with the profile dropdown, guide
 > them to `/iblai-vibe-navbar` first. That skill creates the full navbar with
@@ -68,8 +67,8 @@ template and fill in your values:
 
 ## Step 2: Create the Dropdown
 
-Render [`assets/profile-dropdown.tsx.j2`](assets/profile-dropdown.tsx.j2)
-into `components/iblai/profile-dropdown.tsx` (substitute `{{ }}` placeholders).
+Copy [`assets/profile-dropdown.tsx`](assets/profile-dropdown.tsx)
+into `components/iblai/profile-dropdown.tsx`.
 
 ## Files created
 
@@ -447,7 +446,10 @@ on the Account side, not the Profile side.
 
 ## Step 6: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass

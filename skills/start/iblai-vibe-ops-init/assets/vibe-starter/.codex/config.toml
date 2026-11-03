@@ -1,0 +1,9 @@
+# The same servers as .mcp.json; Codex reads this in a trusted project.
+
+[mcp_servers.iblai]
+command = "pnpm"
+args = ["dlx", "@iblai/mcp"]
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["-y", "chrome-devtools-mcp@latest", "--redactNetworkHeaders"]

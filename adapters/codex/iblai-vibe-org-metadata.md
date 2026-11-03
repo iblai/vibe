@@ -53,8 +53,8 @@ Writes need an org admin; the platform answers `403` otherwise.
 ## Step 1: Install
 
 `useOrgSettings` ships in `lib/iblai/metadata.ts` — run
-`/iblai-vibe-user-metadata` Step 2 if the app does not have it. Then render
-`assets/org-settings.tsx.j2` → `components/settings/org-settings.tsx` (needs
+`/iblai-vibe-user-metadata` Step 2 if the app does not have it. Then copy
+`assets/org-settings.tsx` → `components/settings/org-settings.tsx` (needs
 shadcn `card`, `input`, `label`).
 
 ## Step 2: Use it
@@ -82,6 +82,11 @@ JSON-serializable and small; this object is fetched by every ibl.ai front
 end that opens the org.
 
 ## Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
 
 1. `pnpm typecheck && pnpm test`.
 2. Before and after saving, compare

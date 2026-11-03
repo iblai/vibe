@@ -1,5 +1,5 @@
 {
   "overlay": {
-    "assets/notification-bell.tsx.j2": "components/iblai/notification-bell.tsx"
+    "assets/notification-bell.tsx": "components/iblai/notification-bell.tsx"
   }
 }

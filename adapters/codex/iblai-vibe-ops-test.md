@@ -1,6 +1,6 @@
 # iblai-vibe-ops-test
 
-> Test an ibl.ai Next.js app before showing it or saying done — pnpm build, pnpm test, then a touch test that drives the running app in a real browser (Claude in Chrome or the Chrome DevTools MCP) through every control you added, reads the console and the failed requests, and checks the phone width; the user signs in by hand, never with a password. Also sets up Vitest and Playwright journeys, lifts coverage above 95%, and keeps e2e/COVERAGE.md + coverage.json. Use when the user says "is it done", "show me", "test this", "touch test", "add tests", "write tests", "increase coverage", "set up Vitest", "set up Playwright", or "track e2e coverage". For the deployed URL see /iblai-vibe-ops-deploy.
+> Test an ibl.ai Next.js app before showing it or saying done — pnpm build, pnpm test, then a touch test that drives the running app in a real browser (Claude in Chrome or the Chrome DevTools MCP) through every control you added, reads the console and the failed requests, and checks the phone width; the user signs in by hand, never with a password; Playwright signs in as two test accounts the skill creates. Also sets up Vitest and Playwright journeys, writes the e2e suite exhaustively (every page, control and state, both accounts, the phone) until pnpm e2e:coverage passes 95%, and keeps e2e/COVERAGE.md + coverage.json. Use when the user says "is it done", "show me", "test this", "touch test", "add tests", "write tests", "increase coverage", "set up Vitest", "set up Playwright", or "track e2e coverage". For the deployed URL see /iblai-vibe-ops-deploy.
 
 # /iblai-vibe-ops-test
 
@@ -10,16 +10,30 @@ app in a real browser. **When the user asks for tests or coverage**: Steps 0–5
 set up Vitest and Playwright journeys and lift coverage above 95%.
 
 Never ask for a password. The touch test lets the user sign in by hand in the
-browser window; `pnpm test:e2e` signs in with `e2e/.env.development`, which only
-the user fills in. Use `pnpm`; fall back to `npm` if it is not installed.
+browser window; `pnpm test:e2e` signs in as two test accounts that
+`pnpm e2e:accounts` creates. Use `pnpm`; fall back to `npm` if it is not installed.
 
 ## Before you say "done"
 
 1. `pnpm build` — zero errors.
 2. `pnpm test` — green.
 3. The touch test below, on every route the change touched.
-4. `pnpm test:e2e` when `e2e/.env.development` is filled in (it reuses the
-   running dev server). Never ask for those credentials.
+4. `pnpm test:e2e` (Chrome desktop and a phone, against the server you already
+   run on :3000 — it stops at once when nothing answers; `pnpm test:e2e:all` adds
+   Firefox and WebKit), then `pnpm e2e:coverage`. The first creates the two test
+   accounts itself when `e2e/.env.development` lacks them (`pnpm e2e:accounts`
+   does the same ahead of time): an org admin and a member in the organization
+   `iblai.env` names (`PLATFORM`, never `main`), made with the Platform API Token
+   in `.env.local` after the platform confirms the token belongs to that
+   organization, saved in that gitignored file. Never read or print the file:
+   report the two usernames it prints. If the creation or a sign-in fails, report
+   its message and stop — there is no other way in. One exception: when it stops
+   on `PLATFORM` (a placeholder), run `/iblai-vibe-connect` without `--org` — the
+   user picks the organization on the connect page — then run it again. The
+   second checks `e2e/coverage.json` against the specs and the app and
+   approximates e2e coverage from the journeys; under 95% the work is not done
+   (Step 4 below). No `e2e:accounts` script (not vibe-starter)? Run
+   `pnpm test:e2e` only when `e2e/.env.development` is filled in.
 
 A change with no screen (a script, a server route nothing renders yet) reports
 "no screen to touch" in place of step 3. Never say "done", "ready" or
@@ -89,6 +103,7 @@ the code and run it again.
    Console: clean | <errors>. Network: clean | <url → status>
    Phone 412 px: no sideways scroll | <what overflowed>
    Not touched: <control>, <why>
+   E2E: <n> passed, <n> skipped, as <admin> + <member>; coverage <pct>% of <n> app lines | not run: <why>
    ```
 
 Something broke: fix it, run `pnpm build` and `pnpm test` again, touch test
@@ -256,9 +271,11 @@ if (typeof window.ResizeObserver === 'undefined') {
 ## Step 2: Playwright infrastructure
 
 vibe-starter ships it: `e2e/playwright.config.ts`, the real sign-in in
-`e2e/auth.setup.ts` (it reads `e2e/.env.development`, which the user fills in),
-auth, member and admin journeys, and `e2e/COVERAGE.md`; run `pnpm test:e2e`
-against a running `pnpm dev`. `playwright/.auth/` holds live tokens: keep
+`e2e/auth.setup.ts` (an admin and a member, from the `e2e/.env.development`
+that `pnpm e2e:accounts` writes — `pnpm test:e2e` runs it itself when the
+accounts are missing), the auth, member, admin, pages, api and mobile journeys,
+`e2e/COVERAGE.md` + `coverage.json`, and `e2e/coverage.mjs` behind
+`pnpm e2e:coverage`; run `pnpm test:e2e` against a running `pnpm dev`. `playwright/.auth/` holds live tokens: keep
 `/playwright/` gitignored and never `git add -A` after a run.
 
 Not from vibe-starter: `pnpm add -D @playwright/test` and
@@ -266,6 +283,8 @@ Not from vibe-starter: `pnpm add -D @playwright/test` and
 localStorage stub for UI-only journeys and the `test:e2e` script from
 [references/playwright-setup.md](references/playwright-setup.md); for journeys
 that need real data, [references/real-sso-auth-setup.md](references/real-sso-auth-setup.md).
+Copy `e2e/coverage.mjs` from vibe-starter as it is (no dependencies) and add
+`"e2e:coverage": "node e2e/coverage.mjs"` to `package.json`.
 
 ## Step 3: Write unit tests
 
@@ -354,72 +373,70 @@ describe('AccountDropdown', () => {
 - **Providers/contexts**: mock `<AuthProvider>` and `<TenantProvider>` (they hit network); assert the provider passes the right value to children.
 - **Pure data** (e.g. tab-definition arrays): pin the exact shape so a silent reordering or removal trips a test. See [references/test-patterns.md](references/test-patterns.md) for both recipes.
 
-## Step 4: Write e2e journeys
+## Step 4: Write e2e journeys — exhaustively
 
-Cover the **golden paths** your app actually has. Each route gets at
-least one journey. Example structure:
+Golden paths are where a suite starts, not where it stops. Enumerate from the
+code, never from memory, and give every item one checkpoint: one Playwright
+test titled `'<ID> · <what the user sees>'` (`A1`, `M4`, `K3`…).
 
-```
-e2e/journeys/
-├── 01-home-redirect.spec.ts        # / mounts, redirects work
-├── 02-sidebar-navigation.spec.ts   # nav links route correctly
-├── 03-explore-agents.spec.ts       # search + click flow
-├── 04-edit-mentor-dialog.spec.ts   # dialog open + tab switching
-└── 05-analytics-tabs.spec.ts       # every analytics route mounts cleanly
-```
+| Enumerate | From | A checkpoint for |
+|---|---|---|
+| Pages and API routes | every `app/**/page.tsx` and `route.ts` | each page: it stays on its route and shows its panel; each route: its success, 400 and 403 answers (`page.request` with the session token read from `localStorage` in the test, never logged) |
+| Controls | the components each page imports: buttons, links, inputs, switches, dialogs, menus, the navbar, the drawer | each one, by role and name: what its label promises happens |
+| States | the same files' branches | signed-out (sent to the login page), member vs admin (the two accounts), empty, loading, error (`page.route` answering 500), the phone (the `mobile` project opens every page) |
+| Mutations | every form | the round trip — save, reload, read it back — on data the test accounts own (their metadata, memories) or on objects the test creates and deletes (`e2e-…` names); an org-wide write (org metadata, org settings, billing, invites, policies) is intercepted with `page.route` on the platform request and asserted there |
+| Cross-cutting | every page | no console error, no dev overlay, no sideways overflow at 412 px, each locale |
+
+Never sign out in a journey (it ends the shared session); never send an
+invite, an email or a payment. After a change, the OS rule: a new page or
+feature gets a new journey; a new control, tab or validation gets checkpoints
+in its journey; a changed label or flow updates the checkpoint; a refactor with
+no visible change needs nothing — and the count never drops.
+
+The bar: the OS runs 834 e2e tests over 93k lines (nine per 1,000 lines, 98
+journeys over 43 routes); sis and crm six to seven per 1,000 lines and per
+route. Under six per 1,000 lines of your own code, you stopped early.
 
 ### Journey template
 
 ```typescript
-import { expect, test } from '@playwright/test'
-import { seedAuth } from '../utils/seed-auth'
+import { expect, test } from './helpers' // vibe-starter: settles the SDK's re-auth round trip first
 
-test.describe('Home redirect', () => {
-  test('home page mounts without JS error', async ({ page }) => {
-    await seedAuth(page)
-    const res = await page.goto('/')
-    expect(res?.ok()).toBeTruthy()
-    // Next.js dev-mode error overlay
-    await expect(page.locator('nextjs-portal')).toHaveCount(0)
-  })
+const appHost = process.env.APP_HOST || 'http://localhost:3000'
 
-  test('explore-agents mounts the AgentSearch container', async ({ page }) => {
-    await seedAuth(page)
-    await page.goto('/explore-agents')
-    await expect(page.getByRole('heading', { name: 'Explore Agents' })).toBeVisible({ timeout: 15_000 })
+test.describe('pages journey', () => {
+  test('K1 · /account shows the organization settings', async ({ page }) => {
+    await page.goto(`${appHost}/account`)
+    await expect(page).toHaveURL((url) => url.pathname === '/account', { timeout: 15_000 })
+    await expect(page.locator('nav[aria-label="Organization settings"]')).toBeVisible({ timeout: 30_000 })
   })
 })
 ```
 
-In vibe-starter drop `seedAuth`: journeys inherit the signed-in state from
-`auth.setup.ts`. Elsewhere it lives in references/playwright-setup.md.
+In vibe-starter the journeys inherit the signed-in state from `auth.setup.ts`
+(member journeys switch to the member's with `test.use`) and import `test`
+from `journeys/helpers.ts`: `auth.setup.ts` saves each session after the SDK's
+one-time re-auth round trip through the login host (a state saved earlier
+bounces every test home a few seconds in), and the fixture opens home and waits
+for the service-worker reload before the test runs. In Next 16 dev `<nextjs-portal>` hosts the
+dev tools badge on every page, so it proves nothing; assert the page's own
+markup. Elsewhere the `seedAuth` stub lives in references/playwright-setup.md.
 
-### What to cover
+### The ledger — `e2e/coverage.json` + `e2e/COVERAGE.md` — and `pnpm e2e:coverage`
 
-| Layer | Test |
-|-------|------|
-| Routing | Every page mounts without the dev error overlay |
-| Navigation | Each sidebar / navbar link goes where it should |
-| Forms / dialogs | Open → fill → submit happy path; cancel closes; required fields gate submit |
-| Authenticated content | At least one journey that drives the real SSO `auth.setup.ts` |
-| Edge cases | 404 fallback, empty states ("No workflows yet"), error toasts |
-
-### Track checkpoints in `e2e/COVERAGE.md` + `e2e/coverage.json`
-
-E2E coverage isn't lines — it's **user behaviours**. Maintain two
-sibling files in `e2e/`:
-
-- `COVERAGE.md` — journey-by-journey checklist with `[x]` markers (humans)
-- `coverage.json` — same checkpoints in JSON, statuses `covered` / `uncovered` / `deprecated` (machines / CI)
-
-Every time you ship a new page, dialog, button, or distinct user flow:
-add a checkpoint to the relevant journey, write the spec, flip to
-`[x]` + `covered`. Compute `summary.percent = covered / (total - deprecated) * 100`.
-Target ≥95% before merging user-facing changes.
-
-**Templates, the JSON shape, and a minimum CI gate that reads
-`e2e/coverage.json` and fails when `summary.percent < 95`:**
-see [references/e2e-coverage-tracking.md](references/e2e-coverage-tracking.md).
+`coverage.json` lists each journey with its spec, the pages and routes it
+visits (`sourceFiles`) and its checkpoints; `COVERAGE.md` is the same table for
+people. `pnpm e2e:coverage` (`e2e/coverage.mjs`) checks that every spec is a
+journey, every checkpoint id heads one test title and back, the summary adds
+up, every `sourceFiles` entry is a page the spec names by path, and every page
+and route under `app/` is visited by some journey; then it approximates
+coverage: an app file counts when a journey visits a page that imports it
+(layouts and `middleware.ts` ride along; `components/ui/**` is not counted).
+Reached lines over app lines must be ≥ 95%, and the suite must hold at least
+six checkpoints per 1,000 app lines; below either it names each unreached file
+and the page that would reach it, or the density. A page nobody visits is a gap,
+never an exclusion — add the journey. The shape, the checks, and how the OS, sis and crm
+differ: [references/e2e-coverage-tracking.md](references/e2e-coverage-tracking.md).
 
 ## Step 5: Run coverage + iterate to ≥95%
 
@@ -440,6 +457,15 @@ tests to whatever's red. Three patterns close coverage gaps fast:
 If you can't get past ~90% without testing trivial wrappers, lower the
 threshold to 90 temporarily — but flag it so it doesn't quietly stick.
 
+Then the e2e side:
+
+```bash
+pnpm e2e:coverage
+```
+
+Every `unreached:` line is a page to visit, or a file only an unvisited page
+reaches: add the journey (Step 4) and rerun until it passes.
+
 ## Common pitfalls
 
 | Symptom | Fix |
@@ -448,11 +474,13 @@ threshold to 90 temporarily — but flag it so it doesn't quietly stick.
 | Radix dialog crashes in jsdom | Pointer-capture polyfill — already covered above |
 | RTK Query hook returns `undefined` in tests | Module-mock the hook: `vi.mock('@iblai/iblai-js/data-layer', () => ({ useFooQuery: () => ({ data: ... }) }))` |
 | `next/navigation` errors in hook tests | `vi.mock('next/navigation', () => ({ useParams: () => ({}) }))` |
-| Coverage < 95% on `app/**` | Either add an e2e journey for that route OR move the route under the exclude list (it's pure routing glue) |
+| `pnpm e2e:coverage` under 95% | Visit the page it names from a journey (one checkpoint per page); never exclude a page |
+| `pnpm test:e2e` says nothing answers at :3000 | Start `pnpm dev` (or `pnpm build && pnpm start`) first; the suite never starts a server |
 | Playwright timeouts on first run | `pnpm exec playwright install chromium --with-deps` (Linux needs system libs) |
 | Tests pass locally but fail in CI | Set `workers: process.env.CI ? 1 : 4` and `retries: process.env.CI ? 2 : 0` — see references/playwright-setup.md |
 | Coverage report missing | Install `@vitest/coverage-v8` (not bundled with vitest) |
 | Browser tool says "No page found" | Its Chrome restarted: `list_pages`, then navigate again |
 | Sign-in never comes back to the app | The origin (port included) is missing from the organization's allowed redirect origins |
+| `auth.setup.ts` says the login page offers no password sign-in it recognises | The page changed: read the controls it printed, update the four resolver rules at the top of `e2e/auth.setup.ts` (structure, never copy: a password field, a button named like password, an email field, a submit button), rerun. Never type credentials by hand |
 
 **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

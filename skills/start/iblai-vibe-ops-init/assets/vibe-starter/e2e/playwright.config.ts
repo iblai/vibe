@@ -15,7 +15,10 @@ const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
  * then journey tests inherit the pre-authenticated state.
  *
  * To run tests:
- *   pnpm test:e2e              # headless, all browsers
+ *   pnpm test:e2e              # headless: Chrome desktop + a phone (chromium, mobile);
+ *                              # stops when no server answers, creates the test accounts when missing
+ *   pnpm e2e:coverage          # the checkpoint ledger + approximate coverage from the journeys
+ *   pnpm test:e2e:all          # every browser; --project=<name> on either adds one
  *   pnpm test:e2e:ui           # interactive UI
  *   pnpm test:e2e:headed       # headed browser
  *
@@ -23,6 +26,7 @@ const APP_HOST = process.env.APP_HOST || 'http://localhost:3000';
  */
 export default defineConfig({
   testDir: '.',
+  globalSetup: './global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -45,18 +49,29 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/user-setup-chromium.json' },
       dependencies: ['setup-chromium'],
       testMatch: ['journeys/**/*.spec.ts'],
+      testIgnore: ['journeys/mobile.journey.spec.ts'],
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'], storageState: 'playwright/.auth/user-setup-firefox.json' },
       dependencies: ['setup-firefox'],
       testMatch: ['journeys/**/*.spec.ts'],
+      testIgnore: ['journeys/mobile.journey.spec.ts'],
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'], storageState: 'playwright/.auth/user-setup-webkit.json' },
       dependencies: ['setup-webkit'],
       testMatch: ['journeys/**/*.spec.ts'],
+      testIgnore: ['journeys/mobile.journey.spec.ts'],
+    },
+
+    // Phone — one Chromium device on the chromium sign-in; the mobile journey only.
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 7'], storageState: 'playwright/.auth/user-setup-chromium.json' },
+      dependencies: ['setup-chromium'],
+      testMatch: ['journeys/mobile.journey.spec.ts'],
     },
   ],
 });

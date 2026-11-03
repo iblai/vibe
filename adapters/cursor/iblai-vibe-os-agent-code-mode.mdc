@@ -185,7 +185,7 @@ Good to know:
 > below are the OS app's own implementation of Code on the ibl.ai agent:
 > the Rust modules in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/)
 > (copy into your `src-tauri/`, same layout as `/iblai-vibe-ops-build`'s
-> templates, no `.j2` to render) and the chat pieces in
+> templates, nothing to render) and the chat pieces in
 > [`assets/nextjs/`](assets/nextjs/). Codex and Claude Code land here once
 > that OS work merges. The mechanics, every command and event, and the
 > wiring are in [`references/`](references/).

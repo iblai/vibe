@@ -18,8 +18,7 @@ follows. Each tab is a Next.js route under `basePath`.
 ![Analytics — Overview](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/analytics/iblai-vibe-analytics/iblai-vibe-analytics-1-overview.png)
 
 > **Template:** the Overview page is bundled as
-> [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2). See
-> [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) for the `{{ }}` contract.
+> [`assets/analytics-page.tsx`](assets/analytics-page.tsx).
 
 Do NOT add custom styles to ibl.ai SDK components. Do NOT implement dark
 mode unless asked. Follow the component hierarchy: ibl.ai SDK
@@ -167,7 +166,7 @@ What the layout does for you:
 
 ## Pages
 
-Render [`assets/analytics-page.tsx.j2`](assets/analytics-page.tsx.j2) into
+Copy [`assets/analytics-page.tsx`](assets/analytics-page.tsx) into
 `app/(app)/analytics/page.tsx` (Overview). Every other tab is a small client
 page. Tabs that take the groups filter (Users, Topics, Transcripts) follow
 this shape, as in `app/(app)/analytics/users/page.tsx`:

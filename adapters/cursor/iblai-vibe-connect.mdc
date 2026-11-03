@@ -24,6 +24,14 @@ Any time credentials are missing or unusable:
 | The platform API answers `401` | Run this skill — the token was revoked or expired |
 | `iblai.env` already has real values, or the host exports `IBLAI_API_KEY` | Skip it; those already answer the question |
 
+## Which organization?
+
+The connect page is where the user chooses: it lists the organizations they
+belong to, with `main` disabled. A placeholder `PLATFORM` — missing,
+`your-platform`, or `main` — means run the script **without** `--org` and let
+them pick. A real key means `--org <key>`, which preselects it. Never look the
+key up for the user or guess it.
+
 ## Step 1: Run the script
 
 The script lives next to this file, in whichever skills directory this skill was
@@ -63,7 +71,7 @@ Options, all optional:
 | `--domain <host>` | `iblai.app` |
 | `--name <label>` | `<package.json name or folder name> on <hostname>` — the name the token gets, so it can be recognized and revoked later |
 | `--origin <url>` | `http://localhost:3000` when a `package.json` with `next` is present — the hosted page adds it to the organization's allowed redirect origins, which is the step new apps most often miss |
-| `--org <key>` | preselects an organization when you already know the key |
+| `--org <key>` | preselects an organization whose key is already real; leave it out for a placeholder `PLATFORM` so the user picks |
 | `--dry-run` | prints the file changes it would make, token masked, and writes nothing |
 | `--paste` | reads the manual-mode block from stdin; no browser (Step 2) |
 

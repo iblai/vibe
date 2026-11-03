@@ -142,7 +142,7 @@ for skill in "${skills[@]}"; do
     # SSO authorization codes).
     if (cd "$scratch" && APP_HOST="http://localhost:3000" AUTH_HOST="$AUTH_HOST" \
         PLAYWRIGHT_USERNAME="$PLAYWRIGHT_USERNAME" PLAYWRIGHT_PASSWORD="$PLAYWRIGHT_PASSWORD" \
-        pnpm exec playwright test e2e/auth.setup.ts --config e2e/playwright.config.ts \
+        pnpm exec playwright test e2e/auth.setup.ts --config e2e/playwright.config.ts --project=setup-chromium \
         --reporter=dot --trace=off \
         >"$scratch/.live.log" 2>&1); then
       note "$skill: live SSO login OK"

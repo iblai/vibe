@@ -1,0 +1,24 @@
+{
+  "houseJourneys": {
+    "preview": {
+      "body": "Vous n’êtes pas encore membre de {name}. Rejoignez-la, ou créez votre propre organisation.",
+      "join": "Rejoindre {name}",
+      "create": "Créer votre propre organisation",
+      "back": "Retour à mon organisation"
+    },
+    "sample": {
+      "body": "Vous consultez des données fictives. Votre propre organisation démarre vide et vous appartient."
+    },
+    "onboarding": {
+      "meetTitle": "Rencontrez {name}",
+      "meetBody": "L’agent de votre organisation est prêt quand vous l’êtes.",
+      "allSetTitle": "Tout est prêt",
+      "allSetBody": "{workspace} est prête. Entrez.",
+      "allSetMember": "Merci : votre organisation a ce qu’il lui faut. Entrez.",
+      "workspace": "Votre organisation",
+      "continue": "Continuer",
+      "complete": "Terminer",
+      "back": "Retour"
+    }
+  }
+}

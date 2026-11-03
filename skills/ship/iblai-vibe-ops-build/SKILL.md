@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-ops-build
-description: Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface)
+description: Build and run your ibl.ai app as a native app with Tauri v2 — macOS, Windows x64 + ARM64 (Surface), Linux (AppImage), iOS, Android. Use when the user asks for a desktop or mobile build, an installer, a DMG, NSIS, AppImage, App Store or Play build. For store submission see /iblai-vibe-ops-release; for MSIX see /iblai-vibe-windows-msix.
 globs:
 alwaysApply: false
 metadata:
@@ -10,16 +10,32 @@ metadata:
 # /iblai-vibe-ops-build
 
 Build and run your ibl.ai app on desktop and mobile using Tauri v2. Covers
-iOS, Android, macOS/Linux desktop, and Surface tablet builds.
+macOS, Windows (Surface — x64 and ARM64), Linux, iOS and Android.
 
 > **Building:** run Tauri directly — `pnpm exec tauri <cmd>` (e.g.
-> `pnpm exec tauri dev`, `pnpm exec tauri ios build`). The Tauri
-> shell templates live in [`assets/tauri/`](assets/tauri/) (copy into
-> `src-tauri/`), the CI workflows in
-> [`assets/tauri/workflows/`](assets/tauri/workflows/), and the default app
-> icons in [`assets/icons/`](assets/icons/). The build commands,
-> prerequisites, and MSIX notes are in
+> `pnpm exec tauri dev`, `pnpm exec tauri ios build`). The Tauri shell
+> files live in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/) (copy
+> into `src-tauri/`), the CI workflows in
+> [`assets/tauri/workflows/`](assets/tauri/workflows/) (copy into
+> `.github/workflows/`), and the default app icons in
+> [`assets/icons/`](assets/icons/) (copy into `src-tauri/icons/`). They are
+> real files under placeholder names — set the names below once. The build
+> commands, prerequisites, package scripts and MSIX notes are in
 > [`references/tauri-commands.md`](references/tauri-commands.md).
+
+## Names to set after copying
+
+The shell ships as `my-app`. Set these together; the sign-in and the Windows
+build break when they disagree:
+
+| Value | Default | Where |
+|---|---|---|
+| App slug | `my-app` | `src-tauri/Cargo.toml` package name, `src-tauri/tauri.conf.json` `productName`, `AppxManifest.xml` `Executable="my-app.exe"`, `build-msix.ps1` `$AppName` |
+| Bundle identifier | `com.example.myapp` | `tauri.conf.json` `identifier`, `AppxManifest.xml` `Identity Name` — no hyphens, never ending in `.app`; the stores lock it at the first release |
+| Display name | `My App` | the six display fields in `AppxManifest.xml`, the window title in `src-tauri/src/lib.rs` |
+| Auth URL scheme | `my-app` | `tauri.conf.json` deep-link `scheme`, `AUTH_SCHEME` in `src-tauri/src/lib.rs`, `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local`, `TAURI_CUSTOM_SCHEME` in `iblai.env`, the organization's allowed redirect origins |
+| App URL | `https://my-app.example.com` | `tauri.conf.json` `build.frontendDist` — the deployed app's final URL (after redirects); every platform loads it and the desktop guard allows its host. A self-hosted platform also goes into `ALLOWED_HOST_SUFFIXES` in `src-tauri/src/lib.rs` |
+| MSIX publisher | `CN=my-app-dev` | `AppxManifest.xml` `Publisher`, `setup-test-cert.ps1` `$Subject` (the Store replaces it) |
 
 Before adding build support or running a dev build, **stop all running dev
 servers** (`pnpm dev`, `next dev`, etc.) to avoid port conflicts. Kill any
@@ -37,22 +53,32 @@ a device name from the output.
 
 - **Tauri support** added to your project:
   ```bash
-  # add the Tauri shell: copy assets/tauri/ into src-tauri/ + add @tauri-apps deps
+  # add the Tauri shell: copy assets/tauri/src-tauri/ into src-tauri/, set the names above, add the package scripts (references/tauri-commands.md)
   pnpm install --ignore-scripts
   ```
 > Run with `--ignore-scripts` to skip package lifecycle (postinstall) scripts.
 
 - **Rust toolchain** installed via [rustup](https://rustup.rs)
 
-## How Dev Builds Work
+## How the shell loads the app
 
-All platforms (desktop and mobile) use a static `next build` export. Tauri
-runs the frontend build (via `beforeBuildCommand`) before starting the dev
-server -- the WebView loads the static files from `../out` on all platforms.
+Every platform loads the deployed web app: `build.frontendDist` in
+`tauri.conf.json` is its URL (the **App URL** above), nothing is bundled, and
+a web deploy ([`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md)
+writes the URL) updates every installed app. `pnpm exec tauri dev` runs
+`beforeDevCommand` (`pnpm dev`) and loads `devUrl` (`http://localhost:3000`)
+instead; for a dev build on the hosted app, override per run:
+`pnpm exec tauri dev -c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`.
 
-For dev builds, you can optionally deploy the frontend via ibl.ai hosting
-(Vercel) with the [`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md) skill.
-That deploys the app and updates `devUrl` in `tauri.conf.json`.
+An app with no server routes may ship a static export instead: `output:
+"export"` in `next.config.ts`, then `"frontendDist": "../out"` and
+`"beforeBuildCommand": "pnpm build"` (the scaffold's `builds` option).
+vibe-starter keeps its server routes, so it uses the URL.
+
+The shell registers `tauri-plugin-os`, so the SDK knows it runs in a desktop
+or mobile app; Code mode and on-device models still need
+[`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md)
+and [`/iblai-vibe-local-llm`](../../agents/iblai-vibe-local-llm/SKILL.md).
 
 ## Mobile Safe Area
 
@@ -73,17 +99,17 @@ scheme instead of `https://`. Set `TAURI_CUSTOM_SCHEME` in `iblai.env`:
 TAURI_CUSTOM_SCHEME=myapp
 ```
 
-This configures:
-- `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local` — the frontend uses
-  this to pass `redirect-to=myapp://` to the auth SPA
-- The Tauri deep-link handler to listen for `myapp://` callbacks
+Set the same value in `.env.local` as `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` (the
+frontend passes `redirect-to=myapp://` to the auth SPA), in
+`src-tauri/tauri.conf.json` (`deep-link` → `scheme`) and as `AUTH_SCHEME` in
+`src-tauri/src/lib.rs` (the handler that listens for `myapp://` callbacks).
 
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
 
 ## Build-Time Flags (Organization Lock & In-App Purchase)
 
-`IBL_TENANT=<key>` locks a binary to one org and `IBL_IAP=1` enables the in-app-purchase path; both are Rust `option_env!` values set in the build shell. Full semantics, examples per platform, and the runtime behavior: [`references/build-time-flags.md`](references/build-time-flags.md).
+`IBL_TENANT=<key>` locks a binary to one org and `IBL_ALLOW_IN_APP_PURCHASE=1` enables the in-app-purchase path; both are Rust `option_env!` values set in the build shell. Full semantics, examples per platform, and the runtime behavior: [`references/build-time-flags.md`](references/build-time-flags.md).
 
 ## App Icons
 
@@ -98,7 +124,8 @@ This creates all required sizes in `src-tauri/icons/`.
 ## List Available Devices
 
 ```bash
-pnpm exec tauri device
+xcrun simctl list devices   # iOS simulators; plugged-in devices: xcrun devicectl list devices
+emulator -list-avds         # Android emulators; plugged-in devices: adb devices -l
 ```
 
 ---
@@ -138,15 +165,14 @@ code, and iOS configuration.
 First, list available simulators:
 
 ```bash
-pnpm exec tauri device
+xcrun simctl list devices
 ```
 
 **Always pick a device from the list.** Choose the most mainstream iPhone
 (e.g., the newest Pro Max available). Do NOT run without a device name.
 
-To point this dev build at a hosted frontend, deploy first via the
-`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
-Then start the dev build:
+The dev build runs `pnpm dev` and loads it on the simulator (for the hosted
+app add `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
 
 ```bash
 pnpm exec tauri ios dev "iPhone 16 Pro Max"
@@ -162,10 +188,10 @@ The first build takes several minutes; subsequent builds are fast.
 
 ### Run on Physical iOS Device
 
-Connect your iPhone via USB, then:
+Connect your iPhone via USB, then pass its name (`xcrun devicectl list devices`):
 
 ```bash
-pnpm exec tauri ios dev --device
+pnpm exec tauri ios dev "<device name>"
 ```
 
 #### Requirements for Physical Devices
@@ -202,14 +228,8 @@ The .ipa file is generated at `src-tauri/gen/apple/build/` (or use
 
 #### App Store Build (CI)
 
-Generate the GitHub Actions workflow:
-
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
-
-This creates `.github/workflows/tauri-build-ios.yml` which sets up the
-full pipeline and uploads the .ipa as a build artifact.
+Copy `assets/tauri/workflows/tauri-build-ios.yml` into `.github/workflows/`;
+it sets up the full pipeline and uploads the .ipa as a build artifact.
 
 ##### Required GitHub Secrets for iOS CI
 
@@ -255,16 +275,15 @@ This generates `src-tauri/gen/android/` with the Gradle project.
 First, list available emulators:
 
 ```bash
-pnpm exec tauri device
+emulator -list-avds
 ```
 
 **Always pick a device from the list.** Choose the most mainstream Pixel
 (e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
 Do NOT run without a device name.
 
-To point this dev build at a hosted frontend, deploy first via the
-`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
-Then start the dev build:
+The dev build runs `pnpm dev` and reaches it through `adb reverse` (for the
+hosted app add `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
 
 ```bash
 pnpm exec tauri android dev "Pixel_9"
@@ -272,10 +291,11 @@ pnpm exec tauri android dev "Pixel_9"
 
 ### Run on Physical Android Device
 
-Connect your device via USB with USB debugging enabled, then:
+Connect your device via USB with USB debugging enabled, then pass its name
+(`adb devices -l`):
 
 ```bash
-pnpm exec tauri android dev --device
+pnpm exec tauri android dev "<device name>"
 ```
 
 ### Build Release APK
@@ -292,9 +312,8 @@ pnpm tauri:build:android
 
 #### Android CI
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+No template yet: build locally with `pnpm exec tauri android build`, or
+submit through [`/iblai-vibe-ops-release`](../../ship/iblai-vibe-ops-release/SKILL.md).
 
 ---
 
@@ -308,9 +327,8 @@ pnpm tauri:build:android
 
 ### Run in Dev Mode
 
-To point this dev build at a hosted frontend, deploy first via the
-`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
-Then start the dev build:
+Runs `pnpm dev` and opens it in the shell (for the hosted app add
+`-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
 
 ```bash
 pnpm exec tauri dev
@@ -348,18 +366,19 @@ Either way needs Apple Developer ID credentials — full setup in
 
 ## Surface
 
-Build for Microsoft Surface tablets running Windows.
+Windows 11 on x64 and ARM64 — Surface Pro and Surface Laptop ship both.
 
 ### Surface Prerequisites
 
-- **Visual Studio** Build Tools with C++ workload
+- **Visual Studio** Build Tools with the C++ workload; for ARM64 also the
+  "MSVC v143 – VS 2022 C++ ARM64 build tools" component and
+  `rustup target add aarch64-pc-windows-msvc`
 - **WebView2** runtime (included on Windows 11, downloadable for Windows 10)
 
 ### Run in Dev Mode
 
-To point this dev build at a hosted frontend, deploy first via the
-`/iblai-vibe-ops-deploy` skill (needs only `iblai.env`'s platform API key).
-Then start the dev build:
+Runs `pnpm dev` and opens it in the shell (for the hosted app add
+`-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
 
 ```bash
 pnpm exec tauri dev
@@ -368,11 +387,13 @@ pnpm exec tauri dev
 ### Build Release .msi / .exe
 
 ```bash
-pnpm exec tauri build
+pnpm exec tauri build                                    # the machine's architecture
+pnpm exec tauri build --target aarch64-pc-windows-msvc   # ARM64 (Surface Pro on Snapdragon)
 ```
 
 The installer targets are configured in `src-tauri/tauri.conf.json` under
-`bundle.targets` (includes `nsis` and `msi` by default).
+`bundle.targets` (includes `nsis` and `msi` by default). Google and Apple
+sign-in open in an in-app popup that hands the result back to the main window.
 
 #### Surface / Windows CI (signed NSIS, x64 + arm64)
 
@@ -393,10 +414,12 @@ sideload **MSIX** package instead, see
 
 ### Linux Prerequisites
 
-- System dependencies (Debian/Ubuntu):
-  ```bash
-  sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-  ```
+Debian/Ubuntu (other distributions carry the same packages under their own
+names — Tauri's prerequisites page lists them):
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+```
 
 ### Run in Dev Mode
 
@@ -404,17 +427,30 @@ sideload **MSIX** package instead, see
 pnpm exec tauri dev
 ```
 
-### Build Release .deb / .AppImage
+### Build the AppImage
 
 ```bash
-pnpm exec tauri build
+pnpm exec tauri build --bundles appimage
 ```
 
-#### Linux CI
+One portable file per architecture in `src-tauri/target/release/bundle/appimage/`.
+Running it needs FUSE 2 (`libfuse2`) or `./<app>.AppImage --appimage-extract-and-run`.
+Linux has no code signing. Google and Apple sign-in open in an in-app popup.
 
-```bash
-# create the workflow from assets/tauri/workflows/ (desktop, ios, windows-msix templates)
-```
+#### Linux CI (AppImage, x64 + arm64)
+
+Copy `assets/tauri/workflows/tauri-release-linux.yml` into `.github/workflows/`.
+On an `app-v*` tag push it builds the AppImage on `ubuntu-22.04` and
+`ubuntu-22.04-arm` and attaches both to the Release; a manual run produces
+build-only artifacts — see [`references/signed-release.md`](references/signed-release.md).
+
+#### Linux Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Blank or black window (often Nvidia or Wayland) | `WEBKIT_DISABLE_DMABUF_RENDERER=1 ./<app>.AppImage` |
+| An embedded iframe stays blank and the terminal prints `blocked navigation` | WebKit runs iframe loads through the guard too (macOS as well): add the host to `ALLOWED_HOST_SUFFIXES` in `src-tauri/src/lib.rs` |
+| `AppImages require FUSE to run` | Install `libfuse2`, or run with `--appimage-extract-and-run` |
 
 ---
 
@@ -425,7 +461,7 @@ The GitHub Actions workflows for every platform and the one-table summary of eve
 ## Reference
 
 - [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
-- [`references/signed-release.md`](references/signed-release.md) -- signed + notarized macOS DMG and signed Windows NSIS release workflows (secrets, certs, tag triggering)
+- [`references/signed-release.md`](references/signed-release.md) -- the release workflows: notarized macOS DMG, signed Windows NSIS x64 + arm64, Linux AppImage x64 + arm64 (secrets, certs, tag triggering)
 - [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes
 
 ## Redirect origins for native shells

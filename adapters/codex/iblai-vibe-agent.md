@@ -104,5 +104,8 @@ Every tab skill has screenshots of the surface it mounts — open the skill befo
 
 ## Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 `pnpm build`, `pnpm test`, then Touch test `/agents/<uuid>/settings` in the browser as `/iblai-vibe-ops-test` says: every tab, the console, the phone width.

@@ -1,16 +1,109 @@
 {
-  "version": 1,
-  "checkpoints": [
-    { "id": "A1", "journey": "auth", "name": "authenticated user lands on the home page", "spec": "journeys/auth.journey.spec.ts" },
-    { "id": "A2", "journey": "auth", "name": "auth tokens are stored in localStorage", "spec": "journeys/auth.journey.spec.ts" },
-    { "id": "M1", "journey": "member", "name": "home shows a chat or the No agent yet state", "spec": "journeys/member.journey.spec.ts" },
-    { "id": "M2", "journey": "member", "name": "agents page lists agents", "spec": "journeys/member.journey.spec.ts" },
-    { "id": "M3", "journey": "member", "name": "profile carries the app preferences card", "spec": "journeys/member.journey.spec.ts" },
-    { "id": "M4", "journey": "member", "name": "User mode never shows admin links", "spec": "journeys/member.journey.spec.ts" },
-    { "id": "D1", "journey": "admin", "name": "admin links toggle with Admin mode", "spec": "journeys/admin.journey.spec.ts" },
-    { "id": "D2", "journey": "admin", "name": "/admin/users renders the SDK Management panel (tab strip + member table) and the invite actions", "spec": "journeys/admin.journey.spec.ts" },
-    { "id": "D3", "journey": "admin", "name": "/admin/analytics renders the tab strip", "spec": "journeys/admin.journey.spec.ts" },
-    { "id": "D4", "journey": "admin", "name": "/admin/organization shows the app settings form", "spec": "journeys/admin.journey.spec.ts" },
-    { "id": "D5", "journey": "admin", "name": "/setup asks for the app name first", "spec": "journeys/admin.journey.spec.ts" }
+  "version": 2,
+  "summary": { "totalCheckpoints": 28, "totalJourneys": 7 },
+  "journeys": [
+    {
+      "id": "sign-in",
+      "spec": "auth.setup.ts",
+      "sourceFiles": ["app/sso-login-complete/page.tsx"],
+      "checkpoints": []
+    },
+    {
+      "id": "auth",
+      "spec": "journeys/auth.journey.spec.ts",
+      "sourceFiles": ["app/(app)/page.tsx"],
+      "checkpoints": [
+        { "id": "A1", "name": "authenticated user lands on the home page" },
+        { "id": "A2", "name": "auth tokens are stored in localStorage" }
+      ]
+    },
+    {
+      "id": "member",
+      "spec": "journeys/member.journey.spec.ts",
+      "sourceFiles": ["app/(app)/page.tsx", "app/(app)/agents/page.tsx", "app/(app)/profile/page.tsx", "app/(app)/admin/users/page.tsx", "app/setup/page.tsx"],
+      "checkpoints": [
+        { "id": "M1", "name": "home shows a chat or the \"No agent yet\" state, never a crash" },
+        { "id": "M2", "name": "the agents page lists agents" },
+        { "id": "M3", "name": "the profile page carries the app preferences card" },
+        { "id": "M4", "name": "a member never sees admin links or the Admin mode switch; /admin/users sends them home" },
+        { "id": "M5", "name": "/setup tells a member only admins can set it up" }
+      ]
+    },
+    {
+      "id": "admin",
+      "spec": "journeys/admin.journey.spec.ts",
+      "sourceFiles": ["app/(app)/admin/users/page.tsx", "app/(app)/admin/analytics/page.tsx", "app/(app)/admin/organization/page.tsx", "app/setup/page.tsx"],
+      "checkpoints": [
+        { "id": "D1", "name": "admin links appear in Admin mode and disappear in User mode" },
+        { "id": "D2", "name": "/admin/users hosts the Management surface and the invite actions" },
+        { "id": "D3", "name": "/admin/analytics renders the tab strip" },
+        { "id": "D4", "name": "/admin/organization shows the app settings form" },
+        { "id": "D5", "name": "/setup asks for the app name first" }
+      ]
+    },
+    {
+      "id": "pages",
+      "spec": "journeys/pages.journey.spec.ts",
+      "sourceFiles": [
+        "app/(app)/account/page.tsx",
+        "app/(app)/notifications/[[...id]]/page.tsx",
+        "app/(app)/admin/analytics/users/page.tsx",
+        "app/(app)/admin/analytics/topics/page.tsx",
+        "app/(app)/admin/analytics/transcripts/page.tsx",
+        "app/(app)/admin/analytics/financial/page.tsx",
+        "app/(app)/admin/analytics/reports/page.tsx",
+        "app/(app)/admin/billing/page.tsx",
+        "app/(app)/admin/memory/page.tsx"
+      ],
+      "checkpoints": [
+        { "id": "K1", "name": "/account shows the organization settings" },
+        { "id": "K2", "name": "/notifications shows the notification center" },
+        { "id": "K3", "name": "/admin/analytics/users opens inside the analytics tab strip" },
+        { "id": "K4", "name": "/admin/analytics/topics opens inside the analytics tab strip" },
+        { "id": "K5", "name": "/admin/analytics/transcripts opens inside the analytics tab strip" },
+        { "id": "K6", "name": "/admin/analytics/financial opens inside the analytics tab strip" },
+        { "id": "K7", "name": "/admin/analytics/reports opens inside the analytics tab strip" },
+        { "id": "K8", "name": "/admin/billing mounts the account panel" },
+        { "id": "K9", "name": "/admin/memory shows the memory panel" }
+      ]
+    },
+    {
+      "id": "api",
+      "spec": "journeys/api.journey.spec.ts",
+      "sourceFiles": ["app/api/admin/agents/route.ts", "app/api/admin/user-metadata/route.ts"],
+      "checkpoints": [
+        { "id": "R1", "name": "the admin lists the agents through /api/admin/agents" },
+        { "id": "R2", "name": "creating an agent without a name is refused with 400" },
+        { "id": "R3", "name": "the admin reads a member's metadata through /api/admin/user-metadata" },
+        { "id": "R4", "name": "reading metadata without a username is refused with 400" },
+        { "id": "R5", "name": "a member is refused with 403" }
+      ]
+    },
+    {
+      "id": "mobile",
+      "spec": "journeys/mobile.journey.spec.ts",
+      "sourceFiles": [
+        "app/(app)/page.tsx",
+        "app/(app)/agents/page.tsx",
+        "app/(app)/profile/page.tsx",
+        "app/(app)/account/page.tsx",
+        "app/(app)/notifications/[[...id]]/page.tsx",
+        "app/setup/page.tsx",
+        "app/(app)/admin/users/page.tsx",
+        "app/(app)/admin/analytics/page.tsx",
+        "app/(app)/admin/analytics/users/page.tsx",
+        "app/(app)/admin/analytics/topics/page.tsx",
+        "app/(app)/admin/analytics/transcripts/page.tsx",
+        "app/(app)/admin/analytics/financial/page.tsx",
+        "app/(app)/admin/analytics/reports/page.tsx",
+        "app/(app)/admin/billing/page.tsx",
+        "app/(app)/admin/memory/page.tsx",
+        "app/(app)/admin/organization/page.tsx"
+      ],
+      "checkpoints": [
+        { "id": "P1", "name": "a phone shows every page without sideways overflow" },
+        { "id": "P2", "name": "the drawer reaches Agents" }
+      ]
+    }
   ]
 }

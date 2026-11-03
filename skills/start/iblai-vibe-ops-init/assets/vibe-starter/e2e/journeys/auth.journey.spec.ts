@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers';
 
 /**
  * Auth journey — verifies the SSO authentication flow.
@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  * The setup saves browser storage state so the user is already logged in.
  */
 test.describe('auth journey', () => {
-  test('authenticated user lands on the home page', async ({ page }) => {
+  test('A1 · authenticated user lands on the home page', async ({ page }) => {
     const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
     await page.goto(appHost);
@@ -19,7 +19,7 @@ test.describe('auth journey', () => {
     await expect(page).toHaveURL(new RegExp(`^${appHost}`));
   });
 
-  test('auth tokens are stored in localStorage', async ({ page }) => {
+  test('A2 · auth tokens are stored in localStorage', async ({ page }) => {
     const appHost = process.env.APP_HOST || 'http://localhost:3000';
 
     await page.goto(appHost);
