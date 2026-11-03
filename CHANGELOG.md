@@ -3,6 +3,17 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.19.1] - 2026-11-03
+
+### Fixed
+
+- move to @iblai/iblai-js 2.62.1
+
+### Documentation
+
+- keep the visibility note free of ui wording
+- document the new discovery access controls
+
 ## [2.19.0] - 2026-11-03
 
 ### Added
