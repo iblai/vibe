@@ -1,0 +1,65 @@
+name: Shell check
+
+# Compiles and tests the Tauri shell on Linux whenever it changes: rustfmt,
+# `cargo check` with warnings denied, the unit tests. Bundles come from the
+# tauri-build-* workflows.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - ".github/workflows/tauri-check.yml"
+  pull_request:
+    paths:
+      - "src-tauri/**"
+      - ".github/workflows/tauri-check.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tauri-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: fmt · check · test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          components: rustfmt
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: rust-check-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            rust-check-
+
+      - run: cargo fmt --check
+        working-directory: src-tauri
+
+      - run: cargo check
+        working-directory: src-tauri
+        env:
+          RUSTFLAGS: -Dwarnings
+
+      - run: cargo test
+        working-directory: src-tauri
+        env:
+          RUSTFLAGS: -Dwarnings

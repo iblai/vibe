@@ -285,14 +285,14 @@ Skills are in `skills/` (symlinked to `.claude/skills/`). Read them, extend them
 
 | Feature | Web | macOS | Windows/Surface | iOS | Android |
 |---------|-----|-------|-----------------|-----|---------|
-| SSO Authentication | Yes | Yes | Yes | No | No |
+| SSO Authentication | Yes | Yes | Yes | Yes | Yes |
 | AI Chat | Yes | Yes | Yes | Yes | Yes |
 | User Profile | Yes | Yes | Yes | Yes | Yes |
 | Account Settings | Yes | Yes | Yes | Yes | Yes |
 | Analytics Dashboard | Yes | Yes | Yes | Yes | Yes |
 | Notifications | Yes | Yes | Yes | Yes | Yes |
 
-> **iOS & Android SSO limitation:** Mobile WebViews use a non-standard user-agent that SSO providers reject. Completing the OAuth flow requires a system browser popup (ASWebAuthenticationSession on iOS, Chrome Custom Tabs on Android). This is not yet implemented -- mobile users must authenticate via another method for now.
+> **iOS & Android SSO:** mobile WebViews are rejected by SSO providers, so the Tauri shell opens provider sign-in in the system browser (ASWebAuthenticationSession on iOS, the browser on Android) and returns through the app's custom scheme -- see [`/iblai-vibe-ops-build`](skills/ship/iblai-vibe-ops-build/SKILL.md) "Mobile SSO".
 
 ## Deploy Anywhere
 
@@ -314,7 +314,7 @@ Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/ship/iblai-vibe-ops-bu
 
 ```bash
 pnpm exec tauri build           # Desktop build for current platform
-pnpm exec tauri ios init        # iOS project setup
+bash scripts/mobile-init.sh     # the iOS (Mac) or Android (Linux) project, once; commit src-tauri/gen/
 ```
 
 ## Resources

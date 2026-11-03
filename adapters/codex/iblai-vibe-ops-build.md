@@ -96,8 +96,12 @@ TAURI_CUSTOM_SCHEME=myapp
 
 Set the same value in `.env.local` as `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` (the
 frontend passes `redirect-to=myapp://` to the auth SPA), in
-`src-tauri/tauri.conf.json` (`deep-link` → `scheme`) and as `AUTH_SCHEME` in
-`src-tauri/src/lib.rs` (the handler that listens for `myapp://` callbacks).
+`src-tauri/tauri.conf.json` (`deep-link` → `scheme`, nothing else in the entry)
+and as `AUTH_SCHEME` in `src-tauri/src/lib.rs`. Inside the webview the auth
+app returns an email-and-password sign-in on its own `iblai-mentor://` instead;
+the shell rewrites both schemes onto the app URL
+([`references/mobile-projects.md`](references/mobile-projects.md), "Sign-in
+returns on two schemes").
 
 Without this, mobile SSO will redirect to an HTTPS URL that stays inside
 the system browser session and never returns to the app.
@@ -136,24 +140,24 @@ Build and run on iOS Simulator and real devices.
 - **macOS** (iOS builds require Xcode)
 - **Xcode** installed from the Mac App Store (includes iOS SDK + Simulator)
 - **Xcode Command Line Tools**: `xcode-select --install`
-- **Rust iOS targets**:
+- **Rust iOS targets** (`scripts/mobile-init.sh` adds them):
   ```bash
-  rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+  rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
   ```
 
 ### Initialize iOS Project
 
-Run this once after adding Tauri support:
+Once, on a Mac; the generated `src-tauri/gen/apple/` is committed
+([`references/mobile-projects.md`](references/mobile-projects.md)):
 
 ```bash
-pnpm exec tauri ios init
+bash scripts/mobile-init.sh               # assets/tauri/scripts/mobile-init.sh, copied into scripts/
+pnpm exec tauri ios dev "iPhone 16 Pro"   # one run writes the URL scheme into Info.plist
+git add src-tauri/gen/apple
 ```
 
-This generates `src-tauri/gen/apple/` with the Xcode project, Swift bridge
-code, and iOS configuration.
-
-> If you get a Rust target error, make sure both targets are installed:
-> `rustup target add aarch64-apple-ios aarch64-apple-ios-sim`
+The script checks Xcode, rustup and xcodegen, adds the Rust targets, runs
+`tauri ios init` and puts the privacy manifest into the project.
 
 ### Run on iOS Simulator
 
@@ -259,11 +263,15 @@ Build and run on Android emulators and real devices.
 
 ### Initialize Android Project
 
-```bash
-pnpm exec tauri android init
-```
+Once, on Linux with `JAVA_HOME`, `ANDROID_HOME` and `NDK_HOME` set; the
+generated `src-tauri/gen/android/` is committed
+([`references/mobile-projects.md`](references/mobile-projects.md)):
 
-This generates `src-tauri/gen/android/` with the Gradle project.
+```bash
+bash scripts/mobile-init.sh                    # assets/tauri/scripts/mobile-init.sh, copied into scripts/
+pnpm exec tauri android build --debug --apk    # one build writes the URL scheme into AndroidManifest.xml
+git add src-tauri/gen/android
+```
 
 ### Run on Android Emulator
 
@@ -307,8 +315,11 @@ pnpm tauri:build:android
 
 #### Android CI
 
-No template yet: build locally with `pnpm exec tauri android build`, or
-submit through [`/iblai-vibe-ops-release`](../../ship/iblai-vibe-ops-release/SKILL.md).
+Copy `assets/tauri/workflows/tauri-build-android.yml` into `.github/workflows/`;
+a manual run builds an **unsigned** `.aab` and `.apk` on the runner's own SDK
+and NDK and fails unless the library is 16 KB page-aligned, as Google Play
+requires. Signing and the store:
+[`/iblai-vibe-ops-release`](../../ship/iblai-vibe-ops-release/SKILL.md).
 
 ---
 
@@ -451,13 +462,14 @@ build-only artifacts — see [`references/signed-release.md`](references/signed-
 
 ## CI and the command summary
 
-The GitHub Actions workflows for every platform and the one-table summary of every `tauri` command used above are in [`references/ci-and-commands.md`](references/ci-and-commands.md).
+The GitHub Actions workflows for every platform (plus `tauri-check.yml`, which compiles and tests the shell on every change under `src-tauri/`) and the one-table summary of every `tauri` command used above are in [`references/ci-and-commands.md`](references/ci-and-commands.md).
 
 ## Reference
 
 - [`/iblai-vibe-scaffold`](../../start/iblai-vibe-scaffold/SKILL.md) -- the project templates + assembly steps
 - [`references/signed-release.md`](references/signed-release.md) -- the release workflows: notarized macOS DMG, signed Windows NSIS x64 + arm64, Linux AppImage x64 + arm64 (secrets, certs, tag triggering)
 - [`references/tauri-commands.md`](references/tauri-commands.md) -- Tauri build commands, prerequisites, and MSIX notes
+- [`references/mobile-projects.md`](references/mobile-projects.md) -- the iOS and Android projects: generate once per OS, commit, the privacy manifest, the two sign-in schemes, Android CI
 
 ## Redirect origins for native shells
 

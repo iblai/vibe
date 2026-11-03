@@ -6,9 +6,13 @@ Moved out of `SKILL.md` to keep the skill scannable; this is the full text.
 
 Copy the templates from `assets/tauri/workflows/` into `.github/workflows/`:
 `tauri-build-desktop.yml` (unsigned macOS / Linux / Windows artifacts),
-`tauri-build-ios.yml`, `tauri-build-windows-msix.yml`, and the three release
-workflows that run on an `app-v*` tag — `tauri-release-macos-dmg.yml`,
-`tauri-release-windows.yml`, `tauri-release-linux.yml`.
+`tauri-build-ios.yml`, `tauri-build-android.yml` (unsigned `.aab` + `.apk`),
+`tauri-build-windows-msix.yml`, `tauri-check.yml` (fmt, check and test of the
+shell on every change under `src-tauri/`), and the three release workflows that
+run on an `app-v*` tag — `tauri-release-macos-dmg.yml`,
+`tauri-release-windows.yml`, `tauri-release-linux.yml`. The iOS and Android
+workflows build the committed `src-tauri/gen/` projects and run `init` only
+without one ([`mobile-projects.md`](mobile-projects.md)).
 
 ## Summary of Commands
 
@@ -18,17 +22,17 @@ workflows that run on an `app-v*` tag — `tauri-release-macos-dmg.yml`,
 | Generate app icons | `pnpm exec tauri icon logo.png` |
 | List available devices | `xcrun simctl list devices` (iOS) / `emulator -list-avds`, `adb devices -l` (Android) |
 | **iOS** | |
-| Initialize iOS project | `pnpm exec tauri ios init` |
+| Generate the iOS project (once, on a Mac; committed) | `bash scripts/mobile-init.sh`, then one `pnpm exec tauri ios dev "<device>"` — [`mobile-projects.md`](mobile-projects.md) |
 | Run on iOS Simulator | `pnpm exec tauri ios dev "iPhone 16 Pro Max"` |
 | Run on physical iPhone | `pnpm exec tauri ios dev "<device name>"` (`xcrun devicectl list devices`) |
 | Build release .ipa | `pnpm exec tauri ios build` |
 | iOS CI workflow | `tauri-build-ios.yml` |
 | **Android** | |
-| Initialize Android project | `pnpm exec tauri android init` |
+| Generate the Android project (once, on Linux; committed) | `bash scripts/mobile-init.sh`, then one `pnpm exec tauri android build --debug --apk` |
 | Run on Android emulator | `pnpm exec tauri android dev "Pixel_9"` |
 | Run on physical Android | `pnpm exec tauri android dev "<device name>"` (`adb devices -l`) |
 | Build release APK | `pnpm exec tauri android build` |
-| Android CI workflow | none yet — `pnpm exec tauri android build` locally, or `/iblai-vibe-ops-release` |
+| Android CI workflow | `tauri-build-android.yml` — manual run, unsigned `.aab` + `.apk` |
 | **Desktop** | |
 | Run desktop dev mode | `pnpm exec tauri dev` |
 | Build desktop release | `pnpm exec tauri build` |
@@ -40,6 +44,7 @@ workflows that run on an `app-v*` tag — `tauri-release-macos-dmg.yml`,
 | Linux AppImage (local) | `pnpm exec tauri build --bundles appimage` |
 | Unsigned artifacts, all three desktops | `tauri-build-desktop.yml` — manual run |
 | Surface MSIX x64 + arm64 | `tauri-build-windows-msix.yml` — manual run |
+| Shell check on every change (fmt, check, test) | `tauri-check.yml` |
 | All CI workflows | copy every file in `assets/tauri/workflows/` |
 | **Deploy** | |
 | Deploy frontend via ibl.ai hosting (Vercel) | the `/iblai-vibe-ops-deploy` skill — writes `build.frontendDist` |

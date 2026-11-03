@@ -5,7 +5,8 @@
 # its frontendDist pointed at a local page, then: cargo fmt --check, cargo test
 # with warnings denied, `tauri build --bundles appimage`, and a headless run of
 # the release binary under xvfb: the page and an allowed iframe must be served,
-# and the guard must log a foreign iframe and a redirect as blocked.
+# a sign-in return on each custom scheme must land on the app's own pages, and
+# the guard must log a foreign iframe and a redirect as blocked.
 #
 #   bash scripts/test-tauri-shell.sh            # everything
 #   bash scripts/test-tauri-shell.sh --prepare  # only sync the scratch (CI runs it before the Rust cache step)
@@ -46,16 +47,27 @@ json.dump(c, open(p, "w"), indent=2)
 PY
 
 # Guard page: an iframe the suffix list allows (served here, nothing leaves the
-# machine), one it blocks, and a redirect it blocks after 4 s.
+# machine), one it blocks, then after 3 s a sign-in return on the auth app's
+# scheme; its page returns on the app's scheme, whose page redirects to a host
+# the guard blocks. The return pages have no extension (the auth contract's
+# paths), so the test server maps "" to text/html.
 cat > "$SCRATCH/site/index.html" <<HTML
 <!doctype html><html><body>
 <h1>guard test</h1>
 <iframe src="http://localhost:$PORT/ok.html" width="300" height="80"></iframe>
 <iframe src="https://example.com/" width="300" height="80"></iframe>
-<script>setTimeout(function () { location.href = "https://example.org/"; }, 4000);</script>
+<script>setTimeout(function () { location.href = "iblai-mentor:///sso-login-complete?data=x&redirect-path=/"; }, 3000);</script>
 </body></html>
 HTML
 echo '<!doctype html><p>allowed iframe</p>' > "$SCRATCH/site/ok.html"
+cat > "$SCRATCH/site/sso-login-complete" <<'HTML'
+<!doctype html><p>auth-app scheme return landed</p>
+<script>setTimeout(function () { location.href = "my-app:///sso-login?data=y"; }, 1500);</script>
+HTML
+cat > "$SCRATCH/site/sso-login" <<'HTML'
+<!doctype html><p>app scheme return landed</p>
+<script>setTimeout(function () { location.href = "https://example.org/"; }, 1500);</script>
+HTML
 
 if [[ "${1:-}" == "--prepare" ]]; then
   echo "scratch ready at $SCRATCH"
@@ -107,7 +119,12 @@ LOG="$SCRATCH/run.log"
 SRVLOG="$SCRATCH/server.log"
 CAP=90
 say "headless run (xvfb, up to $CAP s) of the release binary against http://127.0.0.1:$PORT"
-python3 -I -m http.server "$PORT" --bind 127.0.0.1 --directory "$SCRATCH/site" >"$SRVLOG" 2>&1 &
+SITE="$SCRATCH/site" PORT="$PORT" python3 -I - >"$SRVLOG" 2>&1 <<'PY' &
+import functools, http.server, os
+class H(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, "": "text/html"}
+http.server.test(HandlerClass=functools.partial(H, directory=os.environ["SITE"]), port=int(os.environ["PORT"]), bind="127.0.0.1")
+PY
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true' EXIT
 sleep 1
@@ -133,12 +150,14 @@ fi
 ok=1
 grep -q 'GET / ' "$SRVLOG" || { echo "missing: the page was never requested — the webview did not load the app"; ok=0; }
 grep -q 'GET /ok.html' "$SRVLOG" || { echo "missing: the allowed iframe was never requested"; ok=0; }
+grep -q 'GET /sso-login-complete?data=x&redirect-path=/' "$SRVLOG" || { echo "missing: the return on the auth app's scheme never landed on the app"; ok=0; }
+grep -q 'GET /sso-login?data=y' "$SRVLOG" || { echo "missing: the return on the app's scheme never landed on the app"; ok=0; }
 grep -q 'blocked navigation: https://example.com/' "$LOG" || { echo "missing: the foreign iframe was not blocked"; ok=0; }
 grep -q 'blocked navigation: https://example.org/' "$LOG" || { echo "missing: the redirect was not blocked"; ok=0; }
 grep -q 'blocked navigation: http://127.0.0.1' "$LOG" && { echo "wrong: the app's own origin was blocked"; ok=0; }
 grep -q 'blocked navigation: http://localhost' "$LOG" && { echo "wrong: the allowed iframe was blocked"; ok=0; }
 if [[ "$ok" == 1 ]]; then
-  echo "PASS: the app and the allowed iframe were served; the foreign iframe and the redirect were blocked"
+  echo "PASS: the app, the allowed iframe and both sign-in returns were served; the foreign iframe and the redirect were blocked"
 else
   say "server.log"; cat "$SRVLOG"
   say "run.log"; cat "$LOG"

@@ -36,9 +36,7 @@
   },
   "plugins": {
     "deep-link": {
-      "mobile": [
-        { "host": "auth", "scheme": ["my-app"], "pathPrefix": ["/"] }
-      ]
+      "mobile": [{ "scheme": ["my-app"] }]
     }
   },
   "app": {
