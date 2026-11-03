@@ -312,7 +312,7 @@ record the answers here:
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
 | "notifications" | `/iblai-vibe-notification` (already on `/notifications`) |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
-| "iOS", "Android", "Mac", "Windows", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
+| "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill |
 | "tests", "before you show me", "is it done?" | `/iblai-vibe-ops-test` — `pnpm build`, `pnpm test`, then its touch test: the route in a real browser, every control you added, the console, the phone width |
 
@@ -329,9 +329,12 @@ in the vibe repo.
 Rules that never change: SDK components → shadcn/ui → custom, in that order;
 `pnpm install --ignore-scripts`; lowercase project names; ask for a real
 agent UUID, never invent one; never print a token; never ask for a password;
-before saying "done", run `/iblai-vibe-ops-test` — build, tests, and its touch
-test in a real browser (Claude in Chrome, or the `chrome-devtools` server in
-`.mcp.json`); no browser tool → say so, never call it tested.
+before saying "done", run `/iblai-vibe-ops-test` — build, tests, `pnpm e2e:coverage`
+at or above 95%, and its touch test in a real browser (Claude in Chrome, or the
+`chrome-devtools` server in `.mcp.json`); no browser tool → say so, never call it tested.
+Journeys are exhaustive: every page, route, control and state you add gets a
+checkpoint titled `<ID> · …` in `e2e/journeys/` and `e2e/coverage.json`;
+`pnpm e2e:coverage` fails below 95% of app lines or six checkpoints per 1,000.
 
 ## Component Priority
 
@@ -370,7 +373,7 @@ components), the wiring in BRAND.md.
 | `lib/iblai/platform.ts` | `platformFetch`, `verifyCaller`, `requireAdmin`, `platformFailure` |
 | `lib/iblai/admin-client.ts` | browser `adminFetch()` for `/api/admin/*` |
 | `providers/iblai-providers.tsx`, `store/iblai-store.ts` | SDK providers (+ service worker, toaster, Radix guard); the store's slice keys are fixed by the SDK — keep them |
-| `e2e/` | Playwright: auth, member, admin journeys; `COVERAGE.md` + `coverage.json` |
+| `e2e/` | Playwright journeys, one checkpoint per page, control and state; `COVERAGE.md` + `coverage.json`, checked by `pnpm e2e:coverage` (approximate coverage from the pages the journeys visit, ≥ 95%) |
 
 ## Invariants (and why)
 
@@ -401,7 +404,7 @@ import { SsoLogin, UserProfileDropdown, Account, Chat, AgentSearch } from "@ibla
 `TOKEN`, optional `IBLAI_USERNAME`. `.env.local` (gitignored) is what Next.js
 reads: `NEXT_PUBLIC_MAIN_TENANT_KEY` (= `PLATFORM`), `IBLAI_API_KEY`
 (= `TOKEN`), optional `NEXT_PUBLIC_DEFAULT_AGENT_ID`, `NEXT_PUBLIC_APP_NAME`,
-`NEXT_PUBLIC_SUPPORT_EMAIL`. The API/auth/websocket URLs default to hosted
+`NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_APP_URL` (where a $0 checkout returns). The API/auth/websocket URLs default to hosted
 iblai.app in `lib/iblai/config.ts`; override only when self-hosting
 (`NEXT_PUBLIC_PLATFORM_BASE_DOMAIN`, `NEXT_PUBLIC_API_BASE_URL`, the sign-in
 URL). When the host exports `IBLAI_API_KEY` / `IBLAI_PLATFORM_KEY` /
@@ -428,7 +431,10 @@ pnpm dev             # Dev server (localhost:3000)
 pnpm build           # Production build
 pnpm typecheck       # Type-check
 pnpm test            # Vitest
-pnpm test:e2e        # Playwright (needs e2e/.env.development)
+pnpm test:e2e        # Playwright: Chrome desktop + a phone, as the two test accounts it creates
+pnpm test:e2e:all    # Playwright: every browser
+pnpm e2e:coverage    # Ledger check + approximate e2e coverage from the journeys (≥ 95%)
+pnpm e2e:accounts    # Create the two test accounts ahead of time
 ```
 ```
 

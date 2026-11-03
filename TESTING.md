@@ -1,6 +1,6 @@
 # Testing the skills
 
-Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual. Every check is scoped to what the PR changed — the scripts take file or `--skills` arguments, and no argument means all — the `pnpm audit` step runs only when vibe-starter changed, and a PR that touches `scripts/`, `.github/` or vibe-starter runs everything.
+Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs that carry the **`run-tests` label, which every PR needs**: until it is added, skills-ci's `deterministic` check fails, and that check must pass to merge (tiers 0–1.5; the agent tier additionally runs on changed skills and does not gate); the live tier is weekly/manual. Every check is scoped to what the PR changed — the scripts take file or `--skills` arguments, and no argument means all — the `pnpm audit` step runs only when vibe-starter changed, and a PR that touches `scripts/`, `.github/` or vibe-starter runs everything. A second check, `tauri-linux`, compiles and runs the Tauri shell `/iblai-vibe-ops-build` ships (`scripts/test-tauri-shell.sh`) when a PR touches the shell, that script or the workflow; any other PR passes it in seconds.
 
 | Tier | Command | What it proves |
 |---|---|---|
@@ -11,6 +11,7 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs t
 | 1.5 | `node scripts/check-links.mjs` | Every `github.com/iblai/...` / raw cross-repo link still resolves (404/410 fail; transient trouble warns) |
 | 1.5 | `node scripts/check-skill-kinds.mjs` | Every skill declares `metadata.kind` (`ui`/`api`/`guide`/`ops`/`security`) and it agrees with its name prefix |
 | 1.5 | `node scripts/build-catalogue.mjs` + `node scripts/check-skill-tables.mjs` | `docs/catalogue.md` is regenerated from frontmatter; every skill is in CLAUDE.md's tier table and the catalogue, and nothing named there is missing |
+| 1.9 | `bash scripts/test-tauri-shell.sh` | The Tauri shell `/iblai-vibe-ops-build` ships compiles with warnings denied, its guard tests pass, it bundles an AppImage and, run headless, blocks a foreign iframe and a redirect while the app's own origin loads (Linux; `--prepare` only syncs the scratch, `SMOKE=0` skips the run) |
 | 2 | `scripts/test-skills-agent.sh <skill>… \| --changed` | A headless Claude agent following the SKILL.md actually produces an app that typechecks and builds |
 | 3 | `RUN_LIVE=1 scripts/test-skills-agent.sh …` | The built app performs a real SSO login against a live tenant |
 
@@ -21,9 +22,8 @@ Four tiers, cheapest first. CI (`.github/workflows/skills-ci.yml`) runs on PRs t
 1. **Assets** declared in `skills/<name>/test.json`:
    ```json
    {
-     "vars": { "app_name": "…" },              // minimal-Jinja vars ({{ var }}, {% if %}, {% raw %}, {{ '{{' }})
-     "overlay": { "assets/x.tsx.j2": "app/x.tsx" },  // rendered into the scratch app, then pnpm typecheck
-     "render_only": ["assets/package.json.j2"],      // must render clean; .json must parse
+     "overlay": { "assets/x.tsx": "app/x.tsx" },  // copied into the scratch app, then pnpm typecheck
+     "render_only": ["assets/package.json"],      // must exist; .json must parse
      "assert_files": ["app/x.tsx"]             // used by the agent tier
    }
    ```
@@ -60,7 +60,7 @@ Scope (v1): `/dm` REST only (not `/edx` or the asgi streaming host); request bod
 
 ## Tier 3 — live platform
 
-`RUN_LIVE=1` starts the built scratch app and drives vibe-starter's Playwright SSO setup (`e2e/auth.setup.ts`) against a real tenant.
+`RUN_LIVE=1` starts the built scratch app and drives vibe-starter's Playwright SSO setup (`e2e/auth.setup.ts`) against a real tenant. It signs in the admin only; the member sign-in skips without `PLAYWRIGHT_MEMBER_*`.
 
 Local env: `AUTH_HOST`, `PLAYWRIGHT_USERNAME`, `PLAYWRIGHT_PASSWORD`, `IBLAI_TEST_TENANT_KEY`, `IBLAI_TEST_API_KEY`.
 
@@ -72,7 +72,7 @@ CI (`live` job: weekly + `workflow_dispatch`): repo **secrets** `ANTHROPIC_API_K
 - The agent tier runs on dummy credentials only; real secrets exist only in the live step's process env, after the agent has exited.
 - Playwright: `--reporter=dot --trace=off`, failure details go to a file (`.live.log`) — never the console, because SSO redirect URLs can carry authorization codes.
 - Server output (`pnpm start`) goes to `.server.log`, never the console.
-- No artifact uploads from the live job (storage state under `e2e/.auth/` holds session cookies).
+- No artifact uploads from the live job (storage state under `playwright/.auth/` holds session cookies).
 - No `set -x` in any harness script.
 
 ## Tier 4 — selection eval (local, subscription)

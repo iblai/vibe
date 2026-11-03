@@ -182,9 +182,8 @@ assigns, or the organization's own custom domain. Re-run it to redeploy;
 custom domains are attached and managed through the skill, which returns
 the DNS records to add.
 
-**Going back to local** (Tauri dev builds): remove `devUrl` from
-`src-tauri/tauri.conf.json` and the WebView loads local static files
-again.
+**Native builds** load the deployed URL from `build.frontendDist` in
+`src-tauri/tauri.conf.json`; `tauri dev` runs the local dev server.
 
 {{ INCLUDE if `src-tauri/tauri.conf.json` exists. Mirror the structure
 in `/iblai-vibe-ops-build` — one subsection per platform (iOS / Android /
@@ -211,7 +210,7 @@ pnpm exec tauri ios init                          # one-time
 xcrun simctl list devices                            # list simulators
 pnpm exec tauri ios dev "iPhone 16 Pro Max"       # run on simulator
 pnpm exec tauri ios build                         # produce .ipa
-# CI: copy assets/tauri/workflows/tauri-build-ios.yml.j2 (see /iblai-vibe-ops-build)                 # generate App Store CI
+# CI: copy assets/tauri/workflows/tauri-build-ios.yml (see /iblai-vibe-ops-build)                 # generate App Store CI
 ```
 
 }}

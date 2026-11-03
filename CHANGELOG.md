@@ -3,6 +3,28 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.19.0] - 2026-11-03
+
+### Added
+
+- build and run the Tauri shell on Linux in skills-ci; regenerate the msix adapters
+- shell loads the deployed app; Linux AppImage x64+arm64; desktop sign-in popup
+- house journeys on the direct checkout with a main sample; starter on iblai-js 2.59.0
+- add iblai-vibe-house-journeys; mark the render scratch for the coverage test
+- exhaustive journeys everywhere with pnpm e2e:coverage; drop the --autoConnect server
+- ship the MCP servers configured for Claude Code, Cursor, Codex and opencode
+- run a phone by default; a placeholder PLATFORM is chosen on the connect page
+- real-file skill templates and e2e sign-in with generated test accounts
+
+### Fixed
+
+- remove the runner's portal service file so the Tauri smoke starts; stop on the redirect
+- pin Playwright jobs to ubuntu-24.04; make the Tauri smoke self-diagnosing
+- floor follow-redirects and minimatch so the moderate+ audit gate passes
+- drop the redundant unsafe on the sign-in completion closures
+- redact request headers in every chrome-devtools MCP config so touch tests never print tokens
+- a placeholder PLATFORM is chosen on the connect page
+
 ## [2.18.1] - 2026-11-02
 
 ### Documentation

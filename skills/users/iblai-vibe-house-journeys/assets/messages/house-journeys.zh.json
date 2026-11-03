@@ -1,0 +1,24 @@
+{
+  "houseJourneys": {
+    "preview": {
+      "body": "你还不是 {name} 的成员。加入它，或创建你自己的组织。",
+      "join": "加入 {name}",
+      "create": "创建你自己的组织",
+      "back": "返回我的组织"
+    },
+    "sample": {
+      "body": "您正在查看示例数据。您自己的组织从空白开始，由您管理。"
+    },
+    "onboarding": {
+      "meetTitle": "认识 {name}",
+      "meetBody": "你的组织的智能体随时为你服务。",
+      "allSetTitle": "一切就绪",
+      "allSetBody": "{workspace} 已准备好。进入吧。",
+      "allSetMember": "谢谢，你的组织已获得所需信息。进入吧。",
+      "workspace": "你的组织",
+      "continue": "继续",
+      "complete": "完成",
+      "back": "返回"
+    }
+  }
+}

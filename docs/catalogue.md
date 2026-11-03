@@ -11,7 +11,7 @@ six data families almost every app reads or writes (the section right below).
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
 | [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 61 |
-| [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
+| [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 19 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, credits, spend caps, and which rail to charge your users on. | 5 |
 | [`monetization/`](#monetization) | Charge your users: pay-to-enter app paywall, or per-item sales on Stripe Connect — onboard, configure, checkout, subscriptions, revenue analytics. | 7 |
@@ -152,6 +152,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-scim`](../skills/users/iblai-api-scim/SKILL.md) | 🔌 api | Provision and manage an ibl.ai organization's directory over the SCIM 2.0 REST API |
 | [`/iblai-vibe-admin`](../skills/users/iblai-vibe-admin/SKILL.md) | 🖥️ ui | Users versus admins in an ibl.ai app |
 | [`/iblai-vibe-history`](../skills/users/iblai-vibe-history/SKILL.md) | 🖥️ ui | Add the user profile History surface (review and export conversations with AI agents |
+| [`/iblai-vibe-house-journeys`](../skills/users/iblai-vibe-house-journeys/SKILL.md) | 🖥️ ui | The three first-run journeys of an ibl.ai official app, the OS's way |
 | [`/iblai-vibe-invite`](../skills/users/iblai-vibe-invite/SKILL.md) | 🖥️ ui | Add user invitation dialogs to your Next.js app |
 | [`/iblai-vibe-notification`](../skills/users/iblai-vibe-notification/SKILL.md) | 🖥️ ui | Add notification bell and center page to your Next.js app |
 | [`/iblai-vibe-onboard`](../skills/users/iblai-vibe-onboard/SKILL.md) | 🖥️ ui | Design and build a high-converting questionnaire-style onboarding flow for your app, modelled on proven conversion patterns from top subs… |
@@ -254,7 +255,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-design`](../skills/ship/iblai-vibe-design/SKILL.md) | 🛠️ ops | Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize… |
 | [`/iblai-vibe-deslop`](../skills/ship/iblai-vibe-deslop/SKILL.md) | 🛠️ ops | Audit and harden existing codebases (especially AI-generated / vibe-coded ones) for production readiness |
 | [`/iblai-vibe-iconography`](../skills/ship/iblai-vibe-iconography/SKILL.md) | 🛠️ ops | Generate every required app-icon size for Tauri desktop, iOS, Windows MSIX, and macOS builds from a single source image |
-| [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app on desktop and mobile (iOS, Android, macOS, Surface) |
+| [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops-build/SKILL.md) | 🛠️ ops | Build and run your ibl.ai app as a native app with Tauri v2 |
 | [`/iblai-vibe-ops-deploy`](../skills/ship/iblai-vibe-ops-deploy/SKILL.md) | 🛠️ ops | Use this skill when the user asks to deploy, publish, host, share, or ship their ibl.ai app to the web |
 | [`/iblai-vibe-ops-release`](../skills/ship/iblai-vibe-ops-release/SKILL.md) | 🛠️ ops | Generate a Makefile + Fastlane config that builds and submits your Tauri app to the Apple App Store and Google Play |
 | [`/iblai-vibe-ops-test`](../skills/ship/iblai-vibe-ops-test/SKILL.md) | 🛠️ ops | Test an ibl.ai Next.js app before showing it or saying done |
@@ -276,4 +277,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 160 skills.
+Total: 161 skills.

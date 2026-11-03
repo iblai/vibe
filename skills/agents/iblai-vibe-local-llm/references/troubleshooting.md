@@ -164,19 +164,18 @@ the model never appears.
 
 ## Tauri build can't find `../out`, or `next build` errors on `generateStaticParams`
 
-The Tauri shell defaults to a static export (`frontendDist: "../out"`),
-but a server-rendered app with dynamic routes can't be exported:
+A shell configured for a static export (`frontendDist: "../out"`) needs
+`output: 'export'`, which a server-rendered app with dynamic routes can't do:
 
 ```
 Error: Page "/x/[id]/[[...slug]]" is missing "generateStaticParams()"
 so it cannot be used with "output: export" config.
 ```
 
-Don't try to convert every route. Keep `output: 'standalone'` and point
-Tauri **dev** at the running Next server with `beforeDevCommand:
-"pnpm dev"` + `devUrl: "http://localhost:3000"` (see SKILL.md "Field
-notes"). For production, host the frontend and point `frontendDist` at
-that URL.
+Don't try to convert every route. Keep `output: 'standalone'` and the
+shell's default shape: `frontendDist` set to the deployed URL, `tauri dev`
+on `beforeDevCommand: "pnpm dev"` + `devUrl: "http://localhost:3000"` (see
+SKILL.md "Field notes").
 
 ## `cargo` build panics in `libdbus-sys` / `webkit2gtk-sys` (not your code)
 

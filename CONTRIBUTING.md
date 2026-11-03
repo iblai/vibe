@@ -79,12 +79,13 @@ text or screenshots.
 
 ## 4. Ship code with it (when it creates files)
 
-Put templates in `assets/` (Jinja `.j2`, `{{ platform_key }}` etc.) and map them
-to app paths in `test.json` so the render gate typechecks them against the
-pinned SDK:
+Put the real files in `assets/` — no `.j2`, no placeholders: a literal default
+the agent renames (`my-app`, `My App`) or a value read from env at runtime —
+and map them to app paths in `test.json` so the render gate typechecks them
+against the pinned SDK:
 
 ```json
-{ "overlay": { "assets/thing.tsx.j2": "app/(app)/thing/page.tsx" } }
+{ "overlay": { "assets/thing.tsx": "app/(app)/thing/page.tsx" } }
 ```
 
 If the starter should ship it, put the file in
@@ -140,7 +141,8 @@ A core skill meets everything above, plus:
 - **The twin linked both ways**: the `ui` skill names its `iblai-api-*` twin,
   the `api` skill names the component that mounts the same data.
 - **A starter journey**: vibe-starter exercises the surface in
-  `e2e/journeys/` (or the skill says why it cannot).
+  `e2e/journeys/`, with its checkpoint in `e2e/coverage.json` (`pnpm e2e:coverage`
+  there checks it), or the skill says why it cannot.
 - **Endpoints verified against the live schema** (`https://api.iblai.app/dm/api/docs/schema/`), with the date.
 
 Adding a seventh family is a decision, not a PR detail: propose it in the PR

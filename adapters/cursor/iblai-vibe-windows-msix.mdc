@@ -131,14 +131,9 @@ with a trusted code-signing certificate:
 
 ## CI/CD
 
-Generate a GitHub Actions workflow that builds MSIX for both x64 and
-arm64, creates an `.msixbundle`, and optionally signs it:
-
-```bash
-# create the workflow from assets/tauri/workflows/tauri-build-windows-msix.yml.j2 (see /iblai-vibe-ops-build)
-```
-
-This creates `.github/workflows/tauri-build-windows-msix.yml` with:
+Copy `tauri-build-windows-msix.yml` from `/iblai-vibe-ops-build`'s
+`assets/tauri/workflows/` into `.github/workflows/`. It builds MSIX for both
+x64 and arm64, creates an `.msixbundle`, and optionally signs it, with:
 - x64 build on `windows-latest`
 - arm64 build on `windows-11-arm`
 - Bundle job that combines both into `.msixbundle`
