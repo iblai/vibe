@@ -3,6 +3,17 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.20.0] - 2026-11-03
+
+### Added
+
+- MCP tab v2 — Featured/Directory, per-agent switch, sign-in scope, own OAuth app, the chat's MCP panel
+
+### Fixed
+
+- floor follow-redirects and ignore the build-only minimatch advisory
+- address review on the MCP skills — register mcpApiSlice, mcp slug, callback and permission facts
+
 ## [2.19.1] - 2026-11-03
 
 ### Fixed
