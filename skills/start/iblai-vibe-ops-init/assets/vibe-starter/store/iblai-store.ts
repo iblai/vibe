@@ -17,6 +17,7 @@ import {
   coreApiSlice,
   mentorReducer,
   mentorMiddleware,
+  mcpApiSlice,
 } from "@iblai/iblai-js/data-layer";
 import {
   hostChatReducer,
@@ -35,6 +36,9 @@ export const iblaiStore = configureStore({
 
     // Mentor/chat API slices
     ...mentorReducer,
+    // MCP connectors (the agent MCP tab and the chat composer's MCP panel):
+    // a separate slice that mentorReducer does not include.
+    [mcpApiSlice.reducerPath]: mcpApiSlice.reducer,
 
     // The SDK <Chat> selectors hard-code these slice keys (`state.chat`,
     // `state.rbac`, …) — do not rename them.
@@ -49,6 +53,7 @@ export const iblaiStore = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })
       .concat(coreApiSlice.middleware)
+      .concat(mcpApiSlice.middleware)
       .concat(...mentorMiddleware),
 });
 

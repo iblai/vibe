@@ -3,6 +3,7 @@ import {
   coreApiSlice,
   mentorReducer,
   mentorMiddleware,
+  mcpApiSlice,
 } from "@iblai/iblai-js/data-layer";
 
 export const makeStore = () => {
@@ -10,12 +11,14 @@ export const makeStore = () => {
     reducer: {
       [coreApiSlice.reducerPath]: coreApiSlice.reducer,
       ...mentorReducer,
+      [mcpApiSlice.reducerPath]: mcpApiSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
       })
         .concat(coreApiSlice.middleware)
+        .concat(mcpApiSlice.middleware)
         .concat(...mentorMiddleware),
   });
 };

@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-mcp
-description: MCP connectors for ibl.ai agents, end to end — register MCP servers (featured cross-organization sharing, enable/disable, OAuth service linkage), manage credential connections with the auth_type × scope matrix (org / agent / per-user), wire servers onto an agent, run the OAuth connected-service lifecycle, handle per-user in-chat OAuth (the oauth_required / oauth_connection_resolved chat events), and debug MCP auth failures (401s, missing OAuth prompts, agents ignoring servers). Use when wiring an agent to external MCP servers and tools, or designing/troubleshooting MCP auth.
+description: MCP connectors for ibl.ai agents, end to end — register MCP servers (featured cross-organization sharing, enable/disable, OAuth service linkage), manage credential connections with the auth_type × scope matrix (org / agent / per-user), wire servers onto an agent, run the OAuth connected-service lifecycle, handle per-user in-chat OAuth (the oauth_required / oauth_connection_resolved chat events), set how a server signs in for one agent (mentor-auth-scope), make a server mandatory or let users turn it off for themselves or for one chat (user_can_disable, preference, session-preference), store the organization's own OAuth app for a server (credentials: client id, secret, redirect URI, scopes) when oauth-find cannot register one, read the MCP directory (registry), verify a server, and debug MCP auth failures (401s, missing OAuth prompts, agents ignoring servers). Use when wiring an agent to MCP servers, letting users switch connectors per chat, or designing/troubleshooting MCP auth.
 metadata:
   kind: api
 ---
@@ -15,12 +15,17 @@ three objects, and a working integration always requires all three:
 2. **MCP server connection** — the credential binding (a static token, or a
    reference to an OAuth connected service), at `platform`, `mentor` (agent),
    or `user` scope.
-3. **Agent wiring** — the agent's settings must have the `mcp-tool` slug in
+3. **Agent wiring** — the agent's settings must have the `mcp` slug in
    `tool_slugs` AND the server id in `mcp_servers`.
 
 A missing step 3 is the most common failure mode: server and connection exist
 but the agent never calls them. Always finish by re-reading the agent's
 settings.
+
+Three smaller records hang off a server: the **per-agent sign-in scope**
+(`mentor-auth-scope/`), the **user's choices** (`preference/`,
+`session-preference/`; refused when `user_can_disable` is false), and the
+**organization's own OAuth app** (`credentials/`).
 
 ## Auth & conventions
 
@@ -30,8 +35,7 @@ settings.
   endpoints under `/api/ai-account/...`, appended to it. (`…` in the endpoint
   lists below abbreviates `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}`.)
 - The backend also accepts an `agent`-spelled twin of every agent route
-  (`/api/ai-agent/...`, `agents/` for `mentors/`); the `mentor` spelling is
-  canonical and used here, matching the other skills.
+  (`/api/ai-agent/...`, `agents/` for `mentors/`); `mentor` is canonical here.
 - **Header:** `Authorization: Api-Token $IBLAI_API_KEY` on every request.
 - **Path vars:** `{org}` = `$IBLAI_ORG`, `{username}` = `$IBLAI_USERNAME`,
   `{mentor}` = the agent's unique id (UUID, e.g.
@@ -39,7 +43,7 @@ settings.
 - **On the wire the agent noun is `mentor`**: body fields (`mentor`,
   `mentor_unique_id`) and the scope enum value `mentor` refer to an agent.
 - DELETE / destructive calls: confirm with the user first. Never echo
-  credentials or tokens back into chat, and never commit them to files.
+  credentials or tokens into chat or files.
 - Not connected yet? Run **`/iblai-api-login`** first to populate
   `IBLAI_ORG`, `IBLAI_USERNAME`, and `IBLAI_API_KEY`.
 
@@ -79,15 +83,13 @@ first match wins:
 5. No connection → the call fails 401 — **or** the in-chat OAuth prompt
    fires if the server is `auth_scope="user"` + `auth_type="oauth2"`
 
-OAuth-backed connections auto-refresh access tokens near expiry server-side;
-no client action is needed.
+OAuth-backed connections auto-refresh access tokens server-side.
 
 ## OAuth connected services (lifecycle)
 
-Terminology: an **OAuth provider** is the vendor (`google`, `dropbox`); an
-**OAuth service** is one surface of it (`drive`, `calendar`); a **connected
-service** is a user's persisted token grant for one service — unique on
-(user, provider, org, service).
+Terminology: an **OAuth provider** is the vendor (`google`); an **OAuth
+service** is one surface of it (`drive`); a **connected service** is a
+user's token grant for one service — unique on (user, provider, org, service).
 
 Prerequisite: the org must have a credential named `auth_{provider}`
 (containing `client_id`, `client_secret`, `redirect_uri`) in the credential
@@ -104,9 +106,19 @@ existed for the same (user, provider, org, service), it is updated in place.
 
 ## Reads
 
-- **GET** `…/users/{username}/mcp-servers/?include_global=true&mentor_unique_id={mentor}&is_featured={true|false}&search={q}&transport={…}&page={n}&page_size=12`
-  — list MCP servers (paged; `include_global=true` surfaces org-wide
-  connectors; `search` and `transport` narrow results).
+- **GET** `…/users/{username}/mcp-servers/?mentor_unique_id={mentor}&include_global=true&is_featured={true|false}&is_enabled=true&registry={true|false}&auth_type={none|token|oauth2}&auth_scope={platform|mentor|user}&search={q}&transport={…}&session_id={chat}&page={n}&page_size=12`
+  — list MCP servers (paged). Without params: every server the caller may
+  see; `mentor_unique_id` alone: that agent's own servers; with
+  `include_global=true`: the organization-wide ones too (the OS lists a tab
+  that way, `is_featured=true` for Featured, `false` for Directory).
+  `is_enabled`, `registry`, `auth_type`, `auth_scope`, `search` and
+  `transport` narrow it. Each row carries `is_enabled`, `user_can_disable`,
+  `user_enabled` (whether chat uses it for the caller; with `session_id`,
+  after that chat's choice), `mentor_auth_scope` (only with
+  `mentor_unique_id`), `effective_auth_scope` (on every row; the server's
+  own scope when no agent is in context), `oauth_service_data`, and `registry`
+  (the MCP directory entry a global server comes from, `null` otherwise;
+  `registry.source == "registry"` marks one the organization cannot edit).
 - **GET** `…/users/{username}/mcp-server-connections/` — list connections:
   scope, `is_active`, `server_name`, `platform_key`, the owning `user`
   (username) with `user_email` and `user_full_name`, masked `credentials`
@@ -117,6 +129,24 @@ existed for the same (user, provider, org, service), it is updated in place.
 - **GET** `…/users/{username}/mentors/{mentor}/settings/` — the agent's
   active `tool_slugs`, `mcp_servers` (serialized server objects), and
   `can_use_tools`.
+- **GET** `…/users/{username}/mcp-servers/{id}/mentor-auth-scope/?mentor={mentor}`
+  — the agent's override `auth_scope` (`null` when unset), `server_auth_scope`, `effective_auth_scope`.
+- **GET** `…/users/{username}/mcp-servers/{id}/preference/` — the caller's
+  lasting choice: `is_enabled` (`null` = never chosen), `user_can_disable`, `effective_is_enabled`.
+- **GET** `…/users/{username}/mcp-servers/{id}/session-preference/?session_id={chat}`
+  — the caller's choice for one chat: `is_enabled`, `user_is_enabled` (the
+  lasting choice), `user_can_disable`, `effective_is_enabled`.
+- **GET** `…/users/{username}/mcp-servers/{id}/credentials/` — the
+  organization's own app or key for the server, masked. Organization
+  admins or the Platform API Token only; others get 403 "MCP server
+  credentials are limited to platform admins." (the same on `PUT`,
+  `DELETE` and `verify/`):
+  `configured`, `shared_client_allowed` (a client shared by ibl.ai already
+  signs users in), `source` (`dcr | manual | legacy_backfill`), `client_id`,
+  `client_secret` (masked; `""` public), `redirect_uri`, `scopes`,
+  `token_endpoint_auth_method`, `authorization_params`, `token_params`,
+  `authorization_url` / `token_url` (`""` = discovered); for a token
+  server `api_key` (masked), `authorization_scheme`, `header_name`.
 - **GET** `https://api.iblai.app/dm/api/ai-account/orgs/{org}/oauth-services/`
   — enabled OAuth services: `id`, `oauth_provider`, `name`, `display_name`,
   `description`, `scope`, `image`, `created_at`, `updated_at`.
@@ -148,7 +178,7 @@ existed for the same (user, provider, org, service), it is updated in place.
   {
     "name": "Google Drive MCP",
     "url": "https://drive-mcp.example.com",
-    "transport": "sse|websocket|streamable_http",
+    "transport": "sse|streamable_http",
     "auth_type": "none|token|oauth2",
     "auth_scope": "platform|mentor|user",
     "description": "string",
@@ -157,20 +187,26 @@ existed for the same (user, provider, org, service), it is updated in place.
     "extra_headers": { "x-custom": "value" },
     "oauth_service": "number|null",
     "is_enabled": true,
+    "user_can_disable": true,
     "is_featured": false,
     "clean_output": true,
     "image": "File"
   }
   ```
   - `name`, `url`, `transport`, `auth_type` are required; `auth_scope`
-    defaults to `platform`.
+    defaults to `platform`. `transport` accepts `sse` and `streamable_http`
+    only: `websocket`, still offered by older UIs, answers 400.
   - Server-level `credentials` must be the **full authorization value**
     (`<scheme> <credentials>`); it takes priority over `extra_headers`.
   - `is_featured=true` makes the server available to **other orgs** to
     create their own connections against (multi-organization sharing); the owning
     org keeps control of the metadata.
   - `is_enabled=false` is a hard off-switch — disabled servers are skipped
-    at runtime.
+    at runtime, whatever an agent or user chose.
+  - `user_can_disable` (default true) lets users turn the server off for
+    themselves or for one chat (the preference endpoints below). `false`
+    makes it mandatory wherever it is enabled: the chat shows a locked
+    switch and the preference writes are refused.
   - `oauth_service` links the OAuth service and is required for in-chat
     OAuth servers.
   - `clean_output` (default true) strips HTML from server responses;
@@ -181,7 +217,90 @@ existed for the same (user, provider, org, service), it is updated in place.
   existing server to in-chat OAuth with
   `{"auth_scope": "user", "auth_type": "oauth2", "oauth_service": 12}`).
 - **DELETE** `…/users/{username}/mcp-servers/{id}/` — delete a server. Destructive — confirm
-  with the user first.
+  with the user first. Featured servers of other organizations and
+  directory servers (`registry` set) are not the caller's to edit or
+  delete (`PATCH` / `DELETE` answer 404, `user_can_disable` included — only
+  the owning organization can make one mandatory); their per-agent sign-in
+  scope (below) is the one thing another organization sets.
+
+### Per-agent sign-in scope
+
+- **PUT** `…/users/{username}/mcp-servers/{id}/mentor-auth-scope/` — one
+  agent's override of the server's `auth_scope`. Organization admins (or
+  the Platform API Token) only: anyone else gets 403 "A mentor's MCP
+  connection mode is set by platform admins."; 404 "This mentor does not
+  use this MCP server." until the server is in the agent's `mcp_servers`:
+  ```json
+  { "mentor": "<agent unique id>", "auth_scope": "mentor" }
+  ```
+  `auth_scope: null` restores the server's own. Returns `auth_scope`,
+  `server_auth_scope`, `effective_auth_scope` (the list read reports them
+  with `mentor_unique_id`). An override to `mentor` or `platform` needs a
+  connection at that scope before the server works for the agent.
+
+### User and per-chat preferences
+
+A user's own on/off for a server. `user_can_disable: false` forces the
+server on and makes both writes fail; the chat's choice wins over the
+lasting one.
+
+- **PUT** `…/users/{username}/mcp-servers/{id}/preference/` —
+  `{ "is_enabled": false }`: the caller's lasting choice (same fields back).
+- **PUT** `…/users/{username}/mcp-servers/{id}/session-preference/` —
+  `{ "session_id": "<chat session>", "is_enabled": false }`: for one chat
+  only, applied from the next message (same fields back as its GET). The
+  chat composer's MCP panel writes this.
+
+For one chat turn: `is_enabled` → the agent's `mcp_servers` → the user's
+lasting choice → the chat's choice (`null` falls through).
+
+### The organization's own OAuth app (`credentials/`)
+
+When a service neither registers a sign-in app by itself nor is covered by
+the client ibl.ai shares (`oauth-find` fails at `client_registration` or
+`authorization_server_metadata`), or the organization already has an app
+(`tenant_client_configured`), store the organization's own app:
+
+- **PUT** `…/users/{username}/mcp-servers/{id}/credentials/` (OAuth server):
+  `{ "client_id", "client_secret", "redirect_uri", "scopes": [...],
+  "token_endpoint_auth_method", "authorization_params": {}, "token_params": {},
+  "authorization_url", "token_url" }`. `client_id` and `redirect_uri` are
+  required; `client_secret` is required on the first save, omitted to keep
+  the stored one, `""` for a public client. `token_endpoint_auth_method`:
+  `client_secret_post` (default) | `client_secret_basic` | `none`. The two
+  URLs only for a server that publishes no sign-in settings (both or
+  neither; `""` returns to the discovered ones). `redirect_uri` is the page
+  the app returns users to, registered word for word at the service. Token
+  server: `{ "api_key", "authorization_scheme", "header_name" }`.
+- **DELETE** `…/users/{username}/mcp-servers/{id}/credentials/` — remove
+  the app; everyone who signed in through it signs in again. Destructive —
+  confirm with the user first.
+
+### Finding a service's sign-in settings (`oauth-find`)
+
+- **POST** `…/users/{username}/mcp-servers/oauth-find/` —
+  `{ "url": "https://api.example.com/mcp", "name": "Example", "callback_url": "https://app.example.com/google-oauth-callback/" }`
+  discovers the server's OAuth settings, registers a client where the
+  service allows it, and returns (or reuses) the OAuth service record
+  (`id`, `oauth_provider`, `name`, `display_name`, …) for the server's
+  `oauth_service`. With `client_id` (then `callback_url` is required too;
+  `client_secret`, `""` public; optional `scopes`,
+  `token_endpoint_auth_method`, and both `https://` URLs only when the
+  server publishes none) it uses and stores the organization's own app
+  instead. A `400` carries `error` and a `diagnostic`: `succeeded`,
+  `failed_step` (`mcp_server_url` | `authorization_server_metadata` |
+  `client_registration` | `provider_name_conflict` |
+  `tenant_client_configured` | `manual_client` | `internal_error`),
+  `hint`, `timed_out`, `discovered` (endpoints, `scopes_supported`, auth
+  methods) and `attempts[]`; `manual_client` means the app sent was refused
+  (`hint` names the field).
+
+### Verify a server
+
+- **POST** `…/users/{username}/mcp-servers/{id}/verify/` — checks the
+  organization's setup without writing credentials: the discovery
+  diagnostic, an authorize-URL preview and the server's `tools/list`; the
+  caller's expired OAuth token is refreshed, as chat would.
 
 ### MCP server connections
 
@@ -242,14 +361,14 @@ existed for the same (user, provider, org, service), it is updated in place.
 - **PATCH | PUT** `…/users/{username}/mentors/{mentor}/settings/` — enable /
   disable connectors on the agent:
   ```json
-  { "tool_slugs": ["ai-index", "mcp-tool"], "mcp_servers": [3, 9],
+  { "tool_slugs": ["ai-index", "mcp"], "mcp_servers": [3, 9],
     "can_use_tools": true }
   ```
   **Critical semantics — these lists are replaced, not merged.** `[]` clears
   everything; omitting a field leaves it untouched. Blindly sending
-  `{"tool_slugs": ["mcp-tool"]}` silently strips every other tool the agent
+  `{"tool_slugs": ["mcp"]}` silently strips every other tool the agent
   had. Safe procedure: **GET** the current settings, merge locally (keep
-  existing `tool_slugs`, ensure `mcp-tool` is present; keep existing
+  existing `tool_slugs`, ensure `mcp` is present; keep existing
   `mcp_servers`, append the new server id), then write back the full lists.
 
 ### OAuth connected services
@@ -266,15 +385,12 @@ tool. Events arrive as JSON on the **existing** chat WebSocket/SSE
 connection — parse and switch on `type`; never close or refresh the
 connection while waiting, resolution arrives on the same socket.
 
-**Trigger conditions** (all must hold): server `auth_type="oauth2"`, server
-`auth_scope="user"`, no valid connection for the current user + server, and
-the chat user is authenticated (non-anonymous).
-
-**Admin setup checklist** (before any prompt can fire): the OAuth provider
-and OAuth service records exist, the `auth_{provider}` credential is in the
-org's credential store, the MCP server is registered with
-`auth_type="oauth2"`, `auth_scope="user"`, `is_enabled=true`, and a linked
-`oauth_service`, and the server is attached to the agent (`tool_slugs` +
+**Trigger conditions** (all must hold): server `auth_type="oauth2"`,
+effective scope `user`, no valid connection for the current user + server,
+an authenticated (non-anonymous) chat user. **Setup before any prompt can
+fire:** the OAuth provider and service records exist (or `oauth-find`
+created them), the server is `is_enabled=true` with a linked
+`oauth_service`, and it is attached to the agent (`tool_slugs` +
 `mcp_servers`).
 
 **Handshake:** the user sends a message → the backend fails to resolve a
@@ -282,25 +398,23 @@ user connection → it emits `oauth_required` (with `auth_url`) and polls
 every 10s → the client opens `auth_url`; the user consents; the **backend**
 callback creates the connected service + connection automatically (the
 client does not process the callback) → the backend emits
-`oauth_connection_resolved` and resumes the turn. On timeout (default 300s)
-an `error` (status 400) terminates the turn — on WebSocket transports the
-connection then closes. A user who finishes OAuth *after* the timeout
-succeeds automatically on their **next message**, so offer a retry.
+`oauth_connection_resolved` and resumes the turn. After 300s without a
+sign-in it emits `oauth_authentication_timeout` and the turn ends. A user
+who finishes OAuth *after* the timeout succeeds automatically on their
+**next message**, so offer a retry.
 
 **Event reference:**
 
 | Event `type` | Key fields | Client action |
 |---|---|---|
-| `oauth_required` | `server_name`, `server_id`, `auth_url`, `message` | show a prompt naming the server; open `auth_url` in a new tab; show a waiting indicator |
-| `oauth_connection_resolved` | `server_name`, `server_id`, `message` | dismiss the prompt; the chat resumes automatically |
-| `mcp_tools_retrieved` | `session_id`, `mentor_id` | informational: tool fetch succeeded on retry (3 attempts, backoff 1s/2s/4s) — log or ignore |
-| `warning` | `message`, `developer_error`, `code: 503` | non-OAuth tool failure; the chat continues **without** MCP tools — surface `message`, log `developer_error`, never show it to end users |
-| `error` | `error`, `status_code: 400` (**no `type` field** — detect by the top-level `error` key) | OAuth timeout / URL build failure / missing connected service; the turn terminates — offer retry |
+| `oauth_required` | `server_id`, `server_name`, `auth_url`, `message` | The turn **pauses** (up to 300s; polled every 10s). Show a card keyed by `server_id`: *Sign in* opens `auth_url` (the backend creates the connection itself), and *Skip in this conversation* (not for mandatory servers) sets the session preference off. |
+| `oauth_connection_resolved` | `server_id`, `server_name`, `message` | Dismiss the card; the reply follows. |
+| `oauth_authentication_timeout` | `message`, `status_code: 401` | The turn ends. Offer *Sign in* and *Retry*; a late sign-in works on the next message. |
+| `mcp_tools_retrieved` | `session_id`, `mentor_id` | Informational: the tools loaded. |
+| `warning` | `message`, `code: 503`, optional `developer_error` | One server failed to connect, authorize or list its tools within 15s. It is **skipped alone**, and `message` names it; the others still work. Show `message`, and only log `developer_error`. |
+| *(no `type`)* `{error, status_code: 400}` | | The turn ends. `Could not build OAuth URL…` means the server isn't set up (offer *turn off for this conversation*). A connection with no connected service means reconnect. |
 
-Constants: max wait 300s (`MCP_OAUTH_MAX_WAIT_SECONDS`), poll interval 10s
-(`MCP_OAUTH_POLL_INTERVAL_SECONDS`). Each poll checks for a connection with a
-valid connected service for user + server (or a connected service matching
-provider + user + org) — first match resolves.
+Fuller per-frame notes: [`references/in-chat-events.md`](references/in-chat-events.md).
 
 ## Example
 
@@ -330,7 +444,7 @@ curl -s -X POST "$BASE/mcp-server-connections/" -H "$AUTH" -H "Content-Type: app
     this org, or mark the source server `is_featured=true`.
   - `400 No credentials found` on OAuth start — install the
     `auth_{provider}` credential (client_id, client_secret, redirect_uri).
-  - Agent never calls the server — `mcp-tool` missing from `tool_slugs` or
+  - Agent never calls the server — `mcp` missing from `tool_slugs` or
     the server id missing from `mcp_servers`; these lists are replaced, not
     merged, so a careless settings write may have stripped them.
   - No OAuth prompt on a per-user server — needs **both**
@@ -341,14 +455,23 @@ curl -s -X POST "$BASE/mcp-server-connections/" -H "$AUTH" -H "Content-Type: app
   - Connection unexpectedly falls back to platform creds — check the user
     connection's `is_active` and that the connected service's user matches
     the chat user.
-  - `oauth-services` returns `[]` — no enabled OAuth service records; seed
-    the provider + service.
-  - Callback `Invalid state` — the start/callback round-trip spanned browser
-    contexts or exceeded the 1-hour window; redo the flow in one session.
-  - Callback `Could not exchange auth token` — the provider rejected the
-    code; verify the redirect URI matches the provider console and restart.
-  - Tool call fails silently — a `warning` (503) event was ignored; surface
-    it and verify the MCP server is reachable from the platform.
+  - Callback `Invalid state` — the round-trip spanned browser contexts or
+    the 1-hour window; redo it in one session. `Could not exchange auth
+    token` — the provider rejected the code; check the redirect URI.
+  - Tool call fails silently — a `warning` (503) frame was ignored; surface
+    it; `verify/` shows what the platform sees.
+  - `preference/` or `session-preference/` refused — the server has
+    `user_can_disable: false` (fixed by the platform for some featured and
+    directory servers).
+  - A directory or another organization's featured server refuses
+    `PATCH` / `DELETE` — not the caller's record; set `mentor-auth-scope/`
+    for the agent instead.
+  - `oauth-find` fails at `client_registration` or
+    `authorization_server_metadata` — store the organization's own app
+    (`credentials/`, or resend `oauth-find` with `client_id`).
+  - A `mentor`- or `platform`-scope sign-in never prompts in chat — an
+    administrator makes that connection up front; only `user` scope asks
+    each person.
 - **Scope enum is `platform | mentor | user`** on both `MCPServer.auth_scope`
   and connection `scope` — `mentor` means agent-wide, `platform` means
   org-wide. (There is no `agent` or `tenant` value on the wire.)

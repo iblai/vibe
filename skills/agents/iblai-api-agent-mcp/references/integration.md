@@ -15,7 +15,7 @@
   server `id`, so create the `MCPServer` record before offering a connection
   form.
 - **Then wire the agent.** After saving a connection, prompt the admin to enable
-  `mcp-tool` and attach the server on the agent settings — a connection with no
+  `mcp` and attach the server on the agent settings — a connection with no
   agent wiring is never called in chat (the most common "nothing happens" cause).
 
 ## Drive the connection form off the server's `auth_type`
