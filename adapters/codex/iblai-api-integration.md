@@ -139,3 +139,7 @@ curl -X POST \
   `xai`, `deepseek`, `perplexity` and `nvidia` hold that provider’s key. A model
   uses the organization’s own key first, then ibl.ai’s if the organization may
   borrow it (`default-llm-key-usage` above).
+- Data source `drive` (Google Drive) holds `client_id` and `developer_key`.
+  `client_id` must be the full Google OAuth client id,
+  `<project-number>-<x>.apps.googleusercontent.com`, with the `drive.file`
+  scope: the leading number is sent to Google as the picker's `appId`.

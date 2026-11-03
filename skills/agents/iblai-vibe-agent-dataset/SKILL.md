@@ -28,6 +28,15 @@ Dropbox, YouTube, URL, PDF, DOCX, Excel, CSV, GitHub, TXT, Markdown, Audio,
 Video, Image, Web Crawler, ZIP, Course. `disabledResourceTypes` greys tiles out
 and makes them unclickable; it does not hide them.
 
+**Google Drive** -- the tile opens Google's own file picker over Add
+Resources. Clicking outside Google's box or pressing Escape closes only
+Google's box. When the browser blocks Google's cookies (Firefox Total Cookie
+Protection, Brave Shields), Google first shows **Allow cookies**: clicking it
+brings up the browser's Allow / Block prompt. If the picker has not loaded
+after 10 seconds, Add Resources shows one red line, "Your browser blocked
+Google Drive. Try again and click Allow cookies in the Google window.", with
+a **Try Again** button that reopens it.
+
 ![Datasets tab -- Add Resources](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-dataset/iblai-vibe-agent-dataset-2-add-resource.png)
 
 **Source dialog** -- each tile opens its own dialog (here **URL**). **Submit**
@@ -56,8 +65,16 @@ offers **Delete Dataset**. Switching an untrained row on asks whether to
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
 - `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
-  `pnpm why @iblai/web-containers`.
+  `pnpm why @iblai/web-containers`. The Google Drive behaviour below (Allow
+  cookies, Try Again) needs 2.62.2 or later.
 - A real agent UUID. Ask the user; never invent one.
+- For the Google Drive tile: the organization's `drive` data-source
+  credential (`client_id`, `developer_key`; see
+  [`/iblai-api-integration`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-integration/SKILL.md)).
+  The `client_id` must be a Google OAuth client id of the form
+  `<project-number>-<x>.apps.googleusercontent.com` with the `drive.file`
+  scope: the picker sends the leading number (the Cloud project number) as
+  `appId`, which lets the app open the files a user picks.
 
 ## Step 1: Check Environment
 
