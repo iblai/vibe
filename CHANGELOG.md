@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.20.1] - 2026-11-03
+
+### Documentation
+
+- Google Drive picker when the browser blocks cookies
+
 ## [2.20.0] - 2026-11-03
 
 ### Added
