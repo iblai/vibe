@@ -18,10 +18,26 @@ tabs as you need.
 
 ![Settings tab -- Basic](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
 
-**Discovery** -- who can view the agent (administrators / users / anyone),
-who can chat with it (authenticated users / anyone), and whether it is featured.
+**Discovery** -- **Who Can Use This Agent?** (All Members / Admins Only, with
+help text under it), **List in Public Catalog** (off and disabled under Admins
+Only), **Allow Chat Without Signing In**, the **Featured** toggle,
+and a summary line saying what the combination means. The copy says
+"members", never the organization's name.
 
 ![Settings tab -- Discovery](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-2-discovery.png)
+
+The controls are two views of the same two fields; Save sends them unchanged
+(`/iblai-api-agent-setting`):
+
+| Who Can Use | Public Catalog | Chat Without Signing In | `mentor_visibility` | `allow_anonymous` |
+|---|---|---|---|---|
+| Admins Only | off (disabled) | off / on | `viewable_by_tenant_admins` | `false` / `true` |
+| All Members | off | off / on | `viewable_by_tenant_students` | `false` / `true` |
+| All Members | on | off / on | `viewable_by_anyone` | `false` / `true` |
+
+An empty or unknown saved visibility shows as All Members with the catalog
+off and is sent back unchanged unless the user changes it. Switching from
+Admins Only back to All Members turns the catalog off.
 
 **Capabilities** -- **Surface Capabilities** sets Show Attachment, Show Voice
 Record and Show Voice Call separately for the in-app chat (`show_*`) and the
@@ -225,7 +241,7 @@ For a partial override, pass only the keys you want to change:
   tenants={tenants}
   labels={{
     header: { title: "Tutor settings" },
-    fields: { whoCanView: { label: "Who can access this tutor?" } },
+    discoveryAccess: { audienceLabel: "Who Can Use This Tutor?" },
   }}
 />
 ```
@@ -235,11 +251,14 @@ the bundle names the sub-tabs (`subTabs.basic` / `discovery` /
 `capabilities` / `welcomeScreen`), the Capabilities headings
 (`sections.chatExperience`, `advanced`, `perSurface`, `globalSettings`), the
 matrix columns (`surfaces.inAppChat`, `embedWidget`) and their notes
-(`notes.*`), the `sections.contextLimits` heading, and the confirm dialog
-(`adminVisibilityConfirm`) that opens when Save narrows Who Can View to
-Administrators -- a test that waits for the success toast must answer it
-first. The Allow In-Chat Model Change copy is in the LLM tab's
-`LLMTabLabels.inChatModelChange`, not here.
+(`notes.*`), the `sections.contextLimits` heading, the Discovery controls
+(`discoveryAccess`, defaults in `AGENT_SETTINGS_TAB_LABELS.discoveryAccess`;
+optional, so a bundle without it falls back to English), and the confirm dialog
+(`adminVisibilityConfirm`) that opens when Save switches Who Can Use This
+Agent? to Admins Only -- a test that waits for the success toast must answer
+it first. `fields.whoCanView` / `fields.whoCanChat` no longer label
+Discovery; the Embed tab still reads them. The Allow In-Chat Model Change
+copy is in the LLM tab's `LLMTabLabels.inChatModelChange`, not here.
 
 ## Step 5: Use MCP Tools for Customization
 
