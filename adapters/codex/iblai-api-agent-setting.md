@@ -66,9 +66,7 @@ when configuring an agent's basic identity and capabilities.
   `viewable_by_tenant_students` (every org member) or `viewable_by_anyone`
   (every member, and it is listed in the public catalog for non-members).
   `allow_anonymous` is separate: `true` lets anyone with the link chat without
-  signing in, whatever the visibility. The Settings tab's Discovery controls
-  (Who Can Use This Agent?, List in Public Catalog, Allow Chat Without Signing
-  In) write exactly these two keys.
+  signing in, whatever the visibility.
   `show_explore_mentors` shows the additional-agents section on the agent's
   welcome screen ("Show additional agents"). `disable_chathistory` makes every
   conversation with this agent incognito; the Privacy tab’s Incognito policy
