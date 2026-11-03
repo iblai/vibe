@@ -208,6 +208,11 @@ is required.
 
 ## Step 5 — Verify
 
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
+
 Start the dev server, log in, and confirm:
 
 1. The credit-card trigger icon appears between the navigation links

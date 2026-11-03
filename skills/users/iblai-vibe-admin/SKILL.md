@@ -54,11 +54,11 @@ mode → settings → Management / Integrations / Billing / Memory / Organizatio
 
 ## Step 1: Install (existing app)
 
-Render the assets (strip `.j2`; no variables): `admin-mode.tsx.j2` →
-`lib/iblai/admin-mode.tsx`, `admin-mode-switch.tsx.j2` →
-`components/navbar/admin-mode-switch.tsx`, `account-panel.tsx.j2` →
-`components/admin/account-panel.tsx`, `admin-users-page.tsx.j2` →
-`app/(app)/admin/users/page.tsx`, `tenant.test.ts.j2` →
+Copy the assets: `admin-mode.tsx` →
+`lib/iblai/admin-mode.tsx`, `admin-mode-switch.tsx` →
+`components/navbar/admin-mode-switch.tsx`, `account-panel.tsx` →
+`components/admin/account-panel.tsx`, `admin-users-page.tsx` →
+`app/(app)/admin/users/page.tsx`, `tenant.test.ts` →
 `__tests__/tenant.test.ts`. Add `readTenants` / `isTenantAdmin` to
 `lib/iblai/tenant.ts` (copy them from vibe-starter). Needs shadcn `switch`.
 

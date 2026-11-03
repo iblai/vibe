@@ -229,24 +229,13 @@ the Foundry-specific command names and lifecycle.
   silently never fires — see [troubleshooting](references/troubleshooting.md)
   "A command never runs".
 
-- **Server-rendered apps can't use the default static export.** The
-  Tauri shell defaults to `frontendDist: "../out"` (a `next build`
-  static export). An app with runtime-dynamic routes (e.g.
-  `/x/[id]/[[...slug]]`) and no `generateStaticParams` **cannot** be
-  exported — `output: 'export'` hard-errors with "missing
-  generateStaticParams()". Keep `output: 'standalone'` and point Tauri
-  **dev** at the live Next server instead, in `tauri.conf.json`:
-  ```json
-  "build": {
-    "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../out"
-  }
-  ```
-  `tauri dev` then loads `localhost:3000`; no `out/` needed. (Production
-  bundles for such apps point `frontendDist`/`devUrl` at a hosted URL
-  rather than shipping a static export.)
+- **Server-rendered apps can't use a static export.** The Tauri shell
+  loads the deployed app (`frontendDist` is a URL) and `tauri dev` loads
+  `devUrl` (`http://localhost:3000`, after `beforeDevCommand: "pnpm dev"`),
+  so no `out/` is needed. An app with runtime-dynamic routes (e.g.
+  `/x/[id]/[[...slug]]`) and no `generateStaticParams` **cannot** switch to
+  `output: 'export'` — it hard-errors with "missing generateStaticParams()";
+  keep `output: 'standalone'`.
 
 - **Download via the daemon HTTP API, not the CLI.** Implementing
   `download_model(modelId)` as `POST 127.0.0.1:11434/api/pull

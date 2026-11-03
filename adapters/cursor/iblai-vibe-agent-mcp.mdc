@@ -40,18 +40,18 @@ in the agent-settings family; all tabs share `AgentSettingsProvider`.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
   Step 2 if not already set up)
-- `@iblai/iblai-js` ^2.58.1 (resolves `@iblai/web-containers` 1.58.1): the
+- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1): the
   Featured / Directory tabs, per-agent sign-in scope, "Allow Users to Turn
-  Off", App Credentials and the chat's MCP panel are not in earlier releases
+  Off", App Credentials and the chat's MCP panel arrived in
+  `@iblai/web-containers` 1.58.1 and are not in earlier releases
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 
 ## Step 1: Check Environment
 
-Before proceeding, check for an `iblai.env` in the project root. Look for
-`PLATFORM`, `DOMAIN`, and `TOKEN` variables. If the file does not exist or
-is missing these variables, tell the user:
-"You need an `iblai.env` with your platform configuration. Download the
-template and fill in your values:
+Before proceeding, check for an `iblai.env` in the project root with
+`PLATFORM`, `DOMAIN`, and `TOKEN`. If it is missing or incomplete, tell the
+user: "You need an `iblai.env` with your platform configuration. Download
+the template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
 ## Step 2: Mount `McpTab`
@@ -72,15 +72,14 @@ export default function AgentMCPPage() {
 ```
 
 `McpTab` reads `tenantKey`, `mentorId`, `username`, `enableRBAC` and
-`rbacPermissions` from `AgentSettingsProvider`. No props are required for
-the standard mount.
+`rbacPermissions` from `AgentSettingsProvider`; no props are required.
 
 ### With a select handler (picker mode)
 
-Inside a picker (the workflow editor's MCP step uses this) pass `onSelect`.
-The card gets a **Select** button; picking a connector that is off turns it
-on for the agent first (and opens its shared sign-in when one is needed),
-then calls the handler.
+Inside a picker (the workflow editor's MCP step uses this) pass `onSelect`:
+every card gets a **Select** button; picking a connector that is off turns
+it on for the agent first (opening its shared sign-in when needed), then
+calls the handler.
 
 ```tsx
 import { McpTab } from "@iblai/iblai-js/web-containers/next";
@@ -95,13 +94,12 @@ import { McpTab } from "@iblai/iblai-js/web-containers/next";
 ## Step 3: Register `mcpApiSlice` in the store
 
 The MCP endpoints live on their own slice that `mentorReducer` /
-`mentorMiddleware` do not include, and from `@iblai/web-containers` 1.58.1
-the `Chat` composer queries them in every signed-in chat (for the `+`
-menu's MCP row). Without this step `pnpm dev` throws
-`Middleware for RTK-Query API at reducerPath "mcpApiSlice" has not been
-added to the store` on the home chat, and a production build silently
-stores no MCP response: no MCP row, and the tab never gets its lists.
-vibe-starter ships the two lines; an older store needs them added:
+`mentorMiddleware` do not include, and the `Chat` composer queries them in
+every signed-in chat (for the `+` menu's MCP row). Without it `pnpm dev`
+throws `Middleware for RTK-Query API at reducerPath "mcpApiSlice" has not
+been added to the store` on the home chat, and a production build stores
+no MCP response: no MCP row, and the tab never gets its lists. vibe-starter
+ships the two lines; an older store needs them added:
 
 ```typescript
 // store/iblai-store.ts
@@ -162,8 +160,8 @@ tells the opener both ways the SDK listens: `postMessage` and `localStorage`.
 
 The stored address is **organization-wide**: an OAuth connector first added
 from `http://localhost:3000` sends that service's sign-ins for the whole
-organization, os.ibl.ai included, to localhost. Add OAuth connectors from
-the deployed host, never from a dev server.
+organization, os.ibl.ai included, to localhost. Add OAuth connectors from the
+deployed host, never from a dev server.
 
 ```tsx
 // app/google-oauth-callback/page.tsx
@@ -418,7 +416,13 @@ The chat's panel is also exported on its own, from `@iblai/iblai-js/web-containe
 
 ## Step 6: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
@@ -433,10 +437,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **Redux store**: `mentorReducer` and `mentorMiddleware` **plus**
   `mcpApiSlice` (Step 3); the MCP endpoints are not part of the first two.
 - **`initializeDataLayer()`**: 5 args (v1.2+); **`@reduxjs/toolkit`** deduplicated via webpack aliases in `next.config.ts`
-- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
-  (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Shared provider**: `AgentSettingsProvider` must wrap the route at a
-  layout level. See `/iblai-vibe-agent-setting` Step 2 for the full snippet.
+- **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` (`pnpm add sonner @iblai/iblai-web-mentor`)
+- **Shared provider**: `AgentSettingsProvider` wraps the route at layout level (`/iblai-vibe-agent-setting` Step 2).
 - **The return page** (Step 4) is part of this skill, not optional: every
   OAuth client registered from this app sends its sign-ins there. Register
   it from the deployed host; for a hand-entered app, register the Redirect
@@ -447,9 +449,8 @@ Run `/iblai-vibe-ops-test` before telling the user the work is ready:
 - **A connector off for the organization** (`is_enabled: false`, set
   through the API) is never used, whatever the agent or the user chose, and
   does not appear in the chat's panel.
-- **Tools tab**: the `mcp` tool slug is added and removed by the switch
-  here; `/iblai-vibe-agent-tool` shows the same switch among the other
-  tools.
+- **Tools tab**: the switch here adds and removes the `mcp` tool slug;
+  `/iblai-vibe-agent-tool` shows the same switch among the other tools.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)
 
 ## Related Exports
@@ -476,10 +477,9 @@ for custom UI: `useGetMCPServersQuery` (`mentorUniqueId`, `includeGlobal`,
 
 ## REST behind the tab
 
-Everything is under `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/`
-where `dmUrl` is `${NEXT_PUBLIC_API_BASE_URL}/dm` (`config.dmUrl()` in the
-starter); the sign-in services are under `${dmUrl}/api/ai-account/`.
-Bodies, validation rules and errors: `/iblai-api-agent-mcp`.
+Under `${dmUrl}/api/ai-mentor/orgs/{org}/users/{user_id}/`, where `dmUrl` is
+`${NEXT_PUBLIC_API_BASE_URL}/dm` (`config.dmUrl()` in the starter); sign-in
+services under `${dmUrl}/api/ai-account/`. Bodies and errors: `/iblai-api-agent-mcp`.
 
 | What the UI does | Call |
 |---|---|

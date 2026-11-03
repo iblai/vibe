@@ -56,7 +56,7 @@ the same.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.58.1` (resolves `@iblai/web-containers` 1.58.1). Check with
+- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Org admin rights: the spend-cap endpoints are admin-only. A user without
@@ -200,7 +200,10 @@ by `/iblai-vibe-billing`. REST twin:
 
 ## Step 5: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors.
 2. `pnpm test` -- vitest must pass.

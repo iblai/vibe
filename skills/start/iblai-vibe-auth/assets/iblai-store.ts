@@ -1,0 +1,61 @@
+
+/**
+ * ibl.ai Redux store.
+ *
+ * This standalone store holds the RTK Query API cache and (optionally)
+ * chat / file‑upload slices. Import and wrap your app with:
+ *
+ *   import { iblaiStore } from "@/store/iblai-store";
+ *   <Provider store={iblaiStore}>…</Provider>
+ *
+ * If you already have a Redux store, merge the reducers and middleware
+ * from this file into yours instead.
+ */
+
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  coreApiSlice,
+  mentorReducer,
+  mentorMiddleware,
+  mcpApiSlice,
+} from "@iblai/iblai-js/data-layer";
+import {
+  hostChatReducer,
+  chatInputSliceReducer,
+  chatSliceReducerShared,
+  filesReducer,
+  rbacReducer,
+  subscriptionReducer,
+  topBannerReducer,
+} from "@iblai/iblai-js/web-utils";
+
+export const iblaiStore = configureStore({
+  reducer: {
+    // Core API cache (auth, organization, user metadata, etc.)
+    [coreApiSlice.reducerPath]: coreApiSlice.reducer,
+
+    // Mentor/chat API slices
+    ...mentorReducer,
+    // MCP connectors (the agent MCP tab and the chat composer's MCP panel):
+    // a separate slice that mentorReducer does not include.
+    [mcpApiSlice.reducerPath]: mcpApiSlice.reducer,
+
+    // The SDK <Chat> selectors hard-code these slice keys (`state.chat`,
+    // `state.rbac`, …) — do not rename them.
+    chat: hostChatReducer,
+    chatInput: chatInputSliceReducer,
+    chatSliceShared: chatSliceReducerShared,
+    files: filesReducer,
+    rbac: rbacReducer,
+    subscription: subscriptionReducer,
+    topBanner: topBannerReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false })
+      .concat(coreApiSlice.middleware)
+      .concat(mcpApiSlice.middleware)
+      .concat(...mentorMiddleware),
+});
+
+export type IblaiRootState = ReturnType<typeof iblaiStore.getState>;
+export type IblaiAppDispatch = typeof iblaiStore.dispatch;

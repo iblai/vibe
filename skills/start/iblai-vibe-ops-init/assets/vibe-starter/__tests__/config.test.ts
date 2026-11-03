@@ -116,4 +116,13 @@ describe("app accessors", () => {
     delete process.env.NEXT_PUBLIC_APP_NAME;
     delete process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
   });
+
+  it("appUrl reads NEXT_PUBLIC_APP_URL without its trailing slash, else the page's origin", async () => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://acme.iblai.me/";
+    expect((await loadConfig()).appUrl()).toBe("https://acme.iblai.me");
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    vi.resetModules();
+    // Node has no page: the fallback is empty there and the origin in a browser.
+    expect((await loadConfig()).appUrl()).toBe("");
+  });
 });

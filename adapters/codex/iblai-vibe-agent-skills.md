@@ -48,7 +48,7 @@ Description, and Instruction (a rich-text playbook).
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.58.1` (resolves `@iblai/web-containers` 1.58.1).
+- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1).
 - A real agent UUID. Ask the user; never invent one.
 - The signed-in user is an organization admin (or holds the agent's
   skill-assignment roles). The tab renders nothing for `userIsStudent`.
@@ -314,7 +314,10 @@ the endpoint summary is also at the end of this page.
 
 ## Step 6: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors.
 2. `pnpm test` -- vitest must pass.

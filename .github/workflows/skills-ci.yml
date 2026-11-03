@@ -25,7 +25,8 @@ jobs:
   # step, not a job-level if: — a skipped job counts as a passing required check.
   deterministic:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    # Pinned: the starter's Playwright must know the runner's Ubuntu release.
+    runs-on: ubuntu-24.04
     steps:
       - name: run-tests label present
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'run-tests') }}
@@ -146,6 +147,73 @@ jobs:
         if: steps.changed.outputs.full == 'true'
         run: node scripts/test-skills-boot.mjs
 
+  # ---------------------------------------------------------------- tier 1.9
+  # The Tauri shell /iblai-vibe-ops-build ships, compiled and run on Linux: fmt,
+  # warnings denied, the guard tests, an AppImage, a headless run of the
+  # navigation guard (scripts/test-tauri-shell.sh). Scoped like `deterministic`:
+  # the label gate is a step, and the build runs only when the shell, this
+  # workflow or the script changed — any other PR passes here in seconds.
+  tauri-linux:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: run-tests label present
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'run-tests') }}
+        run: |
+          echo "::error::Add the run-tests label to this PR — skills-ci must run and pass before it can merge."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Changed files
+        id: changed
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          if git diff --name-only "$BASE_REF...HEAD" | grep -qE '^(skills/ship/iblai-vibe-ops-build/assets/|scripts/test-tauri-shell\.sh|\.github/workflows/skills-ci\.yml)'; then
+            echo "shell=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "shell=false" >> "$GITHUB_OUTPUT"
+            echo "The Tauri shell did not change — nothing to build."
+          fi
+
+      - name: System dependencies (WebKitGTK, GTK, AppImage tooling, xvfb)
+        if: steps.changed.outputs.shell == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf xvfb
+          # The desktop portal is registered with D-Bus on the runner but never comes up (no
+          # desktop session), so WebKitGTK and tao wait out their timeouts (~30 s together) at
+          # every window creation. Without its service file both calls fail at once — Tauri's
+          # own CI does the same.
+          sudo rm -f /usr/share/dbus-1/services/org.freedesktop.portal.Desktop.service
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.changed.outputs.shell == 'true'
+        with:
+          components: rustfmt
+
+      - name: Prepare the scratch shell (the cache step needs its Cargo.toml)
+        if: steps.changed.outputs.shell == 'true'
+        run: bash scripts/test-tauri-shell.sh --prepare
+
+      - uses: swatinem/rust-cache@v2
+        if: steps.changed.outputs.shell == 'true'
+        with:
+          workspaces: .skill-tests/tauri-shell/src-tauri
+          cache-on-failure: true
+
+      - uses: actions/setup-node@v4
+        if: steps.changed.outputs.shell == 'true'
+        with:
+          node-version: 22
+
+      - name: Build, test and run the Tauri shell
+        if: steps.changed.outputs.shell == 'true'
+        run: bash scripts/test-tauri-shell.sh
+
   # ---------------------------------------------------------------- tier 2
   # Agent-executes only the skills the PR touches. Skipped for fork PRs
   # (no secrets) and when no skills changed.
@@ -154,7 +222,7 @@ jobs:
       github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'run-tests') &&
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -199,7 +267,7 @@ jobs:
   # Playwright output stay in files; no artifacts are uploaded.
   live:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

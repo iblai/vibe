@@ -25,7 +25,7 @@ const OUT = join(ROOT, "docs", "screenshots", "journey");
 mkdirSync(OUT, { recursive: true });
 
 if (!existsSync(join(STARTER, "e2e", ".env.development"))) {
-  console.error(`Missing ${join(STARTER, "e2e/.env.development")} — copy the .example and fill in an admin's credentials.`);
+  console.error(`Missing ${join(STARTER, "e2e/.env.development")} — run pnpm e2e:accounts there, or fill in an admin's credentials.`);
   process.exit(1);
 }
 

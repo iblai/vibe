@@ -54,7 +54,7 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.58.1` |
+  | `@iblai/iblai-js` | `^2.62.1` |
   | `@iblai/agent-ai` | `^2.10.0` |
 
 - **Pre-flight prop check (do this before writing the route):**
@@ -95,7 +95,7 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^2.58.1 @iblai/agent-ai@^2.10.0
+pnpm add @iblai/iblai-js@^2.62.1 @iblai/agent-ai@^2.10.0
 ```
 
 (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
@@ -243,6 +243,11 @@ project-relevant delta:
 fields.
 
 ## Step 4: Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
 
 1. `pnpm build` — must pass with zero errors.
 2. `pnpm dev`, log in, navigate to

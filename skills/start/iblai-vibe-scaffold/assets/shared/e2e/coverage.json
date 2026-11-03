@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "summary": { "totalCheckpoints": 3, "totalJourneys": 3 },
+  "journeys": [
+    {
+      "id": "sign-in",
+      "spec": "auth.setup.ts",
+      "sourceFiles": ["app/(auth)/sso-login-complete/page.tsx"],
+      "checkpoints": []
+    },
+    {
+      "id": "auth",
+      "spec": "journeys/auth.journey.spec.ts",
+      "sourceFiles": ["app/(app)/page.tsx"],
+      "checkpoints": [
+        { "id": "A1", "name": "authenticated user lands on the home page" },
+        { "id": "A2", "name": "auth tokens are stored in localStorage" }
+      ]
+    },
+    {
+      "id": "mobile",
+      "spec": "journeys/mobile.journey.spec.ts",
+      "sourceFiles": ["app/(app)/page.tsx"],
+      "checkpoints": [{ "id": "P1", "name": "a phone shows home without sideways overflow" }]
+    }
+  ]
+}

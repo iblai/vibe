@@ -16,25 +16,49 @@ tabs as you need.
 
 **Basic** -- name, unique ID (read-only, copyable), description, category, image.
 
-![Settings tab -- Basic](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-1-basic.png)
+![Settings tab -- Basic](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
 
-**Discovery** -- who can view the agent (administrators / users / anyone),
-who can chat with it (authenticated users / anyone), and whether it is featured.
+**Discovery** -- **Who Can Use This Agent?** (All Members / Admins Only, with
+help text under it), **List in Public Catalog** (off and disabled under Admins
+Only), **Allow Chat Without Signing In**, the **Featured** toggle,
+and a summary line saying what the combination means. The copy says
+"members", never the organization's name.
 
 ![Settings tab -- Discovery](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-2-discovery.png)
 
-**Capabilities** -- **Surface Capabilities** sets attachments, voice record,
-and voice call separately for the in-app chat (`show_*`) and the embed widget
-(`embed_show_*`); **Global Capabilities** applies to both surfaces: verbose
-reasoning, enhanced document retrieval, in-chat model change, smart document
-retrieval, prompt caching, and under **Advanced** allow copies and show
-additional agents.
+The controls are two views of the same two fields; Save sends them unchanged
+(`/iblai-api-agent-setting`):
+
+| Who Can Use | Public Catalog | Chat Without Signing In | `mentor_visibility` | `allow_anonymous` |
+|---|---|---|---|---|
+| Admins Only | off (disabled) | off / on | `viewable_by_tenant_admins` | `false` / `true` |
+| All Members | off | off / on | `viewable_by_tenant_students` | `false` / `true` |
+| All Members | on | off / on | `viewable_by_anyone` | `false` / `true` |
+
+An empty or unknown saved visibility shows as All Members with the catalog
+off and is sent back unchanged unless the user changes it. Switching from
+Admins Only back to All Members turns the catalog off.
+
+**Capabilities** -- **Surface Capabilities** sets Show Attachment, Show Voice
+Record and Show Voice Call separately for the in-app chat (`show_*`) and the
+embed widget (`embed_show_*`). **Global Capabilities** apply to both: Verbose
+Reasoning, Enhanced Document Retrieval, Reopen Last Conversation, Smart
+Document Retrieval, Prompt Caching (Anthropic models; it also turns off
+document retrieval, memory and the current date/time in the system prompt),
+and under **Advanced** Allow Copies and Show Additional Agents. **Context
+Limits** sets Chat History Messages (`chat_history_max_messages`), Chat
+History Tokens (`chat_history_max_tokens`) and Document Chunks
+(`rag_retrieval_k`). **Allow In-Chat Model Change** is no longer here: since
+`@iblai/iblai-js` 2.44.0 it is on the LLM tab (`/iblai-vibe-agent-llm`), and
+this tab's Save no longer sends `enable_in_chat_llm_change`.
 
 ![Settings tab -- Capabilities](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-3-capabilities.png)
 
 **Welcome Screen** -- the heading a new chat opens with (the agent’s name or a
 personalized greeting), the starter prompts (guided, suggested, or off), and a
 live preview.
+
+![Settings tab -- Welcome Screen](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-5-welcome-screen.png)
 
 **Copy** -- the footer shows Copy only when the agent’s **Allow Copies** is on
 (`forkable`), and Delete only when the agent’s `permissions` grant delete on
@@ -125,6 +149,13 @@ export default function AgentSettingsLayout({
 does not list: `false` allows read, write and delete, `true` hides the
 control. It is not a confirmation prompt.
 
+`executeGatedAction` (optional, `(fn: () => unknown) => unknown`) wraps saves,
+for example behind a paywall prompt. It must return `fn()`: the LLM tab's
+in-chat switch and the Prompts, Safety and Privacy tabs await what it returns
+before toasting success and show the error toast when it rejects, so a gate
+that calls `fn()` without returning it toasts success before the save settles
+and drops a failed save silently. This tab's own Save does not await it.
+
 ## Step 3: Mount `AgentSettingsTab`
 
 ```tsx
@@ -210,16 +241,24 @@ For a partial override, pass only the keys you want to change:
   tenants={tenants}
   labels={{
     header: { title: "Tutor settings" },
-    fields: { whoCanView: { label: "Who can access this tutor?" } },
+    discoveryAccess: { audienceLabel: "Who Can Use This Tutor?" },
   }}
 />
 ```
 
-Beyond `header`, `fields`, `actions`, `toasts`, `deleteModal`, and `copyModal`,
+Beyond `header`, `fields`, `actions`, `toasts`, `deleteModal` and `copyModal`,
 the bundle names the sub-tabs (`subTabs.basic` / `discovery` /
-`capabilities` / `welcomeScreen`), the Capabilities headings (`sections.chatExperience`,
-`advanced`, `perSurface`, `globalSettings`), the matrix columns
-(`surfaces.inAppChat`, `embedWidget`), and their explanatory copy (`notes.*`).
+`capabilities` / `welcomeScreen`), the Capabilities headings
+(`sections.chatExperience`, `advanced`, `perSurface`, `globalSettings`), the
+matrix columns (`surfaces.inAppChat`, `embedWidget`) and their notes
+(`notes.*`), the `sections.contextLimits` heading, the Discovery controls
+(`discoveryAccess`, defaults in `AGENT_SETTINGS_TAB_LABELS.discoveryAccess`;
+optional, so a bundle without it falls back to English), and the confirm dialog
+(`adminVisibilityConfirm`) that opens when Save switches Who Can Use This
+Agent? to Admins Only -- a test that waits for the success toast must answer
+it first. `fields.whoCanView` / `fields.whoCanChat` no longer label
+Discovery; the Embed tab still reads them. The Allow In-Chat Model Change
+copy is in the LLM tab's `LLMTabLabels.inChatModelChange`, not here.
 
 ## Step 5: Use MCP Tools for Customization
 
@@ -254,7 +293,7 @@ etc.) read identity from this provider via `useAgentSettings()`.
 | `mentorId` | `string` | The agent being edited |
 | `username` | `string` | Current user |
 | `enableRBAC` | `boolean` | Per-field RBAC gating: `false` allows fields the agent’s `permissions` omit, `true` hides them |
-| `executeGatedAction` | `(fn: () => unknown) => unknown` | Optional paywall / free-trial interceptor around actions; omitted, actions run directly. Independent of `enableRBAC` |
+| `executeGatedAction` | `(fn: () => unknown) => unknown` | Optional paywall / free-trial interceptor around actions; omitted, actions run directly. Independent of `enableRBAC`. Must return `fn()` for the saves that await it (see Step 2) |
 
 ## Related Exports
 
@@ -268,7 +307,10 @@ From `@iblai/iblai-js/web-containers/next`:
 
 ## Step 6: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass

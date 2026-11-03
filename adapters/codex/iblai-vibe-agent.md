@@ -10,7 +10,7 @@ Everything about **configuring an agent** lives behind one provider and one
 route layout. Set the provider up once (§1), then mount only the tabs your app
 needs (§2). Most apps need five or six; the rest are there when asked for.
 
-![Settings tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting-1-basic.png)
+![Settings tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-setting/iblai-vibe-agent-setting.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -64,9 +64,9 @@ Start with the **core six** (bold). Add the others only when the user asks.
 
 | Tab | What it does | Skill | REST twin (`iblai-api-*`, kind `api`) |
 |---|---|---|---|
-| **Settings** | name, description, avatar, category, visibility; copy to another org; delete | `/iblai-vibe-agent-setting` | [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md) |
+| **Settings** | Basic, Discovery, Capabilities, Welcome Screen sub-tabs; copy to another org; delete | `/iblai-vibe-agent-setting` | [agent-setting](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-setting/SKILL.md) |
 | **Prompts** | system prompt, proactive/study/guided prompts, suggested prompts | `/iblai-vibe-agent-prompt` | [agent-prompt](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-prompt/SKILL.md) |
-| **LLM** | provider + model selection (incl. the org's own keys) | `/iblai-vibe-agent-llm` | [agent-llm](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-llm/SKILL.md) |
+| **LLM** | provider + model selection (incl. the org's own keys); Allow In-Chat Model Change; which models users can pick (admins) | `/iblai-vibe-agent-llm` | [agent-llm](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-llm/SKILL.md) |
 | **Datasets** | RAG: files, URLs, YouTube, crawl, GitHub; train/retrain | `/iblai-vibe-agent-dataset` | [agent-dataset](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-dataset/SKILL.md) |
 | **Memory** | enable memory; manage memories and categories | `/iblai-vibe-agent-memory` (guide: `/iblai-vibe-memory-guide`) | [agent-memory](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-memory/SKILL.md) |
 | **Tools** | enable/disable the agent's tools | `/iblai-vibe-agent-tool` | [agent-tool](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-api-agent-tool/SKILL.md) |
@@ -104,5 +104,8 @@ Every tab skill has screenshots of the surface it mounts — open the skill befo
 
 ## Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 `pnpm build`, `pnpm test`, then Touch test `/agents/<uuid>/settings` in the browser as `/iblai-vibe-ops-test` says: every tab, the console, the phone width.

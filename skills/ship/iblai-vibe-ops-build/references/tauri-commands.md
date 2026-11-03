@@ -28,9 +28,8 @@ pnpm exec tauri ios init|dev|build     # iOS (macOS + Xcode)
 pnpm exec tauri android init|dev|build
 ```
 
-For `dev`, build the frontend first **unless** `src-tauri/tauri.conf.json`
-has a `devUrl` set (i.e. the frontend is already hosted, e.g. after
-deploying with `/iblai-vibe-ops-deploy`) — then the local build is skipped.
+`dev` runs `beforeDevCommand` (`pnpm dev`) and loads `devUrl`; for the hosted
+app override per run: `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`.
 After `ios init` / `android init`, regenerate platform icons from
 `src-tauri/icons/icon.png`.
 
@@ -38,11 +37,45 @@ After `ios init` / `android init`, regenerate platform icons from
 
 | Task | How |
 |---|---|
-| Add the Tauri shell | Copy [`../assets/tauri/`](../assets/tauri/) into `src-tauri/` (skip if it already exists). Needs a `package.json`. |
+| Add the Tauri shell | Copy [`../assets/tauri/src-tauri/`](../assets/tauri/src-tauri/) into `src-tauri/` (skip if it already exists), set the names the owning skill lists, add the scripts below. Needs a `package.json`. |
 | Icons | Generate every size from one image — ImageMagick for the full set (Tauri + MSIX + multi-res `.ico` + macOS `.icns`), or `pnpm exec tauri icon` for the standard set. See [`../../iblai-vibe-iconography/SKILL.md`](../../iblai-vibe-iconography/SKILL.md). |
 | CI workflows | Copy the GitHub Actions templates from [`../assets/tauri/workflows/`](../assets/tauri/workflows/) into `.github/workflows/` (desktop, iOS, windows-msix). iOS needs `APPLE_API_KEY_*` secrets. |
 | List devices | `xcrun simctl list devices` (iOS) / `adb devices` (Android). |
 | App-store screenshots | Write `e2e/screenshots.spec.ts`, a Playwright script that captures the app across device viewports. |
+
+## Package scripts and Next config
+
+Add to `package.json` (`@tauri-apps/cli` as a devDependency):
+
+```json
+"scripts": {
+  "tauri": "tauri",
+  "tauri:dev": "tauri dev",
+  "tauri:build": "tauri build",
+  "tauri:build:debug": "next build && tauri build --debug",
+  "tauri:dev:android": "tauri android dev",
+  "tauri:build:android": "tauri android build",
+  "tauri:dev:ios": "tauri ios dev",
+  "tauri:build:ios": "tauri ios build",
+  "tauri:build:msix": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1",
+  "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
+  "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1"
+},
+"devDependencies": { "@tauri-apps/cli": "^2.12.0" }
+```
+
+The shell loads the deployed app (`build.frontendDist` in `tauri.conf.json`);
+vibe-starter keeps its server routes, so `next.config.ts` is unchanged. An app
+with no server routes may ship a static export instead — in `next.config.ts`:
+
+```ts
+output: "export",
+images: { unoptimized: true, remotePatterns: [{ protocol: "https", hostname: "**" }] },
+allowedDevOrigins: ["tauri://localhost", "https://login.iblai.app"],
+```
+
+and in `tauri.conf.json` `"frontendDist": "../out"` with
+`"beforeBuildCommand": "pnpm build"`.
 
 ## Windows MSIX
 

@@ -61,15 +61,15 @@ vibe-starter ships all of this already; on an existing app, install per Step 2.
 
 ## Step 2: Install
 
-Render the assets (strip `.j2`; no variables):
+Copy the assets:
 
 | Asset | Destination |
 |---|---|
-| `assets/metadata-core.ts.j2` | `lib/iblai/metadata-core.ts` (pure helpers, no SDK) |
-| `assets/metadata.ts.j2` | `lib/iblai/metadata.ts` (the hooks; also exports `useOrgSettings`) |
-| `assets/app-preferences.tsx.j2` | `components/settings/app-preferences.tsx` |
-| `assets/admin-user-metadata-route.ts.j2` | `app/api/admin/user-metadata/route.ts` |
-| `assets/metadata.test.ts.j2` | `__tests__/metadata.test.ts` |
+| `assets/metadata-core.ts` | `lib/iblai/metadata-core.ts` (pure helpers, no SDK) |
+| `assets/metadata.ts` | `lib/iblai/metadata.ts` (the hooks; also exports `useOrgSettings`) |
+| `assets/app-preferences.tsx` | `components/settings/app-preferences.tsx` |
+| `assets/admin-user-metadata-route.ts` | `app/api/admin/user-metadata/route.ts` |
+| `assets/metadata.test.ts` | `__tests__/metadata.test.ts` |
 
 `metadata.ts` imports `resolveAppTenant` from `lib/iblai/tenant.ts` and the
 route imports `lib/iblai/platform.ts` (from `/iblai-vibe-api`) — install that
@@ -126,6 +126,11 @@ const theirs = await adminFetch("/api/admin/user-metadata?username=jane");
 Wire a UI for it only where it belongs (an admin page gated by `/iblai-vibe-admin`).
 
 ## Verify
+
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass. Then:
 
 1. `pnpm typecheck && pnpm test` — `__tests__/metadata.test.ts` proves the namespace never clobbers other keys.
 2. `pnpm dev`, sign in, flip a toggle on `/profile`, reload — it sticks. Open the same account in another browser — it is there too.

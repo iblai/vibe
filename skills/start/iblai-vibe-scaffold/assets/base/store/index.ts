@@ -1,0 +1,30 @@
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  coreApiSlice,
+  mentorReducer,
+  mentorMiddleware,
+  mcpApiSlice,
+} from "@iblai/iblai-js/data-layer";
+
+export const makeStore = () => {
+  return configureStore({
+    reducer: {
+      [coreApiSlice.reducerPath]: coreApiSlice.reducer,
+      ...mentorReducer,
+      [mcpApiSlice.reducerPath]: mcpApiSlice.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+      })
+        .concat(coreApiSlice.middleware)
+        .concat(mcpApiSlice.middleware)
+        .concat(...mentorMiddleware),
+  });
+};
+
+// Infer the type of makeStore
+export type AppStore = ReturnType<typeof makeStore>;
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<AppStore["getState"]>;
+export type AppDispatch = AppStore["dispatch"];

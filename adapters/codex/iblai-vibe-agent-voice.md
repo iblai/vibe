@@ -43,7 +43,7 @@ with a pinned **Save dictation**.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.58.1` (resolves `@iblai/web-containers` 1.58.1, which
+- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1, which
   has the in-tab switch, the ibl.ai source, and the Settings sub-tab).
 - A real agent UUID. Ask the user; never invent one.
 
@@ -179,7 +179,10 @@ REST twin: [`/iblai-api-agent-voice`](https://raw.githubusercontent.com/iblai/vi
 
 ## Step 6: Verify
 
-Run `/iblai-vibe-ops-test` before telling the user the work is ready:
+Run `/iblai-vibe-ops-test` before telling the user the work is ready, and give
+every page, control and state this skill added its own checkpoint — one Playwright
+test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
+`pnpm e2e:coverage` must pass:
 
 1. `pnpm build` -- must pass with zero errors.
 2. `pnpm test` -- vitest must pass.

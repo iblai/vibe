@@ -1,7 +1,7 @@
 # Adding a feature by hand — layer features onto an existing app
 
 Adds ibl.ai features to an **existing** Next.js (App Router) project. Each
-feature renders its templates, installs its deps, and patches the
+feature copies its asset files, installs its deps, and patches the
 project's config/store so the feature is wired up end-to-end.
 
 ## Features
@@ -41,7 +41,7 @@ already a dependency.
 
 ## What a feature does, in order
 
-1. **Render** the feature's `.j2` templates into the project
+1. **Copy** the feature's asset files into the project
    (`lib/iblai/`, `components/iblai/`, route pages, …).
 2. **Install dependencies** with the project's package manager — detected
    from the lockfile in order: `pnpm-lock.yaml` → `yarn.lock` →
@@ -60,7 +60,7 @@ lines.
 
 ## Where each feature's templates live now
 
-The `.j2` templates each feature renders are stored as **assets** beside
+The files each feature copies are stored as **assets** beside
 that feature's skill — e.g.
 [`iblai-vibe-auth/assets/`](../../iblai-vibe-auth/assets/),
 [`iblai-vibe-agent-chat/assets/`](../../../agents/iblai-vibe-agent-chat/assets/),

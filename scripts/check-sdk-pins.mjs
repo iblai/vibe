@@ -51,7 +51,7 @@ const starterDeps = (() => {
   return { ...pkg.devDependencies, ...pkg.dependencies };
 })();
 
-const CHECKED_EXTENSIONS = /\.(md|j2|json|ts|tsx|mjs|js|sh|yaml|yml)$/;
+const CHECKED_EXTENSIONS = /\.(md|json|ts|tsx|mjs|js|sh|yaml|yml)$/;
 
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {

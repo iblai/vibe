@@ -94,17 +94,16 @@ What each skill does:
 - `/iblai-vibe-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
 - `/iblai-vibe-course-create` -- drives the ibl.ai Course Creation API to programmatically generate, edit, and publish edX courses.
 - `/iblai-vibe-onboard` -- designs and builds a high-converting questionnaire-style onboarding flow.
-- `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (iOS, Android, macOS, Surface).
+- `/iblai-vibe-ops-build` -- builds and runs the app on desktop and mobile (macOS, Windows x64 + ARM64 / Surface, Linux, iOS, Android).
 - `/iblai-vibe-ops-test` -- builds, tests and touch tests the app in a real browser before it is presented to the user.
 - `/iblai-vibe-ops-upgrade` -- upgrades the `@iblai/iblai-js` SDK and vibe skills to the latest versions.
 - `/iblai-vibe-scaffold` -- scaffolds a new app or adds features; holds the base + agent project templates and documents the assembly steps.
 - `/iblai-vibe-iconography` -- generates every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from a single source image.
 - `/iblai-vibe-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
 - `/iblai-vibe-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
-- `/iblai-vibe-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
 - `/iblai-vibe-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
 - `/iblai-vibe-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
-- `/iblai-vibe-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
+- `/iblai-vibe-agent-setting` -- adds the agent Settings tab (Basic, Discovery, Capabilities and Welcome Screen sub-tabs, plus copy and delete) built on `AgentSettingsProvider`.
 - `/iblai-vibe-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
 - `/iblai-vibe-agent-api` -- adds the agent API tab (API key management).
 - `/iblai-vibe-agent-dataset` -- adds the agent Datasets tab (searchable dataset table with upload).
@@ -182,7 +181,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 |---|---|---|
 | [`start/`](skills/start) | The first conversation, connecting your organization, sign-in, the starter | 11 |
 | [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 61 |
-| [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
+| [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations, the official apps' first-run journeys | 19 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
 | [`billing/`](skills/billing) | How you are charged, credits, spend caps, choosing a pricing rail | 5 |
 | [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 7 |
@@ -257,14 +256,13 @@ The scaffolded app ships with skills that teach Claude how to work with your cod
 | `/iblai-vibe-component` | Overview of all components + app creation paths |
 | `/iblai-vibe-onboard` | Design and build a high-converting onboarding questionnaire flow |
 | `/iblai-landing` | Build a high-converting landing page using a 12-section conversion framework |
-| `/iblai-vibe-ops-build` | Build and run on desktop and mobile (iOS, Android, macOS, Windows) |
+| `/iblai-vibe-ops-build` | Build and run on desktop and mobile (macOS, Windows x64 + ARM64, Linux, iOS, Android) |
 | `/iblai-vibe-ops-test` | Build, test and touch test your app in a real browser before showing work |
 | `/iblai-vibe-ops-upgrade` | Upgrade ibl.ai CLI, SDK, and vibe skills to the latest versions |
 | `/iblai-vibe-scaffold` | Scaffold a new app or add features — the base/agent project templates + the assembly steps |
 | `/iblai-vibe-iconography` | Generate every app-icon size (Tauri desktop, iOS, Windows MSIX, macOS) from one source image |
 | `/iblai-vibe-windows-msix` | Build and distribute a Tauri app as a Windows MSIX (sideload / Microsoft Store) |
 | `/iblai-vibe-deslop` | Audit and harden an existing codebase for production readiness (two-phase audit → safety-tiered fixes) |
-| `/iblai-vibe-cli-maintenance` | Internals of the iblai CLI — commands, Jinja2 templates, binary build, release/publish |
 | `/iblai-vibe-rbac` | Reference: default RBAC roles, action-definitions endpoint, and the SDK Roles + Policies components |
 | `/iblai-vibe-agent-search` | Add the agent search/browse page (starred, featured, custom, default) |
 | `/iblai-vibe-agent-setting` | Add the agent Settings tab (name, visibility, copy, delete) |
@@ -312,7 +310,7 @@ npx vercel deploy --prod --token="$VERCEL_TOKEN" --yes --public
 
 Build native apps for macOS, Windows, Linux, iOS, and Android:
 
-Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/iblai-vibe-ops-build/SKILL.md)), then:
+Add the Tauri shell (see [`/iblai-vibe-ops-build`](skills/ship/iblai-vibe-ops-build/SKILL.md)), then:
 
 ```bash
 pnpm exec tauri build           # Desktop build for current platform
