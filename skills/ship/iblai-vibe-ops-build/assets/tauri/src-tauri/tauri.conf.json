@@ -1,16 +1,21 @@
 {
-  "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "my-app",
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "My App",
   "identifier": "com.example.myapp",
   "version": "0.1.0",
   "build": {
-    "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "pnpm dev",
+    "devUrl": "https://my-app.example.com",
     "frontendDist": "https://my-app.example.com"
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "app", "nsis", "msi", "appimage"],
+    "targets": [
+      "dmg",
+      "app",
+      "nsis",
+      "msi",
+      "appimage"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -18,9 +23,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "publisher": "My Company",
+    "homepage": "https://my-app.example.com",
+    "copyright": "© 2026 My Company",
     "category": "Utility",
+    "shortDescription": "My App",
+    "longDescription": "My App — built on the ibl.ai platform. One codebase on web, macOS, Windows, Linux, iOS and Android.",
     "macOS": {
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist"
     },
     "windows": {
       "certificateThumbprint": null,
@@ -32,12 +44,22 @@
       "nsis": {
         "installMode": "currentUser"
       }
+    },
+    "iOS": {
+      "minimumSystemVersion": "15.0"
+    },
+    "android": {
+      "minSdkVersion": 24
     }
   },
   "plugins": {
     "deep-link": {
       "mobile": [
-        { "host": "auth", "scheme": ["my-app"], "pathPrefix": ["/"] }
+        {
+          "scheme": [
+            "my-app"
+          ]
+        }
       ]
     }
   },
@@ -45,7 +67,9 @@
     "withGlobalTauri": true,
     "security": {
       "csp": null,
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     },
     "windows": []
   }

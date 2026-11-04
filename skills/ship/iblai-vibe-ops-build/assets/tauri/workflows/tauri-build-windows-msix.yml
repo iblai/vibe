@@ -17,6 +17,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 concurrency:
   group: msix-build
   cancel-in-progress: false
@@ -42,23 +45,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
           targets: ${{ matrix.rust_target }}
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry
@@ -77,18 +82,22 @@ jobs:
       - name: Override Publisher in AppxManifest for signing
         if: inputs.sign && inputs.sign_publisher != ''
         working-directory: src-tauri
+        env:
+          SIGN_PUBLISHER: ${{ inputs.sign_publisher }}
         run: |
           $manifest = Get-Content AppxManifest.xml -Raw
-          $manifest = $manifest -replace 'Publisher="[^"]*"', 'Publisher="${{ inputs.sign_publisher }}"'
+          $manifest = $manifest -replace 'Publisher="[^"]*"', "Publisher=`"$env:SIGN_PUBLISHER`""
           Set-Content -Path AppxManifest.xml -Value $manifest
-          Write-Host "Patched Publisher to: ${{ inputs.sign_publisher }}"
+          Write-Host "Patched Publisher to: $env:SIGN_PUBLISHER"
 
       - name: Override version in AppxManifest
         if: inputs.version != ''
         working-directory: src-tauri
+        env:
+          APP_VERSION: ${{ inputs.version }}
         run: |
           $manifest = Get-Content AppxManifest.xml -Raw
-          $manifest = $manifest -replace '(?<![A-Za-z])Version="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"', "Version=`"${{ inputs.version }}.0`""
+          $manifest = $manifest -replace '(?<![A-Za-z])Version="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"', "Version=`"$env:APP_VERSION.0`""
           Set-Content -Path AppxManifest.xml -Value $manifest
 
       - name: Build MSIX package (unsigned)
@@ -96,7 +105,7 @@ jobs:
         run: .\build-msix.ps1 -SkipTauriBuild -Architecture ${{ matrix.arch }}
 
       - name: Upload MSIX artifact (${{ matrix.arch }})
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: msix-${{ matrix.arch }}
           path: src-tauri/msix-output/*.msix
@@ -112,13 +121,13 @@ jobs:
 
     steps:
       - name: Download x64 MSIX
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msix-x64
           path: msix-packages
 
       - name: Download arm64 MSIX
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: msix-arm64
           path: msix-packages
@@ -160,6 +169,8 @@ jobs:
           }
 
       - name: Create MSIX Bundle
+        env:
+          MAKEAPPX: ${{ steps.sdk.outputs.MAKEAPPX }}
         run: |
           New-Item -ItemType Directory -Path bundle-output -Force | Out-Null
 
@@ -176,7 +187,7 @@ jobs:
 
           $bundlePath = "bundle-output\app-$version.msixbundle"
 
-          & "${{ steps.sdk.outputs.MAKEAPPX }}" bundle /d msix-packages /p $bundlePath /o
+          & $env:MAKEAPPX bundle /d msix-packages /p $bundlePath /o
 
           if ($LASTEXITCODE -ne 0) {
             Write-Error "makeappx bundle failed with exit code $LASTEXITCODE"
@@ -212,13 +223,16 @@ jobs:
 
       - name: Sign MSIX Bundle
         if: inputs.sign
+        env:
+          SIGNTOOL: ${{ steps.sdk.outputs.SIGNTOOL }}
+          CERT_THUMBPRINT: ${{ steps.cert.outputs.CERT_THUMBPRINT }}
         run: |
           $bundle = (Get-ChildItem -Path bundle-output -Filter "*.msixbundle")[0]
           Write-Host "Signing: $($bundle.Name)" -ForegroundColor Yellow
 
-          & "${{ steps.sdk.outputs.SIGNTOOL }}" sign `
+          & $env:SIGNTOOL sign `
             /fd SHA256 `
-            /sha1 "${{ steps.cert.outputs.CERT_THUMBPRINT }}" `
+            /sha1 $env:CERT_THUMBPRINT `
             /td SHA256 `
             /tr http://timestamp.digicert.com `
             $bundle.FullName
@@ -231,7 +245,7 @@ jobs:
           Write-Host "Bundle signed successfully." -ForegroundColor Green
 
       - name: Upload MSIX Bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: msixbundle
           path: bundle-output/*.msixbundle

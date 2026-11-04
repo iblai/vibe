@@ -141,10 +141,12 @@ fi
 #    Drop EVERY .env* and add .env.production back by name: naming the ones to
 #    drop ships whatever nobody thought of — '.env*.local' does not match a
 #    stray '.env.local.backup', which carries the platform key into the deploy.
+#    '.env*' matches the top level only, so e2e/.env* is named too; the starter's
+#    .vercelignore keeps the same files off a Vercel CLI deploy of your own.
 rm -f app.zip
 zip -qr app.zip . -x 'node_modules/*' '.git/*' '.next/*' 'out/*' 'coverage/*' \
-  'playwright-report/*' 'test-results/*' 'src-tauri/target/*' 'src-tauri/gen/*' \
-  '.env*' 'iblai.env' 'app.zip'
+  'playwright/*' 'playwright-report/*' 'test-results/*' 'src-tauri/*' '.claude/*' \
+  'CLAUDE.local.md' '.env*' 'e2e/.env*' 'iblai.env*' 'app.zip'
 zip -q app.zip .env.production
 
 # 4. Proof: the runtime env actually made it into the upload

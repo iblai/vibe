@@ -17,7 +17,7 @@ Add the Tauri shell (see [`/iblai-vibe-ops-build`](../skills/ship/iblai-vibe-ops
 
 ```bash
 pnpm exec tauri build           # Desktop build for current platform
-pnpm exec tauri ios init        # iOS project setup
+bash scripts/mobile-init.sh     # the iOS (Mac) or Android (Linux) project, once; commit src-tauri/gen/
 ```
 
 ### Ship to the App Store & Google Play
