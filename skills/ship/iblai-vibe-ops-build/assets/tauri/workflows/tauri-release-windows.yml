@@ -20,7 +20,7 @@ name: Release Windows (Tauri)
 on:
   push:
     tags:
-      - 'app-v*'
+      - "app-v*"
   workflow_dispatch:
 
 concurrency:
@@ -42,15 +42,18 @@ jobs:
             rust_target: aarch64-pc-windows-msvc
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -59,15 +62,9 @@ jobs:
       # windows-latest image ships the MSVC ARM64 build tools + Windows 11 SDK,
       # so no extra Visual Studio component install is needed.
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
           targets: ${{ matrix.rust_target }}
-
-      - name: Cache Rust build
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-          key: ${{ matrix.arch }}
 
       # Resolve a code-signing cert into the CurrentUser store and expose only its
       # thumbprint. Prefer a stored .pfx (stable publisher); else generate one.
@@ -108,10 +105,12 @@ jobs:
       # thumbprint into that one field, leaving sibling windows settings intact.
       - name: Inject signing thumbprint into tauri.conf.json
         shell: pwsh
+        env:
+          THUMBPRINT: ${{ steps.cert.outputs.thumbprint }}
         run: |
           $ErrorActionPreference = 'Stop'
           $conf = 'src-tauri/tauri.conf.json'
-          $thumb = '${{ steps.cert.outputs.thumbprint }}'
+          $thumb = $env:THUMBPRINT
           if ([string]::IsNullOrWhiteSpace($thumb)) { throw 'empty signing thumbprint' }
           $text = Get-Content $conf -Raw
           if ($text -notmatch '"certificateThumbprint"\s*:\s*null') {
@@ -124,7 +123,7 @@ jobs:
       # Build + sign the NSIS installer only: one installer type is enough, and
       # WiX would give the x64 and arm64 MSIs the same default UpgradeCode.
       - name: Build & sign NSIS installer
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # This app shell's compile-time flags (read via option_env! in Rust).
@@ -151,7 +150,7 @@ jobs:
           Write-Host 'OK: installer carries an Authenticode signature.'
 
       - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tauri-windows-${{ matrix.arch }}-${{ github.sha }}
           path: src-tauri/target/${{ matrix.rust_target }}/release/bundle/nsis/*-setup.exe
@@ -178,7 +177,7 @@ jobs:
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \
               --title "$RELEASE_TAG" \
-              --notes "Automated desktop build." || true
+              --notes "Automated, self-signed Windows build." || true
           fi
           gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           echo "Attached ${#files[@]} installer(s) to $RELEASE_TAG"

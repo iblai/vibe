@@ -8,7 +8,8 @@ Copy the templates from `assets/tauri/workflows/` into `.github/workflows/`:
 `tauri-build-desktop.yml` (unsigned macOS / Linux / Windows artifacts),
 `tauri-build-ios.yml`, `tauri-build-android.yml` (unsigned `.aab` + `.apk`),
 `tauri-build-windows-msix.yml`, `tauri-check.yml` (fmt, check and test of the
-shell on every change under `src-tauri/`), and the three release workflows that
+shell on Linux, macOS and Windows, then the headless smoke `pnpm shell:smoke`,
+on every change under `src-tauri/`), and the three release workflows that
 run on an `app-v*` tag — `tauri-release-macos-dmg.yml`,
 `tauri-release-windows.yml`, `tauri-release-linux.yml`. The iOS and Android
 workflows build the committed `src-tauri/gen/` projects and run `init` only
@@ -44,8 +45,11 @@ without one ([`mobile-projects.md`](mobile-projects.md)).
 | Linux AppImage (local) | `pnpm exec tauri build --bundles appimage` |
 | Unsigned artifacts, all three desktops | `tauri-build-desktop.yml` — manual run |
 | Surface MSIX x64 + arm64 | `tauri-build-windows-msix.yml` — manual run |
-| Shell check on every change (fmt, check, test) | `tauri-check.yml` |
+| Shell check on every change (fmt, check, test on three OSes; the headless smoke) | `tauri-check.yml` |
 | All CI workflows | copy every file in `assets/tauri/workflows/` |
+| Headless smoke (the guard, both sign-in returns) | `pnpm shell:smoke` |
+| Touch test of the built shell | `pnpm shell:touch` (Linux, macOS), `shell:touch:windows`, `shell:touch:ios "<device>"`, `shell:touch:android` |
+| Forget the shell's cookies and localStorage | `pnpm shell:clear` (`android`, `ios`; `shell:clear:windows`) |
 | **Deploy** | |
 | Deploy frontend via ibl.ai hosting (Vercel) | the `/iblai-vibe-ops-deploy` skill — writes `build.frontendDist` |
-| Dev build on the hosted app | `pnpm exec tauri dev -c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'` |
+| Dev server inside the shell | `pnpm exec tauri dev -c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'` |

@@ -25,11 +25,12 @@ build break when they disagree:
 
 | Value | Default | Where |
 |---|---|---|
-| App slug | `my-app` | `src-tauri/Cargo.toml` package name, `src-tauri/tauri.conf.json` `productName`, `AppxManifest.xml` `Executable="my-app.exe"`, `build-msix.ps1` `$AppName` |
+| App slug | `my-app` | `src-tauri/Cargo.toml` package name (the executable), `AppxManifest.xml` `Executable="my-app.exe"`, `build-msix.ps1` `$AppName` |
 | Bundle identifier | `com.example.myapp` | `tauri.conf.json` `identifier`, `AppxManifest.xml` `Identity Name` — no hyphens, never ending in `.app`; the stores lock it at the first release |
-| Display name | `My App` | the six display fields in `AppxManifest.xml`, the window title in `src-tauri/src/lib.rs` |
+| Display name | `My App` | `tauri.conf.json` `productName` — the installers, the launcher labels and the bundle names; plainly `Recruit`, never `ibl.ai Recruit` —, the window title in `src-tauri/src/lib.rs`, `DisplayName`/`ShortName`/`Description` in `AppxManifest.xml`, `short_name` in `app/manifest.ts` |
+| Publisher | `My Company` | `tauri.conf.json` `bundle.publisher` and `copyright`, `AppxManifest.xml` `PublisherDisplayName` |
 | Auth URL scheme | `my-app` | `tauri.conf.json` deep-link `scheme`, `AUTH_SCHEME` in `src-tauri/src/lib.rs`, `NEXT_PUBLIC_TAURI_CUSTOM_SCHEME` in `.env.local`, `TAURI_CUSTOM_SCHEME` in `iblai.env`, the organization's allowed redirect origins |
-| App URL | `https://my-app.example.com` | `tauri.conf.json` `build.frontendDist` — the deployed app's final URL (after redirects); every platform loads it and the desktop guard allows its host. A self-hosted platform also goes into `ALLOWED_HOST_SUFFIXES` in `src-tauri/src/lib.rs` |
+| App URL | `https://my-app.example.com` | `tauri.conf.json` `build.devUrl` and `build.frontendDist` — the deployed app's final URL (after redirects); `tauri dev` and every build load it and the desktop guard allows its host. A self-hosted platform also goes into `ALLOWED_HOST_SUFFIXES` in `src-tauri/src/lib.rs` |
 | MSIX publisher | `CN=my-app-dev` | `AppxManifest.xml` `Publisher`, `setup-test-cert.ps1` `$Subject` (the Store replaces it) |
 
 Before adding build support or running a dev build, **stop all running dev
@@ -57,13 +58,13 @@ a device name from the output.
 
 ## How the shell loads the app
 
-Every platform loads the deployed web app: `build.frontendDist` in
-`tauri.conf.json` is its URL (the **App URL** above), nothing is bundled, and
-a web deploy ([`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md)
-writes the URL) updates every installed app. `pnpm exec tauri dev` runs
-`beforeDevCommand` (`pnpm dev`) and loads `devUrl` (`http://localhost:3000`)
-instead; for a dev build on the hosted app, override per run:
-`pnpm exec tauri dev -c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`.
+Every platform loads the deployed web app: `build.devUrl` and
+`build.frontendDist` in `tauri.conf.json` are its URL (the **App URL** above),
+nothing is bundled, and a web deploy ([`/iblai-vibe-ops-deploy`](../../ship/iblai-vibe-ops-deploy/SKILL.md)
+writes the URL) updates every installed app. `pnpm exec tauri dev` loads the
+live app too; to work on the web app inside the shell, point one run at the
+dev server:
+`pnpm exec tauri dev -c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`.
 
 An app with no server routes may ship a static export instead: `output:
 "export"` in `next.config.ts`, then `"frontendDist": "../out"` and
@@ -77,13 +78,13 @@ and [`/iblai-vibe-local-llm`](../../agents/iblai-vibe-local-llm/SKILL.md).
 
 ## Mobile Safe Area
 
-The generated CSS includes `padding: env(safe-area-inset-*)` on `<body>` and
-the layout sets `viewport-fit=cover`. This prevents content from overlapping
-with the iOS status bar / notch and Android status bar. If you see content
-behind the status bar, verify:
+`viewport-fit=cover` in `app/layout.tsx` and `padding: env(safe-area-inset-*)`
+on `<body>` (`globals.css`) keep a scrolling page out of the status bar and the
+home indicator. Inside the shell the init script also fixes `<body>` to the
+screen and sizes every `<main>` to `height: 100%` with an unlayered rule, so:
 
-1. `globals.css` (or `iblai-styles.css`) has `padding-top: env(safe-area-inset-top)` on body
-2. `app/layout.tsx` metadata includes `viewport: "width=device-width, initial-scale=1, viewport-fit=cover"`
+1. the app shell is a `div` sized `h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))]`, never `h-screen` or `h-dvh` — a `100dvh` box inside the padded body ends below the screen, and a pinned chat composer is what gets cut
+2. a `fixed inset-y-0` overlay pads `env(safe-area-inset-top)`/`-bottom` itself and resets where it goes static (`md:py-0`)
 
 ## Mobile SSO
 
@@ -112,13 +113,15 @@ the system browser session and never returns to the app.
 
 ## App Icons
 
-Generate platform-ready icons from your logo (works for all platforms):
+The shell ships the ibl.ai icon with its source, `src-tauri/icons/icon-source-1024.png`;
+every size for every platform comes from it (`scripts/mobile-init.sh` runs this
+again after a mobile project is generated, so the launcher is not Tauri's stock icon):
 
 ```bash
-pnpm exec tauri icon path/to/logo.png
+pnpm exec tauri icon src-tauri/icons/icon-source-1024.png
 ```
 
-This creates all required sizes in `src-tauri/icons/`.
+Your own logo: replace the source with a 1024² PNG and run the same command.
 
 ## List Available Devices
 
@@ -170,8 +173,8 @@ xcrun simctl list devices
 **Always pick a device from the list.** Choose the most mainstream iPhone
 (e.g., the newest Pro Max available). Do NOT run without a device name.
 
-The dev build runs `pnpm dev` and loads it on the simulator (for the hosted
-app add `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
+The dev build loads the live app on the simulator (for the dev server add
+`-c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`):
 
 ```bash
 pnpm exec tauri ios dev "iPhone 16 Pro Max"
@@ -285,8 +288,8 @@ emulator -list-avds
 (e.g., "Pixel_9", "Pixel_8" — whichever is the newest in the list).
 Do NOT run without a device name.
 
-The dev build runs `pnpm dev` and reaches it through `adb reverse` (for the
-hosted app add `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
+The dev build loads the live app (for the dev server, reached through
+`adb reverse`, add `-c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`):
 
 ```bash
 pnpm exec tauri android dev "Pixel_9"
@@ -333,8 +336,8 @@ requires. Signing and the store:
 
 ### Run in Dev Mode
 
-Runs `pnpm dev` and opens it in the shell (for the hosted app add
-`-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
+Opens the live app in the shell (for the dev server add
+`-c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`):
 
 ```bash
 pnpm exec tauri dev
@@ -383,8 +386,8 @@ Windows 11 on x64 and ARM64 — Surface Pro and Surface Laptop ship both.
 
 ### Run in Dev Mode
 
-Runs `pnpm dev` and opens it in the shell (for the hosted app add
-`-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`):
+Opens the live app in the shell (for the dev server add
+`-c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`):
 
 ```bash
 pnpm exec tauri dev
@@ -463,6 +466,8 @@ build-only artifacts — see [`references/signed-release.md`](references/signed-
 ## CI and the command summary
 
 The GitHub Actions workflows for every platform (plus `tauri-check.yml`, which compiles and tests the shell on every change under `src-tauri/`) and the one-table summary of every `tauri` command used above are in [`references/ci-and-commands.md`](references/ci-and-commands.md).
+
+The shell's tests, from [`assets/tauri/scripts/`](assets/tauri/scripts/) (package scripts in [`references/tauri-commands.md`](references/tauri-commands.md)): `pnpm shell:smoke` is what `tauri-check.yml` runs — the guard and both sign-in returns, headless; `pnpm shell:touch` (Linux, macOS), `shell:touch:windows`, `shell:touch:ios "<device>"` and `shell:touch:android` run the built shell with a checklist, on a throwaway organization; `pnpm shell:clear` forgets the shell's cookies and localStorage between accounts.
 
 ## Reference
 

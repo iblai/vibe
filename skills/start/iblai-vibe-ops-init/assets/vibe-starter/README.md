@@ -99,7 +99,7 @@ SSO authentication, the AI chat, the user profile, account settings, the analyti
 - **Profile · Account · Notifications** — `/profile` (SDK `Profile` + app preferences), `/account` (SDK `Account`), `/notifications/[[...id]]` (SDK `NotificationDisplay`)
 - **Four languages** — English, Spanish, French and Chinese, following the language chosen in any other ibl.ai app
 - **Tests** — Vitest (config, organization, metadata, platform helper) and Playwright journeys (auth, member, admin, pages, api, mobile) with `e2e/COVERAGE.md` and `pnpm e2e:coverage`
-- **Mobile safe areas** — `globals.css` insets and viewport metadata wired for iOS/Android (Tauri v2 ready)
+- **Mobile safe areas** — `globals.css` insets, `viewport-fit=cover` and an app shell sized to the safe area, wired for iOS/Android (Tauri v2 ready)
 
 </td>
 </tr>

@@ -17,6 +17,8 @@ case "$(uname -s)" in
     rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
     pnpm install --frozen-lockfile --ignore-scripts
     pnpm exec tauri ios init
+    # The fresh project ships Tauri's stock launcher icon; this writes the app's.
+    pnpm exec tauri icon src-tauri/icons/icon-source-1024.png
     # The privacy manifest ships inside the app: the project lists the app
     # folder (<package>_iOS) as a source, so xcodegen picks the file up.
     cp src-tauri/PrivacyInfo.xcprivacy src-tauri/gen/apple/*_iOS/
@@ -35,6 +37,8 @@ case "$(uname -s)" in
     rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
     pnpm install --frozen-lockfile --ignore-scripts
     pnpm exec tauri android init
+    # The fresh project ships Tauri's stock launcher icon; this writes the app's.
+    pnpm exec tauri icon src-tauri/icons/icon-source-1024.png
     echo
     echo "Android project generated. Next:"
     echo "  pnpm exec tauri android build --debug --apk   # one build writes the intent filter into AndroidManifest.xml"

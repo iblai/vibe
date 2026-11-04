@@ -105,12 +105,20 @@ must allow: [`SKILL.md`](../SKILL.md), "Redirect origins for native shells".
 |---|---|---|
 | `tauri-build-ios.yml` | macOS | an `.ipa` exported for App Store Connect (`APPLE_API_KEY_BASE64`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER`); `ios init` only without `gen/apple` |
 | `tauri-build-android.yml` | `ubuntu-24.04`, which ships the SDK as `ANDROID_HOME`, an NDK as `ANDROID_NDK_HOME` (the CLI reads `NDK_HOME`; the workflow exports it) and JDK 17 | an **unsigned** `.aab` and `.apk`; `android init` only without `gen/android`; fails unless `libapp_lib.so` is 16 KB page-aligned, Google Play's requirement — `src-tauri/.cargo/config.toml` passes the linker flags |
-| `tauri-check.yml` | `ubuntu-24.04` | nothing: `cargo fmt --check`, `cargo check` and `cargo test` with warnings denied on every change under `src-tauri/` |
+| `tauri-check.yml` | `ubuntu-24.04`, `macos-latest`, `windows-latest` | nothing: `cargo check` and `cargo test` with warnings denied on the three, `cargo fmt --check` on Linux, `cargo check --target aarch64-apple-ios` on the Mac, then the Linux binary headless against a local page (`pnpm shell:smoke`: the guard and both sign-in returns) on every change under `src-tauri/` |
 
 The unsigned Android artifacts install nowhere and upload nowhere until an
 upload keystore signs them —
 [`/iblai-vibe-ops-release`](../../iblai-vibe-ops-release/SKILL.md), "Signing
 prerequisites".
+
+## Touch tests load the live app
+
+`pnpm shell:touch:ios "<device>"` runs `tauri ios dev` on `devUrl`, and
+`pnpm shell:touch:android` builds a debug APK on `frontendDist` — both the
+deployed app, so a layout fix shows on the phone only once it is deployed;
+`--host <url>` points either at a preview or at a dev server. `pnpm shell:clear
+android|ios` forgets the app's data between accounts.
 
 ## Keep the npm packages and the crates on one minor
 

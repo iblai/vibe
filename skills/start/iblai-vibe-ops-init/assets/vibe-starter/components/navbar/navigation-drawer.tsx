@@ -32,7 +32,7 @@ export function NavigationDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className="w-72 p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         <SheetTitle className="sr-only">{t('navigation')}</SheetTitle>
 
         <div className="flex h-16 items-center border-b border-[var(--border-color)] px-5">
