@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-session
-description: Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context), and list/read sessions and per-task history exports. The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server.
+description: Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context) or uploaded files, and list/read sessions and per-task history exports. The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server.
 metadata:
   kind: api
 ---
@@ -104,6 +104,94 @@ not guaranteed to be retrieved if higher-scoring eligible documents fill the top
 - **POST** `…/dm/api/ai-mentor/orgs/{org}/users/{user}/sessions/` — create/retrieve a
   session (`ChatSessionView`; the body's `mentor` field picks the agent). Or let the
   first chat turn create one by passing a new `session_id`.
+
+## Attach files to a turn
+
+Three steps: ask for an upload URL, `PUT` the bytes, then send the file reference
+on a chat turn.
+
+### 1. Ask for an upload URL
+
+**POST** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{user}/chat/files/upload-url/`
+
+```json
+{
+  "session_id": "…",
+  "file_name": "scores.csv",
+  "content_type": "text/csv",
+  "file_size": 1048576
+}
+```
+
+`file_size` is in bytes. The response carries `upload_url`, `file_key`, `file_id`,
+`expires_in` (3600 seconds) and `upload_method` (`PUT`). A rejected file returns 400
+with `error` (safe to show) and `developer_error`.
+
+### 2. Upload the bytes
+
+```bash
+curl -X PUT "$UPLOAD_URL" -H "Content-Type: text/csv" --data-binary @scores.csv
+```
+
+Use the same `Content-Type` you declared, and send no `Authorization` header: the URL
+is already signed.
+
+### 3. Send the file reference on a chat turn
+
+Over SSE or WebSocket, using the chat turn body under **Writes**:
+
+```json
+{
+  "session_id": "…",
+  "prompt": "What is the average of the score column?",
+  "flow": { "name": "<agent unique_id>", "tenant": "<org key>" },
+  "file_references": [
+    {
+      "file_id": "<file_id>",
+      "file_key": "<file_key>",
+      "file_name": "scores.csv",
+      "content_type": "text/csv",
+      "file_size": 1048576
+    }
+  ]
+}
+```
+
+The turn's stream reports each file with `file_processing_progress`, then
+`file_processing_success` or `file_error`, and ends the file stage with
+`file_upload_complete`.
+
+### Limits
+
+`content_type` must be one the agent's model supports, and the agent's
+allowed-extensions list applies when it has one.
+
+| Limit | Value |
+|---|---|
+| Any one file, or all files on one turn | The platform ceiling, 25 MB by default |
+| An image or other file not listed below, per file | The model's `max_file_size_mb`, 20 MB if the model sets none |
+| A PDF, text, CSV, XLSX, DOCX or PPTX file, on an agent with no Flowise, n8n or workflow backend | The platform ceiling, even if the model's `max_file_size_mb` is lower |
+| An agent with a Flowise, n8n or workflow backend, per file | The model's `max_file_size_mb` |
+| Files per turn | The model's `max_files_per_message`, 10 if the model sets none |
+
+**The stored size is what counts.** `file_size` is what you declare; the signed URL
+does not enforce it. When the turn arrives the platform reads the object's real size,
+and a file over the platform ceiling gets `file_error` with "This file is larger than the upload
+limit." and is not used.
+
+**What the agent does with a large document.** With no Flowise, n8n or workflow
+backend, a document too large for the model's context is not sent to the model. The
+agent reads it with file tools under `/uploads/`, page by page, so a large upload no
+longer fails the turn with a context-window or page-limit error. Stored history is
+unchanged: the message still lists the file. An agent that cannot call tools gets an
+excerpt and a note that it was truncated. A deployment can turn this off, and then
+the model's `max_file_size_mb` applies to every file and files go to the model whole.
+
+On an agent with a virtual machine, every file in the session is also copied to
+`/workspace/chat_uploads/` so code can process it, even if it was sent to the model
+too. The copy is best effort, up to 22 MB per file and 64 MB per machine, newest
+first. Agents with PII or PHI filtering get no copies, because code would read the
+unfiltered bytes.
 
 ## Example
 
