@@ -32,7 +32,6 @@ interface NavBarProps {
   userTenants?: any[];
   authURL: string;
   onLogout: () => void;
-  onTenantChange: (key: string) => void;
   onTenantUpdate?: (tenant: any) => void;
   onAccountDeleted?: () => void;
   showNotifications?: boolean;
@@ -53,7 +52,6 @@ export function NavBar({
   userTenants,
   authURL,
   onLogout,
-  onTenantChange,
   onTenantUpdate,
   onAccountDeleted,
   showNotifications = true,
@@ -155,7 +153,6 @@ export function NavBar({
                 userTenants={userTenants}
                 authURL={authURL}
                 onLogout={onLogout}
-                onTenantChange={onTenantChange}
                 onTenantUpdate={onTenantUpdate}
                 onAccountDeleted={onAccountDeleted}
               />
