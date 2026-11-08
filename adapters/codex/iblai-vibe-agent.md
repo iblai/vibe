@@ -57,6 +57,9 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
 Suggested routes: `app/(app)/agents/[mentorId]/<tab>/page.tsx`, one per tab,
 with a small tab strip (shadcn `Tabs` or plain links) in the layout. Each tab
 component reads the agent from context — no props needed for the basics.
+Put an empty `<div data-activity-info-slot />` in that header: on phones the
+Tasks, Support and Evals tabs move their explanation into an info button
+there. Without it the explanation stays above the tab.
 
 ## 2. The tabs
 

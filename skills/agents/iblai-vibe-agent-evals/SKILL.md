@@ -17,11 +17,14 @@ against many agents, and the table only lists runs of this agent. This is one
 tab in the agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 `AgentSettingsProvider` wrapper with every other tab.
 
-**Evaluations** -- a benchmark picker (the first benchmark is selected),
-**Manage benchmarks**, **New Evaluation**, and a table of this agent's runs
-(Evaluation, Status, Initiated by, Created), 10 per page. Runs work in the
-background: the status badge is green when COMPLETED, red when FAILED, blue
-otherwise.
+**Evaluations** -- a benchmark picker (**Select a Benchmark**; the first
+benchmark is selected), **Manage Benchmarks**, **New Evaluation** on the right,
+and a table of this agent's runs (Evaluation, Status, Initiated by, Created).
+The table shows as many runs as fit the space and pages the rest, so it never
+scrolls. Runs work in the background. Status is a grey icon; hover it (or use
+a screen reader) for the word: Completed, Failed, or still running. Between
+768 and 1440px the table uses narrower columns so it fits without scrolling
+sideways.
 
 ![Evals tab -- evaluations](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-1-evaluations.png)
 
@@ -31,10 +34,17 @@ review and Export CSV stay disabled until the run completes.
 
 ![Evals tab -- row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-2-actions.png)
 
-**Manage benchmarks** -- the organization's benchmarks with search,
+**On a phone** (below 768px) -- each run is a card, the row actions and the
+benchmark picker open as sheets from the bottom, and a "Page x of y" pager
+replaces the page numbers.
+
+![Evals tab on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-13-phone.png)
+![Row actions on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-14-phone-actions.png)
+
+**Manage Benchmarks** -- the organization's benchmarks with search,
 **New Benchmark**, and an eye icon that opens a benchmark's questions.
 
-![Evals tab -- Manage benchmarks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-3-manage-benchmarks.png)
+![Evals tab -- Manage Benchmarks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-3-manage-benchmarks.png)
 
 **New Benchmark** -- a name (used in URLs, so keep it slug-like) and a
 description. Benchmarks cannot be renamed or deleted afterwards.
@@ -91,7 +101,7 @@ picking a provider opens its models.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
+- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Evals are for admins: pass `userIsStudent` from the app's admin check (Step 2).
@@ -127,6 +137,12 @@ required. The judge's model picker gets provider names and logos from the
 API, so there is no logo map to pass: the old `getLLMProviderDetails` prop and
 `LLMProviderDetails` type are gone.
 
+The tab measures its wrapper to decide how many rows fit, so give it a set
+height (here `h-full` inside a full-height layout, as in `/iblai-vibe-agent`
+§1). On phones the tab's explanation moves behind an info button in your
+header when the header has an empty `<div data-activity-info-slot />`;
+without one it stays above the tab.
+
 Every eval endpoint is admin-only, so pass `userIsStudent` on the tab from the
 app's own admin check. It defaults to `false`, and the provider does not
 forward a value that changes after the first render, so without the prop
@@ -143,7 +159,8 @@ export function AdminOnlyEvals({ isAdmin }: { isAdmin: boolean }) {
 ### Custom pagination (optional)
 
 When there is more than one page of runs, the tab shows the SDK's
-`AdvancedPagination`. Pass `PaginationComponent` to use your own:
+`AdvancedPagination`. Pass `PaginationComponent` to use your own. Phones
+always get the SDK's "Page x of y" pager:
 
 ```tsx
 import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
@@ -190,9 +207,9 @@ Label groups (`EvaluationTabLabels`): `header` (`title`, `description`,
 `notReadyHint`, `rowMenuAriaLabel`), `checkStatusToast`, `table` (column
 headings, `emptyState`), `emptyBenchmarks`, `exportErrorToast`,
 `startExperimentModal`, `manageBenchmarksModal` (`title`, `description`),
-`detailModal` (traces, reviews, scores, the Add-a-score form), `evaluateModal`
+`card` (field names on the phone cards), `detailModal` (traces, reviews, scores, the Add-a-score form), `evaluateModal`
 (the review form and its LLM picker), and `deleteModal`. The Manage
-benchmarks dialog's own copy comes from the SDK's i18n, not from `labels`.
+Benchmarks dialog's own copy comes from the SDK's i18n, not from `labels`.
 
 ## Step 4: Use MCP Tools for Customization
 
@@ -229,7 +246,7 @@ Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/evaluations/`.
 
 | Action | Request |
 |---|---|
-| Load | `GET datasets/?page=1&limit=200`, then `GET datasets/{name}/runs/?page=&limit=10` for the selected benchmark |
+| Load | `GET datasets/?page=1&limit=200`, then `GET datasets/{name}/runs/?page=&limit=<rows that fit>` for the selected benchmark |
 | **Create** a benchmark | `POST datasets/` with `name`, `description` |
 | **Add** Q&A | `POST datasets/{name}/items/` with `items: [{input, expected_output}]`; CSV: `POST datasets/{name}/items/upload/` (multipart `file`) |
 | Delete a question | `DELETE datasets/{name}/items/{id}/` |

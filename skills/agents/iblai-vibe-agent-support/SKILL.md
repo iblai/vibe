@@ -19,21 +19,24 @@ other tab.
 
 **Tickets** -- the switch (the agent's human support tool, the same one as
 in the Tools tab), a user filter (search the organization's users), a
-status filter (All / Open / In Progress / Closed), and the inbox: when,
-requester email, subject, a status badge (Open green, In Progress amber,
-Closed gray) and a preview, 10 per page.
+status filter (All / Open / In Progress / Closed), and the inbox: requester,
+subject, when, a preview, and a status icon. The icon is grey; hover it (or
+use a screen reader) for the word. The inbox shows as many tickets as fit the
+space and pages the rest, so it never scrolls. With no tickets the tab shows
+one dashed empty box.
 
 ![Support tab -- tickets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-1-tickets.png)
 
-**A ticket** -- subject, requester, status, the **Request** the agent wrote
-(HTML and Markdown render sanitized), the **Conversation**, and a reply box.
-Below the `md` breakpoint the ticket opens in a dialog instead.
+**A ticket** -- reads like an email: the subject, requester and **Status** at
+the top, then the thread (the request the agent wrote first, then every
+reply, oldest first; HTML and Markdown render sanitized), and a reply box at
+the bottom with a **To** line. (In these shots the admin is also the
+requester, so every line shows the same email.)
 
 ![Support tab -- a ticket](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-2-ticket.png)
 
-**Reply** -- **Send Reply** adds the message to the conversation, oldest
-first. (In this shot the admin is also the requester, so both lines show
-the same email.)
+**Reply** -- type in the reply box and press **Send Reply** (bottom right);
+the message joins the thread.
 
 ![Support tab -- reply](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-3-reply.png)
 
@@ -41,7 +44,15 @@ the same email.)
 reply box with "This ticket is closed. Set it back to Open or In Progress to
 reply."
 
-![Support tab -- status](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-4-status.png)
+![Support tab -- a closed ticket](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-4-status.png)
+
+**On a phone** (below 768px) -- each ticket is a card with its Status and
+From, the switch reads **Available to Users**, the filters open as sheets
+from the bottom, and a "Page x of y" pager replaces the page numbers.
+Tapping a ticket opens it full screen, with Back.
+
+![Support tab on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-5-phone.png)
+![A ticket on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-6-phone-ticket.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -50,7 +61,7 @@ reply."
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1). The tab
   throws without it: it has no identity props.
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
+- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - The organization's tool catalogue needs the **human support** tool, or the
@@ -86,7 +97,13 @@ The tab reads `tenantKey`, `mentorId`, and `username` from
 required. To use your own pagination under the inbox, pass
 `PaginationComponent` (it gets `currentPage`, `totalPages`, `onPageChange`,
 `disabled`, `disableNumberedButtons`; the default is the SDK's
-`IblPagination`).
+`IblPagination`). Phones always get the SDK's "Page x of y" pager.
+
+The tab measures its wrapper to decide how many rows fit, so give it a set
+height (here `h-full` inside a full-height layout, as in `/iblai-vibe-agent`
+§1). On phones the tab's explanation moves behind an info button in your
+header when the header has an empty `<div data-activity-info-slot />`;
+without one it stays above the tab.
 
 ## Step 3: Customize Labels (Optional)
 
@@ -106,10 +123,11 @@ import { AgentHumanSupportTab } from "@iblai/iblai-js/web-containers/next";
 ```
 
 Label groups (`HumanSupportTabLabels`): `header` (`title`, `description`,
-`infoBox`), `toggle` (`enable`, `updated`, `error`), `filters` (`searchUser`,
-`allUsers`, `allStatuses`), `status` (`open`, `inProgress`, `closed`), `list`
-(`noTickets`, `untitled`), `detail` (`selectPrompt`, `statusLabel`,
-`requestSection`, `conversationSection`, `supportTeam`, `noMessages`,
+`infoBox`), `toggle` (`enable`, `availableToUsers`, `updated`, `error`),
+`filters` (`searchUser`, `allUsers`, `allStatuses`), `status` (`open`,
+`inProgress`, `closed`), `list` (`fromLabel`, `noTickets`, `untitled`),
+`detail` (`ticketTitle`, `selectPrompt`, `statusLabel`, `requestSection`,
+`conversationSection`, `supportTeam`, `noMessages`, `toLabel`, `toRecipient`,
 `replyPlaceholder`, `sendReply`, `sending`, `closedNotice`), and `toasts`
 (`replySent`, `replyError`, `statusUpdated`, `statusError`).
 
@@ -143,7 +161,7 @@ Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/`.
 
 | Action | Request |
 |---|---|
-| Load | `GET support-tickets/?mentor_id=<uuid>&page=&page_size=10` (plus `status` and `username` from the filters) |
+| Load | `GET support-tickets/?mentor_id=<uuid>&page=&page_size=<rows that fit>` (plus `status` and `username` from the filters) |
 | Open a ticket | `GET support-ticket-messages/?ticket={id}` |
 | **Send Reply** | `POST support-ticket-messages/` with the ticket and the message |
 | Status Open / In Progress | `PATCH support-tickets/{id}/` with `status` |
