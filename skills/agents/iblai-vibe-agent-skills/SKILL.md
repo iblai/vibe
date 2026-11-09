@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-skills
-description: Add the agent Skills tab (AgentSkillsTab: reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dialogs with file resources, and the chat `/` skill picker) to your Next.js app. Use when the user mentions agent skills, playbooks, 'attach a skill to my agent', skill resources, or the `/` skill picker in chat. For the REST contract see /iblai-api-agent-skill; for sandboxes see /iblai-vibe-agent-sandbox.
+description: Add the agent Skills tab (AgentSkillsTab, with reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dialogs with file resources, and the chat `/` skill picker) to your Next.js app. Use when the user mentions agent skills, playbooks, 'attach a skill to my agent', skill resources, or the `/` skill picker in chat. For the REST contract see /iblai-api-agent-skill; for sandboxes see /iblai-vibe-agent-sandbox.
 globs:
 alwaysApply: false
 metadata:

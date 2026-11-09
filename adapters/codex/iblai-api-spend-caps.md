@@ -14,7 +14,8 @@ admin-imposed maximum LLM cost enforced at one of four scopes:
   user).
 
 The organization can also keep a **default for new users**: a template, not
-a cap, from which each member who joins later gets their own `user` cap.
+a cap, from which each user who joins later as a member (not as an admin)
+gets their own `user` cap.
 
 Each cap has a rolling **interval** (`day`/`week`/`month`/`year`, calendar
 aligned), a dollar limit (`max_cost_usd`), an **enforcement** mode
@@ -71,7 +72,8 @@ can render a progress bar.
   user's own `user` cap applies to every chat of theirs; the agent cap applies
   when an agent is in play; the user's own per-agent cap applies when both agent
   and user are known. When several hard-block caps are exceeded, the
-  **most specific** one (user > agent > organization) is reported.
+  **most specific** one (`user_agent` > `user` > `agent` > organization) is
+  reported.
 
 ## Reads
 
@@ -104,12 +106,16 @@ can render a progress bar.
   exact filter, `email` an exact, case-insensitive one. Rows the default for
   new users created appear here too.
 - **GET** `/api/ai-mentor/orgs/{org}/spend-caps/users/{username}/` — one
-  user's cap, or `404` if none.
+  user's cap, or `404` if none. A user whose username is `default` can't be
+  addressed at `users/{username}/` (read, write or delete): `users/default/`
+  is the default for new users below, matched first. Their cap still shows
+  in the list (`?username=default`).
 
 ### Default for new users
 
 - **GET** `/api/ai-mentor/orgs/{org}/spend-caps/users/default/` — the
-  template applied when a member joins. Never `404`s: with nothing configured
+  template applied when a user joins as a member; anyone who joins as an
+  admin gets no cap from it. Never `404`s: with nothing configured
   it returns `enabled: false`.
 
   ```json
@@ -184,8 +190,8 @@ fields sent in the body are ignored.
 
 - **PUT** `/api/ai-mentor/orgs/{org}/spend-caps/users/{username}/` —
   create (201) or update (200) one user's cap across every agent; the
-  username comes from the URL. `404` when the organization or user is not
-  found.
+  username comes from the URL (never `default`; see Reads). `404` when the
+  organization or user is not found.
 - **DELETE** `/api/ai-mentor/orgs/{org}/spend-caps/users/{username}/` —
   remove it (`204`).
 
@@ -198,9 +204,10 @@ fields sent in the body are ignored.
   `enabled: false` turns it off and keeps the values.
 - **DELETE** `/api/ai-mentor/orgs/{org}/spend-caps/users/default/` — drop
   the organization's default and fall back to the platform's (off), `204`.
-- It applies **only at join time**: members already in the organization
-  get nothing (set their `user` cap directly), and changing or removing the
-  default never touches the caps it already created.
+- It applies **only at join time, and only to members**: users already in
+  the organization and anyone who joins as an admin get nothing (set their
+  `user` cap directly), and changing or removing the default never touches
+  the caps it already created.
 
 ## Example
 
@@ -295,8 +302,6 @@ Status summary (from the status endpoint):
 | `caps[].username` | str \| null | set for user_agent and user caps |
 
 Verified against the live schema (4.411.0) and a live agent and
-user-per-agent cap (created, read, deleted) on 2026-10-02; the `user` scope
-and the default for new users against the live schema (4.476.3) on
-2026-11-09. The UI for the
+user-per-agent cap (created, read, deleted) on 2026-10-02. The UI for the
 agent-level scopes is
 [`/iblai-vibe-agent-billing`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-billing/SKILL.md).

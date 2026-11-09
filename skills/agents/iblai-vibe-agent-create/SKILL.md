@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-create
-description: Create an ibl.ai agent from inside your app — the SDK's Create Agent form (CreateAgentForm / CreateAgentModal: Settings and Prompts tabs, showing only the fields each person may set through the field-permissions endpoint), the server route (org authority, admin-verified) that calls the platform's mentor-with-settings endpoint, and the pick-or-create setup screen vibe-starter uses to choose the app's default agent; then hand off to /iblai-vibe-agent-setting and the agent tabs. Use when the user says create an agent, new agent, let admins or members create agents, agent from a template, which fields a user may set when creating an agent, or the app has no agent yet. For editing an existing agent see /iblai-vibe-agent; for chatting see /iblai-vibe-agent-chat.
+description: Create an ibl.ai agent from inside your app — the SDK's Create Agent form (CreateAgentForm / CreateAgentModal, with Settings and Prompts tabs, showing only the fields each person may set through the field-permissions endpoint), the server route (org authority, admin-verified) that calls the platform's mentor-with-settings endpoint, and the pick-or-create setup screen vibe-starter uses to choose the app's default agent; then hand off to /iblai-vibe-agent-setting and the agent tabs. Use when the user says create an agent, new agent, let admins or members create agents, agent from a template, which fields a user may set when creating an agent, or the app has no agent yet. For editing an existing agent see /iblai-vibe-agent; for chatting see /iblai-vibe-agent-chat.
 globs:
 alwaysApply: false
 metadata:
@@ -63,15 +63,17 @@ export default function NewAgentPage() {
   if (!username) return null;
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <CreateAgentForm
-        org={tenantKey}
-        username={username}
-        onCreated={(agent) => {
-          if (agent.unique_id) router.push(`/?agent=${agent.unique_id}`);
-        }}
-        onError={() => toast.error("Couldn't create the agent.")}
-      />
+    <div className="mx-auto w-full flex-1 overflow-auto px-4 py-8 md:w-[75vw] md:px-0">
+      <div className="rounded-lg border border-[var(--border-color)] bg-white p-6">
+        <CreateAgentForm
+          org={tenantKey}
+          username={username}
+          onCreated={(agent) => {
+            if (agent.unique_id) router.push(`/?agent=${agent.unique_id}`);
+          }}
+          onError={() => toast.error("Couldn't create the agent.")}
+        />
+      </div>
     </div>
   );
 }
@@ -107,11 +109,17 @@ write: `GET ${dmUrl}/v1/agents/settings/field-permissions` with the header
 `iblai-org: <org>`, answered as `{ "<field>": { "write": true|false } }`.
 The organization's RBAC policies decide the answer (`/iblai-vibe-rbac`).
 
-- A field the person may not write is **hidden**, **left out of the
-  request** (the agent keeps that field's default) and no longer required.
+- A field the person may not write is **hidden**, no longer required, and
+  **left out of the request**; an optional field left out keeps its default.
 - When none of the three prompts may be written, the **Prompts tab goes
   away** and the Settings tab's **Next** becomes **Save**.
-- The **name** is always asked for and always sent.
+- **Two fields stop creation outright when barred**, so a policy meant to
+  let someone create agents must leave both writable:
+  - the **name** (`new_mentor_name`, `display_name`): always asked for and
+    always sent, so the call is refused (`403`);
+  - **Base** (`template_name`): required by the create call, so leaving it
+    out fails it (`400`, "This field is required."). This holds even when
+    the form hides Base (`showBaseModel` off).
 - While the answer is unknown it **fails open**, showing every field: an
   older platform (404), a person who may not create agents at all (403), a
   network failure.
@@ -121,12 +129,12 @@ person may not write, so a form of your own must leave those out too:
 
 | Form field | Sent as |
 |---|---|
-| Name | `new_mentor_name`, `display_name` |
+| Name | `new_mentor_name` (required), `display_name` |
 | Description | `description` |
 | Category | `categories` (and `metadata.category`, permitted as `metadata`) |
 | Image | `uploaded_profile_image` |
 | Agent Visibility | `mentor_visibility` |
-| Base | `template_name` |
+| Base | `template_name` (required) |
 | System / Proactive / Guided prompt | `system_prompt`, `proactive_prompt`, `guided_prompt_instructions` |
 | Moderation prompt (not shown) | `moderation_system_prompt` |
 
@@ -223,8 +231,9 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 2. As an admin, open the Create Agent page, fill both tabs, **Save**, and
    land on `/` chatting with the new agent; it appears on os.ibl.ai →
    Explore → Custom.
-3. As a member whose policies deny some fields, the same page hides them
-   (and the Prompts tab when no prompt is allowed), and **Save** succeeds.
+3. As a member whose policies deny some optional fields (anything but the
+   name and Base), the same page hides them (and the Prompts tab when no
+   prompt is allowed), and **Save** succeeds.
 4. As an admin, open `/setup`, create an agent there too; as a member,
    `POST /api/admin/agents` answers `403`.
 

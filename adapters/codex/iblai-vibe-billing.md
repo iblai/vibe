@@ -14,7 +14,8 @@ users spend), **Agent Limits** (every agent spend cap in the
 workspace in one searchable table — each row opens the same per-agent
 Billing editor documented in `/iblai-vibe-agent-billing`), and **User
 Limits** (a spend limit per user covering everything they spend across
-all agents, plus the **Default for New Users** each new member gets).
+all agents, plus the **Default for New Users** each member who joins
+later gets).
 
 This is the org-wide counterpart of the per-agent Billing tab:
 per-agent and per-user limits live in each agent's settings
@@ -208,11 +209,12 @@ list endpoint (no per-agent fan-out):
   Reached (Block Requests / Alert Only), Alert At (% of Limit, e.g. `80, 95`).
 
 **Default for New Users** — the limit each person gets **when they join**
-the workspace, as their own user limit:
+the workspace as a member, as their own user limit:
 
 - A switch (off by default) and the same four fields, then **Save**.
-- Only people who join **after** it is turned on get it; to limit someone
-  already here, set their limit above. The rows it creates appear in the
+- Only members who join **after** it is turned on get it; someone who joins
+  as an admin does not. To limit someone already here, or an admin, set
+  their limit above. The rows it creates appear in the
   User Limits table and can be changed there.
 - Editing the default never changes limits it already created. Turning the
   switch off keeps the values for later; there is no Delete.

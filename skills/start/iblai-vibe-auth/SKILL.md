@@ -415,9 +415,20 @@ version is `providers/index.tsx` in [iblai/os](https://github.com/iblai/os):
    (`UserProfileDropdown showOrganizationsLink`, on by default) opens the
    sign-in app's organization chooser (`openTenantSwitcher({ authUrl, tenant })`
    from `@iblai/iblai-js/web-utils`); the user picks there and comes back
-   signed in to that organization. To switch from code, `handleTenantSwitch(org,
-   { authUrl })` clears storage, re-enters the SPA with `tenant=`, broadcasts to
-   other tabs.
+   signed in to that organization. The sign-in writes the picked organization
+   to `tenant` but never to `app_tenant`, which `resolveAppTenant()` reads
+   first, so point it there on the way in, or the next page re-authenticates
+   into the old organization. In `app/sso-login-complete/page.tsx`, add to
+   the starter's `<SsoLogin>`:
+
+   ```tsx
+   onLoginSuccess={(data: Record<string, string>) => {
+     if (data.tenant) localStorage.setItem("app_tenant", data.tenant);
+   }}
+   ```
+
+   To switch from code, `handleTenantSwitch(org, { authUrl })` clears
+   storage, re-enters the SPA with `tenant=`, broadcasts to other tabs.
 4. **Anonymous per agent** — in `AuthProvider`'s `middleware`, for
    `^/platform/([^/]+)/([^/]+)` fetch the agent's public settings
    (`useLazyGetMentorPublicSettingsQuery`) and return `false` when

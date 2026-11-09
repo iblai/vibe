@@ -3,7 +3,7 @@
  * ibl.ai Profile Dropdown
  *
  * A self-contained user avatar + dropdown menu with profile editing,
- * organization switching (admins), and logout. Wraps the SDK's
+ * the current organization (admins), and logout. Wraps the SDK's
  * `UserProfileDropdown`. Mirrors the reference app's prop set.
  *
  * Usage:
@@ -51,11 +51,8 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     };
   }, []);
 
-  // Full active-tenant object (`current_tenant`) + the user's `tenants` list.
-  // The SDK switcher needs `currentTenant` to label the active organization and
-  // `userTenants` to populate the switch list — without `currentTenant`
-  // the switcher falls back to a generic label.
-  const currentTenant = useMemo(() => readJSON<any>("current_tenant", null), []);
+  // The user's `tenants` list. The organization row looks `tenantKey` up in it
+  // for the name, and hides itself when it holds no organization but `main`.
   const userTenants = useMemo<any[]>(() => readJSON<any[]>("tenants", []), []);
 
   const isAdmin = useMemo(
@@ -73,17 +70,15 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       username={username}
       mainPlatformKey={config.mainTenantKey()}
       tenantKey={tenantKey}
-      currentTenant={currentTenant ?? undefined}
       userTenants={userTenants}
       userIsAdmin={isAdmin}
       userIsStudent={!isAdmin}
       showProfileTab
-      // No dedicated "Account" item — the organization switcher is the only org
-      // control. (Account settings live on a separate /account page.)
+      // No dedicated "Account" item: for an admin, the organization row opens
+      // the organization's settings. (Account settings live on /account.)
       showAccountTab={false}
-      // Admins only. For a non-admin the SDK renders just the current
-      // organization name (e.g. "Community" for the `main` organization) with no working
-      // switch list, so hiding it is cleaner.
+      // The organization row, admins only. For a non-admin it is only a
+      // label with the organization's name, so hiding it is cleaner.
       showTenantSwitcher={isAdmin}
       // The "Organizations" item opens the sign-in app's organization chooser
       // in a new tab. Off in a single-org app, where the organization is pinned;

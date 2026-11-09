@@ -24,9 +24,10 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
 
 - **GET** `https://api.iblai.app/dm/v1/agents/settings/field-permissions` —
   which fields of the create call the caller may set. Mounted at the `/dm`
-  root (not under `/api/ai-mentor/`). Send the header `iblai-org: {org}`:
-  required for a Platform API Token; a session token is scoped to its own
-  organization and gets `403` if the header names another. Returns one entry
+  root (not under `/api/ai-mentor/`). The header `iblai-org: {org}` is
+  required only for service accounts; every other caller, a Platform API
+  Token included, is scoped to its token's organization, so the header can
+  only confirm it (`403` if it names another). Returns one entry
   per create field, `{ "<field>": { "write": true|false } }` — e.g.
   `new_mentor_name`, `display_name`, `description`, `categories`,
   `metadata`, `uploaded_profile_image`, `template_name`,
@@ -52,7 +53,10 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
 
   The create call **refuses the whole request (`403`) when it carries a field
   the caller may not write**. Read `field-permissions` first and leave those
-  fields out: an omitted field keeps the agent's default.
+  fields out: an omitted optional field keeps the agent's default. The two
+  required fields are the exception: a caller barred from `template_name` or
+  `new_mentor_name` cannot create agents at all, since leaving either out is
+  a `400` ("This field is required.") and sending it is the `403`.
 
 ## Example
 
@@ -78,8 +82,8 @@ curl -X POST \
   decide them, so two members can get different answers; read them for the
   caller you are creating as, not once for the organization.
 
-- `template_name` defaults to `ai-mentor` on most orgs; the create call accepts
-  any template the org exposes.
+- `template_name` is required, usually `ai-mentor` (the default template on
+  most orgs); the create call accepts any template the org exposes.
 - Creation is intentionally minimal — set only name + a couple of fields here,
   then drive the rest with the focused skills: `/iblai-api-agent-setting`,
   `/iblai-api-agent-llm`, `/iblai-api-agent-prompt`, `/iblai-api-agent-dataset`,
