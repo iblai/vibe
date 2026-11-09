@@ -295,7 +295,6 @@ interface NavBarProps {
   userTenants?: any[];
   authURL: string;
   onLogout: () => void;
-  onTenantChange: (key: string) => void;
   onTenantUpdate?: (tenant: any) => void;
   onAccountDeleted?: () => void;
   // Feature flags
@@ -314,7 +313,6 @@ export function NavBar({
   userTenants,
   authURL,
   onLogout,
-  onTenantChange,
   onTenantUpdate,
   onAccountDeleted,
   showCreditBalance = true,
@@ -390,7 +388,6 @@ export function NavBar({
                 userTenants={userTenants}
                 authURL={authURL}
                 onLogout={onLogout}
-                onTenantChange={onTenantChange}
                 onTenantUpdate={onTenantUpdate}
                 onAccountDeleted={onAccountDeleted}
               />
@@ -450,7 +447,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         isAdmin={isAdmin /* from your auth context */}
         authURL={authURL /* config.authUrl() */}
         onLogout={onLogout /* your logout handler */}
-        onTenantChange={onTenantChange /* your tenant switch handler */}
       />
 
       <NavigationDrawer

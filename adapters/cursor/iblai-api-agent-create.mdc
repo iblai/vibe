@@ -1,5 +1,5 @@
 ---
-description: "Create a new ibl.ai agent from a template via the platform API — set name, display name, description, system prompt, and LLM provider; returns the new agent's unique id. Use when creating an agent from scratch, then configure it with the other /iblai-api-agent-* skills."
+description: "Create a new ibl.ai agent from a template via the platform API — set name, display name, description, categories, visibility, prompts, and LLM provider; returns the new agent's unique id. Read which create fields the caller may write (field-permissions) first, since a create that sends a forbidden field is refused. Use when creating an agent from scratch, checking what a user may set when creating one, then configure it with the other /iblai-api-agent-* skills."
 globs:
 alwaysApply: false
 ---
@@ -24,6 +24,17 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
 
 ## Reads
 
+- **GET** `https://api.iblai.app/dm/v1/agents/settings/field-permissions` —
+  which fields of the create call the caller may set. Mounted at the `/dm`
+  root (not under `/api/ai-mentor/`). Send the header `iblai-org: {org}`:
+  required for a Platform API Token; a session token is scoped to its own
+  organization and gets `403` if the header names another. Returns one entry
+  per create field, `{ "<field>": { "write": true|false } }` — e.g.
+  `new_mentor_name`, `display_name`, `description`, `categories`,
+  `metadata`, `uploaded_profile_image`, `template_name`,
+  `mentor_visibility`, `system_prompt`, `proactive_prompt`,
+  `guided_prompt_instructions`, `moderation_system_prompt`. A field left out
+  of the answer is writable. `403` = the caller may not create agents at all.
 - **GET** `https://api.iblai.app/dm/api/search/orgs/{org}/users/{username}/mentors/` — list existing agents in the org (useful to pick a fork source or confirm names are free).
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor/categories/` — category options (to assign after creation via `/iblai-api-agent-setting`).
 
@@ -40,6 +51,10 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
     "llm_provider": "string"
   }
   ```
+
+  The create call **refuses the whole request (`403`) when it carries a field
+  the caller may not write**. Read `field-permissions` first and leave those
+  fields out: an omitted field keeps the agent's default.
 
 ## Example
 
@@ -60,6 +75,10 @@ curl -X POST \
 ```
 
 ## Notes
+
+- **Field permissions are per caller.** The organization's RBAC policies
+  decide them, so two members can get different answers; read them for the
+  caller you are creating as, not once for the organization.
 
 - `template_name` defaults to `ai-mentor` on most orgs; the create call accepts
   any template the org exposes.

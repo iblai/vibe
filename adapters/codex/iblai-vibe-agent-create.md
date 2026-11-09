@@ -1,15 +1,25 @@
 # iblai-vibe-agent-create
 
-> Create an ibl.ai agent from inside your app — there is no SDK component for creation, so this is the server route (org authority, admin-verified) that calls the platform's mentor-with-settings endpoint, the browser helper that calls it, and the pick-or-create setup screen vibe-starter uses to choose the app's default agent; then hand off to /iblai-vibe-agent-setting and the agent tabs. Use when the user says create an agent, new agent, let admins create agents, agent from a template, or the app has no agent yet. For editing an existing agent see /iblai-vibe-agent; for chatting see /iblai-vibe-agent-chat.
+> Create an ibl.ai agent from inside your app — the SDK's Create Agent form (CreateAgentForm / CreateAgentModal: Settings and Prompts tabs, showing only the fields each person may set through the field-permissions endpoint), the server route (org authority, admin-verified) that calls the platform's mentor-with-settings endpoint, and the pick-or-create setup screen vibe-starter uses to choose the app's default agent; then hand off to /iblai-vibe-agent-setting and the agent tabs. Use when the user says create an agent, new agent, let admins or members create agents, agent from a template, which fields a user may set when creating an agent, or the app has no agent yet. For editing an existing agent see /iblai-vibe-agent; for chatting see /iblai-vibe-agent-chat.
 
 # /iblai-vibe-agent-create
 
 > **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
 An agent is created with one platform call and returns a `unique_id` — the
-UUID every other agent skill needs. The SDK has no creation component
-(verified against `@iblai/web-containers` 1.16–1.19), so the pattern is a
-**server route** plus a small form. vibe-starter's `/setup` is that form.
+UUID every other agent skill needs. Two ways to put creation in an app:
+
+- **The SDK's Create Agent form** (`CreateAgentForm`, or `CreateAgentModal`
+  around it) — Settings and Prompts tabs, run as the signed-in person, and
+  showing only the fields that person may set. For anyone who creates agents
+  from the app.
+- **A server route plus a small form** — vibe-starter's `/setup`, which picks
+  or creates the app's default agent with the organization's authority.
+  Admin-only.
+
+![Create Agent — Settings](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-create/iblai-vibe-agent-create-2-form.png)
+
+![Create Agent — Prompts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-create/iblai-vibe-agent-create-3-prompts.png)
 
 ![/setup — pick or create the app's agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-create/iblai-vibe-agent-create-1-dialog.png)
 
@@ -17,15 +27,126 @@ UUID every other agent skill needs. The SDK has no creation component
 
 ## Prerequisites
 
-- Auth in place; `IBLAI_API_KEY` in `.env.local` (server-only) — creation
-  needs the org's authority.
-- `lib/iblai/platform.ts` from `/iblai-vibe-api` (`requireAdmin`,
+- Auth in place (`/iblai-vibe-auth`).
+- `@iblai/iblai-js@^2.67.3` for the field permissions below; earlier
+  releases show every field to everyone.
+- The person creating must be allowed to: an org admin, or a member holding
+  `MENTOR_CREATORS` (`/iblai-vibe-rbac`; the org toggle
+  `rbac/student-agent-creation/status/` decides whether plain members may).
+- For the server route only: `IBLAI_API_KEY` in `.env.local` (server-only)
+  and `lib/iblai/platform.ts` from `/iblai-vibe-api` (`requireAdmin`,
   `platformFetch`).
-- The caller must be an org admin (or hold `MENTOR_CREATORS` — see
-  `/iblai-vibe-rbac`; the org toggle `rbac/student-agent-creation/status/`
-  decides whether plain members may create).
 
-## Step 1: Install
+## Step 1: Mount the SDK's Create Agent form
+
+```tsx
+// app/(app)/agents/new/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { CreateAgentForm } from "@iblai/iblai-js/web-containers";
+import { useUsername } from "@iblai/iblai-js/web-utils";
+import { resolveAppTenant } from "@/lib/iblai/tenant";
+
+export default function NewAgentPage() {
+  const router = useRouter();
+  const [tenantKey] = useState(resolveAppTenant);
+  const username = useUsername();
+  if (!username) return null;
+
+  return (
+    <div className="mx-auto max-w-5xl p-6">
+      <CreateAgentForm
+        org={tenantKey}
+        username={username}
+        onCreated={(agent) => {
+          if (agent.unique_id) router.push(`/?agent=${agent.unique_id}`);
+        }}
+        onError={() => toast.error("Couldn't create the agent.")}
+      />
+    </div>
+  );
+}
+```
+
+`CreateAgentModal` takes the same props plus `isOpen` and `onClose`, for a
+"Create Agent" button. The form owns its state, the categories query and
+the create call (`useCreateMentorMutation`, as the signed-in person); toasts
+and navigation are yours, through the callbacks.
+
+| Prop | Type | Required | Description |
+|---|---|---|---|
+| `org` | `string` | Yes | Organization key the agent is created in |
+| `username` | `string` | Yes | The person creating it |
+| `onCreated` | `(agent: CreatedAgent) => void` | No | With the new agent (`unique_id`) |
+| `onError` | `(error: unknown) => void` | No | When the create call fails |
+| `onBeforeCreate` | `() => boolean \| Promise<boolean>` | No | Gate before the request (a paywall, a trial check); `false` stops it |
+| `initialValues` | `Partial<CreateAgentFormValues>` | No | Prefill any field |
+| `showBaseModel` | `boolean` | No | Show the Base select (template: Default, OpenAI, Gemini); off by default |
+| `visibilityOptions` / `modelOptions` | `CreateAgentOption[]` | No | Replace the select options |
+| `defaultPrompts` | `Partial<AgentPromptDefaults>` | No | The prompts the form starts with |
+| `labels` | `DeepPartial<CreateAgentLabels>` | No | Any UI string |
+
+**What it renders.** Settings: Name, Description, Category, Agent Visibility
+(Administrators / Users / Anyone; Users by default) and an image upload,
+then **Next**. Prompts: System, Proactive and Guided prompts, each with
+**Edit**, then **Save**.
+
+## Fields each person may set
+
+Before showing the form it asks the platform which fields this person may
+write: `GET ${dmUrl}/v1/agents/settings/field-permissions` with the header
+`iblai-org: <org>`, answered as `{ "<field>": { "write": true|false } }`.
+The organization's RBAC policies decide the answer (`/iblai-vibe-rbac`).
+
+- A field the person may not write is **hidden**, **left out of the
+  request** (the agent keeps that field's default) and no longer required.
+- When none of the three prompts may be written, the **Prompts tab goes
+  away** and the Settings tab's **Next** becomes **Save**.
+- The **name** is always asked for and always sent.
+- While the answer is unknown it **fails open**, showing every field: an
+  older platform (404), a person who may not create agents at all (403), a
+  network failure.
+
+The create call refuses the whole request (403) when it carries a field the
+person may not write, so a form of your own must leave those out too:
+
+| Form field | Sent as |
+|---|---|
+| Name | `new_mentor_name`, `display_name` |
+| Description | `description` |
+| Category | `categories` (and `metadata.category`, permitted as `metadata`) |
+| Image | `uploaded_profile_image` |
+| Agent Visibility | `mentor_visibility` |
+| Base | `template_name` |
+| System / Proactive / Guided prompt | `system_prompt`, `proactive_prompt`, `guided_prompt_instructions` |
+| Moderation prompt (not shown) | `moderation_system_prompt` |
+
+For a custom form, the SDK's own pieces do that work:
+
+```tsx
+// lib/iblai/create-agent-body.ts
+"use client";
+
+import { useCreateAgentFieldPermissions } from "@iblai/iblai-js/web-containers";
+import { buildCreateAgentPayload, type CreateAgentFieldValues } from "@iblai/iblai-js/web-utils";
+
+export function useCreateAgentBody(org: string) {
+  // visibility.description, .category, .systemPrompt, … and .anyPrompt say what to show.
+  const { permissions, visibility, isLoading } = useCreateAgentFieldPermissions({ org });
+  const toBody = (values: CreateAgentFieldValues) => buildCreateAgentPayload(values, permissions);
+  return { visibility, isLoading, toBody };
+}
+```
+
+`canWriteAgentField(permissions, field)`, `getCreateAgentFieldVisibility`
+and `CREATE_AGENT_FIELD_MAP` come from the same `web-utils` entry; the raw
+query is `useGetAgentSettingsFieldPermissionsQuery({ org })` from
+`@iblai/iblai-js/data-layer`, already in `mentorReducer` / `mentorMiddleware`.
+
+## Step 2: The server route and `/setup` (admin-only)
 
 Copy the assets:
 
@@ -39,7 +160,7 @@ Copy the assets:
 The setup screen saves through `useOrgSettings` (`/iblai-vibe-org-metadata`)
 and uses the SDK's `OnboardingShell` / `StepHeader`. Needs shadcn `input`, `label`.
 
-## Step 2: The call
+### The call
 
 ```ts
 // server, after requireAdmin(req)
@@ -72,7 +193,10 @@ const { unique_id } = await adminFetch<{ unique_id: string }>("/api/admin/agents
 });
 ```
 
-To copy an existing agent instead, use **fork** in `/iblai-vibe-agent-setting`.
+The route runs with the organization's Platform API Token, not as the person
+on the page, so keep it admin-only; members create through the SDK form,
+which honours their own field permissions. To copy an existing agent instead, use **fork** in
+`/iblai-vibe-agent-setting`.
 
 ## Step 3: After creation
 
@@ -90,14 +214,19 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 `pnpm e2e:coverage` must pass. Then:
 
 1. `pnpm typecheck && pnpm build`.
-2. As an admin, open `/setup`, create an agent, land on `/` chatting with it;
-   the new agent appears on os.ibl.ai → Explore → Custom.
-3. As a member, `POST /api/admin/agents` answers `403`.
+2. As an admin, open the Create Agent page, fill both tabs, **Save**, and
+   land on `/` chatting with the new agent; it appears on os.ibl.ai →
+   Explore → Custom.
+3. As a member whose policies deny some fields, the same page hides them
+   (and the Prompts tab when no prompt is allowed), and **Save** succeeds.
+4. As an admin, open `/setup`, create an agent there too; as a member,
+   `POST /api/admin/agents` answers `403`.
 
 ## Platform data
 
 | Call | Purpose |
 |---|---|
+| `GET /dm/v1/agents/settings/field-permissions` (header `iblai-org`) | which create fields this person may write |
 | `POST …/orgs/{org}/users/{username}/mentor-with-settings/` | create from template → `unique_id` |
 | `GET …/search/orgs/{org}/users/{username}/mentors/` | list agents |
 | `GET …/orgs/{org}/users/{username}/mentor/categories/` | categories to assign afterwards |

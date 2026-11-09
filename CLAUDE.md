@@ -138,7 +138,7 @@ links its headless twin, the `iblai-api-*` skill for the same data).
 | 1 | Sign-in, session, org resolution | `AuthProvider`, `TenantProvider`, `SsoLogin`, `useUserData`, `useIsAdmin` | `/iblai-vibe-auth` (starter) |
 | 2 | Home that chats with the app's agent | `Chat` (`/next`), `AppSidebar`, `NavBar` | `/iblai-vibe-agent-chat` (starter `/`) |
 | 3 | Find / pick agents | `AgentSearch` | `/iblai-vibe-agent-search` (starter `/agents`) |
-| 4 ★ | Create + configure an agent | server route; `AgentSettingsProvider` + `AgentSettingsTab` (+25 tabs) | `/iblai-vibe-agent-create`, `/iblai-vibe-agent-setting`, `/iblai-vibe-agent` |
+| 4 ★ | Create + configure an agent | `CreateAgentForm` (fields per the person's permissions), server route; `AgentSettingsProvider` + `AgentSettingsTab` (+25 tabs) | `/iblai-vibe-agent-create`, `/iblai-vibe-agent-setting`, `/iblai-vibe-agent` |
 | 5 ★ | The user's own profile | `Profile`, `UserProfileDropdown`, `useGetUserMetadataQuery` | `/iblai-vibe-profile` (starter) |
 | 6 ★ | Custom per-user data | `useGetUserPlatformMetadataQuery`, `useUpdateUserPlatformMetadataMutation` | `/iblai-vibe-user-metadata` (starter) |
 | 7 ★ | Org settings + custom org data | `Account` → `OrganizationTab`; `useGetTenantMetadataQuery`, `useUpdateTenantMetadataMutation` | `/iblai-vibe-org-metadata`, `/iblai-vibe-account` (starter) |
@@ -277,7 +277,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-agent-chat-sidebar` | Wrap the chat with the SDK sidebar (projects, pinned/recent) |
 | `/iblai-vibe-project` | Projects surface (files, instructions, assigned agents) |
 | `/iblai-vibe-agent-search` | Agent browser (starred, featured, custom, all) |
-| `/iblai-vibe-agent-create` ★ | Create an agent from the app (server route + setup screen) |
+| `/iblai-vibe-agent-create` ★ | Create an agent from the app (the SDK's Create Agent form, showing only the fields each person may set; server route + setup screen) |
 | `/iblai-vibe-agent-setting` ★ | Agent identity, visibility, copy, delete |
 | `/iblai-vibe-agent` | Family index for all 26 agent settings tabs |
 | `/iblai-vibe-profile` ★ | Profile dropdown + settings page |
@@ -299,7 +299,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-incognito` | Incognito: the chat-header toggle, the mid-conversation dialog, and how org / agent / user / session tiers resolve |
 | `/iblai-vibe-pricing` | How money works; which rail to charge users |
 | `/iblai-vibe-credit` | Credit balance widget |
-| `/iblai-vibe-billing` | Org Billing: plan & credits, spend limits, agent limits |
+| `/iblai-vibe-billing` | Org Billing: plan & credits, spend limits, agent limits, user limits + the default for new users |
 | `/iblai-vibe-agent-billing` | One agent's spend cap and per-user caps |
 | `/iblai-vibe-monetization-app-paywall` | Pay-to-enter on the org's own Stripe key |
 | `/iblai-vibe-api` | REST without a component: server route + `Api-Token`; map to the `iblai-api-*` twin |

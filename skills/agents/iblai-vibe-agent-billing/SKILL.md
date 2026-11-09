@@ -56,7 +56,7 @@ the same.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
+- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Org admin rights: the spend-cap endpoints are admin-only. A user without
@@ -98,8 +98,11 @@ shows its no-access panel (This Agent with no limit yet answers 404 first).
 
 `SpendCapUsage` is the user-safe companion for chat screens: zones and
 percentages only, never dollars, a warning near a limit and a banner once a
-blocking limit is hit. It renders nothing while everything is fine unless
-`showWhenOk` is set:
+blocking limit is hit (one bar per applicable limit, including the user's
+own limit across all agents from `/iblai-vibe-billing`). `Chat` already
+renders it above the composer and disables **Send** while a blocking limit
+is exceeded, so mount it yourself only on other screens. It renders nothing
+while everything is fine unless `showWhenOk` is set:
 
 ```tsx
 import { SpendCapUsage } from "@iblai/iblai-js/web-containers/next";

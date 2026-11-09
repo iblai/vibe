@@ -19,7 +19,7 @@ import { useMemo } from "react";
 import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
-import { handleLogout, redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import { handleLogout } from "@/lib/iblai/auth-utils";
 
 interface ProfileDropdownProps {
   /** Additional CSS class for the dropdown trigger. */
@@ -85,6 +85,10 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       // organization name (e.g. "Community" for the `main` organization) with no working
       // switch list, so hiding it is cleaner.
       showTenantSwitcher={isAdmin}
+      // The "Organizations" item opens the sign-in app's organization chooser
+      // in a new tab. Off in a single-org app, where the organization is pinned;
+      // turn it on for a multi-org app (see /iblai-vibe-auth, "Going multi-org").
+      showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton
       // Gravatar fallback (from the user's email) when there's no uploaded
@@ -94,11 +98,6 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       authURL={config.authUrl()}
       currentPlatformBaseDomain={config.platformBaseDomain()}
       onLogout={handleLogout}
-      onTenantChange={(tenant: string) => {
-        localStorage.setItem("app_tenant", tenant);
-        localStorage.setItem("tenant", tenant);
-        redirectToAuthSpa(undefined, tenant, false, true);
-      }}
       onTenantUpdate={(tenant: { key?: string }) => {
         if (tenant?.key) {
           localStorage.setItem("app_tenant", tenant.key);

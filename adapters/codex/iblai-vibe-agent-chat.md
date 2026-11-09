@@ -63,7 +63,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.62.1` |
+  | `@iblai/iblai-js` | `^2.67.3` |
   | `@iblai/agent-ai` | `^2.10.0` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
@@ -455,6 +455,7 @@ controls appear (a host flag can only hide a control, never force it on).
 | Message actions | Under each finished reply: Copy and Read aloud for everyone; thumbs up / down, Retry, Report, Share and Download for signed-in users (Share and Download also for visitors with `showMessageActionsWhenLoggedOut`, both hidden under chat privacy; Report needs the agent's inappropriate-content setting; thumbs, Retry and Report are hidden when viewing a shared chat) |
 | Suggested prompts | After a reply, up to three follow-up chips and a refresh button. Picking one sends it |
 | Composer | `+` menu (Upload File, Camera, then Tools, Skills, Prompts, Memory, MCP with a count badge when the agent has a connector on — its panel switches connectors for this chat, see `/iblai-vibe-agent-mcp` — and a Model picker when the agent allows it), a Canvas pill that turns off with its x, tool chips (two shown, the rest fold into "+N"), screen share, voice input, voice call, and Send, which becomes Stop Streaming while the agent answers |
+| Spend limits | For a signed-in member, a banner above the composer when one of their LLM spend limits is near (percentages only, never dollars), and a red banner with **Send** disabled while a **Block Requests** limit is exceeded; a refused send tells a member to contact their admin and gives an admin **Open Billing**. Limits are set in `/iblai-vibe-billing` and `/iblai-vibe-agent-billing` |
 | Attachments | File cards above the input: uploading, processing, failed (with retry), too large, and long pastes that become a `.txt` card |
 | `/` skill picker | Typing `/` in the input lists the agent's skills by name. It needs the per-agent `view_skill_assignments` grant in the `rbac` store, which `Chat` and vibe-starter's providers do not load, so in vibe-starter it stays empty unless you pass `slashSkills`; `slashSkillsEnabled={false}` turns it off |
 | Canvas | An agent reply that creates a document shows a card with **Open Canvas**; the panel opens beside the chat with an editing toolbar and Export. Tables show as plain pipe text unless you pass GFM-aware `markdownToHtml` / `htmlToMarkdown` in `config` |
@@ -502,7 +503,7 @@ controls appear (a host flag can only hide a control, never force it on).
 | `supportEmail` | `() => string` | Footer / error-toast email (env fallback if host config lacks it) |
 | `authUrl` | `() => string` | Auth SPA origin |
 | `mainTenantKey` | `string` | Default organization key |
-| `navigateToAdminBilling` | `() => void` | Open the billing tab |
+| `navigateToAdminBilling` | `() => void` | Open the billing tab; also the **Open Billing** button an admin gets when a spend limit refuses a send |
 | `navigateToExplore` | `() => void` | "Browse All" agents link |
 | `navigateToMentor` | `(id: string) => void` | Open an individual agent |
 | `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync banner |
