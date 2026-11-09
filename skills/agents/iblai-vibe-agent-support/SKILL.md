@@ -22,7 +22,8 @@ in the Tools tab), a user filter (search the organization's users), a
 status filter (All / Open / In Progress / Closed), and the inbox: requester,
 subject, when, a preview, and a status icon. The icon is grey; hover it (or
 use a screen reader) for the word. The inbox shows as many tickets as fit the
-space and pages the rest, so it never scrolls. With no tickets the tab shows
+space and pages the rest, so it never scrolls (between 768 and 1023px wide it
+shows 10 a page instead). With no tickets the tab shows
 one dashed empty box.
 
 ![Support tab -- tickets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-support/iblai-vibe-agent-support-1-tickets.png)

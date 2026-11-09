@@ -19,7 +19,7 @@ agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 **Schedule Task** on the right, the counters (Total Tasks, Completed, Failed)
 in one strip, and the task list: name, time, repeat, a status icon and a
 delete icon. The list shows as many tasks as fit the space and pages the rest,
-so it never scrolls. The status icon is grey; hover it (or use a screen
+so it never scrolls (between 768 and 1023px wide it shows 5 a page instead). The status icon is grey; hover it (or use a screen
 reader) for the word. It follows the latest run: Running, Failed or
 Completed; before the first run it is Scheduled (or Disabled). With no tasks
 the tab shows one dashed empty box.
@@ -225,7 +225,7 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
   hour and minute from the user's clock (the crontab has no timezone
   field) and `start_time` in UTC, so a repeat can fire at that hour UTC.
 - **"Notify me by email" is not saved**: the dialog shows the switch, but
-  SDK 2.36.2 does not send it to the API.
+  the SDK does not send it to the API.
 - **Runs are real agent turns**: each run sends the prompt to the agent and
   costs model calls.
 - **Shared provider**: mount `AgentSettingsProvider` once at the layout

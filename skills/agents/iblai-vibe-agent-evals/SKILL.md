@@ -21,7 +21,7 @@ tab in the agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 benchmark is selected), **Manage Benchmarks**, **New Evaluation** on the right,
 and a table of this agent's runs (Evaluation, Status, Initiated by, Created).
 The table shows as many runs as fit the space and pages the rest, so it never
-scrolls. Runs work in the background. Status is a grey icon; hover it (or use
+scrolls (between 768 and 1023px wide it shows 10 a page instead). Runs work in the background. Status is a grey icon; hover it (or use
 a screen reader) for the word: Completed, Failed, or still running. Between
 768 and 1440px the table uses narrower columns so it fits without scrolling
 sideways.
