@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.21.0] - 2026-11-09
+
+### Added
+
+- Create Agent field permissions + User Limits and the default for new users
+
+### Fixed
+
+- review on #289 (YAML description, required create fields, organization row)
+
 ## [2.20.1] - 2026-11-03
 
 ### Documentation
