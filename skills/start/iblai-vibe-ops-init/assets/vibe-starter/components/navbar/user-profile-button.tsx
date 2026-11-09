@@ -12,7 +12,6 @@ interface UserProfileButtonProps {
   userTenants?: any[];
   authURL: string;
   onLogout: () => void;
-  onTenantChange: (newTenantKey: string) => void;
   onTenantUpdate?: (tenant: any) => void;
   onAccountDeleted?: () => void;
 }
@@ -27,7 +26,6 @@ export function UserProfileButton({
   userTenants = [],
   authURL,
   onLogout,
-  onTenantChange,
   onTenantUpdate,
   onAccountDeleted,
 }: UserProfileButtonProps) {
@@ -44,13 +42,15 @@ export function UserProfileButton({
       showProfileTab={true}
       showAccountTab={false}
       showTenantSwitcher={isAdmin}
+      // Single-org app: the organization is pinned (NEXT_PUBLIC_MAIN_TENANT_KEY),
+      // so no "Organizations" item to move the session to another one.
+      showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton={true}
       showLearnerModeSwitch={false}
       currentPlan=""
       authURL={authURL}
       onLogout={onLogout}
-      onTenantChange={onTenantChange}
       onTenantUpdate={onTenantUpdate ?? (() => {})}
       onAccountDeleted={onAccountDeleted}
     />

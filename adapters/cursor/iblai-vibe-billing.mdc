@@ -1,5 +1,5 @@
 ---
-description: "Add the organization-wide Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide Spend Limit; and the Agent Limits table managing every agent's spend cap in one place) to your Next.js app"
+description: "Add the organization-wide Billing settings surface (Plan & Credits with Stripe upgrade, add-credits, and auto-recharge; the workspace-wide Spend Limit; the Agent Limits table managing every agent's spend cap in one place; and User Limits, a spend limit per user across all agents plus the Default for New Users every new member gets) to your Next.js app. Use when the user mentions billing, plan, credits, auto recharge, an LLM spend limit for the workspace, an agent, or a user, or a default limit for new members. For one agent's limits see /iblai-vibe-agent-billing; for the REST contract see /iblai-api-spend-caps."
 globs:
 alwaysApply: false
 ---
@@ -7,14 +7,17 @@ alwaysApply: false
 # /iblai-vibe-billing
 
 Add the organization-wide **Billing** surface -- "Manage your billing and
-subscription" for the whole workspace, in three tabs: **Plan &
+subscription" for the whole workspace, in four tabs: **Plan &
 Credits** (current plan with Stripe upgrade, credit balance with its
 USD equivalent, Add Credits, and Auto Recharge with threshold /
 recharge amount / spending limit), **Spend Limits** (the single
 workspace-wide LLM spend limit covering everything all agents and
-users spend), and **Agent Limits** (every agent spend cap in the
+users spend), **Agent Limits** (every agent spend cap in the
 workspace in one searchable table — each row opens the same per-agent
-Billing editor documented in `/iblai-vibe-agent-billing`).
+Billing editor documented in `/iblai-vibe-agent-billing`), and **User
+Limits** (a spend limit per user covering everything they spend across
+all agents, plus the **Default for New Users** each member who joins
+later gets).
 
 This is the org-wide counterpart of the per-agent Billing tab:
 per-agent and per-user limits live in each agent's settings
@@ -35,6 +38,8 @@ management, the workspace-wide cap, and the cross-agent overview.
 
 ![Agent Limits — Manage popup (Per User)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-agent-limits-per-user.png)
 
+![Billing — User Limits and Default for New Users](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-user-limits.png)
+
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Already have Billing?
@@ -54,11 +59,13 @@ Two sibling surfaces overlap with this one — check before mounting:
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
+- `@iblai/iblai-js@^2.67.3`: the User Limits tab is not in releases
+  before 2.62.3
 - Plan upgrades, Add Credits, and Auto Recharge run through **Stripe**
   on the ibl.ai backend — nothing to configure client-side, but the
   flows redirect to Stripe-hosted pages and return to your app.
-- The Spend Limits / Agent Limits tabs hit RBAC-gated admin endpoints
-  — a user without access sees a friendly denied panel per section.
+- The Spend Limits / Agent Limits / User Limits tabs hit RBAC-gated admin
+  endpoints — a user without access sees a friendly denied panel per section.
 
 ## Step 1: Check Environment
 
@@ -187,6 +194,43 @@ list endpoint (no per-agent fan-out):
   popup titled with the agent's name, exactly as in
   `/iblai-vibe-agent-billing`.
 
+### User Limits
+
+**User Limits** — one user's spend across every agent in the workspace
+(the `user` scope, beside the per-agent user limits in
+`/iblai-vibe-agent-billing`):
+
+- **Search Users** — autocomplete over the organization's users (at least
+  2 characters); it filters the table, and a user with no limit yet gets
+  a **Set Spend Limit** button.
+- **Table** — User (opens their profile), Limit, Spent, Remaining, Status:
+  a toggle that saves at once, with Exceeded / Alert Only badges, then
+  **Edit** (sliders icon) and **Delete** (trash icon, with a confirmation).
+- **Set / Edit** opens the same popup as the per-agent user limits: Spend
+  Limit (USD), Resets Every (Day / Week / Month / Year), When the Limit Is
+  Reached (Block Requests / Alert Only), Alert At (% of Limit, e.g. `80, 95`).
+
+**Default for New Users** — the limit each person gets **when they join**
+the workspace as a member, as their own user limit:
+
+- A switch (off by default) and the same four fields, then **Save**.
+- Only members who join **after** it is turned on get it; someone who joins
+  as an admin does not. To limit someone already here, or an admin, set
+  their limit above. The rows it creates appear in the
+  User Limits table and can be changed there.
+- Editing the default never changes limits it already created. Turning the
+  switch off keeps the values for later; there is no Delete.
+
+### What users see in the chat
+
+`Chat` (`/iblai-vibe-agent-chat`) reads each user's own limits, as zones
+and percentages, never dollars: a banner above the composer when a limit
+is near ("Usage is nearing its limit."), and once a **Block Requests**
+limit is exceeded a red banner with **Send** disabled until the period
+resets. A refused send tells a member to contact their administrator and
+gives an admin an **Open Billing** button, which calls the chat config's
+`navigateToAdminBilling` (vibe-starter sends it to `/admin/billing`).
+
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers`:
@@ -211,6 +255,13 @@ From `@iblai/iblai-js/data-layer`:
   `useUpsertTenantSpendCapMutation`, `useDeleteTenantSpendCapMutation`
 - Agent-caps list: `useListAgentSpendCapsQuery` (optional `mentor`
   filter)
+- User limits: `useListTenantUserSpendCapsQuery` (`username` / `email`
+  filters), `useGetTenantUserSpendCapQuery`,
+  `useUpsertTenantUserSpendCapMutation`,
+  `useDeleteTenantUserSpendCapMutation`
+- Default for new users: `useGetNewUserSpendCapDefaultQuery`,
+  `useUpsertNewUserSpendCapDefaultMutation`,
+  `useDeleteNewUserSpendCapDefaultMutation`
 - Actual-spend stats: `useGetFinancialStatsQuery`
 
 From `@iblai/iblai-js/web-utils`:
@@ -228,7 +279,9 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
 3. Touch test `/settings/billing` in the browser as `/iblai-vibe-ops-test` says: open it,
-   use every control this skill added, read the console, check the phone width.
+   use every control this skill added (User Limits: search, set, toggle, edit,
+   delete; Default for New Users: switch, Save), read the console, check the
+   phone width.
 
 ## Important Notes
 
@@ -252,9 +305,12 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
   counters are read-only, and a hard-block cap refuses requests with
   the `spend_cap_exceeded` 429. Full spend-caps REST tables live in
   `/iblai-vibe-agent-billing`; the org-scoped endpoints are
-  `spend-caps/tenant/` (GET/PUT/DELETE) and `spend-caps/agents/`
-  (org-wide list, `?mentor=<uuid>` filter).
-- **Per-scope RBAC**: each section 403s independently — Spend Limits
-  and Agent Limits render their own denied panels without hiding the
-  Plan & Credits tab.
+  `spend-caps/tenant/` (GET/PUT/DELETE), `spend-caps/agents/`
+  (org-wide list, `?mentor=<uuid>` filter), `spend-caps/users/` and
+  `spend-caps/users/{username}/` (user limits), and
+  `spend-caps/users/default/` (the default for new users; a full-replace
+  PUT whose `enabled: false` means off). REST: `/iblai-api-spend-caps`.
+- **Per-scope RBAC**: each section 403s independently — Spend Limits,
+  Agent Limits and User Limits render their own denied panels without
+  hiding the Plan & Credits tab.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

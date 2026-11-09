@@ -1,6 +1,6 @@
 # iblai-vibe-agent-mcp
 
-> Add the agent MCP tab (outside services the agent can use in chats: Featured and Directory connectors switched on or off per agent, custom connectors with OAuth, API key or no auth, per-agent sign-in scope, "Allow Users to Turn Off", the organization's own OAuth app when a service can't register one, and the chat composer's MCP panel where users switch connectors per chat) to your Next.js app. Use when the user mentions MCP, connectors, connecting GitHub / Google Drive / Linear to an agent, OAuth client id and secret for a connector, letting users turn a connector off, or MCP in the chat box. For the Tools switch see /iblai-vibe-agent-tool; for the chat itself see /iblai-vibe-agent-chat; for the REST contract see /iblai-api-agent-mcp.
+> Add the agent MCP tab (outside services the agent can use in chats, with Featured and Directory connectors switched on or off per agent, custom connectors with OAuth, API key or no auth, per-agent sign-in scope, "Allow Users to Turn Off", the organization's own OAuth app when a service can't register one, and the chat composer's MCP panel where users switch connectors per chat) to your Next.js app. Use when the user mentions MCP, connectors, connecting GitHub / Google Drive / Linear to an agent, OAuth client id and secret for a connector, letting users turn a connector off, or MCP in the chat box. For the Tools switch see /iblai-vibe-agent-tool; for the chat itself see /iblai-vibe-agent-chat; for the REST contract see /iblai-api-agent-mcp.
 
 # /iblai-vibe-agent-mcp
 
@@ -38,7 +38,7 @@ in the agent-settings family; all tabs share `AgentSettingsProvider`.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
   Step 2 if not already set up)
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1): the
+- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2): the
   Featured / Directory tabs, per-agent sign-in scope, "Allow Users to Turn
   Off", App Credentials and the chat's MCP panel arrived in
   `@iblai/web-containers` 1.58.1 and are not in earlier releases

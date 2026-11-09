@@ -74,16 +74,16 @@ into `components/iblai/profile-dropdown.tsx`.
 
 | File | Purpose |
 |------|---------|
-| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for the navbar: profile, organization switcher (admins only), and logout |
+| `components/iblai/profile-dropdown.tsx` | Avatar dropdown for the navbar: profile, the organization row (admins only), and logout |
 
-The dropdown reads `userData`, `current_tenant`, and `tenants` from
-localStorage. Admin status is derived from the `tenants` array by matching
-the current organization key against `is_admin`. The avatar is fetched internally
-by the SDK from the user metadata, keyed on `username` (use `user_nicename`)
-— with a Gravatar fallback (`enableGravatarOnProfilePic`) and then initials.
+The dropdown reads `userData` and `tenants` from localStorage. Admin status
+is derived from the `tenants` array by matching the current organization key
+against `is_admin`. The avatar is fetched internally by the SDK from the user
+metadata, keyed on `username` (use `user_nicename`) — with a Gravatar
+fallback (`enableGravatarOnProfilePic`) and then initials.
 
-The dropdown shows: **Profile** (opens the SDK profile modal), a
-**Tenant Switcher** (admins only — see Step 4), and **Logout**. The
+The dropdown shows: **Profile** (opens the SDK profile modal), the
+**organization row** (admins only — see Step 4), and **Logout**. The
 dedicated "Account" item is off (`showAccountTab={false}`); account settings
 live on the separate `/account` page.
 
@@ -185,27 +185,34 @@ export default function ProfilePage() {
   parent is bounded — `h-[80vh]` or `min-h-[640px]` on the card is enough.
 - **Import path**: `@iblai/iblai-js/web-containers` (NOT `/next`).
 
-## Step 4: Organization Switcher
+## Step 4: Organization row and switching
 
-The template already wires the organization switcher to match the reference app —
-it's shown to **admins only** (`showTenantSwitcher={isAdmin}`) and fed by two
-localStorage reads:
+Switching organizations happens in the sign-in app, not in the dropdown. The
+dropdown has two pieces:
 
-- **`userTenants`** (from the `tenants` localStorage key) — populates the switch list. Without it
-  the switcher never appears, even when `showTenantSwitcher` is `true`.
-- **`currentTenant`** (from `current_tenant`) — the FULL active-tenant object.
-  The SDK uses it to label the current organization; without it the switcher falls
-  back to a generic label.
+- **The organization row** (`showTenantSwitcher`) — the name of the
+  organization the user is in. The dropdown looks **`tenantKey`** up in
+  **`userTenants`** (the `tenants` list from localStorage) and shows its
+  `platform_name`, or the key. It hides itself when `userTenants` holds no
+  organization but `main`, so pass both. For an admin of that organization
+  outside `main` (its `is_admin` entry, or an RBAC grant to manage its users,
+  groups, roles, policies or invites), clicking the row opens the profile
+  modal on the organization's settings.
+  The template shows it to **admins only** (`showTenantSwitcher={isAdmin}`),
+  as the reference app does.
+- **Organizations** (`showOrganizationsLink`, on by default) — opens the
+  sign-in app's organization chooser in a new tab; picking one there signs
+  the user in to it and returns them to this app. `onOrganizationsClick`
+  overrides where it goes. The template turns it **off**: a single-org app
+  pins its organization, so moving the session elsewhere makes no sense.
+  Turn it on for a multi-org app (`/iblai-vibe-auth`, "Going multi-org").
 
-**Why admins only:** for a non-admin the SDK renders just the current organization
-name with no working switch list — a dead row. The reference app hides it
-for non-admins; the template does the same. To show it to everyone, set
-`showTenantSwitcher` to a constant `true` (or `userTenants.length > 1`).
+There is no switch callback any more: `UserProfileDropdown` dropped
+`onTenantChange` when switching moved into the sign-in app.
 
-> **The `main` organization displays as "Community".** That's the SDK's built-in
-> name for the `main` org — it is NOT read from `current_tenant.platform_name`,
-> and passing `currentTenant` does not change it. It's not a bug; other
-> organizations show their own name.
+> **The `main` organization displays as "Community".** The row drops `main` from
+> `userTenants` before the lookup, so `tenantKey="main"` falls back to the SDK's
+> built-in name. Not a bug; other organizations show their own name.
 
 ## Step 5: Use MCP Tools for Customization
 
@@ -328,15 +335,15 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `email` | `string` | **Required.** User email (from `userData.user_email`); used for the Gravatar avatar fallback |
 | `username` | `string` | Username — use `user_nicename` (the avatar metadata fetch keys on it) |
 | `mainPlatformKey` | `string` | **Required.** Main/community org key (`config.mainTenantKey()`) |
-| `tenantKey` | `string` | Active org key |
-| `currentTenant` | `Tenant?` | Full active-tenant object (from `current_tenant`) — labels the organization switcher |
-| `userTenants` | `Tenant[]` | **Required for the organization switcher** -- the full `tenants` list from localStorage |
-| `userIsAdmin` | `boolean` | Shows admin badge + gates the organization switcher |
+| `tenantKey` | `string` | Active org key — the organization row looks it up in `userTenants` |
+| `currentTenant` | `Tenant?` | Accepted but not read by the dropdown; the organization row comes from `tenantKey` and `userTenants` |
+| `userTenants` | `Tenant[]` | The full `tenants` list from localStorage — names the organization row, which hides when it holds nothing but `main` |
+| `userIsAdmin` | `boolean` | Shows admin badge + gates the organization row |
 | `userIsStudent` | `boolean?` | `true` when the viewer sees the member view — `!isAdmin`, or `!adminMode` when you have a User/Admin switch. Labels the dropdown's switch row "User" or "Admin" |
 | `enableGravatarOnProfilePic` | `boolean?` | Gravatar fallback when the user has no uploaded image (default `true`) |
 | `showProfileTab` | `boolean` | Show profile link |
 | `showAccountTab` | `boolean` | Show the dedicated "Account" item (keep `false` — account lives on `/account`) |
-| `showTenantSwitcher` | `boolean` | Show organization switcher (needs `userTenants` + `currentTenant`); gate on `userIsAdmin` |
+| `showTenantSwitcher` | `boolean` | Show the current-organization row (needs `tenantKey` and `userTenants`); gate on `userIsAdmin` |
 | `showLogoutButton` | `boolean` | Show logout button |
 | `showHelpLink` | `boolean` | Show the **Help** item (opens the help URL in a new tab). Renders only once `metadataLoaded` is `true`, and not when `metadata.show_help === false` or no URL resolves |
 | `helpCenterUrl` | `string?` | Fallback help URL, used when the org metadata has neither `support_url` nor `help_center_url` |
@@ -347,7 +354,8 @@ The generated dropdown component. Import from `@iblai/iblai-js/web-containers/ne
 | `currentPlatformBaseDomain` | `string?` | Base domain for custom-domain settings (`config.platformBaseDomain()`) |
 | `authURL` | `string` | Auth service URL |
 | `onLogout` | `() => void` | Logout callback |
-| `onTenantChange` | `(tenant: string) => void` | Called when user switches organization -- must set `app_tenant` in localStorage |
+| `showOrganizationsLink` | `boolean?` | Show the **Organizations** item, which opens the sign-in app's organization chooser (default `true`; `false` in a single-org app) |
+| `onOrganizationsClick` | `() => void` | Overrides where **Organizations** goes (default: the chooser at `authURL`) |
 | `onTenantUpdate` | `(tenant: Tenant) => void` | Called when organization data updates -- must set `app_tenant` in localStorage |
 | `className` | `string?` | Additional CSS class |
 | `dropdownClassName` | `string?` | CSS class for dropdown panel |

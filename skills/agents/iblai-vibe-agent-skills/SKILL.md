@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-skills
-description: Add the agent Skills tab (AgentSkillsTab: reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dialogs with file resources, and the chat `/` skill picker) to your Next.js app. Use when the user mentions agent skills, playbooks, 'attach a skill to my agent', skill resources, or the `/` skill picker in chat. For the REST contract see /iblai-api-agent-skill; for sandboxes see /iblai-vibe-agent-sandbox.
+description: Add the agent Skills tab (AgentSkillsTab, with reusable Agent Skills attached per agent, the organization's skill catalog, New/Edit skill dialogs with file resources, and the chat `/` skill picker) to your Next.js app. Use when the user mentions agent skills, playbooks, 'attach a skill to my agent', skill resources, or the `/` skill picker in chat. For the REST contract see /iblai-api-agent-skill; for sandboxes see /iblai-vibe-agent-sandbox.
 globs:
 alwaysApply: false
 metadata:
@@ -53,7 +53,7 @@ Description, and Instruction (a rich-text playbook).
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1).
+- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2).
 - A real agent UUID. Ask the user; never invent one.
 - The signed-in user is an organization admin (or holds the agent's
   skill-assignment roles). The tab renders nothing for `userIsStudent`.
