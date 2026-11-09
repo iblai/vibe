@@ -42,6 +42,9 @@ export function UserProfileButton({
       showProfileTab={true}
       showAccountTab={false}
       showTenantSwitcher={isAdmin}
+      // The chooser signs in to another organization but never updates
+      // `app_tenant`, so this single-organization app would land back in its own.
+      showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton={true}
       showLearnerModeSwitch={false}

@@ -87,7 +87,6 @@ interface UserProfileButtonProps {
   userTenants?: any[];
   authURL: string;
   onLogout: () => void;
-  onTenantChange: (newTenantKey: string) => void;
   onTenantUpdate?: (tenant: any) => void;
   onAccountDeleted?: () => void;
 }
@@ -102,7 +101,6 @@ export function UserProfileButton({
   userTenants = [],
   authURL,
   onLogout,
-  onTenantChange,
   onTenantUpdate,
   onAccountDeleted,
 }: UserProfileButtonProps) {
@@ -119,13 +117,15 @@ export function UserProfileButton({
       showProfileTab={true}
       showAccountTab={false}
       showTenantSwitcher={isAdmin}
+      // The chooser signs in to another organization but never updates
+      // `app_tenant`, so this single-organization app would land back in its own.
+      showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton={true}
       showLearnerModeSwitch={false}
       currentPlan=""
       authURL={authURL}
       onLogout={onLogout}
-      onTenantChange={onTenantChange ?? (() => {})}
       onTenantUpdate={onTenantUpdate ?? (() => {})}
       onAccountDeleted={onAccountDeleted}
     />
