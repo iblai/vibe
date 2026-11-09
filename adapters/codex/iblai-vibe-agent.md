@@ -27,6 +27,7 @@ needs (§2). Most apps need five or six; the rest are there when asked for.
 "use client";
 
 import { AgentSettingsProvider } from "@iblai/iblai-js/web-containers/next";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
@@ -48,15 +49,34 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
 
   return (
     <AgentSettingsProvider tenantKey={tenantKey} mentorId={mentorId} username={username} enableRBAC={false}>
-      {children}
+      {/* Tabs that size their lists to the space they get need a bounded height. */}
+      <div className="flex h-full flex-col">
+        <header className="flex items-center justify-between gap-4 border-b px-4 py-2">
+          <nav className="flex gap-4 text-sm">
+            <Link href={`/agents/${mentorId}/settings`}>Settings</Link>
+            <Link href={`/agents/${mentorId}/tasks`}>Tasks</Link>
+          </nav>
+          <div data-activity-info-slot />
+        </header>
+        <div className="min-h-0 flex-1">{children}</div>
+      </div>
     </AgentSettingsProvider>
   );
 }
 ```
 
 Suggested routes: `app/(app)/agents/[mentorId]/<tab>/page.tsx`, one per tab,
-with a small tab strip (shadcn `Tabs` or plain links) in the layout. Each tab
-component reads the agent from context — no props needed for the basics.
+with the layout's header holding the tab strip (plain links here, or shadcn
+`Tabs`). Each tab component reads the agent from context — no props needed for
+the basics.
+
+The layout must fill the height it is given (`flex h-full flex-col`) and hand
+the rest to the tab (`min-h-0 flex-1`): the Tasks, Support and Evals tabs count
+how many rows fit, and in a wrapper with no height they fall to a 240px floor
+(two tasks or one ticket a page on a desktop). The empty
+`<div data-activity-info-slot />` in the header is where, on phones, those tabs
+move their explanation into an info button. Without it the explanation stays
+above the tab.
 
 ## 2. The tabs
 

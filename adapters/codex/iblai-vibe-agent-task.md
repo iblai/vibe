@@ -10,12 +10,14 @@ periodic agent run that belongs to this agent. This is one tab in the
 agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 `AgentSettingsProvider` wrapper with every other tab.
 
-**Tasks** -- search, a date filter (the day a task starts), **Schedule
-Task**, three counters (Total Tasks, Completed, Failed), and the task list:
-name, time, repeat, a status badge and a delete icon, 5 per page. The
-badge follows the latest run: Running, Failed or Completed; before the first
-run it is Scheduled (or Disabled). The one-off run in these shots failed on
-the platform side.
+**Tasks** -- search, a date filter (**Select Date**, the day a task starts),
+**Schedule Task** on the right, the counters (Total Tasks, Completed, Failed)
+in one strip, and the task list: name, time, repeat, a status icon and a
+delete icon. The list shows as many tasks as fit the space and pages the rest,
+so it never scrolls (between 768 and 1023px wide it shows 5 a page instead). The status icon is grey; hover it (or use a screen
+reader) for the word. It follows the latest run: Running, Failed or
+Completed; before the first run it is Scheduled (or Disabled). With no tasks
+the tab shows one dashed empty box.
 
 ![Tasks tab -- tasks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-1-tasks.png)
 
@@ -27,12 +29,21 @@ me by email**. The start must be in the future, or the dialog says so and
 ![Tasks tab -- Schedule Task](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-2-schedule.png)
 
 **Task Logs** -- click a task to list its runs (status, when, the start of
-the output), 5 per page. Click a run for **Log Details**: status, Created,
-Started and Ended times, and the full output.
+the output), as many as fit, with a pager. Click a run for **Log Details**:
+status, Created, Started and Ended times, and the full output.
+
+![Tasks tab -- Task Logs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-3-logs.png)
 
 **Delete Task** -- the trash icon asks for confirmation; the task stops.
 
 ![Tasks tab -- Delete Task](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-4-delete.png)
+
+**On a phone** (below 768px) -- each task is a card, the date filter is an
+icon that opens a sheet from the bottom, and a "Page x of y" pager replaces
+the page numbers. Tapping a task opens Task Logs full screen, with Back.
+
+![Tasks tab on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-5-phone.png)
+![Task Logs on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-task/iblai-vibe-agent-task-6-phone-logs.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -40,7 +51,7 @@ Started and Ended times, and the full output.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.62.1` (resolves `@iblai/web-containers` 1.62.1). Check with
+- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 
@@ -73,11 +84,17 @@ The tab reads `tenantKey`, `mentorId`, and `username` from
 `AgentSettingsProvider` and does its own fetching and saving. No props are
 required.
 
+The tab measures its wrapper to decide how many rows fit, so give it a set
+height (here `h-full` inside a full-height layout, as in `/iblai-vibe-agent`
+§1). On phones the tab's explanation moves behind an info button in your
+header when the header has an empty `<div data-activity-info-slot />`;
+without one it stays above the tab.
+
 ### Custom pagination (optional)
 
 The task list and the logs panel use the SDK's `IblPagination`. Pass
 `PaginationComponent` to use your own; it also receives
-`disableNumberedButtons`:
+`disableNumberedButtons`. Phones always get the SDK's "Page x of y" pager:
 
 ```tsx
 import { AgentTasksTab } from "@iblai/iblai-js/web-containers/next";
@@ -121,7 +138,7 @@ import { AgentTasksTab } from "@iblai/iblai-js/web-containers/next";
 
 Label groups (`TasksTabLabels`): `header` (`title`, `description`, info
 text), `toolbar` (search, date filter, **Schedule Task**), `metrics` (the
-three counters), `list` (repeat wording, status badges, `deleteTask`),
+three counters), `list` (repeat wording, status words, `deleteTask`),
 `logs` (the logs panel), `states` (loading and empty states),
 `scheduleDialog` (fields, repeat options, `startTimeInPast`, buttons),
 `deleteDialog` (title, confirmation text, buttons), `logDetails` (field
@@ -162,7 +179,7 @@ Paths are under `/api/ai-mentor/orgs/{org}/users/{username}/`.
 
 | Action | Request |
 |---|---|
-| Load | `GET periodic-agents/?mentor_id=<uuid>` (plus `search`; the date filter narrows the fetched page in the browser -- the endpoint has no date filter and ignores the `start_date` / `end_date` the tab sends), and `GET periodic-agent-logs/?ordering=-created_at` for the badges |
+| Load | `GET periodic-agents/?mentor_id=<uuid>` (plus `search`; the date filter narrows the fetched page in the browser -- the endpoint has no date filter and ignores the `start_date` / `end_date` the tab sends), and `GET periodic-agent-logs/?ordering=-created_at` for the status icons |
 | Click a task | `GET periodic-agent-logs/?periodic_agent={id}` |
 | **Schedule Task** | `POST periodic-agents/` with `mentor`, `title`, `prompt` and `task: { name, crontab, enabled: true, one_off, start_time }` |
 | **Delete Task** | `DELETE periodic-agents/{id}/` |
@@ -203,7 +220,7 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
   hour and minute from the user's clock (the crontab has no timezone
   field) and `start_time` in UTC, so a repeat can fire at that hour UTC.
 - **"Notify me by email" is not saved**: the dialog shows the switch, but
-  SDK 2.36.2 does not send it to the API.
+  the SDK does not send it to the API.
 - **Runs are real agent turns**: each run sends the prompt to the agent and
   costs model calls.
 - **Shared provider**: mount `AgentSettingsProvider` once at the layout

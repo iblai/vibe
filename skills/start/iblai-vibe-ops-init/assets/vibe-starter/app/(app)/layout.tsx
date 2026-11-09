@@ -99,11 +99,6 @@ export default function AppLayout({
           userTenants={tenants}
           authURL={config.authUrl()}
           onLogout={() => handleLogout()}
-          onTenantChange={(key: string) => {
-            localStorage.setItem('current_tenant', key);
-            localStorage.setItem('tenant', key);
-            window.location.reload();
-          }}
         />
 
         <NavigationDrawer

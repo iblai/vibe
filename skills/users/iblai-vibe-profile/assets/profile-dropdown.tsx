@@ -3,7 +3,7 @@
  * ibl.ai Profile Dropdown
  *
  * A self-contained user avatar + dropdown menu with profile editing,
- * organization switching (admins), and logout. Wraps the SDK's
+ * the current organization (admins open its settings), and logout. Wraps the SDK's
  * `UserProfileDropdown`. Mirrors the reference app's prop set.
  *
  * Usage:
@@ -19,7 +19,7 @@ import { useMemo } from "react";
 import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
-import { handleLogout, redirectToAuthSpa } from "@/lib/iblai/auth-utils";
+import { handleLogout } from "@/lib/iblai/auth-utils";
 
 interface ProfileDropdownProps {
   /** Additional CSS class for the dropdown trigger. */
@@ -51,11 +51,7 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     };
   }, []);
 
-  // Full active-tenant object (`current_tenant`) + the user's `tenants` list.
-  // The SDK switcher needs `currentTenant` to label the active organization and
-  // `userTenants` to populate the switch list — without `currentTenant`
-  // the switcher falls back to a generic label.
-  const currentTenant = useMemo(() => readJSON<any>("current_tenant", null), []);
+  // The organization row is named from `tenants`, and admin rights come from it.
   const userTenants = useMemo<any[]>(() => readJSON<any[]>("tenants", []), []);
 
   const isAdmin = useMemo(
@@ -73,18 +69,19 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       username={username}
       mainPlatformKey={config.mainTenantKey()}
       tenantKey={tenantKey}
-      currentTenant={currentTenant ?? undefined}
       userTenants={userTenants}
       userIsAdmin={isAdmin}
       userIsStudent={!isAdmin}
       showProfileTab
-      // No dedicated "Account" item — the organization switcher is the only org
-      // control. (Account settings live on a separate /account page.)
+      // Account settings live on a separate /account page.
       showAccountTab={false}
-      // Admins only. For a non-admin the SDK renders just the current
-      // organization name (e.g. "Community" for the `main` organization) with no working
-      // switch list, so hiding it is cleaner.
+      // The row names the current organization and, for an admin, opens its
+      // settings. For anyone else it is a bare label, so admins only.
       showTenantSwitcher={isAdmin}
+      // The organization chooser signs the user into another organization, but
+      // this app keeps working in `app_tenant`, which the chooser never sets.
+      // A multi-org app must point `app_tenant` at the chosen organization first.
+      showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton
       // Gravatar fallback (from the user's email) when there's no uploaded
@@ -94,11 +91,6 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
       authURL={config.authUrl()}
       currentPlatformBaseDomain={config.platformBaseDomain()}
       onLogout={handleLogout}
-      onTenantChange={(tenant: string) => {
-        localStorage.setItem("app_tenant", tenant);
-        localStorage.setItem("tenant", tenant);
-        redirectToAuthSpa(undefined, tenant, false, true);
-      }}
       onTenantUpdate={(tenant: { key?: string }) => {
         if (tenant?.key) {
           localStorage.setItem("app_tenant", tenant.key);
