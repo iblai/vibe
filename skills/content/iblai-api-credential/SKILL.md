@@ -110,8 +110,13 @@ An assertion is an issued credential (a credential granted to a user).
   `entity_id`).
 - **GET** `/api/credentials/public/assertions/{id}/` — **public**, unauthenticated
   lookup of a single assertion by `entity_id` (no org/user segment, no auth
-  header needed). Returns 404 if not found or revoked (revoked responses include
-  the revocation reason).
+  header needed). Returns only what a certificate page renders: `entityId`,
+  `issuedOn`, `recipient` (`name` only), `course` (`course_id`, `name`) and
+  `credentialDetails` (`name_override`, `signatories[]` and
+  `issuerDetails.signatories[]`, each entry `name`/`title`/`signature`). Use
+  the authenticated `…/assertions/{id}` for the full record (username,
+  `metadata`, `acceptance`, revocation, expiry, template internals). Returns an
+  empty 404 for unknown and revoked ids alike.
 
 ### Course import/export (exim) — `/api/credentials/exim/…`
 
