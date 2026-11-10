@@ -88,7 +88,7 @@ What each skill does:
 - `/iblai-vibe-account` -- adds account and organization settings.
 - `/iblai-vibe-analytics` -- adds analytics dashboards and reporting views.
 - `/iblai-vibe-notification` -- adds notifications UI and notification center flows.
-- `/iblai-vibe-invite` -- adds user invitation dialogs for tenant admin.
+- `/iblai-vibe-invite` -- adds user invitation dialogs for organization admin.
 - `/iblai-vibe-workflow` -- adds workflow builder components (sidebar, modals, connectors).
 - `/iblai-vibe-local-llm` -- defines the contract for adding on-device LLM inference (Ollama / Foundry) to a Tauri desktop build: Tauri command names, event names, and the React hook shape the SDK consumes via `localLLMProps`.
 - `/iblai-vibe-course-access` -- adds edX course-content pages with outline sidebar, tab strip, iframe, and access control.
@@ -102,7 +102,7 @@ What each skill does:
 - `/iblai-vibe-windows-msix` -- builds and distributes a Tauri app as a Windows MSIX package (sideloading or Microsoft Store).
 - `/iblai-vibe-deslop` -- audits and hardens an existing codebase for production readiness (two-phase audit then safety-tiered fixes).
 - `/iblai-vibe-cli-maintenance` -- documents the internals of the iblai CLI: commands, the Jinja2 template system, standalone-binary build, and release/publish flows.
-- `/iblai-vibe-rbac` -- reference for the default RBAC roles (student, tenant admin, mentor editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
+- `/iblai-vibe-rbac` -- reference for the default RBAC roles (student, organization admin, agent editor, analytics viewer, etc.), the platform's action-definitions endpoint, and the SDK components (`<Admin>`, `<RolesTab>`, `<PoliciesTab>`) that render the Roles + Policies management UI.
 - `/iblai-vibe-agent-search` -- adds the agent search/browse page (starred, featured, custom, and default agents).
 - `/iblai-vibe-agent-setting` -- adds the agent Settings tab (name, description, visibility, copy, delete) built on `AgentSettingsProvider`.
 - `/iblai-vibe-agent-access` -- adds the agent Access tab (role-based access control for editor and chat roles).
@@ -183,11 +183,11 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`start/`](skills/start) | The first conversation, connecting your organization, sign-in, the starter | 11 |
 | [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 58 |
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations | 18 |
-| [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
+| [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 11 |
 | [`billing/`](skills/billing) | How you are charged, spend caps, three ways to charge your users | 12 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |
-| [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores | 12 |
+| [`ship/`](skills/ship) | Test, deploy, hosting, native builds, app stores, databases | 13 |
 | [`security/`](skills/security) | Authorized-use security work | 8 |
 
 The full list with one line per skill: [docs/catalogue.md](docs/catalogue.md).

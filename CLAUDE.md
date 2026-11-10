@@ -333,12 +333,13 @@ endpoints, no UI; connect once with `/iblai-api-login`, then:
 | Setup | `login` — org key, username, Platform API Token → `.env` + `iblai.env`; org secrets for CI |
 | One agent | ★ `agent-setting`, ★ `agent-memory`, `agent-create`, `agent-prompt`, `agent-llm`, `agent-dataset`, `agent-tool`, `agent-access`, `agent-embed`, `agent-mcp`, `agent-safety`, `agent-privacy`, `agent-disclaimer`, `agent-history`, `agent-audit`, `agent-eval`, `agent-skill`, `agent-sandbox`, `agent-support` |
 | Talk to an agent | `agent-session` (REST/SSE/WebSocket), `agent-chat` (hosted MCP server), `inference` (OpenAI-compatible `/v1`) |
-| Organization | `org`, `management`, `rbac`, `invite`, `scim`, `token`, `integration`, `notification`, `feature`, `billing`, `spend-caps`, `crm`, `external-service-proxy` |
+| Organization | `org`, `management`, `rbac`, `invite`, `scim`, `token`, `integration`, `notification`, `feature`, `billing`, `spend-caps`, `crm`, `external-service-proxy`, `ontology` (the records an on-premise iblai-ontology keeps on the platform) |
 | The signed-in user | ★ `profile`, ★ `profile-metadata` |
 | Content, discovery, analytics | ★ `analytics`, `search`, `catalog`, `catalog-media`, `catalog-invitation`, `course-create`, `milestone`, `credential`, `apply`, `heygen` (avatar video, voice cloning, streaming avatars) |
 | Other LMSs | `canvas-course-builder` (Canvas REST API) |
 | Open edX Studio (session auth, no Api-Token) | `studio` (index), `studio-auth`, `studio-course-create`, `studio-outline` (bulk build), `studio-section`, `studio-subsection`, `studio-unit`, `studio-html`, `studio-pdf`, `studio-problem`, `studio-settings`, `studio-team`, `studio-grading`, `studio-publish`, `studio-lms` |
 | Deploy & hosting | `hosting` — upload a build, poll it live, custom domains (headless twin of `/iblai-vibe-ops-deploy`) |
+| The app's own tables | `database` — a Postgres schema per database on the platform's Supabase: SQL as its owner, rows through the PostgREST proxy with the org's token or a member's session (supabase-js compatible) |
 | Guides | `ecosystem`, `infrastructure` (self-hosting) |
 
 Authoring contract (Reads/Writes structure, `urls.py` as source of truth, the

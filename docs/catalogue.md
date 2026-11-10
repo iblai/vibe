@@ -12,11 +12,11 @@ six data families almost every app reads or writes (the section right below).
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
 | [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 58 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 18 |
-| [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
+| [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 11 |
 | [`billing/`](#billing) | How you are charged, spend caps, and the three ways to charge your users. | 12 |
 | [`analytics/`](#analytics) | Usage, users, topics, transcripts, costs, audit, reports — org-wide or per agent. | 2 |
 | [`content/`](#content) | Courses, catalog, credentials, admissions — and other LMSs. | 26 |
-| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 12 |
+| [`ship/`](#ship) | Test, deploy, native builds, app stores, icons, polish, self-hosting. | 13 |
 | [`security/`](#security) | Authorized-use security work, unrelated to the platform. | 8 |
 
 ## Core
@@ -164,6 +164,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-api-crm`](../skills/organizations/iblai-api-crm/SKILL.md) | 🔌 api | Manage an ibl.ai organization's CRM via the platform API |
 | [`/iblai-api-external-service-proxy`](../skills/organizations/iblai-api-external-service-proxy/SKILL.md) | 🔌 api | Call third-party AI services through ibl.ai's External Service Proxy |
 | [`/iblai-api-integration`](../skills/organizations/iblai-api-integration/SKILL.md) | 🔌 api | Manage an organization's account-level integrations via the platform API |
+| [`/iblai-api-ontology`](../skills/organizations/iblai-api-ontology/SKILL.md) | 🔌 api | Read and write the records an ibl.ai ontology keeps on the ibl.ai platform headlessly via the Data Manager API |
 | [`/iblai-api-token`](../skills/organizations/iblai-api-token/SKILL.md) | 🔌 api | Manage an organization's Platform API Tokens via the platform API |
 | [`/iblai-vibe-account`](../skills/organizations/iblai-vibe-account/SKILL.md) | 🖥️ ui | Add account and organization settings page to your Next.js app |
 | [`/iblai-vibe-credential`](../skills/organizations/iblai-vibe-credential/SKILL.md) | 🔌 api | RBAC setup that lets an API token list and unmask integration credentials on the ibl.ai platform |
@@ -237,6 +238,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 
 | Skill | Kind | What it does |
 |---|---|---|
+| [`/iblai-api-database`](../skills/ship/iblai-api-database/SKILL.md) | 🔌 api | Give an app its own database on the ibl.ai platform headlessly via the Data Manager API |
 | [`/iblai-api-ecosystem`](../skills/ship/iblai-api-ecosystem/SKILL.md) | 📖 guide | Map of the ibl.ai open-source ecosystem |
 | [`/iblai-api-hosting`](../skills/ship/iblai-api-hosting/SKILL.md) | 🔌 api | Deploy and manage ibl.ai-hosted web apps headlessly via the Data Manager API |
 | [`/iblai-api-infrastructure`](../skills/ship/iblai-api-infrastructure/SKILL.md) | 📖 guide | Deploy and self-host the ibl.ai platform infrastructure |
@@ -265,4 +267,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 157 skills.
+Total: 159 skills.

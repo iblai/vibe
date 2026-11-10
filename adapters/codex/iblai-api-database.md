@@ -1,0 +1,431 @@
+# iblai-api-database
+
+> Give an app its own database on the ibl.ai platform headlessly via the Data Manager API — create named databases for an organization (each a Postgres schema with its own roles on the platform's Supabase), shape them through typed objects and fields (tables, columns, select options, relations; no SQL), and read, insert, update and delete their rows through the platform's PostgREST proxy with a Platform API Token or a member's session token, supabase-js compatible. Covers the create/shape/drop surface, the field types and their defaults, the CRUD RBAC verbs and the Database Readers / Writers policies, the token role each request runs as, the storage quota, limits and errors, and the PostgREST query syntax the proxy relays. Use when an app needs tables of its own, or the user mentions Supabase, PostgREST, custom tables, objects, fields or a schema; for schemaless per-user JSON see /iblai-api-profile-metadata, for per-organization JSON see /iblai-api-org.
+
+# iblai-api-database
+
+Every organization can create **databases**: each is a Postgres schema with its
+own roles on the Supabase cluster the platform hosts, and the Data Manager is
+the only way to reach it. One family under `/v1/databases` covers the
+lifecycle:
+
+- **Create / list / drop** — an organization admin names a database; the
+  platform provisions the schema and its roles.
+- **Objects and fields** — describe tables and columns in JSON, the way Twenty
+  CRM's metadata API works; the platform writes the DDL. There is no SQL
+  endpoint: the cluster is shared, and only the platform speaks SQL to it.
+- **Rows over HTTP** — read, insert, update and delete rows through a PostgREST
+  proxy with a Platform API Token or a member's session token; supabase-js
+  works unchanged. Each verb is granted separately, and nobody holds one until
+  an admin grants it.
+
+No Supabase URL, key or token is ever handed to a caller: the proxy mints a
+short-lived credential per request and keeps it server-side.
+
+## The schema is the contract
+
+These endpoints live on the **Data Manager** service and its live OpenAPI schema
+is the single source of truth — the URLs and fields below can drift between
+releases. Validate before building requests:
+
+- **Schema (raw):** `https://api.iblai.app/dm/api/docs/schema/`
+- **Swagger UI:** `https://api.iblai.app/dm/api/docs/`
+
+```bash
+curl -sS "https://api.iblai.app/dm/api/docs/schema/" -o /tmp/iblai_schema.yaml
+grep -nE "/v1/databases" /tmp/iblai_schema.yaml
+```
+
+An instance without the feature configured answers `503`
+`{"error": "Platform databases are not available on this instance"}` on every
+route; a Data Manager older than the feature answers `404`.
+
+## Auth & conventions
+
+- **`dm_url`** = `https://api.iblai.app/dm` — Data Manager endpoints behind the
+  gateway's `/dm` prefix.
+- **`base`** = `{dm_url}/v1/databases` — no trailing slash on any route.
+- **Header:** `Authorization: Api-Token $IBLAI_API_KEY` (a Platform API Token of
+  the organization), or a member's session token,
+  `Authorization: Token <dm_token>` (what the SDK keeps in
+  `localStorage.dm_token`). Either way the call is judged by RBAC — see *Access*.
+- **The organization is the credential's own.** Send `iblai-org: $IBLAI_ORG`
+  (the org key) to confirm it if you like; any other key is `403`
+  (`{"detail": "iblai-org does not match the token's platform."}`). A
+  server-to-server service account must send it.
+- **Placeholders:** `{name}` = the database name you chose; `{object}` = an
+  object (a table) in it; `{field}` = one of its fields (a column).
+- **Lists** answer `{"count", "next_page", "previous_page", "results"}`; page
+  with `page` and `page_size`.
+- Not connected yet? Run **`/iblai-api-login`** first.
+- Dropping a database, an object or a field, and deleting rows, are destructive
+  — **confirm with the user first**.
+
+## Concepts
+
+- **A database is a schema.** `{"name": "crm"}` creates a schema with a random
+  name (`p_<12 hex>`, returned as `schema_name`) that says nothing about the
+  organization. An organization can have many; a name is one lowercase label
+  (`^[a-z0-9][a-z0-9_]{0,19}$`), unique within the organization.
+- **An object is a table, a field a column.** Names are lowercase
+  (`^[a-z][a-z0-9_]{0,30}$`), so they need no quoting in PostgREST URLs and
+  filters. Every object is born with `id` (uuid, generated), `created_at` (set
+  on insert) and `updated_at` (set on insert, moved by every update); these
+  *system fields* cannot be changed or dropped through the objects API. `rpc`, `select`, `order`, `limit`, `offset`, `columns`,
+  `and`, `or`, `not`, Postgres's hidden column names and anything starting with
+  `pg_` are reserved.
+- **Field types** — one column each:
+
+  | `type` | Column | `default` accepts |
+  |---|---|---|
+  | `TEXT` | `text` | a string |
+  | `NUMBER` | `numeric` | a finite number, or a numeric string, within 1e±300 |
+  | `BOOLEAN` | `boolean` | `true` / `false` |
+  | `DATE` | `date` | `"YYYY-MM-DD"`, or `"now"` |
+  | `DATE_TIME` | `timestamptz` | an ISO 8601 timestamp, or `"now"` |
+  | `UUID` | `uuid` | a UUID, or `"uuid"` (generated) |
+  | `RAW_JSON` | `jsonb` | any JSON |
+  | `SELECT` | an enum of the field's `options` | one option |
+  | `MULTI_SELECT` | an array of that enum | a list of options |
+  | `RELATION` | `uuid` referencing another object's `id`, indexed | none |
+
+  `options` are 1–100 unique values matching `^[A-Za-z][A-Za-z0-9_]{0,62}$`,
+  so they filter unquoted (`stage=in.(Lead,Won)`). A `RELATION` names its
+  `relation: {"target": "<object>", "on_delete": "set_null" | "cascade" |
+  "restrict"}` (default `set_null`; a field that is not nullable cannot use
+  it); the target must be an object of the same database, the object itself
+  included. PostgREST embeds it:
+  `select=*,companies(*)`.
+- **What never changes.** A field's `type` and `is_nullable` are fixed at
+  creation; options can only be added; a unique field cannot have a default; a
+  default is at most 1024 characters as JSON. For anything else, create a new
+  field and drop the old one.
+- **Roles.** Each database has an owner role that owns its schema and tables,
+  and five token roles the proxy runs requests as — `read`, `create`,
+  `update`, `upsert`, `delete`. Nobody can log in as any of them. On every table
+  the platform creates they hold, by default privilege: `read` SELECT; `create`
+  SELECT, INSERT; `update` SELECT, UPDATE; `upsert` SELECT, INSERT, UPDATE;
+  `delete` SELECT, DELETE. **No proxied request can TRUNCATE, DROP or ALTER
+  anything.**
+- **Grants are the wall.** A request against `crm` cannot read `shop`, in the
+  same organization or another, and nothing in one organization's database is
+  visible from another's: the cluster's catalogs are never a platform's to read.
+- **Nothing leaves the platform.** No endpoint returns a Supabase URL, key or
+  token. Apps talk to `base`; the proxy signs each request with a 60-second
+  token minted for the caller.
+
+## Access
+
+Everything is RBAC. Organization admins hold every verb below on their organization;
+anyone else holds what a policy grants them. A Platform API Token acts with its
+creator's grants, or, in token-policies mode, with the policies attached to the
+token itself.
+
+| Operation | RBAC verbs (resource `/platforms/{id}/databases/…`) | Runs as |
+|---|---|---|
+| `GET /v1/databases` | `Ibl.Mentor/Database/list` | — |
+| `POST /v1/databases` | `Ibl.Mentor/Database/action` | `postgres` (provisioning) |
+| `GET /v1/databases/{name}` | `Ibl.Mentor/Database/read` | — |
+| `DELETE /v1/databases/{name}` | `Ibl.Mentor/Database/delete` | `postgres` (drop) |
+| `GET …/objects`, `GET …/objects/{object}` | `Ibl.Mentor/Database/read` | `postgres` (the catalog) |
+| `POST …/objects`, `PATCH …/objects/{object}`, `POST …/fields`, `PATCH …/fields/{field}` | `Ibl.Mentor/Database/action` | `postgres` as the owner (DDL) |
+| `DELETE …/objects/{object}`, `DELETE …/fields/{field}` | `Ibl.Mentor/Database/delete` | `postgres` as the owner (DDL) |
+| `GET` / `HEAD` `…/rest/v1/{object}` | `DatabaseAccess/read` | `read` |
+| `POST …/rest/v1/{object}` | `DatabaseAccess/read` + `action` | `create` |
+| `PATCH …/rest/v1/{object}` | `DatabaseAccess/read` + `write` | `update` |
+| `PUT`, or `POST` with `Prefer: resolution=merge-duplicates` | `DatabaseAccess/read` + `action` + `write` | `upsert` |
+| `DELETE …/rest/v1/{object}` | `DatabaseAccess/read` + `delete` | `delete` |
+
+`DatabaseAccess` verbs are `Ibl.Mentor/DatabaseAccess/…`. Read is the base of
+every write: PostgREST filters and returns rows, so a role without `read` can
+do nothing through the proxy.
+
+- **Nobody holds `DatabaseAccess` by default.** Every organization has two
+  seeded policies on all its databases, bound to no one: **Database Readers**
+  (`read`) and **Database Writers** (`read`, `action`, `write`). An admin assigns
+  members to them in user management. No seeded role can delete; to let
+  someone delete rows, an admin builds a custom role with
+  `Ibl.Mentor/DatabaseAccess/delete`.
+- **One database only:** a policy on `/platforms/{id}/databases/{name}/`
+  reaches that database and no other.
+- **The admin family is delegable** the same way: a custom role holding
+  `Ibl.Mentor/Database/*` lets a non-admin create, shape and drop databases.
+
+## Reads
+
+### Databases
+
+- **GET** `https://api.iblai.app/dm/v1/databases` — list the organization's
+  databases, by name: the list envelope, each result
+  `{"name", "schema_name", "size_bytes", "frozen_at", "created_at", "updated_at"}`.
+  A window on `created_at` applies only when sent: `date_filter` (`today`,
+  `7d`, `30d`, `90d`, `all_time`, `custom`) or `start_date` + `end_date`
+  (`YYYY-MM-DD`).
+  `size_bytes` is the on-disk size at the last quota sweep (`null` before the
+  first); `frozen_at` is set while the organization is over its storage quota —
+  row writes and adding objects, fields or unique constraints answer `507`
+  until it is under again; renames, descriptions, drops and reads stay open.
+- **GET** `https://api.iblai.app/dm/v1/databases/{name}`
+  — one database, the same object. `404` for a name the organization does not
+  have.
+
+### Objects
+
+- **GET** `https://api.iblai.app/dm/v1/databases/{name}/objects` — every
+  object with its fields, read from the database itself: the list envelope,
+  each result
+  `{"name", "description", "fields": [{"name", "type", "description", "is_nullable", "is_unique", "default", "options", "relation", "is_system"}]}`.
+  `options` is a list for `SELECT` / `MULTI_SELECT` and `null` otherwise;
+  `relation` is `{"target", "on_delete"}` for a `RELATION` and `null` otherwise;
+  `default` is the value as you would send it (`"now"`, `"uuid"`, a number, a
+  list of options…) or `null`.
+- **GET** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}`
+  — one object, the same shape. `404` when the database has no such object.
+
+### Rows (the proxy)
+
+- **GET** `https://api.iblai.app/dm/v1/databases/{name}/rest/v1/{object}`
+  — a PostgREST read, relayed verbatim: the query string carries `select=`,
+  filters, `order=`, `limit=` / `offset=`; `Accept`, `Range` and `Range-Unit` go
+  through; `Prefer: count=exact` answers with `Content-Range`. The response is
+  PostgREST's own status, body and `Content-Type`, with `Content-Range` and
+  `Preference-Applied` relayed. **HEAD** works the same way. Rows come back
+  streamed (chunked, with no `Content-Length`), so a large answer is not
+  refused for its size. A query still has 8 seconds to run and its answer 120
+  seconds to be read, after which the transfer is cut off (a broken
+  connection, never a short answer that looks whole): page with `limit=`.
+  Syntax: [`references/postgrest.md`](references/postgrest.md).
+
+```bash
+curl -sS "$base/crm/rest/v1/contacts?select=id,email&stage=eq.Lead&order=id.desc&limit=20" \
+  -H "Authorization: Api-Token $IBLAI_API_KEY" -H "Prefer: count=exact" -i
+```
+
+## Writes
+
+### Databases
+
+- **POST** `https://api.iblai.app/dm/v1/databases`
+  — create a database: provisions the schema and its six roles, then records
+  it.
+
+  ```json
+  {"name": "crm"}
+  ```
+
+  `201` with the database object. `400` on a bad name (`{"name": [...]}`),
+  `409` when the organization already has it
+  (`{"error": "Database 'crm' already exists"}`) or has reached its limit of
+  databases (10 unless the operator set another), `502` when the cluster could
+  not be reached or refused the platform's credential or its own provisioning,
+  `503` when the feature is not configured. A failed create leaves nothing
+  behind, so a `502` is safe to retry with the same name.
+
+- **DELETE** `https://api.iblai.app/dm/v1/databases/{name}`
+  — **Confirm with the user first.** Drops the schema with every object and row
+  in it and all six roles, then the record. The body must repeat the schema
+  name, `{"confirm": "<schema_name>"}`; anything else is `400` naming the value
+  to send. `204`, empty body. Deleting the organization does **not** drop its
+  schemas on the cluster; only this call does. A policy written for
+  `/platforms/{id}/databases/{name}/` outlives the drop, and a later database
+  with the same name inherits it: remove such policies when you drop.
+
+### Objects and fields
+
+- **POST** `https://api.iblai.app/dm/v1/databases/{name}/objects`
+  — create an object (a table) with its fields in one go. `fields` is optional
+  and may relate to the object itself.
+
+  ```json
+  {
+    "name": "contacts",
+    "description": "People we know",
+    "fields": [
+      {"name": "email", "type": "TEXT", "is_nullable": false, "is_unique": true},
+      {"name": "stage", "type": "SELECT", "options": ["Lead", "Won"], "default": "Lead"},
+      {"name": "score", "type": "NUMBER", "default": 0},
+      {"name": "company", "type": "RELATION", "relation": {"target": "companies", "on_delete": "cascade"}}
+    ]
+  }
+  ```
+
+  `201` with the object as GET returns it, system fields first. `400` on a bad
+  name, type, option, default or relation (the field's key names the problem),
+  `409` when the name is taken or the database is at its limit of objects
+  (50 unless the operator set another), `404` for a database the organization
+  does not have. PostgREST serves the new object once it has reloaded its schema
+  cache, a moment after the `201`: a first read that answers `PGRST205` is that
+  moment, retry it.
+- **PATCH** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}`
+  — rename (`{"name": "people"}`) or describe (`{"description": "…"}`, `null`
+  clears) an object. `200` with the object; `409` when the new name is taken.
+- **DELETE** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}`
+  — **Confirm with the user first.** Drops the table and every row in it. The
+  body must repeat the object's name, `{"confirm": "contacts"}`; `204`. An
+  object another object relates to is refused with `409` until that relation
+  field is dropped: nothing disappears that was not named.
+- **POST** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}/fields`
+  — add a field (a column); the body is one field as above. A field that is not
+  nullable needs a `default` here, for the rows the object already holds. `201`
+  with the field; `409` when the name is taken, the object is at its limit of
+  fields (100 unless the operator set another), or the rows refuse the new rule
+  (a unique field with duplicates: `{"error", "code": "23505", "detail"}`).
+- **PATCH** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}/fields/{field}`
+  — change `name`, `description`, `default` (`null` drops it), `is_unique`, or
+  `options` (send the full list; only additions are accepted). Sending `type`
+  or `is_nullable` is `400`: create a new field instead. An option added in a
+  request cannot be made the default in the same request — Postgres needs it
+  committed first. `200` with the field.
+- **DELETE** `https://api.iblai.app/dm/v1/databases/{name}/objects/{object}/fields/{field}`
+  — **Confirm with the user first.** Drops the column and every value in it.
+  The body must repeat the field's name, `{"confirm": "stage"}`; `204`. System
+  fields are refused with `400`.
+
+Every write above is one transaction the platform runs on the cluster as the
+database's owner, with a 20-second statement timeout and a 3-second wait for
+locks. Postgres's answer about your own objects comes back with its message and
+SQLSTATE: `409` for something in the way (a name taken, rows that break the new
+rule, a dependent object), `400` for a value the type refuses, `404` for a
+name that is gone, `503` with `Retry-After` for a lock or timeout — nothing
+changed, retry. Anything else is `502`: the platform's problem, not yours.
+
+### Rows (the proxy)
+
+- **POST** `https://api.iblai.app/dm/v1/databases/{name}/rest/v1/{object}`
+  — insert one object or an array. `Prefer: return=representation` returns the
+  rows (`201`); `Prefer: resolution=merge-duplicates` upserts (needs `write`
+  too).
+- **PATCH** `https://api.iblai.app/dm/v1/databases/{name}/rest/v1/{object}`
+  — update the rows the query-string filters select (`?id=eq.<uuid>`); `204`,
+  or the rows with `Prefer: return=representation`. An unfiltered PATCH is
+  refused by the cluster (`21000`, `UPDATE requires a WHERE clause`).
+- **PUT** `https://api.iblai.app/dm/v1/databases/{name}/rest/v1/{object}`
+  — PostgREST's single-row upsert: the primary key in the filter (`?id=eq.<uuid>`)
+  and the full row in the body.
+- **DELETE** `https://api.iblai.app/dm/v1/databases/{name}/rest/v1/{object}`
+  — **Confirm with the user first.** Deletes the filtered rows; `204`. An
+  unfiltered DELETE is refused by the cluster (`21000`,
+  `DELETE requires a WHERE clause`). Needs the `delete` verb, which no seeded
+  role carries.
+
+The proxy sends the request body through byte for byte (JSON as given, up to
+2 MiB — larger is `413` before anything is read; a chunked body without a
+`Content-Length` is `411`) and forwards only `Accept`, `Content-Type`, `Prefer`,
+`Range` and `Range-Unit`. `Accept-Profile` and `Content-Profile` are set to the
+database's schema whatever you send: a request addressed to `crm` can only ever
+read `crm`. `{object}` is one object name; `rpc/…` and any other path is `400`.
+Two things in the query string are the platform's to refuse, both `400` before
+anything reaches PostgREST: a `select=` cast to anything but a plain type
+(`::text`, `::int`, `::bigint`, `::numeric`, `::float`, `::boolean`, `::date`,
+`::timestamptz`, `::uuid`, `::json`, `::jsonb` and a few more are fine), a raw
+`;` (send `%3B`), and a `?` or `#` in the table path.
+
+## Storage quota
+
+Every 15 minutes the platform measures each organization's databases together.
+Over the instance's quota (1 GiB unless the operator set another), every
+database of the organization gets `frozen_at`, and the proxy answers `507`
+(`{"error": "This platform's databases are over their storage quota; only reads
+and deletes are accepted"}`) to `POST`, `PATCH` and `PUT`. Reads, deletes,
+renames, descriptions and drops stay open; adding an object or a field, or
+making a field unique, is `507` too. Deleting rows does not shrink the files: drop
+an object to give its space back, and writes resume at the next sweep that
+finds the organization under the quota. The quota measures tables; keep files
+out of the database.
+
+## Example
+
+Create a database, shape an object, write and read rows through the proxy,
+then drop it:
+
+```bash
+dm_url="https://api.iblai.app/dm"
+base="$dm_url/v1/databases"
+auth="Authorization: Api-Token $IBLAI_API_KEY"   # a token an admin created
+json="Content-Type: application/json"
+
+# 1. create — 201; keep schema_name for the drop
+schema=$(curl -s -X POST "$base" -H "$auth" -H "$json" -d '{"name": "crm"}' | jq -r '.schema_name')
+
+# 2. an object with its fields — the platform writes the DDL
+curl -s -X POST "$base/crm/objects" -H "$auth" -H "$json" -d '{
+  "name": "contacts",
+  "fields": [
+    {"name": "email", "type": "TEXT", "is_nullable": false, "is_unique": true},
+    {"name": "stage", "type": "SELECT", "options": ["Lead", "Won"], "default": "Lead"}
+  ]}'
+
+# 3. rows through the proxy — PostgREST syntax (give the cache a second after step 2)
+curl -s -X POST "$base/crm/rest/v1/contacts" -H "$auth" -H "$json" \
+  -H "Prefer: return=representation" -d '[{"email": "jane@example.com"}, {"email": "li@example.com"}]'
+curl -s "$base/crm/rest/v1/contacts?select=id,email,stage&stage=eq.Lead&order=created_at" -H "$auth"
+curl -s -X PATCH "$base/crm/rest/v1/contacts?email=eq.li@example.com" -H "$auth" -H "$json" \
+  -d '{"stage": "Won"}'
+
+# 4. a field later: options grow, never shrink
+curl -s -X PATCH "$base/crm/objects/contacts/fields/stage" -H "$auth" -H "$json" \
+  -d '{"options": ["Lead", "Won", "Lost"]}'
+
+# 5. drop — destructive; confirm with the user first
+curl -s -X DELETE "$base/crm" -H "$auth" -H "$json" -d "{\"confirm\": \"$schema\"}"
+```
+
+With supabase-js, point the client at the database and put the token in the
+global headers; it calls `…/rest/v1/<object>` by itself:
+
+```js
+import { createClient } from "@supabase/supabase-js";
+
+const db = createClient(`${base}/crm`, "unused", {
+  // server-side: a Platform API Token; in the browser: `Token ${dmToken}` for the member
+  global: { headers: { Authorization: `Api-Token ${process.env.IBLAI_API_KEY}` } },
+});
+const { data, error } = await db.from("contacts").select("id,email").eq("stage", "Lead");
+```
+
+A member using their own session token needs a grant first: an admin assigns
+them **Database Readers** or **Database Writers** in user management.
+
+## Notes
+
+- **Errors from PostgREST pass through** with their status and JSON (`code`,
+  `message`, `details`, `hint`): `PGRST205` is an object PostgREST does not know
+  (a typo, or one created a moment ago), `PGRST204` a column it does not know
+  yet, `42501` a grant refusal (a write the role cannot make), `23505` a unique
+  violation, `21000` a PATCH or DELETE without a filter, `PGRST116` an
+  `Accept: application/vnd.pgrst.object+json` request that did not match
+  exactly one row.
+- **`403` before the proxy** is the platform's own refusal: `{"error":
+  "Permission denied"}` when a verb for the method is missing, `{"detail":
+  "iblai-org does not match the token's platform."}` when `iblai-org` names
+  another organization. **`404`** is a database the organization does not
+  have. Neither reaches the cluster.
+- **`502`** is the cluster unreachable, failing, or refusing the platform's
+  own credentials — never the caller's (`{"error": "The database service is
+  unavailable"}`); **`503`** is the feature not configured on this instance, a
+  lock or timeout on a shape change (`Retry-After`, nothing changed), or, for a
+  moment after a create, a database PostgREST does not serve yet (`{"error":
+  "The database is not ready yet; retry in a moment"}`). None names a setting;
+  the platform's logs say which.
+- **Schema cache.** PostgREST learns a new object or field when it reloads its
+  schema cache, which the platform asks for at the end of every shape change;
+  if the first read after one answers `PGRST205` or `PGRST204`, retry a second
+  later.
+- **`updated_at`** moves on every update by itself; a value you send for it is
+  replaced.
+- **Audit.** Creating and dropping a database, and every object and field
+  change, land in the organization's audit log with who made them.
+- **Timeouts:** 8 s per statement of a proxied request, 20 s per shape change,
+  30 s per call, 5 s to connect. There are no server-side retries.
+- **Not metered.** Database calls run on the instance's default request
+  throttles and spend no credits; storage is bounded by the quota.
+- **Not covered:** functions (`rpc/`), views, triggers, row-level security
+  policies, Realtime, Storage buckets, Edge Functions and Supabase Auth are not
+  exposed — only objects, fields and rows. There is no export endpoint.
+
+## Reference material
+
+- [`references/postgrest.md`](references/postgrest.md) — the PostgREST query
+  syntax the proxy relays: `select`, filters, ordering, paging and counts,
+  inserts, upserts, updates, deletes, the headers that matter, and PostgREST's
+  error codes.

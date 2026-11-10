@@ -180,7 +180,8 @@
       "iblai-api-integration",
       "iblai-api-token",
       "iblai-api-crm",
-      "iblai-api-external-service-proxy"
+      "iblai-api-external-service-proxy",
+      "iblai-api-ontology"
     ],
     "billing": [
       "iblai-vibe-pricing",
@@ -240,7 +241,8 @@
       "iblai-vibe-deslop",
       "iblai-api-infrastructure",
       "iblai-api-ecosystem",
-      "iblai-api-hosting"
+      "iblai-api-hosting",
+      "iblai-api-database"
     ],
     "security": [
       "iblai-vibe-security-recon",

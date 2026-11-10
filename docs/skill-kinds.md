@@ -50,6 +50,7 @@ Most capabilities exist in both families. Pick by *where the code runs*:
 | Billing, credits, spend caps, paywalls | `/iblai-vibe-pricing` → `credit`, `billing`, `monetization*` | `/iblai-api-billing`, `/iblai-api-spend-caps` |
 | Courses, catalog, credentials, applications | `/iblai-vibe-course-access`, `/iblai-vibe-application` | `/iblai-api-catalog`, `-course-create`, `-credential`, `-apply`, `-milestone`, `-catalog-media`, `-catalog-invitation` |
 | Deploying and hosting the app | `/iblai-vibe-ops-deploy` (a guided runbook, kind `ops` — not a component) | `/iblai-api-hosting` |
+| The app's own tables (SQL, rows over REST) | — (call it from a server route: `/iblai-vibe-api`) | `/iblai-api-database` |
 | Anything without a component | `/iblai-vibe-api` (server route + `Api-Token`) | the `iblai-api-*` skill for that family |
 
 Rule of thumb: **in the browser, use the SDK hook or component** (it carries
