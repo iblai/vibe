@@ -156,14 +156,25 @@ curl -X POST \
   start a new run. Do not keep polling it.
 - `GET …/scores/` with no run or trace filter only covers the last 30 days. To
   read a run's scores use `?dataset_run_id=`, which is not windowed.
-- Any read may return `504` when the evaluation data store takes too long;
-  retry later, and narrow a scores query with a date window.
+- The scores list returns only scores recorded through this API for `$IBLAI_ORG`.
+  A score added to a trace by any other route carries no org and is not listed,
+  so counts can differ from a tool that reads the traces directly.
+- Run details, run export, the scores list and item reads that attach a trace
+  (`include_trace`, or one item with a `source_trace_id`) may return `504` when
+  the evaluation data store takes too long; retry later, and narrow a scores
+  query with a date window.
+- A run started on a dataset with no items finishes `completed` without ever
+  being recorded: it drops out of the run list and its details return `404`.
+  Add items before starting a run.
 - Deleting a run leaves its judge records: a new run started under the same
   `run_name` lists the old reviews in `…/evaluate/`. Use a fresh `run_name`.
 - When the judge model call fails, the judge task still ends `completed` and
   writes `0` with the comment `LLM judge call failed` for each item. Check
   comments before trusting low scores.
-- Verified against the live schema (4.411.0) and live runs on 2026-10-02.
+- Verified against the live schema (4.411.0) and live runs on 2026-10-02,
+  except the behaviour marked "from DM 4.491.0" and the notes on failed runs,
+  the scores date window and `504`, which describe that release and have not
+  been checked against a live deployment.
 
 ## Schema
 
