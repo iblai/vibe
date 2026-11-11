@@ -3,6 +3,13 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.21.1] - 2026-11-11
+
+### Documentation
+
+- follow-up questions with session_id
+- agent id in the MCP URL, one Api-Token header
+
 ## [2.21.0] - 2026-11-09
 
 ### Added
