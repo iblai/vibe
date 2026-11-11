@@ -27,21 +27,22 @@ it is documentation.
 ## `iblai-agent-chat` — talk to a deployed agent (hosted)
 
 The one runtime capability that is not a REST call: holding a live
-conversation with one of your agents (streamed responses, tool use, RAG) from
+conversation with one of your agents (its tools, RAG and memory) from
 Claude Code, Claude Desktop, Cursor, or any MCP client. Hosted by ibl.ai; no
-install. Authenticates with your Platform API Token and names the agent:
+install. The agent's UUID goes in the URL; the only header is your Platform
+API Token:
 
 ```bash
-claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/ \
-  --header "Authorization: Api-Token YOUR_API_TOKEN" --header "X-Mentor-Unique-Id: YOUR_AGENT_UUID"
+claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UUID \
+  --header "Authorization: Api-Token YOUR_API_TOKEN"
 ```
 
 `/iblai-api-agent-chat` writes this configuration for you from `.env`;
 [`mcp/iblai-agent-chat/README.md`](../mcp/iblai-agent-chat/README.md) has the
 Claude Desktop / Cursor JSON and the tool list. Rule: if a skill covers it,
 there is no server for it — everything else is REST via the `iblai-api-*`
-skills. (`X-Mentor-Unique-Id` is the header's wire name; the value is the
-agent's UUID.)
+skills. (No agent header is needed; the older `X-Mentor-Unique-Id` header
+still works for existing configs.)
 
 ## Plus a browser: `chrome-devtools` (third-party, local)
 

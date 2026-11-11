@@ -154,13 +154,13 @@ hooks, RTK Query endpoints, provider setup). `.mcp.json` at the project root
 
 **`iblai-agent-chat`** — a *hosted* MCP server for the one runtime capability
 that is not a REST call: holding a live conversation with a deployed agent
-(streamed responses, tool use, RAG). No install; wire it with
+(its tools, RAG and memory). No install; wire it with
 [`/iblai-api-agent-chat`](../skills/agents/iblai-api-agent-chat/SKILL.md) or by hand from
 [`mcp/iblai-agent-chat/README.md`](../mcp/iblai-agent-chat/README.md):
 
 ```bash
-claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/ \
-  --header "Authorization: Api-Token YOUR_API_TOKEN" --header "X-Mentor-Unique-Id: YOUR_AGENT_UUID"
+claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UUID \
+  --header "Authorization: Api-Token YOUR_API_TOKEN"
 ```
 
 

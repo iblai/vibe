@@ -14,16 +14,17 @@ The iblai-agent-chat server provides a bridge between MCP-compatible AI assistan
 
 ### Authentication
 
-The server uses Api-Token authentication via the `Authorization` header, plus an agent identifier. You need:
-1. A Platform API Key from your ibl.ai admin panel
-2. The agent's unique ID via the `X-Mentor-Unique-Id` header
+The agent is named in the URL, and the server authenticates with one header. You need:
+1. A Platform API Key (owner mode) from your ibl.ai admin panel
+2. The agent's unique ID, placed in the URL: `https://asgi.data.iblai.app/mcp/agent-chat/<UNIQUE_AGENT_ID>`
 
 ### Required Headers
 
 | Header | Description | Required |
 |--------|-------------|----------|
-| `Authorization` | Api-Token for authentication | Yes |
-| `X-Mentor-Unique-Id` | Unique identifier of the agent to interact with | Yes |
+| `Authorization` | `Api-Token <key>` | Yes |
+
+No agent header is needed. The older `X-Mentor-Unique-Id` (or `X-Agent-Unique-Id`) header with `https://asgi.data.iblai.app/mcp/agent-chat/` still works for existing configs; a URL id and a header naming different agents are refused. The URL works with or without a trailing slash.
 
 ## Usage
 
@@ -40,10 +41,9 @@ Add this to your configuration file:
   "mcpServers": {
     "iblai-agent-chat": {
       "transport": "streamable-http",
-      "url": "https://asgi.data.iblai.app/mcp/agent-chat/",
+      "url": "https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UNIQUE_ID",
       "headers": {
-        "Authorization": "Api-Token YOUR_API_TOKEN",
-        "X-Mentor-Unique-Id": "YOUR_MENTOR_UNIQUE_ID"
+        "Authorization": "Api-Token YOUR_API_TOKEN"
       }
     }
   }
@@ -53,14 +53,14 @@ Add this to your configuration file:
 ### Connect from Claude Code
 
 ```bash
-claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/ --header "Authorization: Api-Token YOUR_API_TOKEN" --header "X-Mentor-Unique-Id: YOUR_MENTOR_UNIQUE_ID"
+claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UNIQUE_ID --header "Authorization: Api-Token YOUR_API_TOKEN"
 ```
 
 ## Available Tools
 
 ### `get_mentor_response`
 
-Send a prompt to the configured agent and receive a response.
+Send a prompt to the configured agent and receive its reply. Each call is a new conversation: the agent does not see earlier calls, so include any earlier turns you need in the prompt.
 
 **Parameters:**
 - `prompt`: The message or question to send to the agent (required)
@@ -79,10 +79,10 @@ Response: "Machine learning encompasses several key concepts..."
 
 ## How It Works
 
-1. **Authentication**: The server validates the user's Bearer token against ibl.ai's authentication system
-2. **Agent Resolution**: The `X-Mentor-Unique-Id` header identifies which agent to route the conversation to
-3. **LLM Invocation**: The prompt is processed through ibl.ai's LLM service with the agent's configured context, system prompts, and knowledge base
-4. **Response**: The agent's response is returned through the MCP tool
+1. **Authentication**: The server validates the `Api-Token` against ibl.ai's authentication system
+2. **Agent Resolution**: The agent ID in the URL path (`/mcp/agent-chat/<UNIQUE_AGENT_ID>`) identifies which agent to route the conversation to. It can be one of your organization's agents, or a `main` agent shared with every organization (visibility "viewable by anyone")
+3. **Chat turn**: The prompt runs as a chat turn on the same path as the chat screen, with the agent's system prompt, tools, trained documents and memory. The turn is attributed to the token's owner and billed to the token's organization; credits, spend caps and moderation apply
+4. **Response**: The agent's full reply is returned as the tool result
 
 ## Agent Configuration
 
@@ -122,18 +122,16 @@ Configure multiple agent connections for different tasks:
   "mcpServers": {
     "python-tutor": {
       "transport": "streamable-http",
-      "url": "https://asgi.data.iblai.app/mcp/agent-chat/",
+      "url": "https://asgi.data.iblai.app/mcp/agent-chat/PYTHON_AGENT_ID",
       "headers": {
-        "Authorization": "Api-Token YOUR_API_TOKEN",
-        "X-Mentor-Unique-Id": "PYTHON_MENTOR_ID"
+        "Authorization": "Api-Token YOUR_API_TOKEN"
       }
     },
     "data-science-expert": {
       "transport": "streamable-http",
-      "url": "https://asgi.data.iblai.app/mcp/agent-chat/",
+      "url": "https://asgi.data.iblai.app/mcp/agent-chat/DS_AGENT_ID",
       "headers": {
-        "Authorization": "Api-Token YOUR_API_TOKEN",
-        "X-Mentor-Unique-Id": "DS_MENTOR_ID"
+        "Authorization": "Api-Token YOUR_API_TOKEN"
       }
     }
   }
@@ -152,9 +150,10 @@ To find an agent's unique ID:
 
 | Error | Description | Resolution |
 |-------|-------------|------------|
-| "Could not authenticate agent via X-Mentor-Unique-Id" | Invalid or missing agent ID | Verify the agent ID in the header |
-| 401 Unauthorized | Invalid Bearer token | Re-authenticate with valid credentials |
-| 403 Forbidden | User lacks access to this agent | Check agent permissions |
+| Tool error "Could not authenticate the agent named by the URL or X-Agent-Unique-Id" | Missing or unknown agent ID, or an agent your organization cannot reach | Verify the agent ID in the URL; another organization's agent is reachable only if it is a `main` agent shared with every organization |
+| Tool error "Only owner-mode API tokens are supported for chat" | The token runs in a non-owner mode | Use an owner-mode Platform API Key |
+| Tool error with the chat's message (for example, out of credits) | The chat refused the turn | Act on the message (top up credits, raise the spend cap, check access) |
+| 401 Unauthorized | Missing or invalid `Api-Token` | Use a valid Platform API Key |
 | 500 Server Error | Internal processing error | Contact support |
 
 ## Best Practices
@@ -162,7 +161,7 @@ To find an agent's unique ID:
 1. **Use Specific Agents**: Configure separate agent connections for different use cases
 2. **Handle Errors Gracefully**: Implement fallback logic for authentication failures
 3. **Monitor Usage**: Track agent interactions via the analytics MCP
-4. **Secure Credentials**: Store Bearer tokens and agent IDs securely
+4. **Secure Credentials**: Store API tokens securely
 
 ## Rate Limiting
 
