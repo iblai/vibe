@@ -38,7 +38,11 @@ certificates.
   row filter, never a source of privilege: rights come from the caller (a
   platform admin reaches any member, a department admin their department's
   members, a member only themselves), so a member naming another user, admin
-  or not, gets 403.
+  or not, gets 403. A member's own path grants reads only: updating or
+  deleting a credential, issuing or revoking needs a platform or department
+  admin, an owner-mode platform API key or a service account
+  (client-credentials token). A platform API key in token-policies mode is
+  refused by these endpoints.
 - **Ids:** id-taking detail endpoints (credentials, assertions, assignments)
   look up **by `entity_id`** (the UUID string) only — numeric database ids are
   not accepted. `{id}` below means the `entity_id`.
