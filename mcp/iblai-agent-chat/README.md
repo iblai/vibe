@@ -60,20 +60,31 @@ claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp
 
 ### `get_mentor_response`
 
-Send a prompt to the configured agent and receive its reply. Each call is a new conversation: the agent does not see earlier calls, so include any earlier turns you need in the prompt.
+Send a prompt to the configured agent and receive its reply. The tool keeps the conversation: pass the `session_id` from a reply to ask a follow-up, and the agent sees the earlier turns.
 
 **Parameters:**
 - `prompt`: The message or question to send to the agent (required)
+- `session_id`: The session id from a previous reply, to continue that conversation (optional; omit it to start a new conversation)
 
-**Returns:** The agent's response as a string
+**Returns:** The agent's reply as text, ending with a `session_id: <id>` line. The result also carries structured content `{"reply": "...", "session_id": "..."}`.
 
 **Example Usage:**
 
 ```
 User: "What are the key concepts in machine learning?"
 Tool Call: get_mentor_response(prompt="What are the key concepts in machine learning?")
-Response: "Machine learning encompasses several key concepts..."
+Response: "Machine learning encompasses several key concepts...
+
+session_id: SESSION_ID"
+
+User: "Which of those matters most for a beginner?"
+Tool Call: get_mentor_response(prompt="Which of those matters most for a beginner?", session_id="SESSION_ID")
+Response: "For a beginner, start with supervised learning...
+
+session_id: SESSION_ID"
 ```
+
+A session belongs to the token's owner and the agent it was started with; a session id of another user, organization or agent is refused.
 
 ---
 
@@ -82,7 +93,7 @@ Response: "Machine learning encompasses several key concepts..."
 1. **Authentication**: The server validates the `Api-Token` against ibl.ai's authentication system
 2. **Agent Resolution**: The agent ID in the URL path (`/mcp/agent-chat/<UNIQUE_AGENT_ID>`) identifies which agent to route the conversation to. It can be one of your organization's agents, or a `main` agent shared with every organization (visibility "viewable by anyone")
 3. **Chat turn**: The prompt runs as a chat turn on the same path as the chat screen, with the agent's system prompt, tools, trained documents and memory. The turn is attributed to the token's owner and billed to the token's organization; credits, spend caps and moderation apply
-4. **Response**: The agent's full reply is returned as the tool result
+4. **Response**: The agent's full reply is returned as the tool result, with the session id to continue the conversation
 
 ## Agent Configuration
 

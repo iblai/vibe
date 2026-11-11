@@ -66,10 +66,11 @@ token and `unique_id` - do not commit secrets:
 }
 ```
 
-After adding it, the assistant gains the server's `get_mentor_response(prompt)`
-tool. Each call is one chat turn: the agent replies as it does in the chat
-screen, with its own instructions, tools and trained documents, and the tool
-returns the full reply text.
+After adding it, the assistant gains the server's
+`get_mentor_response(prompt, session_id?)` tool. Each call is one chat turn:
+the agent replies as it does in the chat screen, with its own instructions,
+tools and trained documents. The tool returns the full reply text, ending with
+a `session_id: <id>` line (also in the result's structured content).
 
 ## Notes
 
@@ -77,8 +78,10 @@ returns the full reply text.
   entry. To chat with several agents, add multiple named entries (e.g.
   `iblai-api-agent-chat-tutor`, `iblai-api-agent-chat-advisor`), each with its
   own `unique_id` in the URL.
-- **Each call is a new conversation** - the agent does not see earlier calls;
-  include any earlier turns you need in the prompt.
+- **Follow-up questions** - pass the `session_id` from the previous reply to
+  continue the conversation; the agent sees the earlier turns. Omit it to start
+  a new conversation. A session belongs to the token's owner and its agent; a
+  session id of another user, organization or agent is refused.
 - **Owner-mode tokens only** - the turn is attributed to the token's owner and
   billed to the token's organization like a turn in the chat screen (credits,
   spend caps and moderation apply). A refused turn (out of credits, a
