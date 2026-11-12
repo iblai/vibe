@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.22.0] - 2026-11-12
+
+### Added
+
+- API, Secrets and Network pages; environment variables on the Sandbox tab
+
+### Documentation
+
+- screenshots without the starter navbar
+
 ## [2.21.1] - 2026-11-11
 
 ### Documentation
