@@ -59,8 +59,8 @@ Your app's server (deploys, admin routes, anything with no SDK component)
 authenticates with one org-scoped secret. Three ways to get it:
 
 1. **In the OS (no tooling):** Admin mode → settings → **Integrations** →
-   **APIs** tab → **Add API**. Name it after the app (`my-app`), leave the
-   expiry empty, keep the default Owner permissions, **Submit**. The secret
+   **API** → **Add API Key**. Name it after the app (`my-app`), leave the
+   expiry empty, keep the default Owner permissions, **Add API Key**. The secret
    is shown **once** — copy it now. (The same key list is reachable from any
    agent's Edit Agent → Integrations → API; they are one store.)
 2. **From your agent:** `npx skills add iblai/vibe --all` then `/iblai-api-login` — it
@@ -106,7 +106,7 @@ For what to charge *your* users, see `/iblai-vibe-pricing`.
 
 ## 6. More models — your own LLM keys
 
-Admin mode → settings → **Integrations** → **LLMs** → **Add LLM**. Pick a
+Admin mode → settings → **Integrations** → **Secrets** → **LLMs** → **Add LLM**. Pick a
 provider (OpenAI, Anthropic, Google, Azure OpenAI per deployment, …) and paste
 its key; it is stored masked. Agents in the org can then select those models
 (`/iblai-vibe-agent-llm`). Costs by provider and model appear under

@@ -14,7 +14,7 @@ review of an app built from vibe-starter.
 | Whose authority | the signed-in **user** — exactly their permissions in exactly their org | the **organization** — admin-level, org-scoped |
 | Where it lives | the browser's `localStorage` for the app's origin | the server's environment only (`.env.local`, the hosting platform's env); `config.apiKey()` returns `""` in the browser by construction |
 | Sent as | `Authorization: Token <dm_token>` by the SDK; `Bearer` on the AXD host | `Authorization: Api-Token <key>`; `Bearer` only on the OpenAI-compatible `/v1` |
-| Lifetime | short; `*_expires` companions; refreshed by the SSO flow | until deleted in the OS (Integrations → APIs) |
+| Lifetime | short; `*_expires` companions; refreshed by the SSO flow | until deleted in the OS (Integrations → API) |
 | Threat it is exposed to | XSS on your origin (anything that runs JS on your page can read it) | server compromise, leaked env, a commit of `.env.local` |
 
 ## Why session tokens are in localStorage
@@ -74,7 +74,7 @@ Check what a deployed app sends: `curl -sI https://<your-app>/ | grep -i content
 - Never put a secret in org metadata (it is a public read) or in user
   metadata (readable by the user and org admins).
 - Rotate the Platform API Token if it ever appears in a log or a transcript
-  (Integrations → APIs → delete, then Add API).
+  (Integrations → API → delete, then Add API Key).
 - For a Tauri build, the WebView origin is the app; the same rules apply.
   Mobile sign-in goes through the system browser and returns via a custom
   scheme — list that scheme in the org's allowed redirect origins.

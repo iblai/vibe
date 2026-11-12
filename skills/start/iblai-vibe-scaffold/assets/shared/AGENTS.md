@@ -126,7 +126,7 @@ Copy `.env.example` to `.env.local` and fill in your values.
 
 | Package | Version |
 |---------|---------|
-| `@iblai/iblai-js` | ^2.67.3 |
+| `@iblai/iblai-js` | ^2.68.1 |
 | `@iblai/iblai-web-mentor` | ^2.0.1 |
 | `@reduxjs/toolkit` | 2.11.2 |
 | `next` | 16.2.1 |

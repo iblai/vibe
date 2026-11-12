@@ -100,7 +100,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent`](../skills/agents/iblai-vibe-agent/SKILL.md) | 📖 guide | Family index for configuring one ibl.ai agent from your app |
 | [`/iblai-vibe-agent-access`](../skills/agents/iblai-vibe-agent-access/SKILL.md) | 🖥️ ui | Add the agent Access tab (role-based access control for editor and chat roles) to your Next.js app |
 | [`/iblai-vibe-agent-analytics`](../skills/agents/iblai-vibe-agent-analytics/SKILL.md) | 🖥️ ui | Add the agent Analytics tab (AgentAnalyticsTab, a hub of report cards for one agent that hands off to your full analytics pages) to your … |
-| [`/iblai-vibe-agent-api`](../skills/agents/iblai-vibe-agent-api/SKILL.md) | 🖥️ ui | Add the agent API tab (list, create and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app |
+| [`/iblai-vibe-agent-api`](../skills/agents/iblai-vibe-agent-api/SKILL.md) | 🖥️ ui | Add the agent API tab (list, add, edit and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app |
 | [`/iblai-vibe-agent-audit`](../skills/agents/iblai-vibe-agent-audit/SKILL.md) | 🖥️ ui | Add the agent Audit tab (audit log of who changed what and when, with user/date/action filters) to your Next.js app |
 | [`/iblai-vibe-agent-billing`](../skills/agents/iblai-vibe-agent-billing/SKILL.md) | 🖥️ ui | Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block or alert-only enforcement, and near-limit … |
 | [`/iblai-vibe-agent-chat`](../skills/agents/iblai-vibe-agent-chat/SKILL.md) | 🖥️ ui | Add the in-process Chat SDK component (full agent surface |
@@ -173,7 +173,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-account`](../skills/organizations/iblai-vibe-account/SKILL.md) | 🖥️ ui | Add account and organization settings page to your Next.js app |
 | [`/iblai-vibe-credential`](../skills/organizations/iblai-vibe-credential/SKILL.md) | 🔌 api | RBAC setup that lets an API token list and unmask integration credentials on the ibl.ai platform |
 | [`/iblai-vibe-crm-overview`](../skills/organizations/iblai-vibe-crm-overview/SKILL.md) | 📖 guide | Reference and family index for the ibl.ai Platform-scoped CRM REST API at /api/crm/ |
-| [`/iblai-vibe-virtual-machine`](../skills/organizations/iblai-vibe-virtual-machine/SKILL.md) | 🖥️ ui | Add the organization-wide Virtual Machine settings surface |
+| [`/iblai-vibe-virtual-machine`](../skills/organizations/iblai-vibe-virtual-machine/SKILL.md) | 🖥️ ui | Add the organization's Network page and the Environment Variables tab of Secrets |
 
 ## Billing
 

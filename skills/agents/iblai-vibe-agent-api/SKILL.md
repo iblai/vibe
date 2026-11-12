@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-api
-description: Add the agent API tab (list, create and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app. Use when the user mentions agent API keys, programmatic access to an agent, creating or revoking an API key, or the API tab. For the REST contract see /iblai-api-token.
+description: Add the agent API tab (list, add, edit and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app. Use when the user mentions agent API keys, programmatic access to an agent, creating or revoking an API key, or the API tab. For the REST contract see /iblai-api-token.
 globs:
 alwaysApply: false
 metadata:
@@ -13,22 +13,26 @@ Add the agent **API tab** -- the API keys an app uses to call the agent from
 code. **Scope: per organization.** The tab sits in the agent's settings, but
 the keys are the organization's Platform API Tokens (`platform_key`-scoped):
 the same list shows on every agent, and a key works for any agent the key's
-owner can use. The tab is a paged table (10 keys per page) with **Create
-New** and a delete action per row. This is one tab in the agent-settings
+owner can use. The tab is a paged table (10 keys per page) with **Add API
+Key** and a pencil and a bin per row. This is one tab in the agent-settings
 family indexed by `/iblai-vibe-agent`; it shares the `AgentSettingsProvider`
-wrapper with every other tab.
+wrapper with every other tab. The organization's settings list the same keys
+on their **API** page (`/iblai-vibe-account`).
 
-**Keys** -- name, created and expiry dates ("N/A" when a key never expires).
-The list and the buttons need the user's `/apitokens/` grants (Step 2).
+**Keys** -- name, Permission Mode, created and expiry dates ("N/A" when a
+key never expires). The list and the buttons need the user's `/apitokens/`
+grants (Step 2).
 
 ![API tab -- keys](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-1-keys.png)
 
-**Create API Key** -- a name (letters, numbers, hyphens and underscores) and an optional
-expiry date.
+**Add API Key** -- a name (letters, numbers, hyphens and underscores), an
+optional expiry date, and a Permission Mode: **Owner permissions** (the key
+can do what you can do) or **Token policies** (it can do only what the
+policies and groups you pick allow). The pencil edits the same fields.
 
-![API tab -- Create API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-2-create.png)
+![API tab -- Add API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-2-create.png)
 
-**API Key** -- **Submit** shows the secret once, with a copy button. It
+**API Key** -- **Add API Key** shows the secret once, with a copy button. It
 cannot be retrieved again; the list then jumps back to page 1.
 
 ![API tab -- new key shown once](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-api/iblai-vibe-agent-api-3-reveal.png)
@@ -44,7 +48,7 @@ the key stops working at once.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2). Check with
+- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - The signed-in user needs the organization's API-token grants (org admins
@@ -63,7 +67,7 @@ template and fill in your values:
 The table and buttons are gated on the RBAC grants `/apitokens/#list` and
 `/apitokens/#create`, read from the provider's `rbacPermissions` -- even with
 `enableRBAC={false}`. Without them the tab says "You do not have permission
-to view API keys" (or "No API keys found") and **Create New** never shows.
+to view API keys." (or "No API keys yet.") and **Add API Key** never shows.
 Load the grants and pass them to a nested provider:
 
 ```tsx
@@ -164,7 +168,8 @@ From `@iblai/iblai-js/web-containers/next`:
 | Action | Request |
 |---|---|
 | Load | `GET /api/core/platform/api-tokens/?platform_key={org}&page=…&page_size=10` |
-| **Submit** (create) | `POST /api/core/platform/api-tokens/` with `name`, `platform_key`, and `expires_in` (seconds until the chosen date, rounded up to whole days; omitted for no expiry). The tab also sends `username`, `key`, `created`, and `expires`, which the server ignores |
+| **Add API Key** (create) | `POST /api/core/platform/api-tokens/` with `name`, `platform_key`, and `expires_in` (seconds until the chosen date, rounded up to whole days; omitted for no expiry), plus `mode` and, for Token policies, `policies_to_add` / `groups_to_add`. The tab also sends `username`, `key`, `created`, and `expires`, which the server ignores |
+| **Pencil** (edit) | `PATCH /api/core/platform/api-tokens/{name}?platform_key={org}` with only what changed: the name, `expires_in`, `mode`, and the policies and groups to add or remove |
 | **Delete** | `DELETE /api/core/platform/api-tokens/{name}?platform_key={org}` |
 
 Keys are addressed by name. Deleting the last key on a page steps back a
@@ -176,12 +181,13 @@ page.
 |---|---|
 | `useGetApiKeysQuery` | The paged key list |
 | `useCreateApiKeyMutation` | Create a key (returns the secret once) |
+| `useGetApiKeyQuery`, `useUpdateApiKeyMutation` | Read one key with its policies and groups, and edit it |
+| `useGetApiKeyFieldPermissionsQuery` | Which of `mode` and the policy / group fields this person may write |
 | `useDeleteApiKeyMutation` | Delete a key by name |
 | `useGetRbacPermissionsMutation` | Load the `/apitokens/` grants (Step 2) |
 
 REST twin: [`/iblai-api-token`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-token/SKILL.md)
-(Platform API Tokens, including `mode` and token-scoped policies, which this
-tab does not expose).
+(Platform API Tokens, `mode` and token-scoped policies).
 
 ## Step 5: Verify
 
@@ -193,7 +199,7 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 1. `pnpm build` -- must pass with zero errors.
 2. `pnpm test` -- vitest must pass.
 3. Touch test `/agents/<uuid>/api` in the browser as `/iblai-vibe-ops-test` says, signed in
-   as an org admin: the key table and **Create New** render; create a key, copy it, then
+   as an org admin: the key table and **Add API Key** render; add a key, copy it, then
    delete it; read the console; check the phone width.
 
 ## Important Notes

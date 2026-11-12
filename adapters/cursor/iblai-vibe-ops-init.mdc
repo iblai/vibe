@@ -139,8 +139,8 @@ the user is asked nothing:
 
    > What is your ibl.ai **TOKEN** (Platform API Token)? Create one in the OS:
    > https://os.ibl.ai → switch the top-right toggle to **Admin** → settings →
-   > **Integrations** → **APIs** tab → **Add API** → name it after this app,
-   > leave the expiry empty, keep Owner permissions → Submit. The secret is
+   > **Integrations** → **API** → **Add API Key** → name it after this app,
+   > leave the expiry empty, keep Owner permissions → **Add API Key**. The secret is
    > shown once -- paste it here. (Alternatives: `/iblai-api-login` from
    > `npx skills add iblai/vibe --all` mints it from your signed-in session; an org
    > secret works too.)

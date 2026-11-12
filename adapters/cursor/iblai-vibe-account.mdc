@@ -9,11 +9,11 @@ alwaysApply: false
 > **First time here?** If `iblai.env` has no `ARCHITECTURE=`, run `/iblai-vibe-start` first (four questions; two minutes) — it decides single-org / multi-org / headless and who signs in, and every skill reads the answer.
 
 Add an account/organization settings page whose sidebar groups its tabs
-under four headings: **Workspace** (Organization, Management,
-Integrations), **Finance** (Monetization, Billing), **AI & data**
-(Benchmarks, Memory) and **System** (Advanced). Every group whose tabs are
-all gated off disappears, so a small organization sees two or three
-headings, not four.
+under five headings: **Workspace** (Organization, Management),
+**Integrations** (API, Secrets, Network), **Finance** (Monetization,
+Billing), **AI & data** (Benchmarks, Memory) and **System** (Advanced).
+Every group whose tabs are all gated off disappears, so a small
+organization sees three or four headings, not five.
 
 ![Account Page](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-page.png)
 
@@ -204,7 +204,8 @@ get_component_info("Account")
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `targetTab` | `string` | Initial tab: `organization`, `management`, `integrations`, `monetization`, `billing`, `datasets`, `memory`, `advanced` — a tab this viewer may not open falls back to their first visible one |
+| `targetTab` | `string` | Initial tab: `organization`, `management`, `api`, `secrets`, `virtualMachine` (Network), `monetization`, `billing`, `datasets`, `memory`, `advanced` — a tab this viewer may not open falls back to their first visible one. The retired `integrations` still opens Secrets |
+| `helpUrl` | `string` | Help-center address the API page's banner links to ("Help"); without it there is no link |
 | `currentPlatformBaseDomain` | `string` | Base domain for custom domain settings |
 | `currentSPA` | `string` | Current app identifier (e.g., `"agent"`) |
 | `showBenchmarks` | `boolean` | Show the **Benchmarks** tab (default `false`; each app opts in) |
@@ -259,7 +260,9 @@ Two things are specific to `Account`:
 |-----|-------|----------------|---------|
 | **Organization** | Workspace | `organization` | `isAdmin === true` |
 | **Management** | Workspace | `management` | `enableRbac` unset (any admin), or `enableRbac` **plus** a `rbacPermissions` object granting one of `/platforms/<org>/#can_manage_users`, `/groups/#list`, `/roles/#list`, `/policies/#list`, `/usergroups/#list`, `/watchedgroups/#list` |
-| **Integrations** | Workspace | `integrations` | `isAdmin === true` |
+| **API** | Integrations | `api` | `isAdmin === true` **and** `/apitokens/#list` (with RBAC off that check passes) — the organization's Platform API Tokens |
+| **Secrets** | Integrations | `secrets` | `isAdmin === true` — keys from other services: LLMs, Services, Environment Variables |
+| **Network** | Integrations | `virtualMachine` | `isAdmin === true` — the addresses agents' virtual machines may reach (see `/iblai-vibe-virtual-machine`) |
 | **Monetization** | Finance | `monetization` | `isAdmin === true`, the organization has monetization enabled **and** the caller holds `/platforms/<org>/#can_sell_items` (with RBAC off that check passes automatically) |
 | **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` |
 | **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — test-input suites for evaluating agents |
@@ -267,9 +270,67 @@ Two things are specific to `Account`:
 | **Advanced** | System | `advanced` | `isAdmin === true` — organization-wide switches, among them **Allow users to control chat privacy**, the gate that turns Incognito on for the organization (`PATCH …/chat-privacy-config/`, admin-only; see `/iblai-vibe-incognito`) |
 
 Every tab but Management and Billing needs `isAdmin`; those two answer to
-RBAC instead (Billing also to an admin). Integrations is itself split into
-**LLMs**, **Data Sources** and **APIs**, and the Memory tab into **Global**
-and **Agent** memories.
+RBAC instead (Billing also to an admin). Secrets is itself split into
+**LLMs**, **Services** and **Environment Variables**, and the Memory tab into
+**Global** and **Agent** memories.
+
+### The Integrations group
+
+The rail sorts keys by whose they are: a key from another service goes under
+**Secrets**, a key ibl.ai makes for your own software under **API**.
+
+- **API** — "Let your own software work with ibl.ai." A banner (with a
+  **Help** link when you pass `helpUrl`), **Add API Key**, and the keys:
+  Name, Permission Mode, Created, Expires ("Never" when it has none), with a
+  pencil and a bin per key. **Add API Key** asks for a name, an optional
+  expiry date and a Permission Mode — **Owner permissions** (the key can do
+  what you can do) or **Token policies** (only what the policies and groups
+  you pick allow) — and shows the key once. These are the same keys as an
+  agent's API tab (`/iblai-vibe-agent-api`); REST in `/iblai-api-token`.
+- **Secrets** — "Keys from other services, like OpenAI or Stripe, that
+  ibl.ai and your agents use." Three sub-tabs, each with a sentence, an Add
+  button and a table (LLMs and Services list each key's name and its masked
+  start):
+  - **LLMs** — an AI company's key; agents then answer with its models.
+    Azure OpenAI lists its models under a chevron. Only a provider with a
+    single key field, or Azure OpenAI, has a pencil; to replace a key with
+    several fields (Bedrock, Google), delete it and add it again.
+    In **Add LLM** a provider the organization already holds is greyed
+    out ("Added"), except Azure OpenAI while it has models left to add.
+  - **Services** — a key from a service the organization uses (the old
+    Data Sources tab). Google Drive, Dropbox and OneDrive keys power the
+    file picker on an agent's Datasets tab; a key such as Stripe's or
+    ElevenLabs' can be given to an agent on its Sandbox tab
+    (`/iblai-vibe-agent-virtual-machine`). **Add Service** asks for that
+    service's own fields.
+  - **Environment Variables** — keys an agent's virtual machine uses by
+    name, sent only to the addresses you allow (`/iblai-vibe-virtual-machine`).
+
+  A list the viewer may not read hides its own tab. REST:
+  `/iblai-api-integration`.
+- **Network** — the networks agents' virtual machines may reach
+  (`/iblai-vibe-virtual-machine`).
+
+**API and Secrets on their own.** The ibl.ai OS opens these two from its
+sidebar without the settings rail. Both are exported:
+
+```tsx
+"use client";
+
+import { ApiTab, SecretsTab } from "@iblai/iblai-js/web-containers";
+
+export function ApiPage({ tenantKey, username }: { tenantKey: string; username: string }) {
+  return <ApiTab tenantKey={tenantKey} username={username} helpUrl="https://help.example.com" />;
+}
+
+export function SecretsPage({ tenantKey, username }: { tenantKey: string; username: string }) {
+  return <SecretsTab tenantKey={tenantKey} username={username} />;
+}
+```
+
+`ApiTab` also takes `enableRbac` and `rbacPermissions` (listing needs
+`/apitokens/#list`, adding `/apitokens/#create`). `UserProfileDropdown` fills
+`helpUrl` from its own Help item.
 
 ### Management sub-tabs
 
@@ -291,7 +352,7 @@ customization this path forwards.
 | Workspace | [Organization](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-organization.png) · [Advanced](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-advanced.png) |
 | Management | [Users](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users.png) · [Groups](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-groups.png) · [Roles](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-roles.png) · [Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-policies.png) · [Teams](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-teams.png) · [Alerts](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-alerts.png) · [Applications](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-applications.png) · [Onboarding](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-onboarding.png) |
 | Invite dialog | [users](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-users.png) · [courses](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-courses.png) · [programs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-management-users-invite-programs.png) |
-| Integrations | [LLMs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-llms.png) · [APIs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-apis.png) · [Datasources](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-integration-datasources.png) |
+| Integrations | [API](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-api.png) · [Add API Key](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-api-add.png) · [Secrets: LLMs](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-secrets-llms.png) · [Add LLM](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-secrets-add-llm.png) · [Services](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-secrets-services.png) · [Add Service](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-secrets-add-service.png) · [Environment Variables](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-env-vars.png) · [Network](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine.png) |
 | Memory | [Global](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-memory-global.png) · [Agent](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-account/account-settings/account-settings-memory-agent.png) |
 
 ## Step 5: Verify

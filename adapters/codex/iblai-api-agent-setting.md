@@ -79,8 +79,9 @@ when configuring an agent's basic identity and capabilities.
   `show_voice_call` (`embed_show_*`) save through the same PUT — see
   `/iblai-api-agent-embed`.
   The three `virtual_machine_*` keys configure the agent's Linux VM sandbox;
-  the network policies and secrets they reference are managed per organization
-  — see `/iblai-vibe-agent-sandbox` ("Virtual machine network policies & secrets").
+  the networks and environment variables they reference are managed per
+  organization — see `/iblai-vibe-agent-sandbox` ("Virtual machine networks &
+  environment variables").
 - **POST** `…/users/{username}/mentors/{mentor}/fork/` — copy / duplicate agent:
   ```json
   {

@@ -1,66 +1,61 @@
 # iblai-vibe-virtual-machine
 
-> Add the organization-wide Virtual Machine settings surface — the Network Policies and Secrets tables behind every agent's VM sandbox, with New Policy and New VM Secret dialogs, host:port allowlists, and secrets backed by a stored value or an integration credential. Use this when agents run code in a virtual machine and the organization needs to decide which hosts they may reach and which keys they may use. For binding a policy or a secret to one agent see /iblai-vibe-agent-virtual-machine; for the sandbox type selector see /iblai-vibe-agent-sandbox
+> Add the organization's Network page and the Environment Variables tab of Secrets — the networks (named lists of addresses) an agent's virtual machine may reach and the keys it may use by name without reading them, with the Add Network and Add Environment Variable dialogs. Use this when agents run code in a virtual machine and the organization needs to decide which addresses they may reach and which keys they may use. For turning a network or an environment variable on for one agent see /iblai-vibe-agent-virtual-machine; for the sandbox type selector see /iblai-vibe-agent-sandbox
 
 # /iblai-vibe-virtual-machine
 
-Add the organization settings **Virtual Machine** tab -- "Manage the
-network policies and secrets available to agents' virtual machines."
-Agents on the **Virtual Machine Shell** sandbox kind run each chat in
-an isolated Linux VM with no network access by default. This surface
-holds the two organization-wide records that open it up, in two
-sub-tabs:
+Agents on the **Virtual Machine Shell** sandbox kind run each chat in an
+isolated Linux VM with no network access by default. Two organization-wide
+records open it up, and both live in the organization settings'
+**Integrations** group:
 
-- **Network Policies** — reusable named lists of the `host:port`
-  destinations a VM may reach (up to 100 entries each).
-- **Secrets** — keys the VM can use but never read. Inside the
-  machine the environment variable holds a placeholder; the real
-  value is substituted only on TLS requests to the secret's allowed
-  hosts.
+- **Network** — "Manage the networks available to agents' virtual
+  machines." A network is a reusable, named list of the addresses a VM may
+  reach (up to 100 each), picked for an agent under **Custom Allowlist**.
+- **Secrets → Environment Variables** — keys an agent's VM can use by name
+  (`ACME_API_KEY`) but never read. Inside the machine the variable holds a
+  placeholder; the real key is substituted only on TLS requests to the
+  variable's allowed hosts.
 
-Both are shared by every agent in the organization. Picking them for
-one agent happens in its Sandbox settings — see
-`/iblai-vibe-agent-virtual-machine`.
+Both are shared by every agent in the organization. Turning them on for one
+agent happens on its Sandbox tab — see `/iblai-vibe-agent-virtual-machine`.
 
-![Virtual Machine — Network Policies](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine.png)
+![Network — the organization's networks](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine.png)
 
-![Virtual Machine — Secrets](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-secrets.png)
+![Add Network dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-add-network.png)
 
-![New Network Policy dialog](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-new-policy.png)
+![Secrets — the Environment Variables tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-env-vars.png)
 
-![New VM Secret dialog — Value Source picks a stored value or an integration credential](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-new-secret.png)
-
-![Network Policies — empty state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-policies-empty.png)
-
-![Secrets — empty state](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-secrets-empty.png)
+![Add Environment Variable dialog — the variable name is filled in from the name](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-vibe-virtual-machine/iblai-vibe-virtual-machine-add-env-var.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
 ## Related surfaces
 
 - **`/iblai-vibe-agent-virtual-machine`** — the agent's Sandbox →
-  **Network Access** section: the egress profile, the policy picker
-  and the secrets multi-select that consume these records. Its
-  **Manage Policies** / **Manage Secrets** buttons open this exact
-  surface in a popup.
+  **Network Access** section that consumes these records. Its **Add
+  Network** and **Add Environment Variable** buttons open the same dialogs
+  in place, and **Manage Networks** opens the Network page in a popup.
 - **`/iblai-vibe-agent-sandbox`** — the Sandbox Type card that turns
   Virtual Machine Shell on in the first place.
-- **`/iblai-vibe-account`** — the Account settings page hosts this
-  surface as its **Virtual Machine** tab (see Step 2).
-- **`/iblai-vibe-credential`** — the organization's integration
-  credentials; a secret can read its value from one field of a saved
-  credential instead of storing its own.
+- **`/iblai-vibe-account`** — the settings page that hosts both, with the
+  rest of Secrets (**LLMs**, **Services**) and the **API** page.
+- **`/iblai-vibe-credential`** — the RBAC that lets a token list and
+  unmask the Services keys (integration credentials) an environment
+  variable can read its value from.
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
+- `@iblai/iblai-js@^2.68.1`: earlier releases kept both records on one
+  Virtual Machine tab with **Network Policies** / **Secrets** sub-tabs.
 - The viewer needs
   `Ibl.Mentor/VirtualMachineNetworkPolicies/{list,write,delete}` and
   `Ibl.Mentor/VirtualMachineSecrets/{list,write,delete}`. Organization
   admins hold them by default; they are not in the `learner` baseline.
-  Each section hides on its own list 403, and when **both** lists are
-  forbidden the tab renders a single permission notice.
+  The Network page shows a permission notice on its list 403; the
+  Environment Variables tab hides on its own.
 - Only agents on the **Virtual Machine Shell** kind consume these
   records. Nothing breaks without one, but nothing uses them either.
 
@@ -73,51 +68,43 @@ is missing these variables, tell the user:
 template and fill in your values:
 `curl -o iblai.env https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/iblai.env`"
 
-## Step 2: Mount it
+## Step 2: Mount them
 
-Two ways, both supported.
-
-**As the Account page's Virtual Machine tab** (how the SPAs ship it):
+**In the settings page.** `Account` lists both under Integrations: the
+Network page is the tab with id `virtualMachine`, and Environment Variables
+is the third sub-tab of `secrets` (Secrets opens on LLMs). In vibe-starter,
+give each its own admin route with `AccountPanel`, the way the other admin
+pages do — `app/(app)/admin/network/page.tsx`:
 
 ```tsx
-// app/(app)/settings/virtual-machine/page.tsx
+// app/(app)/admin/network/page.tsx
 "use client";
 
-import { Account } from "@iblai/iblai-js/web-containers/next";
+import { AccountPanel } from "@/components/admin/account-panel";
 
-export default function OrgVirtualMachinePage() {
-  return (
-    <div className="flex h-full flex-col bg-white">
-      {/* accountProps = your usual <Account> wiring */}
-      <Account {...accountProps} targetTab="virtualMachine" />
-    </div>
-  );
+export default function AdminNetworkPage() {
+  return <AccountPanel tab="virtualMachine" />;
 }
 ```
 
-See `/iblai-vibe-account` Step 2 for the full `<Account>` prop wiring.
+`<AccountPanel tab="secrets" />` is the Secrets page the same way. Outside
+vibe-starter, pass `targetTab="virtualMachine"` or `targetTab="secrets"` to
+`Account` (see `/iblai-vibe-account` Step 3 for its wiring).
 
-**Standalone** — unlike the Memory admin tab, this one *is* exported:
+**On their own**, without the settings rail — how the ibl.ai OS opens them
+from its sidebar. Both are exported:
 
 ```tsx
 "use client";
 
-import { VirtualMachineAdminTab } from "@iblai/iblai-js/web-containers";
+import { SecretsTab, VirtualMachineAdminTab } from "@iblai/iblai-js/web-containers";
 
-export default function VirtualMachinePage({
-  tenantKey,
-  username,
-}: {
-  tenantKey: string;
-  username: string;
-}) {
-  return (
-    <VirtualMachineAdminTab
-      tenantKey={tenantKey}
-      username={username}
-      defaultTab="network-policies"
-    />
-  );
+export function NetworkPage({ tenantKey, username }: { tenantKey: string; username: string }) {
+  return <VirtualMachineAdminTab tenantKey={tenantKey} username={username} />;
+}
+
+export function SecretsPage({ tenantKey, username }: { tenantKey: string; username: string }) {
+  return <SecretsTab tenantKey={tenantKey} username={username} />;
 }
 ```
 
@@ -125,82 +112,69 @@ export default function VirtualMachinePage({
 
 ```
 get_component_info("VirtualMachineAdminTab")
+get_component_info("SecretsTab")
 get_component_info("HostPortChipInput")
 get_hook_info("useListVirtualMachineSecretsQuery")
 ```
 
 ## Component Props
 
-### `<VirtualMachineAdminTab>` — `@iblai/iblai-js/web-containers`
+All from `@iblai/iblai-js/web-containers`.
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `tenantKey` | `string` | Yes | Organization key whose policies and secrets are managed |
-| `username` | `string` | No | Signed-in admin. When present, a policy delete refused because agents still use it lists those agents **by name** instead of by id |
-| `defaultTab` | `'network-policies' \| 'secrets'` | No | Which sub-tab opens first; falls back to the other one when that list is forbidden |
+| Component | Prop | Type | Description |
+|---|---|---|---|
+| `VirtualMachineAdminTab` | `tenantKey` | `string` | Organization key whose networks are managed |
+| | `username` | `string?` | Signed-in admin. When present, a delete refused because agents still use the network lists them **by name** instead of by id |
+| | `defaultTab` | — | Deprecated and ignored; the page holds networks only |
+| `SecretsTab` | `tenantKey` | `string` | Organization key |
+| | `username` | `string?` | Signed-in admin; the LLMs tab's Azure model picker needs it |
 
-## Component map (web-containers source)
+## What each page renders
 
-Everything lives under `packages/web-containers/src/components/` in
-the SDK. Only `VirtualMachineAdminTab` and `HostPortChipInput` are
-public exports; the rest are listed as the reference for custom builds.
+### Network
 
-| Component | Path | Role |
-|---|---|---|
-| `VirtualMachineAdminTab` | `profile/virtual-machine-admin/index.tsx` | The surface: info box, permission gate, **Network Policies** / **Secrets** sub-tabs |
-| `NetworkPoliciesSection` | `profile/virtual-machine-admin/network-policies-section.tsx` | Policies table + New / Edit / Delete, including the "still in use" refusal |
-| `VmSecretsSection` | `profile/virtual-machine-admin/vm-secrets-section.tsx` | Secrets table + New / Edit / Delete, and the Source column |
-| `NetworkPolicyDialog` | `virtual-machine/network-policy-dialog.tsx` | Create / edit a policy. Also opened straight from the agent's **Create Policy** button |
-| `VmSecretDialog` | `virtual-machine/vm-secret-dialog.tsx` | Create / edit a secret, including the Value Source choice |
-| `HostPortChipInput` | `virtual-machine/host-port-chip-input.tsx` | The `host:port` chip input both dialogs use (Enter / comma / space / paste, per-entry validation, keyboard-removable chips) |
-| `toIntegrationCredentialOptions` | `virtual-machine/credential-options.ts` | Normalises the integration-credential list into `{ id, name, fields }` — only ids, names and the **keys** of the masked value |
+- A blue banner ("Agents with Virtual Machine Shell run code on their own
+  computer, with no internet access unless you allow it…") beside
+  **Add Network**; each row has a pencil (edit) and a bin (delete).
+- Columns: **Name**, **Allowed Hosts** (the first three as chips, then
+  "+N more"), **Description**, **Updated** (time ago), **Actions**.
+- Empty: *"No networks yet. Add one to let an agent's virtual machine
+  reach specific addresses."*
+- **Add / Edit Network** dialog — Name (unique in the organization, ≤ 255
+  characters), Allowed Hosts (1–100 addresses; IP addresses allowed),
+  Description (optional). Each field has an info icon. Editing sends only
+  the fields that changed, and removing an address raises an amber
+  warning that an environment variable sent to it will stop working — the
+  backend allows the edit anyway.
+- **Delete** asks to confirm. If an agent still uses the network the
+  backend refuses: the dialog lists the agents (by name when `username`
+  resolves them, else by id) and hides Delete until they move off it.
 
-## What each sub-tab renders
+### Secrets → Environment Variables
 
-### Network Policies
-
-- **New Policy** opens the dialog; each row has pencil (edit) and
-  trash (delete) actions.
-- Columns: **Name**, **Allowed Hosts** (first 3 as chips, then
-  "+N more"), **Description** (`—` when blank), **Updated**
-  (time-ago), **Actions**.
-- Empty: *"No network policies yet. Create one to let an agent's VM
-  reach specific hosts."*
-- **New / Edit Network Policy** dialog: Name (unique in the
-  organization, ≤ 255 chars), Allowed Hosts (1–100 `host:port`
-  entries, IP addresses allowed), Description (optional). Editing
-  sends only the fields that changed, and removing a host raises an
-  amber warning that a bound secret needing it will stop working —
-  the backend allows the edit anyway.
-- **Delete** asks to confirm. If an agent still uses the policy the
-  backend refuses: the dialog then lists the blocking agents (by name
-  when `username` lets it resolve them, else by id) and hides the
-  Delete button until you move those agents off it.
-
-### Secrets
-
-- **New Secret** opens the dialog; pencil and trash per row.
-- Columns: **Name**, **Variable** (the env var as a code chip),
-  **Allowed Hosts**, **Source** (`Stored Value`, or
-  `Credential {name} · {field}`), **Updated**, **Actions**.
-- Empty: *"No VM secrets yet. Create one to let an agent call an API
-  with your organization's key without ever seeing it."*
-- **New / Edit VM Secret** dialog:
-  - **Name** — display name, ≤ 255 chars.
-  - **Environment Variable** — e.g. `ACME_KEY`; letters, digits and
-    underscores, cannot start with a digit. **Read-only once
-    created** — delete and recreate to rename.
-  - **Allowed Hosts** — hostnames only, no IPs. These are the only
-    hosts the real value is ever sent to, so keep them narrow.
-  - **Value Source** — *Enter a Value* (stored encrypted, never shown
-    again, at least 8 characters) or *Use an Integration Credential*
-    (pick a saved credential and one of its fields; the secret
-    follows rotations automatically).
-  - On edit the value field is **never prefilled** — blank keeps the
-    current value, and typing a new one replaces it (dropping any
-    credential link).
-- **Delete** warns that the secret is also removed from every agent
-  that uses it, then deletes.
+- A blue banner ("Give an agent a key it can use by name, like
+  ACME_API_KEY, without ever seeing it…") beside **Add Environment
+  Variable**; pencil and bin per row.
+- Columns: **Name**, **Variable Name** (a code chip), **Allowed Hosts**
+  (the first three, then "+N more"), **Actions**. Every environment
+  variable is listed, including one that reads a key from the Services tab
+  (`STRIPE_KEY` above).
+- Empty: *"No environment variables found"*.
+- **Add / Edit Environment Variable** dialog:
+  - **Name** — how the key is listed here and on each agent's Sandbox tab.
+  - **Key** — a password box. On edit it starts blank and blank keeps the
+    current key; a masked copy (`***`) is refused.
+  - **Allowed Hosts** — host names only, no IP addresses. These are the
+    only addresses the real key is ever sent to, so keep them narrow.
+  - **Variable Name** — filled in from the name ("Maps API key" →
+    `MAPS_API_KEY`, with `_2` added when the name is taken). Typing your
+    own stops that; emptying the box starts it again. **Read-only once
+    created**: delete and add again to rename.
+  - A variable that reads a Services key shows a read-only Key line, "Read
+    from the {name} key you already added.", in place of the Key box; its
+    name and addresses can still change.
+- **Delete** warns that the variable is also removed from every agent that
+  uses it. Deleting one that reads a Services key leaves that key in place.
 
 ## REST API
 
@@ -209,7 +183,7 @@ For custom UI. Both records live under
 `NEXT_PUBLIC_API_BASE_URL`. Auth: `Authorization: Token <token>`.
 **Records are keyed in the body, never in the URL.**
 
-### Network policies — `virtual-machine-network-policy/`
+### Networks — `virtual-machine-network-policy/`
 
 | Method | Body / notes |
 |---|---|
@@ -218,80 +192,78 @@ For custom UI. Both records live under
 | PATCH | `{ "id": 12, … }` — any of `name`, `allowed_hosts` (replaces the whole list), `description` |
 | DELETE | `{ "id": 12 }` → 204; **400 while an agent still uses it**, and the message names the agents |
 
-### Secrets — `virtual-machine-secret/`
+### Environment variables — `virtual-machine-secret/`
 
 | Method | Body / notes |
 |---|---|
 | GET | `[{ id, name, env_var, allow_hosts, source_credential_id, source_field, created_at, updated_at }]` — never a value |
-| POST | `{ "name", "env_var": "ACME_KEY", "allow_hosts": ["api.acme.com:443"], "value": "…" }` **or** `{ …, "source_credential_id": 7, "source_field": "api_key" }` — exactly one form |
-| PATCH | keyed by `{ "env_var": "ACME_KEY" }`; sending `value` or a `source_credential_id` switches the form. `env_var` itself cannot change |
-| DELETE | `{ "env_var": "ACME_KEY" }` → 204; also unbinds it from every agent |
+| POST | `{ "name", "env_var": "ACME_API_KEY", "allow_hosts": ["api.acme.com:443"], "value": "…" }` **or** `{ …, "source_credential_id": 7, "source_field": "key" }` to read a Services key — exactly one form |
+| PATCH | keyed by `{ "env_var": "ACME_API_KEY" }`; send only what changes. `env_var` itself cannot change |
+| DELETE | `{ "env_var": "ACME_API_KEY" }` → 204; also turns it off for every agent |
 
-Integration credentials for the second form come from
-`GET /api/ai-account/orgs/{org}/integration-credential/`, which
-returns `[{ id, name, value: { api_key: "sk-****", … } }]`. Only the
-ids, names and the **keys** of `value` are used — masked values are
-never shown.
+The Services keys for the second form are `GET
+/api/ai-account/orgs/{org}/integration-credential/` — `[{ id, name, value }]`,
+masked for an admin. Only the ids, names and the **keys** of `value` are
+used. The field to read is the service's one sensitive field (`key` for
+Stripe, ElevenLabs and HeyGen); a service signed in with `client_id` /
+`client_secret` has none, and only ibl.ai can use its key. The rest of the
+Services REST surface is in `/iblai-api-integration`.
 
 ### Validation the UI mirrors
 
-| Rule | Constant |
+| Rule | From `@iblai/iblai-js/data-layer` |
 |---|---|
-| `host:port`, no scheme, path or wildcard; port 1–65535 | `VIRTUAL_MACHINE_HOST_PORT_PATTERN` |
-| `localhost`, `metadata*`, `instance-data*` and `.local` / `.internal` / `.localhost` suffixes refused; reserved IP ranges refused | `VIRTUAL_MACHINE_REJECTED_HOSTS`, `VIRTUAL_MACHINE_REJECTED_HOST_SUFFIXES` |
-| Policies accept IP addresses, secrets do not | `HostPortChipInput`'s `allowIpAddresses` |
-| ≤ 100 hosts per policy | `VIRTUAL_MACHINE_MAX_POLICY_HOSTS` |
-| ≤ 20 secrets per agent | `VIRTUAL_MACHINE_MAX_SECRETS_PER_MENTOR` |
-| Stored value ≥ 8 characters, and a masked-looking value (`sk-****`) is refused | `VIRTUAL_MACHINE_SECRET_VALUE_MIN_LENGTH` |
-| `env_var` matches `^[A-Za-z_][A-Za-z0-9_]*$` | `VIRTUAL_MACHINE_ENV_VAR_PATTERN` |
+| An address typed without a port gets `:443`; a pasted URL keeps its host and the port its scheme implies (`https://api.acme.com/v1` → `api.acme.com:443`). Stored as `host:port`, shown without `:443` | `normalizeHostInput`, `VIRTUAL_MACHINE_DEFAULT_HOST_PORT` |
+| `host:port`, no wildcard; port 1–65535 | `validateHostPort`, `VIRTUAL_MACHINE_HOST_PORT_PATTERN` |
+| `localhost`, `metadata*`, `instance-data*` and `.local` / `.internal` / `.localhost` hosts refused; reserved IP ranges refused | `VIRTUAL_MACHINE_REJECTED_HOSTS`, `VIRTUAL_MACHINE_REJECTED_HOST_SUFFIXES` |
+| Networks accept IP addresses, environment variables do not | `HostPortChipInput`'s `allowIpAddresses` |
+| ≤ 100 addresses per network | `VIRTUAL_MACHINE_MAX_POLICY_HOSTS` |
+| ≤ 20 environment variables per agent | `VIRTUAL_MACHINE_MAX_SECRETS_PER_MENTOR` |
+| Variable name: letters, digits and underscores, not starting with a digit, ≤ 128 characters, unused in the organization | `validateSecretEnvVar`, `VIRTUAL_MACHINE_ENV_VAR_PATTERN`, `VIRTUAL_MACHINE_ENV_VAR_MAX_LENGTH` |
+| Not a name the VM relies on (`PATH`, `HOME`, `LD_PRELOAD`, the proxy variables, …) and not starting `MSB_` or `IBLAI_` | `isReservedEnvVar`, `VIRTUAL_MACHINE_RESERVED_ENV_VARS`, `VIRTUAL_MACHINE_RESERVED_ENV_VAR_PREFIXES` |
 
 Every 400 comes back as `{ error }` — either a plain message or
-`{ field: ["…"] }`.
+`{ field: ["…"] }`; the dialogs show it under the field it names.
 
 ## Related Exports
 
 From `@iblai/iblai-js/web-containers`:
 
-- `VirtualMachineAdminTab`, `VirtualMachineAdminTabProps` — this surface.
-- `HostPortChipInput`, `HostPortChipInputProps` — the `host:port` chip
-  input, reusable for any allowlist field.
-- `VirtualMachineNetworkSection` — the per-agent binding section
+- `VirtualMachineAdminTab`, `VirtualMachineAdminTabProps` — the Network page.
+- `SecretsTab`, `SecretsTabProps` — the Secrets page.
+- `HostPortChipInput`, `HostPortChipInputProps` — the address chip input
+  (`defaultPort`, `allowIpAddresses`, `maxEntries`), reusable for any
+  allowlist field.
+- `VirtualMachineNetworkSection` — the agent's Network Access section
   (`/iblai-vibe-agent-virtual-machine`).
 
-From `@iblai/iblai-js/web-containers/next`:
-
-- `Account` — the settings page hosting this as its Virtual Machine
-  tab (`targetTab="virtualMachine"`).
+From `@iblai/iblai-js/web-containers/next`: `Account` — the settings page
+hosting both (`targetTab="virtualMachine"`, `targetTab="secrets"`).
 
 From `@iblai/iblai-js/data-layer`:
 
-- Policies: `useListVirtualMachineNetworkPoliciesQuery`,
-  `useLazyListVirtualMachineNetworkPoliciesQuery`,
+- Networks: `useListVirtualMachineNetworkPoliciesQuery`,
   `useCreateVirtualMachineNetworkPolicyMutation`,
   `useUpdateVirtualMachineNetworkPolicyMutation`,
   `useDeleteVirtualMachineNetworkPolicyMutation`
-- Secrets: `useListVirtualMachineSecretsQuery`,
-  `useLazyListVirtualMachineSecretsQuery`,
+- Environment variables: `useListVirtualMachineSecretsQuery`,
   `useCreateVirtualMachineSecretMutation`,
   `useUpdateVirtualMachineSecretMutation`,
   `useDeleteVirtualMachineSecretMutation`
-- Credentials for the Value Source picker:
-  `useGetIntegrationCredentialsQuery`
-- Helpers: `validateHostPort`, `isValidHostPort`, `splitHostPortInput`,
-  `normalizeHostPort`, `getVirtualMachineApiError`,
+- The Services keys a variable can read: `useGetIntegrationCredentialsQuery`,
+  `useGetIntegrationCredentialsSchemaQuery`
+- Helpers: `normalizeHostInput`, `splitHostPortInput`, `formatHostPort`,
+  `validateHostPort`, `deriveSecretEnvVar`, `validateSecretEnvVar`,
+  `isReservedEnvVar`, `getVirtualMachineApiError`,
   `getVirtualMachineErrorStatus`, `extractBoundMentorIds`
-- Constants: `VIRTUAL_MACHINE_ENDPOINTS`, `VIRTUAL_MACHINE_PERMISSIONS`,
-  `VIRTUAL_MACHINE_EGRESS_PROFILES`, `VIRTUAL_MACHINE_MAX_POLICY_HOSTS`,
-  `VIRTUAL_MACHINE_MAX_SECRETS_PER_MENTOR`,
-  `VIRTUAL_MACHINE_SECRET_VALUE_MIN_LENGTH`,
-  `VIRTUAL_MACHINE_ENV_VAR_PATTERN`, `VIRTUAL_MACHINE_HOST_PORT_PATTERN`,
-  `VIRTUAL_MACHINE_REJECTED_HOSTS`,
-  `VIRTUAL_MACHINE_REJECTED_HOST_SUFFIXES`
-- Types: `VirtualMachineNetworkPolicy`, `VirtualMachineSecret`,
-  `VirtualMachineApiError`, `VirtualMachineHostPortIssue`
+- Constants and types: `VIRTUAL_MACHINE_ENDPOINTS`,
+  `VIRTUAL_MACHINE_PERMISSIONS`, the limits above,
+  `VirtualMachineNetworkPolicy`, `VirtualMachineSecret`,
+  `SecretEnvVarIssue`
 
-SDK source: `packages/web-containers/src/components/profile/virtual-machine-admin/`,
-`components/virtual-machine/`, and
+SDK source: `packages/web-containers/src/components/profile/virtual-machine-admin/`
+(Network), `components/profile/secrets/` (Secrets),
+`components/virtual-machine/` (both dialogs, the chip input), and
 `packages/data-layer/src/features/virtual-machine/`.
 
 ## Step 4: Verify
@@ -303,8 +275,9 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 
 1. `pnpm build` -- must pass with zero errors
 2. `pnpm test` -- vitest must pass
-3. Touch test `/settings/virtual-machine` in the browser as `/iblai-vibe-ops-test` says: open it,
-   use every control this skill added, read the console, check the phone width.
+3. Touch test `/admin/network` and the Secrets page's Environment Variables
+   tab in the browser as `/iblai-vibe-ops-test` says: open them, use every
+   control this skill added, read the console, check the phone width.
 
 ## Important Notes
 
@@ -314,23 +287,18 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 - **`@reduxjs/toolkit`**: Deduplicated via webpack aliases in `next.config.ts`
 - **Peer deps**: `sonner` and `@iblai/iblai-web-mentor` must be installed
   (`pnpm add sonner @iblai/iblai-web-mentor`)
-- **Records are keyed in the body.** PATCH and DELETE take `id`
-  (policies) or `env_var` (secrets) in the request body, not in the
-  path. These endpoints are newer than the pinned `@iblai/iblai-api`
-  release, so the slice is hand-written.
-- **A value is never returned.** No endpoint hands back a secret's
-  value, the table only shows its *source*, and the edit form starts
-  blank. Never build UI that tries to display one.
-- **`env_var` is immutable.** Deleting and recreating is the rename
-  path — and the delete unbinds the secret from every agent first.
-- **Per-section 403.** The two lists gate independently: an admin may
-  see policies but not secrets. Both forbidden → one permission
-  notice for the whole tab.
-- **Deleting a policy an agent uses is refused**, deliberately, so an
-  agent on the Custom profile never points at a policy that vanished.
-  Move those agents to another policy or profile first.
-- **Scope is one organization.** Policies and secrets are never shared
-  across organizations.
+- **A key is never returned.** No endpoint hands back an environment
+  variable's value and the edit form starts blank. Never build UI that
+  tries to display one.
+- **`env_var` is immutable.** Deleting and adding again is the rename
+  path — and the delete turns the variable off for every agent first.
+- **Two independent 403s.** An admin may see networks but not environment
+  variables, or the reverse.
+- **Deleting a network an agent uses is refused**, deliberately, so an
+  agent on Custom Allowlist never points at a network that vanished.
+  Move those agents to another network or profile first.
+- **Scope is one organization.** Networks and environment variables are
+  never shared across organizations.
 - **Billing:** VM lifetime is charged to the chatting user's credits
   — `$1` per 10 minutes by default, prorated per second and
   overridable per organization. The agent-side section states this

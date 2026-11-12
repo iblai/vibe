@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-agent-virtual-machine
-description: Add the agent Sandbox "Network Access" section for the Virtual Machine Shell — the egress profile radio group (No Network, Package Registries, Public Internet, Custom Allowlist), the network policy picker with Create/Edit/Manage shortcuts, the secrets multi-select, and the VM billing notice. Use this when an agent runs code in a virtual machine and you need to decide what it can reach and which keys it can use. For the sandbox type selector and Claw instances see /iblai-vibe-agent-sandbox; for creating the organization's network policies and VM secrets see /iblai-vibe-virtual-machine
+description: Add the agent Sandbox "Network Access" section for the Virtual Machine Shell — the egress profile radio group (No Network, Package Registries, Public Internet, Custom Allowlist), the network picker with Add, Edit and Manage Networks, the environment variables this agent may use (added in place, or a Services key switched on for agents), and the VM billing notice. Use this when an agent runs code in a virtual machine and you need to decide what it can reach and which keys it can use. For the sandbox type selector and Claw instances see /iblai-vibe-agent-sandbox; for the organization's networks and environment variables see /iblai-vibe-virtual-machine
 globs:
 alwaysApply: false
 metadata:
@@ -10,38 +10,40 @@ metadata:
 # /iblai-vibe-agent-virtual-machine
 
 Add the agent Sandbox **Network Access** section -- "Decide what this
-agent's virtual machine can reach and which credentials it can use."
-It renders under the Sandbox Type card while **Virtual Machine Shell**
-is the selected kind, and it holds three controls plus a billing
-notice:
+agent's virtual machine can reach and which environment variables it can
+use." It renders under the Sandbox Type card while **Virtual Machine Shell**
+is the selected kind, and it holds three controls plus a billing notice:
 
 - **Egress Profile** — No Network (the default), Package Registries,
   Public Internet, Custom Allowlist.
-- **Network Policy** — required under Custom Allowlist; a picker over
-  the organization's policies with **Create Policy**, **Edit Policy**
-  and **Manage Policies** shortcuts and the chosen policy's hosts
-  listed below it.
-- **Secrets** — shown under Public Internet or Custom Allowlist: a
-  checkbox list of the organization's VM secrets (keys the VM can use
-  but never read), capped at 20 per agent, with **Manage Secrets**.
+- **Network** — required under Custom Allowlist; a picker over the
+  organization's networks with **Add Network**, **Edit Network** and
+  **Manage Networks**, and the chosen network's addresses listed below it.
+- **Environment Variables** — under every profile: a checkbox list of the
+  organization's environment variables (keys the VM can use by name but
+  never read), capped at 20 per agent, with **Add Environment Variable**.
+  They only work with network access, so under No Network and Package
+  Registries the boxes are greyed out.
 
-The policies and secrets themselves are organization-wide records
-managed in organization settings — see `/iblai-vibe-virtual-machine`.
-This section only binds them to one agent.
+The networks and environment variables are organization-wide records — see
+`/iblai-vibe-virtual-machine`. This section turns them on for one agent,
+and adds new ones without leaving the agent.
 
-![Network Access — Virtual Machine Shell on, No Network](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine.png)
+![Network Access — No Network (the default): environment variables greyed out](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine.png)
 
-![Network Access — Custom Allowlist with a policy and a secret bound](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-custom.png)
+![Network Access — Custom Allowlist with a network and an environment variable on](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-custom.png)
 
 ![Network Access — Public Internet selected](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-public.png)
 
-![Network Access — Custom with no policy picked (Save blocked)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-policy-required.png)
+![Network Access — Custom Allowlist with no network picked (Save blocked)](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-policy-required.png)
 
-![Create Policy — the New Network Policy dialog, opened in place](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-create-policy.png)
+![Add Network — opened in place](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-add-network.png)
 
-![Manage Policies — the organization's Virtual Machine settings in a popup](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-manage-policies.png)
+![Manage Networks — the organization's Network page in a popup](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-manage-networks.png)
 
-![Manage Secrets — the same popup on the Secrets sub-tab](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-manage-secrets.png)
+![Add Environment Variable — opened in place](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-add-env-var.png)
+
+![Let Agents Use Vercel — a Services key no agent uses yet](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-virtual-machine/iblai-vibe-agent-virtual-machine-link-service.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -51,25 +53,28 @@ This section only binds them to one agent.
   **Sandbox Type** card (Computing Runtime / Virtual Machine Shell /
   Claw) and, for Claw, instance management and the prompt files.
   `SandboxConfig` mounts this section for you.
-- **`/iblai-vibe-virtual-machine`** — organization settings →
-  **Virtual Machine**: the Network Policies and Secrets tables behind
-  the pickers here. The **Manage Policies** / **Manage Secrets**
-  buttons open that exact surface in a popup.
-- **`/iblai-vibe-credential`** — the organization's integration
-  credentials, which a VM secret can read its value from instead of
-  storing its own.
+- **`/iblai-vibe-virtual-machine`** — the organization's **Network** page
+  and **Secrets → Environment Variables** tab behind the pickers here.
+  Deleting an environment variable happens there, not here.
+- **`/iblai-vibe-account`** — **Secrets → Services**, where keys such as
+  Stripe's are added before an agent can use them.
 
 ## Prerequisites
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
+- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1):
+  earlier releases call these "network policies" and "secrets", show
+  secrets only under Public Internet and Custom Allowlist, and add them
+  only through a **Manage Secrets** popup.
 - Ask the user for a real `mentorId` (agent UUID). Do NOT invent one.
 - The agent must have **Virtual Machine Shell** selected
   (`enable_virtual_machine: true`) — see `/iblai-vibe-agent-sandbox`.
   Nothing here applies to the Computing Runtime or Claw kinds.
 - The viewer needs the `Ibl.Mentor/VirtualMachineNetworkPolicies/list`
   and `Ibl.Mentor/VirtualMachineSecrets/list` permissions to see the
-  two pickers; each one hides independently on a 403.
+  network picker and the environment variables; each hides independently
+  on a 403.
 
 ## Step 1: Check Environment
 
@@ -106,7 +111,7 @@ export default function AgentNetworkPage({
   const { mentorId } = useParams<{ mentorId: string }>();
 
   return (
-    <div className="flex h-full flex-col bg-white p-6">
+    <div className="flex flex-1 flex-col bg-white p-6">
       <VirtualMachineNetworkSection
         platformKey={platformKey}
         mentorUniqueId={mentorId}
@@ -118,8 +123,8 @@ export default function AgentNetworkPage({
 ```
 
 The component owns its own data: it reads the agent settings, the
-organization's policies and the organization's secrets, keeps a local
-draft, and saves through **Save Changes** / **Discard**. It does not
+organization's networks, environment variables and Services keys, keeps a
+local draft, and saves through **Save Changes** / **Discard**. It does not
 read `AgentSettingsProvider`, and it does **not** check
 `enable_virtual_machine` — gate the mount yourself if you render it
 outside `SandboxConfig`.
@@ -140,7 +145,7 @@ get_hook_info("useListVirtualMachineNetworkPoliciesQuery")
 |------|------|----------|-------------|
 | `platformKey` | `string` | Yes | Organization key (org slug) |
 | `mentorUniqueId` | `string` | Yes | Agent UUID |
-| `username` | `string` | Yes | Signed-in admin — the mentor-settings path segment, and the agent-name lookup when a policy delete is refused |
+| `username` | `string` | Yes | Signed-in admin — the mentor-settings path segment, and the agent-name lookup when a network delete is refused |
 
 ## What the section renders
 
@@ -159,45 +164,59 @@ Four radio cards, each with a label and one line of explanation:
 | Profile | Wire value | Reachability |
 |---|---|---|
 | No Network | `none` (default) | The VM cannot reach anything |
-| Package Registries | `registries` | PyPI, npm, apt and apk only, for installing packages |
-| Public Internet | `public` | Any public host; private networks, localhost and cloud metadata stay blocked |
-| Custom Allowlist | `custom` | Only the hosts in the network policy picked below |
+| Package Registries | `registries` | PyPI, npm, apt and apk only, for installing software |
+| Public Internet | `public` | Any public website; private networks, localhost and cloud metadata stay blocked |
+| Custom Allowlist | `custom` | Only the addresses in the network picked below |
 
-### Network Policy (Custom Allowlist only)
+### Network (Custom Allowlist only)
 
-- A **select** over the organization's policies, plus **Create
-  Policy** (opens `NetworkPolicyDialog` in place and selects the new
-  policy on save), **Edit Policy** (same dialog for the current
-  selection) and **Manage Policies**.
-- Below the select, **"Hosts this policy allows:"** with the policy's
-  `host:port` entries as chips.
-- With nothing picked, *"The Custom profile needs a network policy."*
-  shows in red and **Save Changes** stays disabled.
-- Empty organization → the select reads *"No network policies yet"*
-  and is disabled; use **Create Policy**.
-- No list permission → the whole picker is replaced by a line saying
-  the profile cannot be configured from here.
+- A **select** ("Choose a network") over the organization's networks,
+  plus **Add Network** (opens the Add Network dialog in place and selects
+  the new network on save), **Edit Network** (the same dialog for the
+  current choice) and **Manage Networks**.
+- Below the select, **"Addresses this network allows:"** with the
+  network's addresses as chips.
+- With nothing picked, *"The Custom profile needs a network."* shows in
+  red and **Save Changes** stays disabled.
+- Empty organization → the select reads *"No networks yet"* and is
+  disabled; use **Add Network**.
+- No list permission → the whole picker is replaced by a line saying the
+  profile cannot be configured from here.
+- **Manage Networks** opens a popup titled **Networks** ("Networks are
+  shared by every agent in your organization.") holding the same
+  `VirtualMachineAdminTab` as the organization's Network page.
 
-### Secrets (Public Internet or Custom Allowlist only)
+### Environment Variables (every profile)
 
-- *"Keys the VM can use but never read. Up to 20 per agent."*
-- One checkbox per organization secret showing its name, its
-  environment variable as a code chip, and the hosts it may be sent
-  to. At 20 checked, the unchecked boxes disable and a note says the
-  cap is reached.
-- **Manage Secrets** opens the organization surface on its Secrets
-  sub-tab.
-- No secrets in the organization → *"Your organization has no VM
-  secrets yet. Use Manage Secrets to create one."*
-- No list permission → the whole Secrets block is hidden.
-
-### Manage Policies / Manage Secrets popup
-
-Both buttons open a wide dialog titled **Virtual Machine Settings**
-("Network policies and VM secrets are shared by every agent in your
-organization.") hosting the same `VirtualMachineAdminTab` the
-organization settings page uses, opened on the matching sub-tab — so
-an admin never leaves the agent to create what they need here.
+- *"Keys this agent can use without ever seeing them. Up to 20 per
+  agent."*
+- First, each Services key no agent uses yet (Stripe, Vercel, …), with
+  *"Not used by agents yet. Check it to let this agent use it."* Checking
+  it opens **Let Agents Use {name}**: the service and a read-only Key line
+  ("Read from the {name} key you already added."), **Allowed Hosts**
+  (filled in for Stripe, ElevenLabs and HeyGen) and **Variable Name**
+  (`VERCEL_TOKEN`). Save creates the environment variable, and the row
+  becomes an ordinary one.
+- Then one checkbox per environment variable: its name, then
+  `VARIABLE · addresses`, and a pencil that opens **Edit Environment
+  Variable**.
+- **Add Environment Variable** opens the dialog straight on Name, Key,
+  Allowed Hosts and Variable Name. Under Public Internet or Custom
+  Allowlist the new one is turned on for this agent at once; when that is
+  the only unsaved change (and, under Custom Allowlist, the network
+  already allows its addresses) it is saved too — *"{name} added and
+  turned on for this agent"* — otherwise a line says to click **Save
+  Changes**. Under No Network or Package Registries it is added but not
+  turned on.
+- Under No Network and Package Registries the checkboxes are disabled
+  and one line says to choose Public Internet or Custom Allowlist; the
+  button and the pencils still work.
+- At 20 turned on, the rest disable and a note says the cap is reached.
+- None in the organization → *"No environment variables yet. Click Add
+  Environment Variable to add one."*
+- Under the list: *"To delete an environment variable, open Secrets in
+  your organization settings."*
+- No list permission → the whole block is hidden.
 
 ## Rules the section enforces before saving
 
@@ -205,17 +224,17 @@ These mirror the backend; getting them wrong is a 400.
 
 | Situation | What happens |
 |---|---|
-| Custom Allowlist with no policy | Save disabled, inline red message |
-| Narrowing to No Network / Package Registries while secrets are bound | An **Unbind Secrets?** dialog; confirming sends `virtual_machine_secret_ids: []` in the same request |
-| A bound secret needs a host the chosen policy does not allow | An amber panel lists each `env_var` → missing hosts, with **Add Hosts to {policy} and Save** — one PATCH on the policy, then the settings save |
-| More than 20 secrets | Not reachable; the checkboxes disable at the cap |
+| Custom Allowlist with no network | Save disabled, inline red message |
+| Moving to No Network / Package Registries while variables are on | A **Remove Environment Variables?** dialog; **Remove and Save** sends `virtual_machine_secret_ids: []` in the same request |
+| A variable that is on is sent to an address the chosen network does not allow | An amber panel lists each one ("Acme API key is sent to api.acme.com, which Acme APIs doesn't allow."), with **Add Hosts to {network} and Save** — one PATCH on the network, then the settings save |
+| More than 20 variables | Not reachable; the checkboxes disable at the cap |
 | Backend 400 | Field errors land under the matching control (`virtual_machine_egress`, `virtual_machine_network_policy_id`, `virtual_machine_secret_ids`); anything else becomes a form-level message |
 | Backend 403 on save | "You do not have permission to change these settings." |
 
 Only the keys that actually changed are sent, and the save goes
 through `useEditMentorJsonMutation` — **not** the multipart
 `useEditMentorMutation`, which drops an empty list and a `null`, so
-"unbind every secret" and "clear the policy" would never reach the
+"turn every variable off" and "clear the network" would never reach the
 backend. Mirror that choice in custom UI.
 
 ## Agent settings fields
@@ -228,10 +247,11 @@ Read from `GET`, written with `PUT` on
 |---|---|---|
 | `virtual_machine_egress` | `"none" \| "registries" \| "public" \| "custom"` | same |
 | `virtual_machine_network_policy` | `{ id, name, allowed_hosts }` or `null` | written as `virtual_machine_network_policy_id: number \| null` |
-| `virtual_machine_secrets` | `[{ id, name, env_var, allow_hosts, source_credential_id }]` | written as `virtual_machine_secret_ids: number[]` — replaces the whole set, `[]` unbinds all |
+| `virtual_machine_secrets` | `[{ id, name, env_var, allow_hosts, source_credential_id }]` | written as `virtual_machine_secret_ids: number[]` — replaces the whole set, `[]` turns all off |
 
-The policy and secret CRUD endpoints themselves are documented in
-`/iblai-vibe-virtual-machine`.
+The backend binds environment variables only to an agent with network
+access (`public` or `custom`). The network and environment variable
+endpoints themselves are documented in `/iblai-vibe-virtual-machine`.
 
 ## Related Exports
 
@@ -241,10 +261,10 @@ From `@iblai/iblai-js/web-containers`:
   this section.
 - `SandboxConfig` — the Sandbox tab that mounts it (see
   `/iblai-vibe-agent-sandbox`).
-- `VirtualMachineAdminTab` — what **Manage Policies** / **Manage
-  Secrets** render inside the popup (`defaultTab` picks the sub-tab).
-- `HostPortChipInput`, `HostPortChipInputProps` — the `host:port` chip
-  input the policy dialog uses; reusable for any allowlist field.
+- `VirtualMachineAdminTab` — what **Manage Networks** renders inside the
+  popup.
+- `HostPortChipInput`, `HostPortChipInputProps` — the address chip
+  input both dialogs use; reusable for any allowlist field.
 
 From `@iblai/iblai-js/data-layer`:
 
@@ -253,14 +273,19 @@ From `@iblai/iblai-js/data-layer`:
 - `useListVirtualMachineNetworkPoliciesQuery`,
   `useUpdateVirtualMachineNetworkPolicyMutation` — the picker's
   options and the "add the missing hosts" PATCH.
-- `useListVirtualMachineSecretsQuery` — the secrets checkboxes.
+- `useListVirtualMachineSecretsQuery`,
+  `useCreateVirtualMachineSecretMutation` — the checkboxes, and a variable
+  added or linked from here.
+- `useGetIntegrationCredentialsQuery`,
+  `useGetIntegrationCredentialsSchemaQuery` — the Services keys listed as
+  "Not used by agents yet".
 - `VIRTUAL_MACHINE_EGRESS_PROFILES`,
   `VIRTUAL_MACHINE_MAX_SECRETS_PER_MENTOR` (20),
   `VIRTUAL_MACHINE_DEFAULT_BILLING` (`{ usd: 1, minutes: 10 }`) — the
   constants the UI is built from.
 - `isVirtualMachineEgressNetworked` — true for `public` and `custom`
-  (the profiles that may carry secrets).
-- `findUncoveredSecretHosts` — the bound-secret-vs-policy check behind
+  (the profiles whose environment variables work).
+- `findUncoveredSecretHosts` — the variable-vs-network check behind
   the amber panel.
 - `getVirtualMachineApiError`, `getVirtualMachineErrorStatus` —
   normalise a 400 into `{ message, fieldErrors }` and read the status
@@ -270,8 +295,8 @@ From `@iblai/iblai-js/data-layer`:
   `VirtualMachineSecret`, `VirtualMachineUncoveredSecretHosts`.
 
 SDK source: `packages/web-containers/src/components/claw-sandbox/virtual-machine-network-section.tsx`,
-with the shared dialog at `components/virtual-machine/network-policy-dialog.tsx`
-and the data layer under `packages/data-layer/src/features/virtual-machine/`.
+with the shared dialogs under `components/virtual-machine/` and the data
+layer under `packages/data-layer/src/features/virtual-machine/`.
 
 ## Step 4: Verify
 
@@ -296,19 +321,20 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
 - **No network is the default.** A new agent on Virtual Machine Shell
   reaches nothing until someone picks a profile here. Treat that as
   the feature, not a gap.
-- **Secrets are for the VM, not the agent.** Inside the machine the
-  environment variable holds a placeholder; the real value is
-  substituted only on TLS requests to the secret's `allow_hosts`. The
-  agent never sees it, and no endpoint ever returns it.
-- **Secrets need a networked profile.** They only appear under Public
-  Internet and Custom Allowlist, and narrowing the profile unbinds
-  them — with a confirmation first.
-- **Two independent 403s.** The policy picker and the Secrets block
-  gate on their own list permission. One can be visible while the
-  other is not; the save itself can still 403 separately.
-- **Policies are shared.** Editing a policy from here changes it for
-  every agent bound to it, and the edit dialog warns when you remove a
-  host a bound secret still needs.
+- **Environment variables are for the VM, not the agent.** Inside the
+  machine the variable holds a placeholder; the real key is substituted
+  only on TLS requests to its `allow_hosts`. The agent never sees it, and
+  no endpoint ever returns it.
+- **Environment variables need a networked profile.** They are listed
+  under every profile but can only be turned on under Public Internet and
+  Custom Allowlist, and moving away from those turns them off — with a
+  confirmation first.
+- **Two independent 403s.** The network picker and the Environment
+  Variables block gate on their own list permission. One can be visible
+  while the other is not; the save itself can still 403 separately.
+- **Networks are shared.** Editing a network from here changes it for
+  every agent that uses it, and the edit dialog warns when you remove an
+  address an environment variable still needs.
 - **`mentorUniqueId` vs `mentorId`**: these endpoints key on the
   agent's UUID, not the integer pk — the same UUID as the rest of the
   agent-* family.

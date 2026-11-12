@@ -139,7 +139,7 @@ token did not verify. Re-run; a code is single use and expires in 60 seconds.
   secret.
 - If the user reports the wrong organization was connected, re-run with
   `--org <key>`; the previous token stays valid until they revoke it under
-  Integrations → APIs.
+  Integrations → API.
 
 ## How it works
 
