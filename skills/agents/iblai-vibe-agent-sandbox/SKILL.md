@@ -30,11 +30,11 @@ onto the connected sandbox; Auto Push on Save pushes after every
 edit.
 
 With **Virtual Machine Shell** selected, a **Network Access** section
-appears under the card — the VM's egress profile, its network policy
-and its secrets. That section has its own skill:
+appears under the card — the VM's egress profile, its network and its
+environment variables. That section has its own skill:
 `/iblai-vibe-agent-virtual-machine` (and
-`/iblai-vibe-virtual-machine` for the organization-wide policies and
-secrets it draws on).
+`/iblai-vibe-virtual-machine` for the organization-wide networks and
+environment variables it draws on).
 
 Agent Skills are managed independently of the sandbox — see
 `/iblai-vibe-agent-skills` for the Skills surface (skills catalog,
@@ -138,7 +138,7 @@ export default function AgentSandboxPage() {
   if (!platformKey) return null;
 
   return (
-    <div className="flex h-full flex-col gap-8 bg-white p-6">
+    <div className="flex flex-1 flex-col gap-8 bg-white p-6">
       <SandboxConfig
         platformKey={platformKey}
         mentorUniqueId={mentorId}
@@ -449,29 +449,30 @@ body of the corresponding `*.md` workspace file), plus `model`
 Agent Skills endpoints (catalog, resources, per-agent assignments)
 are documented in `/iblai-vibe-agent-skills`.
 
-### Virtual machine network policies & secrets
+### Virtual machine networks & environment variables
 
 The **Virtual Machine Shell** kind runs each chat in an isolated Linux VM
 with no network by default. What it may reach is chosen per agent through
 three settings fields — `virtual_machine_egress`
 (`none` | `registries` | `public` | `custom`),
 `virtual_machine_network_policy_id` and `virtual_machine_secret_ids` — and
-the organization-wide network policies and VM secrets they point at live
-under `/api/ai-account/orgs/{org}/`.
+the organization-wide networks and environment variables they point at
+live under `/api/ai-account/orgs/{org}/` (`virtual-machine-network-policy/`,
+`virtual-machine-secret/`).
 
 That whole surface has its own skills:
 
 - **`/iblai-vibe-agent-virtual-machine`** — the Sandbox tab's **Network
-  Access** section: egress profile, policy picker, secrets multi-select,
-  the rules the UI enforces before saving, and the agent settings fields.
-- **`/iblai-vibe-virtual-machine`** — organization settings → **Virtual
-  Machine**: the network policy and VM secret tables, their dialogs,
+  Access** section: egress profile, network picker, environment
+  variables, the rules the UI enforces before saving, and the agent
+  settings fields.
+- **`/iblai-vibe-virtual-machine`** — organization settings → **Network**
+  and **Secrets → Environment Variables**: the tables, their dialogs,
   validation limits, RBAC verbs and the REST endpoints.
 
-**Billing:** VM lifetime is charged to the chatting user's credits at
-`SANDBOX_COST_USD_PER_10_MINUTES` (global configuration, default `$1`,
-overridable per organization), prorated per second and recorded on the
-`sandbox_session` observation in Langfuse.
+**Billing:** VM lifetime is charged to the chatting user's credits,
+`$1` per 10 minutes by default (an organization can have its own rate),
+prorated per second.
 
 
 ### Common errors

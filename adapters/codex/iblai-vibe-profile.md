@@ -418,9 +418,8 @@ dialog that combines profile editing and account settings in one overlay.
 `targetTab` alone decides which half renders: the **Profile** ids
 (`basic`, `social`, `education`, `experience`, `resume`, `memory`,
 `chatHistory`, `llmUsage`, `security`, `advanced`) open the profile, the
-**Account** ids (`organization`, `management`, `integrations`, `billing`,
-`monetization`, `datasets`) open organization settings. Billing/purchases is
-on the Account side, not the Profile side.
+**Account** ids (`organization`, `management`, `api`, `secrets`, `virtualMachine`, `billing`,
+`monetization`, `datasets`; the retired `integrations` opens Secrets) open organization settings.
 
 ### Required
 
@@ -451,6 +450,7 @@ on the Account side, not the Profile side.
 | `onBillingTabRequest` | `() => Promise<void> \| void` | Called when billing tab is opened -- fetch billing data |
 | `onUpgradeClick` | `() => void` | Called when upgrade button is clicked |
 | `onAccountDeleted` | `() => void` | Called after account deletion |
+| `helpUrl` | `string` | Help-center address for the API page's Help link (`UserProfileDropdown` fills it from its Help item) |
 
 ## Step 6: Verify
 

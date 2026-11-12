@@ -34,7 +34,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
 | "workflow", "multi-step agent", "branch / loop an agent", "chain agents", "state variables" | `/iblai-vibe-workflow` — `WorkflowsList` + `WorkflowEditor` from `/web-containers/next`; the list is organization-wide, opened from an agent |
-| "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, policy, secrets), `/iblai-vibe-virtual-machine` (the org's policies + secrets) |
+| "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, network, environment variables), `/iblai-vibe-virtual-machine` (the org's networks + environment variables) |
 | "MCP", "connector", "connect GitHub / Google Drive / Linear to the agent", "let users switch a connector off", "OAuth client id for a connector" | `/iblai-vibe-agent-mcp` — the tab (Featured / Directory, per-agent switch, sign-in scope, the org's own OAuth app) and the chat's MCP panel; REST in `/iblai-api-agent-mcp` |
 | "Studio", "Open edX", "xblock", "build a course on our LMS", section / subsection / unit, grading policy, publish | `/iblai-api-studio` — the index; `/iblai-api-studio-auth` first (browser session → `studio.env`), then the `iblai-api-studio-*` skill for the piece |
 | anything with no component | `/iblai-vibe-api` — server route + `Api-Token`, and the matching `iblai-api-*` skill (same repo) |
@@ -78,9 +78,9 @@ tabs), organizations (metadata, people, billing) — hook by hook:
 1. `ibl.ai/join` creates the account **and** the user's organization. Everyone is also in the shared `main` org — never build on it.
 2. `os.ibl.ai/platform/<org-key>/…` is the reference app *and* the org's admin console (User/Admin toggle top-right).
 3. Org key: on `login.iblai.app/me`, or the path segment after `/platform/`. Check: `GET https://api.iblai.app/dm/api/core/orgs/<key>/metadata/` → 200 (public).
-4. Platform API Token: OS → Admin → Integrations → APIs → Add API (shown once), or `/iblai-api-login`, or an org secret. Check: `GET /dm/api/core/token/verify/` with `Authorization: Api-Token …` → 200 + `username`.
+4. Platform API Token: OS → Admin → Integrations → API → Add API Key (shown once), or `/iblai-api-login`, or an org secret. Check: `GET /dm/api/core/token/verify/` with `Authorization: Api-Token …` → 200 + `username`.
 5. Credits: prepaid, rechargeable, a hard ceiling; plans Free/Trial/Premium; spend caps at org/agent/user scope.
-6. LLM keys: OS → Integrations → LLMs — more models for agents.
+6. LLM keys: OS → Integrations → Secrets → LLMs — more models for agents.
 7. Agents: created in the OS, on `/setup`, or via the API; the UUID at the end of the OS URL is what every chat skill needs.
 8. People: OS → Management → Users (Admin/User + policies), invites; the same surface `/iblai-vibe-admin` mounts.
 9. Every origin the app runs on must be in the org's allowed redirect origins, or sign-in never returns.
@@ -282,8 +282,8 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-agent` | Family index for all 26 agent settings tabs |
 | `/iblai-vibe-profile` ★ | Profile dropdown + settings page |
 | `/iblai-vibe-user-metadata` ★ | Custom per-user data on the platform |
-| `/iblai-vibe-account` | Account/org settings page (Organization, Management, Integrations, Advanced, Billing, Memory, Virtual Machine) |
-| `/iblai-vibe-virtual-machine` | Org Virtual Machine settings: the network policies and VM secrets agents' sandboxes draw on |
+| `/iblai-vibe-account` | Account/org settings page (Organization, Management, API, Secrets, Network, Billing, Memory, Advanced) |
+| `/iblai-vibe-virtual-machine` | The org's Network page and Secrets → Environment Variables: the networks and keys agents' virtual machines draw on |
 | `/iblai-vibe-org-metadata` | Custom org data; GET-merge-PUT; where branding lives |
 | `/iblai-vibe-admin` | User/Admin mode and the admin area |
 | `/iblai-vibe-invite` | Invitation dialogs |

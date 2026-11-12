@@ -48,7 +48,7 @@ Description, and Instruction (a rich-text playbook).
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2).
+- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1).
 - A real agent UUID. Ask the user; never invent one.
 - The signed-in user is an organization admin (or holds the agent's
   skill-assignment roles). The tab renders nothing for `userIsStudent`.

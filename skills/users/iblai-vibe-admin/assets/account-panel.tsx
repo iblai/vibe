@@ -12,7 +12,9 @@ import { resolveAppTenant, readTenants } from "@/lib/iblai/tenant";
  * background — so several tabs can live at their own routes.
  *
  * Tabs: organization · management (Users, Groups, Roles, Policies, Teams,
- * Alerts) · integrations · advanced · billing · memory · monetization.
+ * Alerts) · api · secrets (LLMs, Services, Environment Variables) ·
+ * virtualMachine (the Network page) · advanced · billing · memory ·
+ * monetization. The old `integrations` id still opens Secrets.
  *
  * `enableRbac` is deliberately NOT passed. It only means anything alongside a
  * matching `rbacPermissions` object: `checkRbacPermission` returns true when
@@ -28,7 +30,16 @@ export function AccountPanel({
   tab,
   onInviteClick,
 }: {
-  tab: "organization" | "management" | "integrations" | "advanced" | "billing" | "memory" | "monetization";
+  tab:
+    | "organization"
+    | "management"
+    | "api"
+    | "secrets"
+    | "virtualMachine"
+    | "advanced"
+    | "billing"
+    | "memory"
+    | "monetization";
   onInviteClick?: () => void;
 }) {
   const router = useRouter();

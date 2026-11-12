@@ -67,7 +67,7 @@ Endpoint. They are built from `lmsDomain` (Step 2).
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.3` (resolves `@iblai/web-containers` 1.67.2). Check with
+- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - An organization admin signed in: Links, Keys and Tools are admin-only, so

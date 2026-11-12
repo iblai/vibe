@@ -62,7 +62,7 @@ Two sibling surfaces overlap with this one — check before mounting:
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `@iblai/iblai-js@^2.67.3`: the User Limits tab is not in releases
+- `@iblai/iblai-js@^2.68.1`: the User Limits tab is not in releases
   before 2.62.3
 - Plan upgrades, Add Credits, and Auto Recharge run through **Stripe**
   on the ibl.ai backend — nothing to configure client-side, but the
