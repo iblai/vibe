@@ -48,7 +48,7 @@ the key stops working at once.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1). Check with
+- `@iblai/iblai-js@^2.73.1` (resolves `@iblai/web-containers` 1.73.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - The signed-in user needs the organization's API-token grants (org admins
