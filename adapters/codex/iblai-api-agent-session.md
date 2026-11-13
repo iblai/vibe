@@ -1,6 +1,6 @@
 # iblai-api-agent-session
 
-> Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context), and list/read sessions and per-task history exports. The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server.
+> Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context) or uploaded files, and list/read sessions and per-task history exports. The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server.
 
 # iblai-api-agent-session
 
@@ -87,7 +87,8 @@ not guaranteed to be retrieved if higher-scoring eligible documents fill the top
     "flow": { "name": "<agent unique_id>", "tenant": "<org key>" },
     "page_content": "optional text appended to the prompt, stripped before saving",
     "metadata": { "any": "soft client context keys" },
-    "document_filter": { "stateCode": "CA" }
+    "document_filter": { "stateCode": "CA" },
+    "file_references": []
   }
   ```
   `session_id` (a UUID4) and `flow` are **required**; `flow.name` selects the agent (its
@@ -96,11 +97,127 @@ not guaranteed to be retrieved if higher-scoring eligible documents fill the top
   soft passthrough — stored on the session as `client_context` (see Concepts) and echoed in
   the reads above. `document_filter` is the hard retrieval scope — an inclusive per-key
   allow-list over documents' ingested `custom_metadata`, applied only to this turn and never
-  persisted (see Concepts and Schema). The **same payload** works over WebSocket at
+  persisted (see Concepts and Schema). `file_references` is optional (see **Attach files to
+  a turn**). The **same payload** works over WebSocket at
   `wss://asgi.data.iblai.app/ws/chat/`.
 - **POST** `…/dm/api/ai-mentor/orgs/{org}/users/{user}/sessions/` — create/retrieve a
   session (`ChatSessionView`; the body's `mentor` field picks the agent). Or let the
   first chat turn create one by passing a new `session_id`.
+
+## Attach files to a turn
+
+Three steps: ask for an upload URL, `PUT` the bytes, then send the file reference
+on a chat turn.
+
+### 1. Ask for an upload URL
+
+**POST** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{user}/chat/files/upload-url/`
+
+```json
+{
+  "session_id": "…",
+  "file_name": "scores.csv",
+  "content_type": "text/csv",
+  "file_size": 1048576
+}
+```
+
+`file_size` is in bytes. The session must already exist: unlike a chat turn, this call
+does not create one from a new `session_id`, so call **POST** `…/sessions/` first (see
+**Writes**) and use the `session_id` it returns. An unknown session returns 400 with
+"Invalid request data. Please check your file details.", and only `developer_error`
+names the session.
+
+The response carries `upload_url`, `file_key`, `file_id`, `expires_in` (3600 seconds)
+and `upload_method` (`PUT`). A rejected file returns 400 with `error` (safe to show)
+and `developer_error`. The caller must be the session's user: anyone else, including
+an admin's token on another user's session, gets 403.
+
+### 2. Upload the bytes
+
+```bash
+curl -X PUT "$UPLOAD_URL" -H "Content-Type: text/csv" --data-binary @scores.csv
+```
+
+Use the same `Content-Type` you declared, and send no `Authorization` header: the URL
+is already signed.
+
+### 3. Send the file reference on a chat turn
+
+Over SSE or WebSocket, using the chat turn body under **Writes**:
+
+```json
+{
+  "session_id": "…",
+  "prompt": "What is the average of the score column?",
+  "flow": { "name": "<agent unique_id>", "tenant": "<org key>" },
+  "file_references": [
+    {
+      "file_id": "<file_id>",
+      "file_key": "<file_key>",
+      "file_name": "scores.csv",
+      "content_type": "text/csv",
+      "file_size": 1048576
+    }
+  ]
+}
+```
+
+The turn's stream reports each file with `file_processing_progress`, then
+`file_processing_success` or `file_error`. Two more events can arrive before the reply:
+
+- `error` when a turn has too many files. No file is used, and a turn with a prompt
+  still gets an answer, one that ignored the attachments, so watch for this as well
+  as `file_error`.
+- `model_switched` when the agent's model can't take files and another model answers
+  this turn. It names both models.
+
+### Limits
+
+`content_type` must be one the model supports, and the agent's allowed-extensions list
+applies when it has one. Which limit applies depends on the agent:
+
+| Limit | Value |
+|---|---|
+| Any one file, or all files on one turn | The platform ceiling, 25 MB by default |
+| A PDF, text, CSV, XLSX, DOCX or PPTX file, on an agent the file tools apply to (below) | The platform ceiling, even if the model's `max_file_size_mb` is lower |
+| Any other file or agent, per file | The model's `max_file_size_mb` |
+| Files per turn | The model's `max_files_per_message` |
+
+A multimodal model with no capabilities set gets its provider's preset, 10 MB and 5
+files. A model whose capabilities leave out a field gets 20 MB or 10 files for it.
+Read a model's limits from `multimodal_capabilities` in **GET**
+`https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{user}/mentor-llms/`.
+
+**The file tools apply to** an agent with no Flowise, n8n, workflow or Claw backend and
+no active grading, on a deployment that runs the graph runner and hasn't turned file
+offloading off. Everywhere else, the file goes to the model or backend whole, so it has
+to fit the model.
+
+**The stored size is what counts.** `file_size` is what you declare; the signed URL does
+not enforce it. When the turn arrives the platform reads the object's real size. A file
+over the platform ceiling (60 MB by default for audio and video) gets `file_error` with
+"This file is larger than the upload limit.", and a file over the model's limit gets a
+`file_error` naming that limit. Neither file is used.
+
+### What the agent does with a large document
+
+Where the file tools apply, a document that doesn't fit goes to them instead of to the
+model. That means one too large for the model's context, a PDF over 100 pages or 20 MB,
+or an Office file over 2 MB. The agent reads it under `/uploads/`, page by page. Stored
+history is the same either way: the message still lists the file. An agent that cannot
+call tools gets an excerpt and a note that it was truncated.
+
+- **PII or PHI filtering:** the turn is rejected with "This file is too large to be
+  screened for sensitive information…" when such a document's text is over 1M
+  characters.
+- **Scanned PDFs:** one that goes to the tools has no text to read, and the agent is told
+  to say so.
+
+On an agent with a virtual machine, the session's files (the newest 50) are also copied to
+`/workspace/chat_uploads/` so code can process them, even ones sent to the model too. The
+copy is best effort, up to 22 MB per file and 64 MB per machine, newest first. Agents with
+PII or PHI filtering get no copies, because code would read the unfiltered bytes.
 
 ## Example
 
