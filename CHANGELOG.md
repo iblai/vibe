@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.23.0] - 2026-11-13
+
+### Added
+
+- workflow Classifier step, keyboard shortcuts and linked warnings; starter to @iblai/iblai-js 2.73.1
+
 ## [2.22.0] - 2026-11-12
 
 ### Added
