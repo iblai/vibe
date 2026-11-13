@@ -78,7 +78,7 @@ in-chat toggle.
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1), **or** pass
   `tenantKey` / `mentorId` / `username` as props.
-- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1). Check with
+- `@iblai/iblai-js@^2.73.1` (resolves `@iblai/web-containers` 1.73.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - The **Incognito** sub-tab appears only when the organization allows
@@ -146,7 +146,7 @@ import { AgentPrivacyTab } from "@iblai/iblai-js/web-containers/next";
 <AgentPrivacyTab
   labels={{
     header: { title: "Data privacy", description: "Filter PII; decide how Incognito works." },
-    subTabs: { piiFiltering: "Personal data", incognito: "Incognito" },
+    subTabs: { filtering: "Personal data", incognito: "Incognito" },
     fields: { action: { options: { allow: "Log only" } } },
     incognito: {
       options: { always: { title: "Always private", description: "Nothing is ever saved." } },
@@ -156,13 +156,16 @@ import { AgentPrivacyTab } from "@iblai/iblai-js/web-containers/next";
 ```
 
 Label groups (`PrivacyTabLabels`): `header` (`title`, `description`),
-`capability` (the switch: `title`, `description`, `offHint`), `fields` --
-`action` (`label`, `tooltip`, `options` and `descriptions` per action),
-`blockMessage` (`label`, `placeholder`), `entities` (`label`, `tooltip`,
-`emptyHint`, `labels` per entity type), `outputFilter` (`label`, `tooltip`),
-`enableRouter` -- `subTabs` (`piiFiltering`, `incognito`), `incognito`
-(`description`, `groupAriaLabel`, `options` per card), `noAccess`, and `toasts`
-(`updateSuccess`, `updateError`).
+`categories` (`pii` and `phi`, each `title`, `expand`, `offHint`, `summary`),
+`switchState` (`on`, `off`), `groups` (`action`, `entityTypes`,
+`aiResponses`, `privacyLog`), `fields` -- `action` (`label`, `tooltip`,
+`options` and `descriptions` per action), `blockMessage` (`label`,
+`placeholder`), `entities` (`tooltip`, `emptyHint`, `labels` per entity
+type), `outputFilter` (`label`, `description`) -- `phiFields` (`action`,
+`blockMessage`, `entities`), `privacyLog` (`description`), `subTabs`
+(`filtering`, `incognito`), `incognito` (`description`, `groupAriaLabel`,
+`options` per card), `noAccess`, and `toasts` (`updateSuccess`,
+`updateError`).
 
 ## Step 4: Use MCP Tools for Customization
 

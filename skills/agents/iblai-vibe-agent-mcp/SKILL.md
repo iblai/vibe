@@ -43,7 +43,7 @@ in the agent-settings family; all tabs share `AgentSettingsProvider`.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `AgentSettingsProvider` must wrap the route (see `/iblai-vibe-agent-setting`
   Step 2 if not already set up)
-- `@iblai/iblai-js@^2.68.1` (resolves `@iblai/web-containers` 1.68.1): the
+- `@iblai/iblai-js@^2.73.1` (resolves `@iblai/web-containers` 1.73.1): the
   Featured / Directory tabs, per-agent sign-in scope, "Allow Users to Turn
   Off", App Credentials and the chat's MCP panel arrived in
   `@iblai/web-containers` 1.58.1 and are not in earlier releases

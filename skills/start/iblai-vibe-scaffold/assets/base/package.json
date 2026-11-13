@@ -18,7 +18,7 @@
     "e2e:coverage": "node e2e/coverage.mjs"
   },
   "dependencies": {
-    "@iblai/iblai-js": "^2.68.1",
+    "@iblai/iblai-js": "^2.73.1",
     "@iblai/iblai-web-mentor": "^2.0.1",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-checkbox": "^1.1.0",

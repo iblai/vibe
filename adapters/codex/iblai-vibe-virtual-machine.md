@@ -48,7 +48,7 @@ agent happens on its Sandbox tab — see `/iblai-vibe-agent-virtual-machine`.
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `@iblai/iblai-js@^2.68.1`: earlier releases kept both records on one
+- `@iblai/iblai-js@^2.73.1`: earlier releases kept both records on one
   Virtual Machine tab with **Network Policies** / **Secrets** sub-tabs.
 - The viewer needs
   `Ibl.Mentor/VirtualMachineNetworkPolicies/{list,write,delete}` and
