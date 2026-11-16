@@ -38,6 +38,12 @@ which calls datasets "benchmarks" and runs "evaluations".
   **202** immediately with a task record that moves `pending → in_progress →
   completed` (or `failed`). Poll for status; a run must reach `completed` before
   you judge or export it.
+- **A run's `status` is its task's state** (from DM 4.491.0). It stays
+  `in_progress` until every item has been processed, even though items appear
+  in the run as they finish. A run whose task died reports `failed` with an
+  `error_message`, in both the list and the details — including one that failed
+  before recording a single item (its `id` is `null`). Every status except
+  `completed` also carries `task_id` and `task_record_id`.
 - **Three grading paths.** *LLM-as-Judge* (`…/evaluate/`) scores every item in a
   run automatically from a free-text `criteria` rubric. *Scores* (`…/scores/`)
   are individual human/numeric/boolean/categorical annotations on a trace.
@@ -67,8 +73,8 @@ no longer exists. `?user_email=` filters on the same fact it returns.
 
 ### Experiments (runs)
 
-- **GET** `…/datasets/{dataset_name}/runs/` — list runs (merges completed runs with in-flight pending records). Filters: `?name=` (substring), `?user_email=`.
-- **GET** `…/datasets/{dataset_name}/runs/{run_name}/` — run details: header + `dataset_run_items` (each with `input`, `expected_output`, `actual_output`, `error`, `scores[]`) + `pending_judges[]`.
+- **GET** `…/datasets/{dataset_name}/runs/` — list runs, each with its task `status` (`pending`, `in_progress`, `completed`, `failed`); failed runs include `error_message`. Filters: `?name=` (substring), `?user_email=`.
+- **GET** `…/datasets/{dataset_name}/runs/{run_name}/` — run details: header (with `status`, and `error_message` when `failed`) + `dataset_run_items` (each with `input`, `expected_output`, `actual_output`, `error`, `scores[]`) + `pending_judges[]`. A run that failed before recording any item returns `200` with `status: "failed"` and an empty `dataset_run_items`, not `404`.
 - **GET** `…/datasets/{dataset_name}/runs/{run_name}/export/` — export results as CSV (columns: `item_id`, `input`, `expected_output`, `actual_output`, `trace_id`, plus one `score_<name>` column per score).
 
 ### LLM-as-Judge
@@ -78,7 +84,7 @@ no longer exists. `?user_email=` filters on the same fact it returns.
 
 ### Scores
 
-- **GET** `…/evaluations/scores/` — list scores (human annotations + LLM-judge results). Filters: `?dataset_run_id=` (scope to a run), `?trace_id=` (scope to one turn), `?name=` (exact), `?user_email=`.
+- **GET** `…/evaluations/scores/` — list the org's scores (human annotations + LLM-judge results). Filters: `?dataset_run_id=` (scope to a run), `?trace_id=` (scope to one turn), `?name=` (exact), `?user_email=`. Date window (from DM 4.491.0): `?date_filter=today|7d|30d|90d|all_time|custom`, or `?start_date=` + `?end_date=` (`YYYY-MM-DD`, both inclusive; required with `custom`). **With neither `dataset_run_id` nor `trace_id` the list defaults to the last 30 days** — pass `date_filter=all_time` for older scores. With either of those filters and no date parameter, every matching score is returned. When a window applies the response adds `period_start_date` and `period_end_date` beside `count`/`results`.
 
 ### Score configs
 
@@ -103,7 +109,7 @@ no longer exists. `?user_email=` filters on the same fact it returns.
 ### Experiments (runs)
 
 - **POST** `…/datasets/{dataset_name}/runs/` — start an experiment (async; runs the agent — `mentor_unique_id` — against every dataset item, records responses). Returns `202` with a task record.
-- **DELETE** `…/datasets/{dataset_name}/runs/{run_name}/` — delete a run (async, `202` queued). Destructive — confirm with the user first.
+- **DELETE** `…/datasets/{dataset_name}/runs/{run_name}/` — delete a run (async, `202` queued). A `failed` run that never recorded an item is removed at once and returns `204`. Destructive — confirm with the user first.
 
 ### LLM-as-Judge
 
@@ -146,12 +152,29 @@ curl -X POST \
   chat traces (`trace_ids` — input + agent response pulled from each trace).
 - Deletes (item, run, score) are **queued** (`202`), not immediate. A dataset
   itself has no update or delete endpoint.
+- A `failed` run is terminal: read its `error_message`, fix the cause, and
+  start a new run. Do not keep polling it.
+- `GET …/scores/` with no run or trace filter only covers the last 30 days. To
+  read a run's scores use `?dataset_run_id=`, which is not windowed.
+- The scores list returns only scores recorded through this API for `$IBLAI_ORG`.
+  A score added to a trace by any other route carries no org and is not listed,
+  so counts can differ from a tool that reads the traces directly.
+- Run details, run export, the scores list and item reads that attach a trace
+  (`include_trace`, or one item with a `source_trace_id`) may return `504` when
+  the evaluation data store takes too long; retry later, and narrow a scores
+  query with a date window.
+- A run started on a dataset with no items finishes `completed` without ever
+  being recorded: it drops out of the run list and its details return `404`.
+  Add items before starting a run.
 - Deleting a run leaves its judge records: a new run started under the same
   `run_name` lists the old reviews in `…/evaluate/`. Use a fresh `run_name`.
 - When the judge model call fails, the judge task still ends `completed` and
   writes `0` with the comment `LLM judge call failed` for each item. Check
   comments before trusting low scores.
-- Verified against the live schema (4.411.0) and live runs on 2026-10-02.
+- Verified against the live schema (4.411.0) and live runs on 2026-10-02,
+  except the behaviour marked "from DM 4.491.0" and the notes on failed runs,
+  the scores date window and `504`, which describe that release and have not
+  been checked against a live deployment.
 
 ## Schema
 

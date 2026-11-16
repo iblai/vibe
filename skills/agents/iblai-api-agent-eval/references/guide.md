@@ -19,7 +19,7 @@ record — poll, don't block. Full field lists live in SKILL.md's **Schema**.
    - CSV — `POST …/datasets/qa-eval-v1/items/upload/` — multipart `file` (see **CSV format**)
    - From chat traces — `POST …/datasets/qa-eval-v1/items/` — `{ "trace_ids": ["t1", "t2"] }`
 3. **Run experiment** — `POST …/datasets/qa-eval-v1/runs/` — `{ "mentor_unique_id": "…", "run_name": "run-v1" }`. Each item gets its own chat session; the agent's reply and its trace are recorded per item — those `trace_id`s are what scores attach to.
-4. **Poll to completion** — `GET …/datasets/qa-eval-v1/runs/run-v1/` until `status` is `completed`. Required before grading or export.
+4. **Poll to completion** — `GET …/datasets/qa-eval-v1/runs/run-v1/` until `status` is `completed`. Required before grading or export. Items appear while `status` is still `in_progress`; wait for `completed`. Stop if it turns `failed` and read `error_message`.
 5. **Grade** — human and/or judge:
    - Human — `POST …/scores/` — `{ "trace_id": "t1", "name": "accuracy", "value": 4.0, "data_type": "NUMERIC" }`
    - Judge — `POST …/datasets/qa-eval-v1/runs/run-v1/evaluate/` — see **Judge criteria**
