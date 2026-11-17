@@ -268,7 +268,7 @@ Two things are specific to `Account`:
 | **Network** | Integrations | `virtualMachine` | `isAdmin === true` — the addresses agents' virtual machines may reach (see `/iblai-vibe-virtual-machine`) |
 | **Monetization** | Finance | `monetization` | `isAdmin === true`, the organization has monetization enabled **and** the caller holds `/platforms/<org>/#can_sell_items` (with RBAC off that check passes automatically) |
 | **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` |
-| **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — test-input suites for evaluating agents |
+| **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — the organization's benchmarks (questions and expected answers for evaluating agents), on the same screens as the Evals tab's **Manage Benchmarks** (see `/iblai-vibe-agent-evals`) |
 | **Memory** | AI & data | `memory` | `isAdmin === true` — organization-wide global and per-agent memories (see `/iblai-vibe-memory`) |
 | **Advanced** | System | `advanced` | `isAdmin === true` — organization-wide switches, among them **Allow users to control chat privacy**, the gate that turns Incognito on for the organization (`PATCH …/chat-privacy-config/`, admin-only; see `/iblai-vibe-incognito`) |
 

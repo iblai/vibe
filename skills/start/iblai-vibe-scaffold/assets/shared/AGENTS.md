@@ -126,10 +126,10 @@ Copy `.env.example` to `.env.local` and fill in your values.
 
 | Package | Version |
 |---------|---------|
-| `@iblai/iblai-js` | ^2.73.1 |
+| `@iblai/iblai-js` | ^2.77.0 |
 | `@iblai/iblai-web-mentor` | ^2.0.1 |
 | `@reduxjs/toolkit` | 2.11.2 |
-| `next` | 16.2.1 |
+| `next` | ^16.4.5 |
 
 These versions are pinned and tested together. Do not upgrade individually — the SDK has strict peer dependency requirements.
 

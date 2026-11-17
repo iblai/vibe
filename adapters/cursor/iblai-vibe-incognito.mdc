@@ -258,7 +258,9 @@ From `@iblai/iblai-js/playwright`: `getChatPrivacyToggle`,
 `expectChatPrivacyState`, `expectChatPrivacySource`,
 `expectChatPrivacyLocked`, `clickChatPrivacyToggle`,
 `confirmEnableChatPrivacyMidSession`, `turnOffChatPrivacyMidSession`,
-`cancelEnableChatPrivacyMidSession`.
+`cancelEnableChatPrivacyMidSession`. The entry loads `@axe-core/playwright`,
+an optional peer that vibe-starter and the scaffold install; anywhere else run
+`pnpm add -D @axe-core/playwright` first.
 
 SDK source: `packages/web-containers/src/components/chat-privacy/chat-privacy-toggle.tsx`,
 `hooks/use-chat-privacy.ts`, the organization gate row at
