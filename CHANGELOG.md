@@ -3,6 +3,16 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.24.0] - 2026-11-17
+
+### Added
+
+- Evals tab and benchmark screens rework; starter to @iblai/iblai-js 2.77.0
+
+### Fixed
+
+- review fixes on the evals update
+
 ## [2.23.0] - 2026-11-13
 
 ### Added
