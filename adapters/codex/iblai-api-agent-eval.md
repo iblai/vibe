@@ -146,6 +146,13 @@ curl -X POST \
   chat traces (`trace_ids` — input + agent response pulled from each trace).
 - Deletes (item, run, score) are **queued** (`202`), not immediate. A dataset
   itself has no update or delete endpoint.
+- `POST …/datasets/` with a `name` that already exists does not fail: it
+  updates that dataset, and items added next land in it. Look the name up
+  first with `GET …/datasets/?name=<name>` (a substring filter, so compare
+  the names exactly), as the SDK's New Benchmark dialog does.
+- Adding items is not idempotent: `POST …/items/` and `…/items/upload/` save
+  rows one at a time, so retrying after a timeout or partial failure adds the
+  same pairs again. List the items before you retry.
 - Deleting a run leaves its judge records: a new run started under the same
   `run_name` lists the old reviews in `…/evaluate/`. Use a fresh `run_name`.
 - When the judge model call fails, the judge task still ends `completed` and
