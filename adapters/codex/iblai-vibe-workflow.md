@@ -57,7 +57,7 @@ left out; publish refuses a workflow that connects one.
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
 - `@iblai/iblai-js` 2.71.0 or later for the Classifier step, the shortcuts
   and the linked warnings (2.73.1 links each warning by its step id);
-  vibe-starter ships `^2.77.0`.
+  vibe-starter ships `^2.80.0`.
 - An agent to open the list from (`mentorId`): every new workflow begins
   with a **Start → Agent** pair bound to it. The list itself shows the whole
   organization's workflows.

@@ -18,7 +18,7 @@ contact-your-admin notice — for everything on the page: the in-process
 `<Chat>`, the navbar widget, the app's own REST calls, and an OS agent
 embedded with `<agent-ai>`. vibe-starter ships it.
 
-![Plan picker — Choose Your Plan](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-credit-exhaustion/iblai-vibe-credit-exhaustion-1-plan-picker.png)
+![Plan picker — Change Your Plan, for an organization already on a plan](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-credit-exhaustion/iblai-vibe-credit-exhaustion-1-plan-picker.png)
 
 > **Common setup (brand, conventions, env files, verification):** see [docs/skill-setup.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/docs/skill-setup.md).
 
@@ -31,9 +31,16 @@ one thing that person can do next:
 | Who ran out | Toast | Next step |
 |---|---|---|
 | An **admin** of the organization | "You've run out of credits. Add credits to continue." | `openBillingTab` from `SubscriptionConfigProvider` — vibe-starter sends them to `/admin/billing` (`/iblai-vibe-billing`); the OS opens its profile modal on Billing (`?profileTab=billing`) |
-| The account owner on a **free trial** (the backend sends a `pricing_table` only to them; `useUserIsOnTrial` is the fallback) | "You've run out of your free trial credits. Pick a plan to continue." | `UpgradePackageModal` — **Choose Your Plan**: Free ($0, no card, their own workspace), Pro, Max, Ultra, with a "contact our team" line for enterprise |
+| A **free-trial** user — signed up on the platform's main organization (`main`) and in no other (the backend sends a `pricing_table` only to the account owner; `useUserIsOnTrial` is the fallback) | "You've run out of your free trial credits. Pick a plan to continue." | `UpgradePackageModal` — **Choose Your Plan**: Free ($0, no card, their own workspace), Pro, Max, Ultra, with a "contact our team" line for enterprise |
 | Everyone else (a **member**) | "Your organization has run out of credits." | `ContactAdminModal` — one line and a **Contact Now** button that mails the organization's support address |
 | A desktop/iOS build that may not sell in-app (Apple's rules) | — | `AppleRestrictionModal` instead of any checkout |
+
+The free trial lives on the platform's main organization (`main` on hosted
+ibl.ai, the SDK's default `mainTenantKey`), the only one that lists and
+changes plans. A single-organization app on its own organization has no
+free-trial users: there, a non-admin gets the picker only when the 402
+carries a `pricing_table`, and an organization already on a plan meets it as
+**Change Plan** (the navbar widget, Billing).
 
 Two more things read the same store: the **free-trial gate** (Step 3) sends a
 trial user to the plan picker *before* an admin action instead of letting it
@@ -48,14 +55,14 @@ plans and credits are bought on Stripe through the ibl.ai backend
   `UpgradePackageModal`, `ContactAdminModal` and `AppleRestrictionModal` from
   the store, and listens for an embedded agent's `creditsexhausted` event.
   Mounted once in `app/(app)/layout.tsx`.
-- `SubscriptionConfigProvider` in the provider chain, with the app's main
-  organization, its credits switch, support address, plan bullets and where
-  Billing lives; the `subscription`, `topBanner` and `appleRestriction`
-  slices in the store.
+- `SubscriptionConfigProvider` in the provider chain, with the credits
+  switch, support address, plan bullets and where Billing lives (the main
+  organization stays the SDK's default: the platform's, not the app's); the
+  `subscription`, `topBanner` and `appleRestriction` slices in the store.
 - `config.stripeEnabled()` and `config.planFeatures()` in `lib/iblai/config.ts`
   from `NEXT_PUBLIC_STRIPE_ENABLED` and `NEXT_PUBLIC_PLAN_FEATURES_*`.
 - `components/embedded-agent.tsx` (`assets/`, optional): the OS agent in an
-  iframe with the hand-off turned on.
+  iframe with the hand-off turned on (live once the OS ships iblai/os#677).
 - vibe-starter ships all of it but the embed; `/iblai-vibe-auth` installs the
   store and providers on an existing app.
 
@@ -70,9 +77,10 @@ plans and credits are bought on Stripe through the ibl.ai backend
 ## Prerequisites
 
 - Auth in place (`/iblai-vibe-auth`, or vibe-starter).
-- `@iblai/iblai-js@^2.80.0` (the credits flows moved into the SDK in 2.73.0;
-  the plan bullets and the embed hand-off need 2.79.0) and, for the embed,
-  `@iblai/agent-ai@^2.15.0`.
+- `@iblai/iblai-js@^2.80.0`: the credits flows, the plan picker and its
+  bullets arrived in 2.73.0, the host side of the embed hand-off in 2.79.0.
+  For the embed itself, `@iblai/agent-ai@^2.15.0` and the OS release that
+  carries iblai/os#677 (Step 5).
 - An organization on the credits model: the main organization's sign-up is
   a free trial; a workspace created from the picker is on a plan.
 
@@ -108,8 +116,8 @@ export function CreditsConfig({ children }: { children: ReactNode }) {
   const router = useRouter();
   const value = useMemo(
     () => ({
-      // Where free-trial users live; the picker creates their workspace elsewhere.
-      mainTenantKey: config.mainTenantKey(),
+      // No `mainTenantKey`: the SDK's default, `main`, is the platform's main
+      // organization — not this app's (NEXT_PUBLIC_MAIN_TENANT_KEY).
       // The credits switch: off, and nothing gates or prompts for credits.
       stripeEnabled: config.stripeEnabled(),
       // Fallback for Contact Now when the organization's metadata has none.
@@ -125,9 +133,17 @@ export function CreditsConfig({ children }: { children: ReactNode }) {
 }
 ```
 
-Every field has a default (`mainTenantKey: "main"`, billing on,
-`openBillingTab` pushes `?profileTab=billing` for the OS's profile modal), so
-the hooks work without the provider — with the OS's values, not yours.
+Every field has a default, so the hooks work without the provider: billing
+on, `openBillingTab` pushing `?profileTab=billing` for the OS's profile
+modal (set those), and `mainTenantKey: "main"`, the platform's main
+organization — where free-trial users live and the only one that lists and
+changes plans. Leave that one alone. It is not your app's organization: with
+`NEXT_PUBLIC_MAIN_TENANT_KEY` in the slot, Change Plan is refused (404,
+"Only the main platform offers plan changes"), every admin sees the credit
+balance whether or not the organization sells credits, and the free-trial
+gate sends every member to the picker. Read it back with
+`useSubscriptionConfig().mainTenantKey` wherever a component takes
+`mainPlatformKey`.
 
 ## Step 2: Mount the handler
 
@@ -147,9 +163,27 @@ What it does: `use402ErrorCheck()` gives it `handle402Error`; it renders the
 three modals whenever `state.subscription.openPricingModal`,
 `state.subscription.openContactAdminModal` or
 `state.appleRestriction.openAppleRestrictionModal` is set; and it listens on
-`document` for the `creditsexhausted` event (Step 5). The picker's
-`redirectUrl` is `config.appUrl()` — where Stripe sends the person back —
-and `sourcePlatformKey` the current organization.
+`document` for the `creditsexhausted` event (the providers below, Step 5),
+dropping a repeat within a second — one REST 402 reaches the data layer's
+handler twice. The picker's `mainPlatformKey` is the provider's
+`mainTenantKey`, `sourcePlatformKey` the current organization, and its
+`redirectUrl` the login page with the app nested inside
+(`<auth>/login?app=custom&redirect-to=<origin>`): the checkout appends a
+sign-in token the login page consumes before returning to the app, and the
+pricing session refuses a return URL on a domain it does not allow, which an
+app's own domain is not (400 "Redirect URL domain is not allowed"). That URL
+is `loginReturnUrl()` in `lib/iblai/auth-utils.ts`; `/iblai-vibe-auth`
+installs it, and an older copy of the file needs it added:
+
+```ts
+// lib/iblai/auth-utils.ts
+import config from "@/lib/iblai/config";
+
+/** The login page with this app nested inside: where a checkout returns the person. */
+export function loginReturnUrl(origin: string = config.appUrl()): string {
+  return `${config.authUrl()}/login?app=custom&redirect-to=${encodeURIComponent(origin)}`;
+}
+```
 
 Then route the app's own REST 402s the same way. The data layer takes one
 handler per status; vibe-starter's `providers/iblai-providers.tsx` passes
@@ -159,8 +193,11 @@ listens for, so one component shows the next step:
 ```ts
 // the httpErrorHandler argument of initializeDataLayer(...)
 const httpErrorHandler = {
-  402: (error?: { status: number; data?: unknown }) => {
-    const body = (error?.data ?? {}) as Record<string, unknown>;
+  402: (error?: unknown) => {
+    // The data layer hands over the 402's body itself (spread) or, on its
+    // legacy-LMS path, `{ status, body, message }`.
+    const raw = (error ?? {}) as Record<string, unknown>;
+    const body = (raw.body && typeof raw.body === "object" ? raw.body : raw) as Record<string, unknown>;
     // An item paywall's 402 (`has_access`, `pricing`) belongs to the
     // monetization flows; a credits 402 carries the backend's sentence.
     if ("has_access" in body || "item_type" in body || "pricing" in body) return;
@@ -212,6 +249,12 @@ the OS and the LMS use it to *show* the whole admin menu to a trial user and
 open the picker on click, instead of hiding the menu. `<Chat>` exposes the
 same gate as `config.onUpgradeRequired`.
 
+The predicate asks whether the current organization is the platform's main
+one (or an advertising one) and the person is not its admin; it does not
+count the person's organizations. On an app's own organization it is false
+for everyone, so the gate blocks only on exhausted credits; on the main
+organization it sends every non-admin to the picker.
+
 ## Step 4: The plan picker's bullets
 
 Each card's bullets come from the host, so an app describes the plans in
@@ -235,6 +278,11 @@ industry-neutral unless the app is for one audience — the LMS lists
 courses and cohorts, the OS lists agents and workflows.
 
 ## Step 5: An embedded OS agent
+
+> **Not live yet.** The OS sends the `credits.exhausted` frame only from
+> iblai/os#677, which is still open: OS `main` posts nothing for a 402. Until
+> that release the attribute is accepted and the embed keeps its own modals;
+> wire it now and the hand-off starts when the OS ships.
 
 When the agent on the page is the OS itself in an iframe (`<agent-ai>` from
 `@iblai/agent-ai` — the OS's own chat, sidebar and settings, signed in as
@@ -280,7 +328,7 @@ export function EmbeddedAgent({ agentId }: { agentId: string }) {
     tenant: resolveAppTenant(),
     mentor: agentId,
     authRelyOnHost: true,       // signed in as this app's user
-    handleCreditExhaustion: true, // the 402's next step opens here, not in the widget
+    handleCreditExhaustion: true, // the 402's next step opens here, not in the widget (from the OS release with iblai/os#677)
     theme: "light",
     style: { display: "block", width: "100%", height: "100%" },
   });
@@ -303,13 +351,16 @@ a host without a handle on the element. The wire contract is in
    — a toast, then `/admin/billing`. Signed in as a member of the same
    organization: the "Your organization has run out of credits" dialog, and
    **Contact Now** opens a mail draft. A user who signed up moments ago (a
-   free trial): the "Choose Your Plan" dialog with four cards and your
-   bullets; console clean; no sideways scroll at phone width.
+   free trial, on the platform's main organization): the "Choose Your Plan"
+   dialog with four cards and your bullets; console clean; no sideways
+   scroll at phone width.
 3. The real thing needs an organization with no credits left (ask an ibl.ai
    operator to zero a test organization's balance): send a chat message —
-   the same screens, from a real 402. vibe-starter's K10 checkpoint
-   (`e2e/journeys/pages.journey.spec.ts`) dispatches the event by hand so the
-   suite never spends credits.
+   the same screens, from a real 402. vibe-starter's checkpoints dispatch
+   the event by hand so the suite never spends credits: K10 (the admin lands
+   on Billing, `e2e/journeys/pages.journey.spec.ts`), M6 (a member gets the
+   notice) and M7 (a `pricing_table` opens the picker; both in
+   `member.journey.spec.ts`).
 
 ## Customize
 
@@ -325,8 +376,8 @@ get_hook_info("useShowFreeTrialDialog")
 | Prop | Type | Description |
 |---|---|---|
 | `open`, `onClose` | `boolean`, `() => void` | The dialog's state (vibe-starter binds `state.subscription.openPricingModal`) |
-| `redirectUrl` | `string` | Where Stripe sends the person back after checkout |
-| `sourcePlatformKey`, `mainPlatformKey` | `string` | The current organization and the main one |
+| `redirectUrl` | `string` | Where Stripe sends the person back after checkout: the login page with the app's origin nested (`loginReturnUrl()`); the pricing session refuses a domain it does not allow |
+| `sourcePlatformKey`, `mainPlatformKey` | `string` | The current organization and the platform's main one (`useSubscriptionConfig().mainTenantKey`) |
 | `currentUserEmail` | `string` | Pre-fills Stripe Checkout |
 | `currentPlanKey` | `string \| null` | Change mode: that card reads "Current Plan", the others offer an upgrade or a downgrade. Leave unset for a free-trial user |
 | `planFeatures` | `Record<string, string[]>` | Bullets by plan key; defaults to the provider's (Step 4) |
@@ -369,6 +420,10 @@ All hooks from `@iblai/iblai-js/web-utils`, the queries from
   browsing in User mode is still sent to Billing; vibe-starter's `/admin/*`
   is Admin-mode-only, so they land on the home page — open Billing from
   Admin mode.
+- **The main organization is the platform's, not yours**: `mainPlatformKey`
+  everywhere (the picker, `CreditBalance`, `BillingTab`, the navbar rule) is
+  `useSubscriptionConfig().mainTenantKey`, never `NEXT_PUBLIC_MAIN_TENANT_KEY`
+  (Step 1 says what goes wrong).
 - **One place to render**: the modals read the store, so a second
   `CreditExhaustionHandler` (or the OS's own `ModalContainer` pattern beside
   it) would open twice. Mount it once, in the layout.

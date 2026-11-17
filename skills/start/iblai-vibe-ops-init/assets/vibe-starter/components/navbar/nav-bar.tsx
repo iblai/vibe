@@ -30,6 +30,7 @@ interface NavBarProps {
   tenantKey: string;
   username?: string;
   email: string;
+  /** The platform's main organization (`useSubscriptionConfig().mainTenantKey`), never this app's. */
   mainPlatformKey: string;
   isAdmin: boolean;
   currentTenant?: any;
@@ -70,9 +71,9 @@ export function NavBar({
   const userOnFreeTrial = useUserIsOnTrial();
 
   // The SDK's own rule for the credit balance (the OS navbar uses the same
-  // one): billing on, the organization sells credits (or is the main one),
-  // and the viewer can act on them — an admin in Admin mode or a free-trial
-  // user — and is signed in.
+  // one): billing on, the organization sells credits (or is the platform's
+  // main one, where free-trial users live), and the viewer can act on them —
+  // an admin in Admin mode or a free-trial user — and is signed in.
   const creditBalanceVisible =
     showCreditBalance &&
     isPlatformNavbarCreditBalanceVisible({

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSubscriptionConfig } from '@iblai/iblai-js/web-utils';
 import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import {
   NavigationDrawer,
@@ -72,6 +73,10 @@ export default function AppLayout({
   const liveAdmin = isAdmin && adminMode;
   const pathname = usePathname() ?? '/';
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise): the SDK's credits flows key the free trial and the plan list
+  // on it. Not this app's organization (NEXT_PUBLIC_MAIN_TENANT_KEY).
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
 
   // The admin area is admin-only, in Admin mode only.
   useEffect(() => {
@@ -94,7 +99,7 @@ export default function AppLayout({
           tenantKey={tenantKey}
           username={username}
           email={email}
-          mainPlatformKey={config.mainTenantKey()}
+          mainPlatformKey={platformMainOrg}
           isAdmin={isAdmin}
           currentTenant={currentTenant}
           userTenants={tenants}

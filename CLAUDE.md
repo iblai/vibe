@@ -30,7 +30,8 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "incognito", "private mode", "don't save this chat", "PII", "redact personal data" | `/iblai-vibe-incognito` (the toggle + the four tiers) → `/iblai-vibe-agent-privacy` (PII filtering + the agent's Incognito policy), the Profile › Privacy tab in `/iblai-vibe-profile` |
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
-| "out of credits", "402", "plan picker", "upgrade plan", "free trial", "embed the OS agent" | `/iblai-vibe-credit-exhaustion` — what the app shows when credits run out (vibe-starter ships it), the free-trial gate, the hand-off from `<agent-ai>` |
+| "out of credits", "402", "plan picker", "upgrade plan", "free trial" | `/iblai-vibe-credit-exhaustion` — what the app shows when credits run out (vibe-starter ships it), the free-trial gate, the hand-off from `<agent-ai>` (once the OS ships iblai/os#677) |
+| "embed the agent", "embed the OS agent", "iframe", "`<agent-ai>`", "put the agent on another site" | `/iblai-vibe-agent-embed` (the agent's Embed tab in your app) → `/iblai-api-agent-embed` (the `<agent-ai>` element: its attributes, SSO and the frames it posts) |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |

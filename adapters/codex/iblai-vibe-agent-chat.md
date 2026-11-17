@@ -73,7 +73,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   ```bash
   grep -qE "declare function Chat\b|type ChatConfig" \
-    node_modules/@iblai/web-containers/dist/next/index.d.ts \
+    node_modules/.pnpm/@iblai+web-containers@*/node_modules/@iblai/web-containers/dist/next/index.d.ts \
     && echo "Chat present" \
     || echo "MISSING — upgrade the SDK packages (see Step 3)"
   ```
@@ -86,8 +86,9 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 > Several runtime props/args (e.g. `getChatHistory`'s `userId` path
 > param) are absent from the type defs, and some documented slot props
 > are typed but not implemented. When something doesn't match, verify
-> against `node_modules/@iblai/web-containers/dist/next/index.esm.js`
-> (the actual bundle), not just the types.
+> against `node_modules/.pnpm/@iblai+web-containers@*/node_modules/@iblai/web-containers/dist/esm/next/index.js`
+> (the actual bundle; pnpm keeps the package under `.pnpm` only, as a
+> dependency of `@iblai/iblai-js`), not just the types.
 
 ## What Gets Wired
 

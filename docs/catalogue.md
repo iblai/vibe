@@ -183,7 +183,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 |---|---|---|
 | [`/iblai-api-billing`](../skills/billing/iblai-api-billing/SKILL.md) | 🔌 api | Operate an ibl.ai organization's billing surface via the platform API |
 | [`/iblai-api-spend-caps`](../skills/billing/iblai-api-spend-caps/SKILL.md) | 🔌 api | Manage an ibl.ai organization's LLM spend caps via the platform API |
-| [`/iblai-vibe-billing`](../skills/billing/iblai-vibe-billing/SKILL.md) | 🖥️ ui | Add the organization-wide Billing settings surface (Plan & Credits with the plan picker (Free, Pro, Max, Ultra) and Change Plan, add-cred… |
+| [`/iblai-vibe-billing`](../skills/billing/iblai-vibe-billing/SKILL.md) | 🖥️ ui | Add the organization-wide Billing settings surface (Credits with the plan picker (Free, Pro, Max, Ultra) and Change Plan, add-credits, an… |
 | [`/iblai-vibe-credit`](../skills/billing/iblai-vibe-credit/SKILL.md) | 🖥️ ui | Add the ibl.ai credit balance widget to your Next.js app's navbar |
 | [`/iblai-vibe-credit-exhaustion`](../skills/billing/iblai-vibe-credit-exhaustion/SKILL.md) | 🖥️ ui | Add what your Next.js app does when the organization runs out of ibl.ai credits |
 | [`/iblai-vibe-pricing`](../skills/billing/iblai-vibe-pricing/SKILL.md) | 📖 guide | Decide how money works for an ibl.ai app |

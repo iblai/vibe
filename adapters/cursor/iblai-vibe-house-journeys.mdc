@@ -31,7 +31,7 @@ user — plus the organization's own form for its members:
 - **The admin of their own organization.** Their first visit opens the SDK
   `OnboardingWizard` setup flow — organization → sector → invite your team → done — once per
   session until it is completed. Then the Stripe path: the credit badge (plan, **Upgrade**,
-  **Add Credits**, **Manage Billing**; the SDK runs every checkout) and the Billing tab of the
+  **Add Credits**, **Manage Usage**; the SDK runs every checkout) and the Billing tab of the
   account dialog, where a 402 lands.
 - **A member.** The form the admin authored in Management › Onboarding, with its agent on the
   last step, at `/platform/<org>/onboarding` until they answer; nothing when none is set up.

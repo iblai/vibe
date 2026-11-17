@@ -93,14 +93,14 @@ and navigation are yours, through the callbacks.
 | `onBeforeCreate` | `() => boolean \| Promise<boolean>` | No | Gate before the request (a paywall, a trial check); `false` stops it |
 | `initialValues` | `Partial<CreateAgentFormValues>` | No | Prefill any field |
 | `showBaseModel` | `boolean` | No | Show the Base select (template: Default, OpenAI, Gemini); off by default |
-| `visibilityOptions` / `modelOptions` | `CreateAgentOption[]` | No | Replace the select options |
+| `modelOptions` | `CreateAgentOption[]` | No | Replace the Base select's options (`visibilityOptions` is `@deprecated` and ignored: a new agent is visible to administrators only) |
 | `defaultPrompts` | `Partial<AgentPromptDefaults>` | No | The prompts the form starts with |
 | `labels` | `DeepPartial<CreateAgentLabels>` | No | Any UI string |
 
-**What it renders.** Settings: Name, Description, Category, Agent Visibility
-(Administrators / Users / Anyone; Users by default) and an image upload,
-then **Next**. Prompts: System, Proactive and Guided prompts, each with
-**Edit**, then **Save**.
+**What it renders.** Settings: Name, Description, Category and an image
+upload, then **Next**. A new agent is visible to administrators only; open
+it to users or the public afterwards in `/iblai-vibe-agent-setting`. Prompts:
+System, Proactive and Guided prompts, each with **Edit**, then **Save**.
 
 ## Fields each person may set
 
@@ -117,9 +117,9 @@ The organization's RBAC policies decide the answer (`/iblai-vibe-rbac`).
   let someone create agents must leave both writable:
   - the **name** (`new_mentor_name`, `display_name`): always asked for and
     always sent, so the call is refused (`403`);
-  - **Base** (`template_name`): required by the create call, so leaving it
-    out fails it (`400`, "This field is required."). This holds even when
-    the form hides Base (`showBaseModel` off).
+  - **Base** (`template_name`): the create call requires it, so the form
+    always sends it (the default template when Base is hidden, `showBaseModel`
+    off), and a policy that bars it refuses the request (`403`).
 - While the answer is unknown it **fails open**, showing every field: an
   older platform (404), a person who may not create agents at all (403), a
   network failure.
@@ -133,8 +133,7 @@ person may not write, so a form of your own must leave those out too:
 | Description | `description` |
 | Category | `categories` (and `metadata.category`, permitted as `metadata`) |
 | Image | `uploaded_profile_image` |
-| Agent Visibility | `mentor_visibility` |
-| Base | `template_name` (required) |
+| Base | `template_name` (required, always sent) |
 | System / Proactive / Guided prompt | `system_prompt`, `proactive_prompt`, `guided_prompt_instructions` |
 | Moderation prompt (not shown) | `moderation_system_prompt` |
 

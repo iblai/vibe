@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-billing
-description: Add the organization-wide Billing settings surface (Plan & Credits with the plan picker (Free, Pro, Max, Ultra) and Change Plan, add-credits, and auto-recharge; the workspace-wide Spend Limit; the Agent Limits table managing every agent's spend cap in one place; and User Limits, a spend limit per user across all agents plus the Default for New Users every new member gets) to your Next.js app. Use when the user mentions billing, plan, credits, auto recharge, an LLM spend limit for the workspace, an agent, or a user, or a default limit for new members. For one agent's limits see /iblai-vibe-agent-billing; for the REST contract see /iblai-api-spend-caps.
+description: Add the organization-wide Billing settings surface (Credits with the plan picker (Free, Pro, Max, Ultra) and Change Plan, add-credits, and auto-recharge; the workspace-wide Spend Limit; the Agent Limits table managing every agent's spend cap in one place; and User Limits, a spend limit per user across all agents plus the Default for New Users every new member gets) to your Next.js app. Use when the user mentions billing, plan, credits, auto recharge, an LLM spend limit for the workspace, an agent, or a user, or a default limit for new members. For one agent's limits see /iblai-vibe-agent-billing; for the REST contract see /iblai-api-spend-caps.
 globs:
 alwaysApply: false
 metadata:
@@ -10,9 +10,9 @@ metadata:
 # /iblai-vibe-billing
 
 Add the organization-wide **Billing** surface -- "Manage your billing and
-subscription" for the whole workspace, in four tabs: **Plan &
-Credits** (current plan with **Upgrade** — the plan picker — or **Change
-Plan**, credit balance with its USD equivalent, Add Credits, and Auto
+subscription" for the whole workspace, in four tabs: **Credits** (the
+current plan with **Upgrade** — the plan picker — or **Change Plan**,
+the credit balance with its USD equivalent, Add Credits, and Auto
 Recharge with threshold / recharge amount / spending limit), **Spend Limits** (the single
 workspace-wide LLM spend limit covering everything all agents and
 users spend), **Agent Limits** (every agent spend cap in the
@@ -27,7 +27,7 @@ per-agent and per-user limits live in each agent's settings
 (`/iblai-vibe-agent-billing`); this surface holds the plan/credits
 management, the workspace-wide cap, and the cross-agent overview.
 
-![Billing — Plan & Credits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing.png)
+![Billing — Credits](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing.png)
 
 ![Add Credits Modal](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/billing/iblai-vibe-billing/iblai-vibe-billing-add-credits.png)
 
@@ -94,8 +94,13 @@ identity — the agent search and the Stripe flows need them.
 
 import { useEffect, useState } from "react";
 import { BillingTab } from "@iblai/iblai-js/web-containers";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 
 export default function BillingPage() {
+  // The platform's main organization (`main` unless the provider says
+  // otherwise): where free-trial users live and the only one that lists and
+  // changes plans. Never this app's organization.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   const [tenant, setTenant] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -124,7 +129,7 @@ export default function BillingPage() {
         tenant={tenant}
         username={username}
         currentUserEmail={email}
-        mainPlatformKey={process.env.NEXT_PUBLIC_MAIN_TENANT_KEY ?? ""}
+        mainPlatformKey={platformMainOrg}
       />
     </div>
   );
@@ -146,14 +151,14 @@ Import from `@iblai/iblai-js/web-containers`.
 |------|------|----------|-------------|
 | `tenant` | `string` | Yes | Org key this Billing page manages |
 | `username` | `string` | Yes | Acting admin's username (Stripe portal + agent search) |
-| `mainPlatformKey` | `string` | Yes | The main org key (`NEXT_PUBLIC_MAIN_TENANT_KEY`) — tells a free trial (on the main organization) from an organization on a plan |
+| `mainPlatformKey` | `string` | Yes | The platform's main organization — `useSubscriptionConfig().mainTenantKey`, `main` on hosted ibl.ai — where free-trial users live and the only one that lists and changes plans. Never this app's organization (`NEXT_PUBLIC_MAIN_TENANT_KEY`): with it in the slot Change Plan is refused (404) |
 | `currentUserEmail` | `string` | Yes | Acting user's email, passed to the Stripe upgrade flow |
 | `userActiveApp` | `UserApp \| null` | No | Active subscription record (from `@iblai/iblai-api`) — enables renewal-date / trial-days copy on the Plan card |
 | `redirectUrl` | `string` | No | Stripe checkout return URL; defaults to the current page |
 
 ## What each tab renders
 
-### Plan & Credits
+### Credits
 
 - **Plan card** — the plan's name as the backend reports it (**Trial** on
   the main organization; **Free**, **Pro**, **Max**, **Ultra** from
@@ -163,10 +168,13 @@ Import from `@iblai/iblai-js/web-containers`.
   four cards, the bullets from the host's `planFeatures`, "contact our
   team" for enterprise). An organization on a plan gets an outline
   **Change Plan** beside Add Credits once the backend sends `plan_key`: the
-  picker in change mode marks the current card, upgrades swap the
-  subscription in place and are charged today, downgrades are scheduled for
-  the end of the period, and a plan sold as a one-time purchase opens its
-  checkout. Both call `useStripeUpgrade` (`choosePlan` / `changePlan`).
+  picker in change mode marks the current card. A recurring plan replaces
+  the subscription in place (`updated`): a dearer one starts a new period
+  today and is charged at once (a full period less the unused part of the
+  current one), a cheaper one takes its price from the next renewal. Only
+  Free waits for the end of the period (`scheduled`, with `effective_at`),
+  and a plan with no subscription behind it opens its checkout (`checkout`).
+  Both call `useStripeUpgrade` (`choosePlan` / `changePlan`).
 - **Credits card** — Available credits with the USD equivalent and
   the environment's conversion rate (e.g. "≈ $16.89 · 1,000 credits =
   $1" — resolved from account fields, falling back to the newest
@@ -340,5 +348,5 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
   PUT whose `enabled: false` means off). REST: `/iblai-api-spend-caps`.
 - **Per-scope RBAC**: each section 403s independently — Spend Limits,
   Agent Limits and User Limits render their own denied panels without
-  hiding the Plan & Credits tab.
+  hiding the Credits tab.
 - **Brand guidelines**: [BRAND.md](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/BRAND.md)

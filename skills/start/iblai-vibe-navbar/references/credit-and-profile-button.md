@@ -7,9 +7,12 @@ Moved out of `SKILL.md` to keep the skill scannable; this is the full text.
 Create `components/navbar/credit-balance-widget.tsx`. This wraps the SDK's
 `CreditBalance` behind the SDK's own visibility rule
 (`isPlatformNavbarCreditBalanceVisible`, the one the OS navbar runs): billing
-on, an organization that sells credits (`show_paywall`) or the main one, an
-admin in Admin mode or a free-trial user, signed in. `useAdminMode` is the
-starter's `lib/iblai/admin-mode.tsx`; `useUserIsOnTrial` is the SDK's.
+on, an organization that sells credits (`show_paywall`) or the platform's
+main one, an admin acting as one or a free-trial user, signed in.
+`isLiveAdmin` is yours: `isAdmin && adminMode` behind vibe-starter's
+User/Admin switch (`/iblai-vibe-admin`), plain `isAdmin` in an app without
+one. `useUserIsOnTrial` and `useSubscriptionConfig` (whose `mainTenantKey` is
+the platform's main organization, `main`, never this app's) are the SDK's.
 
 ```tsx
 'use client';
@@ -18,9 +21,8 @@ import {
   CreditBalance,
   isPlatformNavbarCreditBalanceVisible,
 } from '@iblai/iblai-js/web-containers';
-import { useUserIsOnTrial } from '@iblai/iblai-js/web-utils';
+import { useSubscriptionConfig, useUserIsOnTrial } from '@iblai/iblai-js/web-utils';
 import config from '@/lib/iblai/config';
-import { useAdminMode } from '@/lib/iblai/admin-mode';
 
 interface CreditBalanceWidgetProps {
   tenantKey: string;
@@ -28,6 +30,11 @@ interface CreditBalanceWidgetProps {
   currentTenant?: { key?: string | null; show_paywall?: boolean | null } | null;
   username: string;
   email: string;
+  /**
+   * An admin acting as one: `isAdmin && adminMode` behind a User/Admin
+   * switch (`/iblai-vibe-admin`), plain `isAdmin` in an app without one.
+   */
+  isLiveAdmin: boolean;
 }
 
 export function CreditBalanceWidget({
@@ -35,17 +42,20 @@ export function CreditBalanceWidget({
   currentTenant,
   username,
   email,
+  isLiveAdmin,
 }: CreditBalanceWidgetProps) {
-  const { adminMode } = useAdminMode();
   const userOnFreeTrial = useUserIsOnTrial();
+  // The platform's main organization (`main`): where free-trial users live
+  // and the only one that lists and changes plans. Never this app's.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
 
   const visible = isPlatformNavbarCreditBalanceVisible({
     tenantKey,
     currentTenant,
     stripeEnabled: config.stripeEnabled(),
-    isLiveAdmin: adminMode,
+    isLiveAdmin,
     userOnFreeTrial,
-    mainPlatformKey: config.mainTenantKey(),
+    mainPlatformKey: platformMainOrg,
     currentUserEmail: email,
     username,
   });
@@ -56,7 +66,7 @@ export function CreditBalanceWidget({
       tenant={tenantKey}
       enabled={true}
       username={username}
-      mainPlatformKey={config.mainTenantKey()}
+      mainPlatformKey={platformMainOrg}
       currentUserEmail={email}
       redirectUrl={window.location.origin}
     />

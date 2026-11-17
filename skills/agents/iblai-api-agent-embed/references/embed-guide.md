@@ -171,6 +171,11 @@ host page that already carries those flows can take them over so they open at
 the page's size. Set the `handlecreditexhaustion` attribute on `<agent-ai>`
 (`@iblai/agent-ai` ≥ 2.15.0):
 
+> **Not live yet.** The OS sends the `credits.exhausted` frame only from
+> iblai/os#677, which is still open: OS `main` posts nothing for a 402. Until
+> that release the attribute is accepted and the embed keeps its own modals;
+> a host wired for it starts receiving the frame when the OS ships.
+
 ```html
 <agent-ai tenant="your-tenant" mentor="mentor-id" authRelyOnHost handlecreditexhaustion></agent-ai>
 ```

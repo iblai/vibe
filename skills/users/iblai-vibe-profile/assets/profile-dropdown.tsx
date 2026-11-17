@@ -17,6 +17,7 @@
 
 import { useMemo } from "react";
 import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 import { handleLogout } from "@/lib/iblai/auth-utils";
@@ -38,6 +39,9 @@ function readJSON<T>(key: string, fallback: T): T {
 
 export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const tenantKey = useMemo(() => resolveAppTenant(), []);
+  // The platform's main organization (`main` unless the provider says
+  // otherwise): the profile's Billing tab keys the free trial on it.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
 
   // `user_nicename` is the canonical username slug. The SDK fetches the
   // avatar from `/users/manage/metadata/?username=<this>`, which only
@@ -68,7 +72,7 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     <UserProfileDropdown
       email={email}
       username={username}
-      mainPlatformKey={config.mainTenantKey()}
+      mainPlatformKey={platformMainOrg}
       tenantKey={tenantKey}
       userTenants={userTenants}
       userIsAdmin={isAdmin}

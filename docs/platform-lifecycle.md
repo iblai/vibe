@@ -90,7 +90,7 @@ key for the platform's OpenAI-compatible endpoint
 
 Admin mode → settings → **Billing**.
 
-- **Plan & Credits:** your plan — a free trial first; **Upgrade** opens the
+- **Credits:** your plan — a free trial first; **Upgrade** opens the
   plan picker (Free, Pro, Max or Ultra, through Stripe), and **Change Plan**
   moves between them later — your **credit balance**, **Add Credits** (pick an
   amount; with no card on file Stripe's portal takes one and the charge goes

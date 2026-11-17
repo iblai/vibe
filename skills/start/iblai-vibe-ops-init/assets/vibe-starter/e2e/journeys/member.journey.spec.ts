@@ -3,7 +3,8 @@ import { test, expect } from './helpers';
 /**
  * Member journey — what everyone sees after sign-in: the home page (a chat
  * with the app's agent, or the honest empty state), the agents browser, and
- * the profile with its app preferences. Never an admin link.
+ * the profile with its app preferences, and the out-of-credits notice and
+ * plan picker a member meets. Never an admin link.
  *
  * Signed in as the member test account (auth.setup.ts, "authenticate the member").
  */
@@ -56,5 +57,45 @@ test.describe('member journey', () => {
   test('M5 · /setup tells a member only admins can set it up', async ({ page }) => {
     await page.goto(`${appHost}/setup`);
     await expect(page.getByText('Only organization admins can set up this app.')).toBeVisible({ timeout: 30_000 });
+  });
+
+  // The credits flows, without spending credits: the `creditsexhausted` event
+  // is what the providers dispatch for a REST 402 and what an embedded agent
+  // hands to the page. The admin's branch (Billing) is K10.
+  test('M6 · an out-of-credits event shows a member the contact-your-admin notice', async ({ page }) => {
+    await page.goto(appHost);
+    await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible({ timeout: 30_000 });
+    await page.evaluate(() => {
+      document.dispatchEvent(
+        new CustomEvent('creditsexhausted', {
+          detail: { type: 'credits.exhausted', audience: 'user', error: 'Insufficient balance' },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+    await expect(page.getByRole('dialog', { name: /run out of credits/i })).toBeVisible({ timeout: 30_000 });
+  });
+
+  test('M7 · a 402 that carries a pricing table opens the plan picker', async ({ page }) => {
+    await page.goto(appHost);
+    await expect(page.getByRole('link', { name: 'Agents' })).toBeVisible({ timeout: 30_000 });
+    await page.evaluate(() => {
+      document.dispatchEvent(
+        new CustomEvent('creditsexhausted', {
+          detail: {
+            type: 'credits.exhausted',
+            audience: 'trial',
+            error: 'Insufficient balance',
+            // The backend sends one only to a free-trial account owner; the SDK
+            // opens the picker for any non-admin whose 402 carries it.
+            pricing_table: { pricing_table_id: 'prctbl_e2e', publishable_key: 'pk_test_e2e', client_reference_id: 'e2e' },
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+    await expect(page.getByRole('dialog', { name: /choose your plan/i })).toBeVisible({ timeout: 30_000 });
   });
 });

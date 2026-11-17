@@ -176,7 +176,9 @@ curl -X PUT \
   a host that ships the SDK's credits flows can take it over with the
   `handlecreditexhaustion` attribute — the frames it then posts are in
   [`references/embed-guide.md`](references/embed-guide.md) §5, the host side in
-  `/iblai-vibe-credit-exhaustion`.
+  `/iblai-vibe-credit-exhaustion`. Not live yet: the OS sends that frame only
+  from iblai/os#677, which is still open, so until that release the attribute
+  is accepted and the embed keeps its own modals.
 
 ## Reference material
 

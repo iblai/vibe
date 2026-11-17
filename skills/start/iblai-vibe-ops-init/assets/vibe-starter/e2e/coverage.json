@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "summary": { "totalCheckpoints": 29, "totalJourneys": 7 },
+  "summary": { "totalCheckpoints": 31, "totalJourneys": 7 },
   "journeys": [
     {
       "id": "sign-in",
@@ -26,7 +26,9 @@
         { "id": "M2", "name": "the agents page lists agents" },
         { "id": "M3", "name": "the profile page carries the app preferences card" },
         { "id": "M4", "name": "a member never sees admin links or the Admin mode switch; /admin/users sends them home" },
-        { "id": "M5", "name": "/setup tells a member only admins can set it up" }
+        { "id": "M5", "name": "/setup tells a member only admins can set it up" },
+        { "id": "M6", "name": "an out-of-credits event shows a member the contact-your-admin notice" },
+        { "id": "M7", "name": "a 402 that carries a pricing table opens the plan picker" }
       ]
     },
     {

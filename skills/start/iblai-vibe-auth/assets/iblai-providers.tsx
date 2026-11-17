@@ -48,9 +48,11 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
   // The SDK's credits flows (the 402 next step, the free-trial gate, the plan
   // picker's bullets) read this once; an admin who runs out of credits is
   // sent to the app's Billing page instead of the OS's `?profileTab=billing`.
+  // `mainTenantKey` stays at the SDK's default, the platform's main
+  // organization (`main`): where free-trial users live and the only one that
+  // sells plans. It is not this app's organization (NEXT_PUBLIC_MAIN_TENANT_KEY).
   const subscriptionConfig = useMemo(
     () => ({
-      mainTenantKey: config.mainTenantKey(),
       stripeEnabled: config.stripeEnabled(),
       supportEmail: config.supportEmail(),
       planFeatures: config.planFeatures(),
@@ -83,7 +85,12 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           // the backend's sentence. Handed to `CreditExhaustionHandler` as the
           // same event an embedded agent sends, so one place shows the next step.
           402: (error) => {
-            const body = (error?.data ?? {}) as Record<string, unknown>;
+            // The data layer hands over the 402's body itself (spread) or, on
+            // its legacy-LMS path, `{ status, body, message }`.
+            const raw = (error ?? {}) as Record<string, unknown>;
+            const body = (
+              raw.body && typeof raw.body === "object" ? raw.body : raw
+            ) as Record<string, unknown>;
             if ("has_access" in body || "item_type" in body || "pricing" in body) return;
             document.dispatchEvent(
               new CustomEvent("creditsexhausted", {

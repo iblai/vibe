@@ -60,6 +60,17 @@ export async function redirectToAuthSpa(
   window.location.href = authUrl;
 }
 
+/**
+ * The login page with this app nested inside: where the platform returns a
+ * person after a Stripe checkout. The checkout appends a sign-in token the
+ * login page consumes, then it comes back to `origin`. The pricing session
+ * only accepts a return URL on a domain it allows, and the login host is one;
+ * an app's own domain is refused (400 "Redirect URL domain is not allowed").
+ */
+export function loginReturnUrl(origin: string = config.appUrl()): string {
+  return `${config.authUrl()}/login?app=custom&redirect-to=${encodeURIComponent(origin)}`;
+}
+
 /** Check whether a non-expired auth token exists in localStorage. */
 export function hasNonExpiredAuthToken(): boolean {
   if (typeof window === "undefined") return false;
