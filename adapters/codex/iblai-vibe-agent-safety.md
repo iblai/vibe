@@ -153,13 +153,15 @@ export function FlaggedPromptsModal({
 ```
 
 `userId` is the signed-in user (the path segment), which the request needs;
-SDK 2.74.0 added it to the hook's argument type, so older releases need a
-`@ts-expect-error` on that line. `username` in that type filters to the
-flagged user instead. `mentor` filters to this agent. Add search, a date
-range and paging the same way. This list holds Moderation System rows only:
+`@iblai/data-layer` 1.45.0 added it to the hook's argument type, so older
+releases need a `@ts-expect-error` on that line. `username` in that type
+filters to the flagged user instead. `mentor` filters to this agent. Add
+search, a date range and paging the same way. This list holds Moderation
+System rows only:
 replies the Safety Prompt blocked are served by `…/safety-logs/` (same query
 and row shape), which `useGetSafetyLogsQuery` reads with the same arguments
-(SDK 2.74.0 and later; `useDeleteSafetyLogMutation` deletes one).
+(`@iblai/data-layer` 1.45.0 or later; `useDeleteSafetyLogMutation` deletes
+one).
 
 The page loads the agent's grants, gates the button, and passes the
 paywall gate through a nested provider:
@@ -312,7 +314,7 @@ Safety Prompt catches are at `…/safety-logs/?mentor=<uuid>` instead.
 |---|---|
 | `useGetMentorSettingsQuery` / `useEditMentorMutation` | Read and save the prompts, responses and switches |
 | `useGetModerationLogsQuery` / `useDeleteModerationLogMutation` | Flagged prompts, for your modal |
-| `useGetSafetyLogsQuery` / `useDeleteSafetyLogMutation` | Replies the Safety Prompt blocked (SDK 2.74.0 and later) |
+| `useGetSafetyLogsQuery` / `useDeleteSafetyLogMutation` | Replies the Safety Prompt blocked (`@iblai/data-layer` 1.45.0 or later) |
 | `useGetRbacPermissionsMutation` | Load the `#view_moderation_logs` grant (Step 2) |
 
 All from `@iblai/iblai-js/data-layer`. REST twin:

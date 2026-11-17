@@ -71,7 +71,10 @@ The name cannot be changed later. A name with a slash (`/`), or made only of
 dots, is refused, and so is a name another benchmark already has: the dialog
 goes back to Details and says so under **Name**. If the benchmark is created
 but its Q&A cannot be saved, the dialog stays open with an error; the button
-becomes **Save Q&A** to try again and Cancel becomes **Close**.
+becomes **Save Q&A** to try again and Cancel becomes **Close**. Pairs are
+saved one at a time, so a save that failed part-way may have stored some, and
+Save Q&A sends all of them again: open the benchmark's Q&A first, or close and
+add only what is missing.
 
 ![Evals tab -- a name that is taken](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-4-name-taken.png)
 
@@ -136,9 +139,9 @@ models.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.77.0` (resolves `@iblai/web-containers` 1.74.0) for the
-  screens above; earlier releases have a one-step New Benchmark and let an
-  evaluation start on a benchmark without Q&A. Check with
+- `@iblai/iblai-js@^2.77.0` (resolves `@iblai/web-containers` 1.74.0). The
+  screens above are not in releases before 2.77.0, which have a one-step New
+  Benchmark and let an evaluation start on a benchmark without Q&A. Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - Evals are for admins: pass `userIsStudent` from the app's admin check (Step 2).
@@ -344,14 +347,25 @@ test titled `<ID> · …` in `e2e/journeys/`, listed in `e2e/coverage.json`;
    evaluation; once it is Complete, View Results lists one response per
    question; read the console; check the phone width.
 
-`@iblai/iblai-js/playwright` has helpers for these screens, among them
-`selectBenchmark`, `createBenchmark` (through Next, Q&A optional),
-`openCreateBenchmarkDialog`, `goToBenchmarkQaStep`, `expectBenchmarkNeedsQa`,
-`openAddQaFromEvalsTab`, `expectNoBenchmarksNotice`, `startEvaluation` and
-`expectRunStatus`, which reads the status icon's `data-status` (the server's
-`pending`, `in_progress`, `completed` or `failed`). Every benchmark a test
-creates stays in the organization (see below), so give test benchmarks a
-recognizable prefix.
+`@iblai/iblai-js/playwright` has helpers for these screens. Its entry loads
+`@axe-core/playwright`, an optional peer that vibe-starter and the scaffold
+install; anywhere else run `pnpm add -D @axe-core/playwright` first, or
+importing the entry throws `Cannot find module '@axe-core/playwright'`.
+
+- On the tab: `selectBenchmark`, `expectBenchmarkNeedsQa`,
+  `openAddQaFromEvalsTab`, `expectNoBenchmarksNotice`, `startEvaluation`, and
+  `createBenchmarkFromEmptyState` for an organization with no benchmarks.
+- Inside Manage Benchmarks: `createBenchmark` (through Next, Q&A optional),
+  `openCreateBenchmarkDialog`, `goToBenchmarkQaStep` and `openBenchmarkItems`.
+  Call `openManageBenchmarksDialog` first; from the tab they wait for a
+  dialog that is not open and time out.
+- `expectRunStatus(page, runName, "COMPLETED")` takes the status upper-cased
+  (`EvalRunStatus`: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `FAILED`) and finds
+  it, lower-cased, in the status icon's `data-status`. A lower-case value
+  fails `pnpm typecheck`, which covers `e2e/` in vibe-starter.
+
+Every benchmark a test creates stays in the organization (see below), so give
+test benchmarks a recognizable prefix.
 
 ## Important Notes
 
@@ -360,8 +374,11 @@ recognizable prefix.
   care.
 - **A name is unique only because the dialog checks it**: the server answers
   a second create with a name that exists by updating that benchmark, so Q&A
-  sent with it would land in the existing one. Code that creates benchmarks
-  through the API should look the name up first, as the dialog does.
+  sent with it would land in the existing one. The dialog reads one page of
+  up to 200 benchmarks whose names contain the new one, so in an organization
+  with more such names a taken name can get through. Code that creates
+  benchmarks through the API should page through the lookup
+  (`/iblai-api-agent-eval`).
 - **Runs cost model calls**: an evaluation sends every question to the
   agent, and each review sends every response to the judge model.
 - **A judge that cannot answer scores 0**: when the judge model call fails,

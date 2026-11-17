@@ -148,11 +148,15 @@ curl -X POST \
 - Dataset items can come from direct JSON (`items`), a CSV upload, or existing
   chat traces (`trace_ids` — input + agent response pulled from each trace).
 - Deletes (item, run, score) are **queued** (`202`), not immediate. A dataset
-  itself has no update or delete endpoint.
+  has no delete endpoint and no update endpoint; the next note is the only
+  way one changes.
 - `POST …/datasets/` with a `name` that already exists does not fail: it
-  updates that dataset, and items added next land in it. Look the name up
-  first with `GET …/datasets/?name=<name>` (a substring filter, so compare
-  the names exactly), as the SDK's New Benchmark dialog does.
+  answers `201`, as for a new dataset, and overwrites that dataset's
+  description (with an empty one when none is sent) and its creator; items
+  added next land in it. Before creating, look the name up with
+  `GET …/datasets/?name=<name>&limit=200` and follow `next` through every
+  page: `?name=` is a case-insensitive substring match, so the exact name can
+  sit on a later page, and only an exact comparison of names settles it.
 - Adding items is not idempotent: `POST …/items/` and `…/items/upload/` save
   rows one at a time, so retrying after a timeout or partial failure adds the
   same pairs again. List the items before you retry.
@@ -161,12 +165,11 @@ curl -X POST \
 - When the judge model call fails, the judge task still ends `completed` and
   writes `0` with the comment `LLM judge call failed` for each item. Check
   comments before trusting low scores.
-- Verified against the live schema (4.411.0) and live runs on 2026-10-02.
 
 ## Schema
 
-Request bodies, verified against `evaluation_serializers.py`. All JSON except the
-CSV upload (multipart). Fields are optional unless marked **required**.
+Request bodies. All JSON except the CSV upload (multipart). Fields are
+optional unless marked **required**.
 
 **Create dataset** — `POST …/datasets/`
 - `name` **required** (≤255) · `description` · `metadata` (object)
