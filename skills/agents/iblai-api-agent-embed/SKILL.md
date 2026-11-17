@@ -173,6 +173,11 @@ curl -X PUT \
 - The SSO providers read uses the LMS host `learn.iblai.app`, not `api.iblai.app`.
 - A `404` on **GET** `…/sharable-link` just means no share link exists yet —
   **POST** to create one.
+- When the organization runs out of credits the embed shows its own next step;
+  a host that ships the SDK's credits flows can take it over with the
+  `handlecreditexhaustion` attribute — the frames it then posts are in
+  [`references/embed-guide.md`](references/embed-guide.md) §5, the host side in
+  `/iblai-vibe-credit-exhaustion`.
 
 ## Reference material
 

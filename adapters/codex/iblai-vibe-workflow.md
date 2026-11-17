@@ -201,6 +201,7 @@ import {
   rbacReducer,
   subscriptionReducer,
   topBannerReducer,
+  appleRestrictionReducer,
 } from "@iblai/iblai-js/web-utils";
 
 export const iblaiStore = configureStore({
@@ -216,6 +217,7 @@ export const iblaiStore = configureStore({
     rbac: rbacReducer,
     subscription: subscriptionReducer,
     topBanner: topBannerReducer,
+    appleRestriction: appleRestrictionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })

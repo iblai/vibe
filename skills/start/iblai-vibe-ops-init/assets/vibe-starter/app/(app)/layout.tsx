@@ -12,6 +12,7 @@ import config from '@/lib/iblai/config';
 import { resolveAppTenant, readTenants, isTenantAdmin } from '@/lib/iblai/tenant';
 import { handleLogout } from '@/lib/iblai/auth-utils';
 import { AdminModeProvider } from '@/lib/iblai/admin-mode';
+import { CreditExhaustionHandler } from '@/components/credit-exhaustion-handler';
 
 /** What every member sees. `key` indexes the `Nav` message namespace. */
 const MEMBER_LINKS: ReadonlyArray<Omit<NavLink, 'name'> & { key: string }> = [
@@ -106,6 +107,9 @@ export default function AppLayout({
           onClose={() => setDrawerOpen(false)}
           items={drawerItems}
         />
+
+        {/* The plan picker / contact-admin notice the SDK opens when credits run out. */}
+        <CreditExhaustionHandler />
 
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--sidebar-bg,#fafbfc)]">
           {pathname.startsWith('/admin') && !liveAdmin ? null : children}

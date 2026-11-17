@@ -8,10 +8,14 @@ import { AdminModeSwitch } from './admin-mode-switch';
 import {
   CreditBalance,
   NotificationDropdown,
+  isPlatformNavbarCreditBalanceVisible,
 } from '@iblai/iblai-js/web-containers';
+import { useUserIsOnTrial } from '@iblai/iblai-js/web-utils';
 import { useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import config from '@/lib/iblai/config';
+import { useAdminMode } from '@/lib/iblai/admin-mode';
 import { useTranslations } from 'next-intl';
 
 export interface NavLink {
@@ -62,6 +66,29 @@ export function NavBar({
   const t = useTranslations('Nav');
   const router = useRouter();
   const pathname = usePathname() ?? '/';
+  const { adminMode } = useAdminMode();
+  const userOnFreeTrial = useUserIsOnTrial();
+
+  // The SDK's own rule for the credit balance (the OS navbar uses the same
+  // one): billing on, the organization sells credits (or is the main one),
+  // and the viewer can act on them — an admin in Admin mode or a free-trial
+  // user — and is signed in.
+  const creditBalanceVisible =
+    showCreditBalance &&
+    isPlatformNavbarCreditBalanceVisible({
+      tenantKey,
+      currentTenant: currentTenant
+        ? { key: currentTenant.key, show_paywall: currentTenant.show_paywall }
+        : null,
+      stripeEnabled: config.stripeEnabled(),
+      isLiveAdmin: isAdmin && adminMode,
+      userOnFreeTrial,
+      mainPlatformKey,
+      currentUserEmail: email,
+      username: username ?? '',
+    }) &&
+    !!username &&
+    !!email;
 
   const handleViewNotifications = useCallback(
     (notificationId?: string) => {
@@ -112,25 +139,21 @@ export function NavBar({
           {/* Org admins: view the app as a member (User) or manage it (Admin). */}
           <AdminModeSwitch className="hidden md:flex" />
 
-          {showCreditBalance &&
-            currentTenant?.show_paywall &&
-            tenantKey &&
-            username &&
-            email && (
-              <CreditBalance
-                tenant={tenantKey}
-                enabled={true}
-                username={username}
-                mainPlatformKey={mainPlatformKey}
-                currentUserEmail={email}
-                redirectUrl={
-                  creditRedirectUrl ??
-                  (typeof window !== 'undefined'
-                    ? window.location.origin
-                    : '')
-                }
-              />
-            )}
+          {creditBalanceVisible && (
+            <CreditBalance
+              tenant={tenantKey}
+              enabled={true}
+              username={username ?? ''}
+              mainPlatformKey={mainPlatformKey}
+              currentUserEmail={email}
+              redirectUrl={
+                creditRedirectUrl ??
+                (typeof window !== 'undefined'
+                  ? window.location.origin
+                  : '')
+              }
+            />
+          )}
 
           {showNotifications && (
             <NotificationDropdown

@@ -1,0 +1,6 @@
+{
+  "overlay": {
+    "assets/credit-exhaustion-handler.tsx": "components/credit-exhaustion-handler.tsx",
+    "assets/embedded-agent.tsx": "components/embedded-agent.tsx"
+  }
+}

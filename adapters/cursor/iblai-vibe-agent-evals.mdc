@@ -139,7 +139,7 @@ models.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.77.0` (resolves `@iblai/web-containers` 1.74.0). The
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.74.0). The
   screens above are not in releases before 2.77.0, which have a one-step New
   Benchmark and let an evaluation start on a benchmark without Q&A. Check with
   `pnpm why @iblai/web-containers`.

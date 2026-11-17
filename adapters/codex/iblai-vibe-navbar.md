@@ -100,7 +100,7 @@ Every navbar includes all of the following — no choices, no skipping:
 - Account (`/account`)
 
 **Right side (left → right):**
-- Credit balance widget (plan-aware dropdown with credits, auto-recharge, upgrade)
+- Credit balance widget (the plan badge and remaining credits; Upgrade / Change Plan, Manage Usage, Add Credits) — shown by the SDK's own rule: billing on, an organization that sells credits, an admin in Admin mode or a free-trial user (`/iblai-vibe-credit`)
 - Notification bell (links to `/notifications`)
 - Profile dropdown (with Profile and Account links)
 

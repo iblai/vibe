@@ -15,6 +15,11 @@ const ENV_KEYS = [
   "NEXT_PUBLIC_LEGACY_LMS_URL",
   "NEXT_PUBLIC_MFE_URL",
   "IBLAI_API_KEY",
+  "NEXT_PUBLIC_STRIPE_ENABLED",
+  "NEXT_PUBLIC_PLAN_FEATURES_FREE",
+  "NEXT_PUBLIC_PLAN_FEATURES_PRO",
+  "NEXT_PUBLIC_PLAN_FEATURES_MAX",
+  "NEXT_PUBLIC_PLAN_FEATURES_ULTRA",
 ] as const;
 
 const saved: Record<string, string | undefined> = {};
@@ -124,5 +129,34 @@ describe("app accessors", () => {
     vi.resetModules();
     // Node has no page: the fallback is empty there and the origin in a browser.
     expect((await loadConfig()).appUrl()).toBe("");
+  });
+});
+
+describe("credits", () => {
+  it("has billing on and no custom plan bullets by default", async () => {
+    const config = await loadConfig();
+    expect(config.stripeEnabled()).toBe(true);
+    expect(config.planFeatures()).toEqual({ free: [], premium: [], max: [], ultra: [] });
+  });
+
+  it("turns billing off on NEXT_PUBLIC_STRIPE_ENABLED=false only", async () => {
+    process.env.NEXT_PUBLIC_STRIPE_ENABLED = "false";
+    expect((await loadConfig()).stripeEnabled()).toBe(false);
+    process.env.NEXT_PUBLIC_STRIPE_ENABLED = "true";
+    vi.resetModules();
+    expect((await loadConfig()).stripeEnabled()).toBe(true);
+  });
+
+  it("splits each plan's bullets on | and keys the Pro bullets as premium", async () => {
+    process.env.NEXT_PUBLIC_PLAN_FEATURES_FREE = "**Monthly credits** to try agents| Community support |";
+    process.env.NEXT_PUBLIC_PLAN_FEATURES_PRO = "**More credits**|Email support";
+    process.env.NEXT_PUBLIC_PLAN_FEATURES_ULTRA = "   ";
+    const config = await loadConfig();
+    expect(config.planFeatures()).toEqual({
+      free: ["**Monthly credits** to try agents", "Community support"],
+      premium: ["**More credits**", "Email support"],
+      max: [],
+      ultra: [],
+    });
   });
 });

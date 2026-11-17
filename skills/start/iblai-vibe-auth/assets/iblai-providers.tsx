@@ -17,12 +17,16 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   initializeDataLayer,
   type TokenResponse,
 } from "@iblai/iblai-js/data-layer";
-import { AuthProvider, TenantProvider } from "@iblai/iblai-js/web-utils";
+import {
+  AuthProvider,
+  SubscriptionConfigProvider,
+  TenantProvider,
+} from "@iblai/iblai-js/web-utils";
 
 import { iblaiStore } from "@/store/iblai-store";
 import { LocalStorageService } from "@/lib/iblai/storage-service";
@@ -39,6 +43,21 @@ const PUBLIC_ROUTES = new Map<RegExp, () => Promise<boolean>>([
 
 export function IblaiProviders({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // The SDK's credits flows (the 402 next step, the free-trial gate, the plan
+  // picker's bullets) read this once; an admin who runs out of credits is
+  // sent to the app's Billing page instead of the OS's `?profileTab=billing`.
+  const subscriptionConfig = useMemo(
+    () => ({
+      mainTenantKey: config.mainTenantKey(),
+      stripeEnabled: config.stripeEnabled(),
+      supportEmail: config.supportEmail(),
+      planFeatures: config.planFeatures(),
+      openBillingTab: () => router.push("/admin/billing"),
+    }),
+    [router],
+  );
 
   // initializeDataLayer MUST be called synchronously before any children
   // render so that Config.lmsUrl / Config.dmUrl are set before RTK Query
@@ -59,6 +78,19 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
         storageService,
         {
           401: () => redirectToAuthSpa(undefined, undefined, true),
+          // Out of credits on a REST call. An item paywall's 402 (`has_access`,
+          // `pricing`) belongs to the monetization flows; a credits 402 carries
+          // the backend's sentence. Handed to `CreditExhaustionHandler` as the
+          // same event an embedded agent sends, so one place shows the next step.
+          402: (error) => {
+            const body = (error?.data ?? {}) as Record<string, unknown>;
+            if ("has_access" in body || "item_type" in body || "pricing" in body) return;
+            document.dispatchEvent(
+              new CustomEvent("creditsexhausted", {
+                detail: { type: "credits.exhausted", ...body },
+              }),
+            );
+          },
         },
       );
     } catch (e) {
@@ -100,6 +132,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
 
   return (
     <ReduxProvider store={iblaiStore}>
+      <SubscriptionConfigProvider config={subscriptionConfig}>
       <AuthProvider
         skip={isSsoRoute}
         redirectToAuthSpa={redirectToAuthSpa}
@@ -158,6 +191,7 @@ export function IblaiProviders({ children }: { children: ReactNode }) {
           {children}
         </TenantProvider>
       </AuthProvider>
+      </SubscriptionConfigProvider>
     </ReduxProvider>
   );
 }

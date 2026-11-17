@@ -161,3 +161,38 @@ iframe.contentWindow.postMessage(
 
 Either path ends with the embed writing the tokens + org into `localStorage` and
 rendering as the authenticated user.
+
+## 5. When the agent runs out of credits (optional hand-off)
+
+By default the embedded agent shows its own next step inside the frame when the
+organization's credits are spent (a plan picker for the account owner on a free
+trial, Billing for an admin, a contact-your-admin notice for everyone else). A
+host page that already carries those flows can take them over so they open at
+the page's size. Set the `handlecreditexhaustion` attribute on `<agent-ai>`
+(`@iblai/agent-ai` ≥ 2.15.0):
+
+```html
+<agent-ai tenant="your-tenant" mentor="mentor-id" authRelyOnHost handlecreditexhaustion></agent-ai>
+```
+
+The component tells the embed on `loaded`, and whenever the attribute changes,
+with `{ type: 'MENTOR:HANDLE_CREDIT_EXHAUSTION', data: true }`. From then on a
+402 inside the frame still shows the agent's toast, but instead of a modal the
+embed posts one frame to its parent:
+
+```js
+{
+  type: 'credits.exhausted',
+  audience: 'admin' | 'trial' | 'user',
+  error: '…',            // the 402 body's sentence, when it had one
+  pricing_table: { … }   // when the 402 carried one (free-trial owners)
+}
+```
+
+The component re-dispatches it from its own element as the `creditsexhausted`
+DOM event (`detail` is the frame; it bubbles and is composed), and the raw
+`postMessage` still reaches the host window for hosts without a handle on the
+element. What a Next.js host does with it — feed it to the SDK's
+`use402ErrorCheck` and render the plan picker / contact-admin modal — is
+`/iblai-vibe-credit-exhaustion`. Without the attribute the agent keeps its own
+modals, as before.

@@ -65,8 +65,8 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.77.0` |
-  | `@iblai/agent-ai` | `^2.10.0` |
+  | `@iblai/iblai-js` | `^2.80.0` |
+  | `@iblai/agent-ai` | `^2.15.0` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
   `@iblai/iblai-js/*` subpaths — do not install the separate v1 packages.)
@@ -250,6 +250,7 @@ import {
   rbacReducer,
   subscriptionReducer,
   topBannerReducer,
+  appleRestrictionReducer,
 } from "@iblai/iblai-js/web-utils";
 
 reducer: {
@@ -260,6 +261,7 @@ reducer: {
   rbac: rbacReducer,
   subscription: subscriptionReducer,
   topBanner: topBannerReducer,
+  appleRestriction: appleRestrictionReducer,
   [coreApiSlice.reducerPath]: coreApiSlice.reducer,
   ...mentorReducer,
 }
@@ -511,10 +513,10 @@ controls appear (a host flag can only hide a control, never force it on).
 | `appSyncBanner?` | `{ badge, text, link, linkText } \| null` | Optional sync banner |
 | `features?` | `ChatFeatures` | Allow-list: `voiceCall`, `dictation`, `screenShare`, `fileUpload`, `camera`, `canvas`, `memory`, `prompts`, `skills`, `suggestedPrompts`, `cowork`. All default `true`; `false` hides the control |
 | `navigateToProject?` | `(projectId: string, mentorId: string) => void` | Open a project |
-| `onUpgradeRequired?` | `(proceed, isAdminAction?) => unknown` | Paywall gate; run `proceed` when the user may continue. Without it every gated action runs |
-| `on402Error?` | `(data) => void \| Promise<void>` | Credits exhausted. Defaults to the SDK's pricing modal / billing tab / top banner |
+| `onUpgradeRequired?` | `(proceed, isAdminAction?) => unknown` | Gate on an action that costs credits; run `proceed` when the user may continue. The SDK's own gate is `useShowFreeTrialDialog().executeWithTrialCheck` (`/iblai-vibe-credit-exhaustion`). Without it every gated action runs |
+| `on402Error?` | `(data) => void \| Promise<void>` | Credits exhausted. Defaults to the SDK's `use402ErrorCheck`: a toast, then `navigateToAdminBilling` for an admin, the plan picker for a free-trial user, the contact-admin notice for everyone else — the last two are modals **your app renders** from the `subscription` slice (vibe-starter's `CreditExhaustionHandler`, `/iblai-vibe-credit-exhaustion`) |
 | `onSessionChange?` | `(sessionId: string) => void` | Called whenever the active session id changes |
-| `freeTrialDialog?` | `{ component, isOpen, onClose } \| null` | Upgrade dialog the chat renders while `isOpen`; `null` renders none |
+| `freeTrialDialog?` | `{ component, isOpen, onClose } \| null` | A host-owned upgrade dialog the chat renders while `isOpen`; `null` renders none. Not needed with the SDK's plan picker (`UpgradePackageModal`), which the 402 flow opens on its own |
 | `markdownComponent?` | `ComponentType<{ children?: string; className?: string }>` | Custom renderer for message bodies |
 | `markdownToHtml?`, `htmlToMarkdown?` | `(s: string) => string` | Canvas converters; pass a richer pair (tables, math) so canvas output matches chat |
 | `dmUrl?` | `() => string` | Data-manager URL for "Read aloud"; browser speech when absent |

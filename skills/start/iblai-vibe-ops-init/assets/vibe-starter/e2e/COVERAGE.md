@@ -36,6 +36,7 @@ project, a Pixel 7 viewport); `pnpm test:e2e:all` adds Firefox and WebKit.
 | K7 | pages | /admin/analytics/reports opens inside the analytics tab strip | `journeys/pages.journey.spec.ts` |
 | K8 | pages | /admin/billing mounts the account panel | `journeys/pages.journey.spec.ts` |
 | K9 | pages | /admin/memory shows the memory panel | `journeys/pages.journey.spec.ts` |
+| K10 | pages | an out-of-credits event from an embedded agent opens the credits flow | `journeys/pages.journey.spec.ts` |
 | R1 | api | the admin lists the agents through /api/admin/agents | `journeys/api.journey.spec.ts` |
 | R2 | api | creating an agent without a name is refused with 400 | `journeys/api.journey.spec.ts` |
 | R3 | api | the admin reads a member's metadata through /api/admin/user-metadata | `journeys/api.journey.spec.ts` |

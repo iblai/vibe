@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "summary": { "totalCheckpoints": 28, "totalJourneys": 7 },
+  "summary": { "totalCheckpoints": 29, "totalJourneys": 7 },
   "journeys": [
     {
       "id": "sign-in",
@@ -64,7 +64,8 @@
         { "id": "K6", "name": "/admin/analytics/financial opens inside the analytics tab strip" },
         { "id": "K7", "name": "/admin/analytics/reports opens inside the analytics tab strip" },
         { "id": "K8", "name": "/admin/billing mounts the account panel" },
-        { "id": "K9", "name": "/admin/memory shows the memory panel" }
+        { "id": "K9", "name": "/admin/memory shows the memory panel" },
+        { "id": "K10", "name": "an out-of-credits event from an embedded agent opens the credits flow" }
       ]
     },
     {
