@@ -3,7 +3,7 @@
 
 <a href="https://ibl.ai"><img src="https://ibl.ai/images/iblai-logo.png" alt="ibl.ai" width="300"></a>
 
-# iblai/vibe
+# ibl.ai/base
 
 Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
