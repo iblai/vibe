@@ -36,7 +36,13 @@ overrides:
 # though it is a Rollup build plugin nothing in an app imports, and through the
 # starter's own shadcn dependency (fast-glob, ts-morph). Neither path runs
 # braces on user input. Ignored until braces ships a fix.
+# picomatch <= 4.0.7 (GHSA-fc5q-39xc-vjpf, ReDoS on a crafted extglob such as
+# `+(*)`) has no patched release: 4.0.7 is npm's latest. It reaches the starter
+# only through vite and vitest (dev tools, patterns from their config) and the
+# same rollup-plugin-copy path as braces (never imported by an app). Nothing
+# hands it a pattern from user input. Ignored until picomatch ships a fix.
 auditConfig:
   ignoreGhsas:
     - GHSA-vfj7-8cjw-p6xm
     - GHSA-mrhx-c7xc-m3w5
+    - GHSA-fc5q-39xc-vjpf
