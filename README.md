@@ -34,7 +34,7 @@ with no UI at all. One install; your coding agent does the rest.
 **1. Install the skills** in the agent you already use.
 
 ```bash
-npx skills add iblai/vibe --all        # Claude Code, OpenAI Codex, Cursor, OpenCode, Copilot …
+npx skills add iblai/base --all        # Claude Code, OpenAI Codex, Cursor, OpenCode, Copilot …
 ```
 
 Claude Code users can install the plugin instead (same skills, plus the SDK-docs
