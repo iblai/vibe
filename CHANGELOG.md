@@ -3,6 +3,15 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.25.0] - 2026-11-19
+
+### Added
+
+- credits plan picker + host relay skills > billing screenshot re-captured
+- credits plan picker + host relay skills > vulnerability patched
+- credits plan picker + host relay skills > review patched
+- credits plan picker + host relay skills
+
 ## [2.24.0] - 2026-11-17
 
 ### Added
