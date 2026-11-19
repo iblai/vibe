@@ -1,6 +1,6 @@
 # iblai-vibe-ops-init
 
-> Start a new ibl.ai project by default, scaffold from the bundled vibe-starter template, and write the project CLAUDE.md with ibl.ai platform guidance. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project.
+> Start a new ibl.ai project by default, scaffold from the bundled vibe-starter template, write the project CLAUDE.md with ibl.ai platform guidance, and update the project's dependencies until `pnpm audit` passes. Use this when the user says "start a new project", "new app", "scaffold an app", "new ibl.ai project", or asks to bootstrap an ibl.ai codebase from scratch. Also use to refresh CLAUDE.md in an existing ibl.ai project, when asked to "update the dependencies", or when `pnpm audit` reports vulnerabilities.
 
 # /iblai-vibe-ops-init
 
@@ -18,6 +18,7 @@ to use, how to add features, and what patterns to follow.
 3. If it exists, **merge** the ibl.ai section into it (do not overwrite
    existing content)
 4. If it does not exist, **create** it with the full ibl.ai guidance below
+5. Update the dependencies until `pnpm audit` passes (Step 5)
 
 ## Step -1: The first conversation
 
@@ -459,9 +460,35 @@ min-release-age=7
 minimum-release-age=10080
 save-exact=true
 ```
-## Step 5: Confirm
+## Step 5: Update the dependencies
 
-After writing the file, tell the user:
+Run this on every project, new or existing, and alone when asked only to update the
+dependencies or clear `pnpm audit`; with no `pnpm-lock.yaml`, skip it and say so. vibe-starter
+lifts the SDK's exact pins past advisories with `overrides:` — read the current ones:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter/pnpm-workspace.yaml
+```
+
+Copy every `overrides:` and `auditConfig.ignoreGhsas` entry, with its comment,
+into the project's `pnpm-workspace.yaml`: the starter wins on a shared key,
+project-only keys stay, no other setting changes. Then:
+
+```bash
+pnpm update --no-save --ignore-scripts   # everything, to the newest version its range allows
+pnpm audit                               # exit 0 passes; the summary still counts ignored advisories
+```
+
+Still listed? Take the patched version the audit names: an exact pin in `package.json` (`next`)
+moves with `pnpm update <name>@<patched> --ignore-scripts`, `vite` under `vitest` with
+`pnpm add -D vite@^<patched> --ignore-scripts`, anything else with an override of the same shape
+inside the major its dependent asks for. Never add an ignore of your own: if the only fix is a
+new major, stop and show the user. Run both again until the audit passes, then
+`pnpm typecheck && pnpm test && pnpm build`.
+
+## Step 6: Confirm
+
+After writing the file, tell the user this, and how Step 5 ended (the audit passes, or what is still listed):
 
 > Updated `CLAUDE.md` with ibl.ai platform guidance. Claude Code will now
 > prioritize ibl.ai SDK components over custom implementations and use the
