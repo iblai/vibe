@@ -1,0 +1,24 @@
+# Cargo dependencies for the Cowork Rust modules.
+# Merge into `src-tauri/Cargo.toml` on top of Code mode's
+# (`/iblai-vibe-os-agent-code-mode` references/cargo-deps.toml), which
+# already brings reqwest, tokio, futures-util, sha2, hex and serde_json.
+# The macOS target table already exists in the shell template: add the new
+# line to it rather than repeating the table header.
+#
+# What each is for:
+#   - chrono : the timestamp on each `cua-driver:installation-log` line
+#   - tauri-plugin-macos-permissions (macOS) : the Accessibility and Screen
+#              Recording checks the setup dialog polls, and the
+#              Accessibility request `request_cowork_permission` makes
+#
+# Already there from Code mode, used here:
+#   - reqwest / sha2 / hex : the driver download and its checksum check
+#   - tokio / futures-util : the driver relay for Code sessions, the
+#              on-device model stream
+
+[dependencies]
+chrono = "0.4"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Accessibility (and other) macOS system-permission checks/requests.
+tauri-plugin-macos-permissions = "2.3.0"

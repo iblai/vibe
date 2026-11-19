@@ -73,9 +73,14 @@ An app with no server routes may ship a static export instead: `output:
 vibe-starter keeps its server routes, so it uses the URL.
 
 The shell registers `tauri-plugin-os`, so the SDK knows it runs in a desktop
-or mobile app; Code mode and on-device models still need
-[`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md)
+or mobile app; Code mode, Cowork and on-device models still need
+[`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md),
+[`/iblai-vibe-os-agent-cowork`](../../agents/iblai-vibe-os-agent-cowork/SKILL.md)
 and [`/iblai-vibe-local-llm`](../../agents/iblai-vibe-local-llm/SKILL.md).
+Until the desktop build has Cowork's Rust, the SDK chat shows its
+**Cowork** pill disabled (*Cowork isn’t supported on this desktop
+session.*); pass `features: { cowork: false }` in the chat's `config` to
+hide it.
 
 ## Mobile Safe Area
 

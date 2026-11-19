@@ -283,3 +283,5 @@ the Foundry-specific command names and lifecycle.
 - [`/iblai-vibe-account`](../../organizations/iblai-vibe-account/SKILL.md) — Account / settings surface that consumes `localLLMProps`.
 - [`/iblai-vibe-agent-chat`](../../agents/iblai-vibe-agent-chat/SKILL.md) — chat surface that routes through the local model.
 - [`/iblai-vibe-agent-llm`](../../agents/iblai-vibe-agent-llm/SKILL.md) — the per-agent LLM-provider Settings tab.
+- [`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md) — Code on the model on this computer (run on a copy sized to 32,768 tokens).
+- [`/iblai-vibe-os-agent-cowork`](../../agents/iblai-vibe-os-agent-cowork/SKILL.md) — Cowork on the model on this computer: a model of at least 12 GB (`modelSupportsCowork`).

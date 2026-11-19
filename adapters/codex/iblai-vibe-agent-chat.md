@@ -63,7 +63,7 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.80.0` |
+  | `@iblai/iblai-js` | `^2.83.0` |
   | `@iblai/agent-ai` | `^2.15.0` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
@@ -457,7 +457,7 @@ controls appear (a host flag can only hide a control, never force it on).
 | Message list | Right-aligned user bubbles; the agent's bubble with name and time, a collapsible "Thought" section for reasoning, markdown with code blocks (Copy) and tables (copy / download), and "Thinking…" until the first token |
 | Message actions | Under each finished reply: Copy and Read aloud for everyone; thumbs up / down, Retry, Report, Share and Download for signed-in users (Share and Download also for visitors with `showMessageActionsWhenLoggedOut`, both hidden under chat privacy; Report needs the agent's inappropriate-content setting; thumbs, Retry and Report are hidden when viewing a shared chat) |
 | Suggested prompts | After a reply, up to three follow-up chips and a refresh button. Picking one sends it |
-| Composer | `+` menu (Upload File, Camera, then Tools, Skills, Prompts, Memory, MCP with a count badge when the agent has a connector on — its panel switches connectors for this chat, see `/iblai-vibe-agent-mcp` — and a Model picker when the agent allows it), a Canvas pill that turns off with its x, tool chips (two shown, the rest fold into "+N"), screen share, voice input, voice call, and Send, which becomes Stop Streaming while the agent answers |
+| Composer | `+` menu (Upload File, Camera, then Tools, Skills, Prompts, Memory, MCP with a count badge when the agent has a connector on — its panel switches connectors for this chat, see `/iblai-vibe-agent-mcp` — and a Model picker when the agent allows it), a Canvas pill that turns off with its x, tool chips (two shown, the rest fold into "+N"), screen share, voice input, voice call, and Send, which becomes Stop Streaming while the agent answers. In a desktop (Tauri) build a **Cowork** pill sits with Canvas: its consent and macOS setup are the SDK's own, see `/iblai-vibe-os-agent-cowork`. A desktop build without Cowork's Rust shows it disabled; `features: { cowork: false }` hides it |
 | Spend limits | For a signed-in member, a banner above the composer when one of their LLM spend limits is near (percentages only, never dollars), and a red banner with **Send** disabled while a **Block Requests** limit is exceeded; a refused send tells a member to contact their admin and gives an admin **Open Billing**. Limits are set in `/iblai-vibe-billing` and `/iblai-vibe-agent-billing` |
 | Attachments | File cards above the input: uploading, processing, failed (with retry), too large, and long pastes that become a `.txt` card |
 | `/` skill picker | Typing `/` in the input lists the agent's skills by name. It needs the per-agent `view_skill_assignments` grant in the `rbac` store, which `Chat` and vibe-starter's providers do not load, so in vibe-starter it stays empty unless you pass `slashSkills`; `slashSkillsEnabled={false}` turns it off |
@@ -485,7 +485,7 @@ controls appear (a host flag can only hide a control, never force it on).
 | `isInCanvasView` | `boolean` | no | Set when the chat itself is rendered inside the canvas view |
 | `embed` | `boolean` | no | Embedded (iframe widget) presentation. Defaults to the `?embed=true` query param |
 | `labels` | `DeepPartial<ChatLabels>` | no | Override any user-visible string, keyed like the SDK catalogue (`chat.<component>.<key>`). Omitted strings use the catalogue for the active locale |
-| `slots` | `ChatSlots` | no | `{ composerExtraControls?: ReactNode }` — extra controls rendered first in the composer's tool row. The only slot in 2.36.x |
+| `slots` | `ChatSlots` | no | `composerExtraControls` — controls rendered first in the composer's tool row (the desktop app's Code pill); `composerActionControls` — controls rendered first in the action group beside Send (Code's `ApprovalsModeButton`). Rendered once per composer, so pass the control itself; see `/iblai-vibe-os-agent-code-mode` |
 | `showConversationStarters` | `boolean` | no | Show the welcome screen's starter prompts. Default `false` |
 | `showExploreMentors` | `boolean` | no | Show "Explore Agents" on the welcome screen and the project agents list. Default `false`; the agent's own setting still applies |
 | `slashSkillsEnabled` | `boolean` | no | `/` skill picker. On unless `false`, but it fetches only with `config.features.skills` and the per-agent `view_skill_assignments` grant already in the `rbac` store (nothing in `Chat` loads it); otherwise pass `slashSkills` |
@@ -521,14 +521,16 @@ controls appear (a host flag can only hide a control, never force it on).
 | `dmUrl?` | `() => string` | Data-manager URL for "Read aloud"; browser speech when absent |
 | `allowedParentOrigins?`, `postMessageTargetOrigin?` | `string[]`, `string` | Origins allowed to message the chat (embedding page), and where it posts back. Default: same origin only |
 | `streamingFocusManagement?` | `boolean` | Moves focus to Stop while streaming and to the last reply's Copy when done (WCAG 2.4.3). Default `true` |
+| `onSwitchToAutomatic?` | `() => unknown` | Shows **Switch to Automatic** on Code's permission cards; save Approvals = Automatic there and resolve `false` (or reject) when it did not save, and the card says so. Omitted, the cards offer only Allow and Deny |
+| `browse?` | `ChatBrowseBridge` | A browser-extension side panel: `{ inExtensionPanel, isRunning, run, stop, recording? }`. With `inExtensionPanel`, the Cowork pill opens a panel (switch, Approvals Ask Me / Automatic, **Record a skill** when `recording` is passed) and, while Cowork is on, a message goes to `run` instead of the agent |
 
-Also optional: `onScreenShare`, `onVoiceCall`, `eventBus`, `browse`,
+Also optional: `onScreenShare`, `onVoiceCall`, `eventBus`,
 `suppressChatErrorToast`, `isOnline`, `enableSupportPhone`,
 `defaultSupportPhoneNumber`, `maximumCharacterSizeToCopy`,
 `exploreMentorsPublicFallback`, `showMessageActionsWhenLoggedOut`.
 
-`ChatProps`, `ChatConfig`, `ChatFeatures`, `ChatLabels`, `ChatSlots` and
-`ChatBrowseBridge` are exported as types from
+`ChatProps`, `ChatConfig`, `ChatFeatures`, `ChatLabels`, `ChatSlots`,
+`ChatBrowseBridge` and `ChatSkillRecording` are exported as types from
 `@iblai/iblai-js/web-containers/next`.
 
 ## Known issues & host workarounds

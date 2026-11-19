@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-os-agent-code-mode
-description: Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app. A Code pill under the chat box turns the agent into a coding helper that edits files, runs commands and saves its work in a folder on your computer, asking before every change unless you say otherwise; it runs on ibl.ai, on Codex with a ChatGPT plan, or on Claude Code with a Claude plan, and a phone paired to the computer can drive it. Ships the Tauri Rust modules and the OS chat pieces. Use when the user mentions 'code mode', 'coding mode', 'Codex', 'Claude Code', 'sign in with ChatGPT', 'use my Claude subscription', 'opencode', 'let the agent edit my files', 'run commands from chat', or 'use Code from my phone'. Needs /iblai-vibe-ops-build first; for on-device models see /iblai-vibe-local-llm.
+description: Use the ibl.ai desktop app's Code mode, or add it to your own vibe Next.js + Tauri app. A Code pill under the chat box turns the agent into a coding helper that edits files, runs commands and saves its work in a folder on your computer; Approvals (Ask Me or Automatic, beside Send) decides whether it asks first, and with Cowork on it also works on your screen. It runs on ibl.ai (including a model on the computer), on Codex with a ChatGPT plan, or on Claude Code with a Claude plan. Ships the Tauri Rust modules and the Code pill and Approvals button the SDK chat hosts. Use when the user mentions 'code mode', 'coding mode', 'Codex', 'Claude Code', 'sign in with ChatGPT', 'use my Claude subscription', 'opencode', 'let the agent edit my files', 'run commands from chat', 'code approvals', 'Ask Me', 'Automatic', or 'use Code from my phone'. Needs /iblai-vibe-ops-build first; for Cowork see /iblai-vibe-os-agent-cowork, for on-device models /iblai-vibe-local-llm.
 globs:
 alwaysApply: false
 metadata:
@@ -11,12 +11,11 @@ metadata:
 
 **Code** is the ibl.ai desktop app's coding helper. Turn it on under the
 message box and the agent stops only answering: it edits files, runs
-commands and saves its work in a folder on your computer, and it asks you
-before it changes anything unless you tell it not to. It can do the work
-itself, or hand it to Codex or Claude Code on your own ChatGPT or Claude
-plan, and a phone paired to the computer can drive it from anywhere in the
-house. The first half of this page is how to use it; the second half adds
-it to an app of your own.
+commands and saves its work in a folder on your computer. **Approvals**
+decides whether it asks you first. It can do the work itself, or hand it
+to Codex or Claude Code on your own ChatGPT or Claude plan, and with
+**Cowork** on it can use your screen too. The first half of this page is
+how to use it; the second half adds it to an app of your own.
 
 ![The Code panel under the chat box: the on/off switch, Approvals, the Agent choice (ibl.ai, Codex, Claude Code) with its sign-in line, the Workspace folder, and Phone Access](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-5-agent-codex-signed-out.png)
 
@@ -28,18 +27,24 @@ it to an app of your own.
 ### 1. Turn it on
 
 Click **Code** under the message box: its panel opens, and the switch at
-the top turns Code on. The first time, Code asks **How should Code ask for
-approval?**
+the top turns Code on. On first use Code also asks you to choose a folder
+and downloads what it needs. The pill spins for a moment while it picks up
+the agent's skills.
 
-- **Ask me each time** — every edit and every command shows up as a card
-  in the reply that you allow or deny. Start here.
-- **Approve automatically** — Code works without asking. The panel's own
-  warning applies: *use it only in folders you trust*.
+**Approvals** decides whether Code asks before it acts. It is in the panel
+and, while Code is on, as a button beside **Send** (a hand for Ask Me, a
+lightning bolt for Automatic):
 
-There is no default; you choose, and you can change it any time under
-**Approvals** in the panel. On first use Code also asks you to choose a
-folder and downloads what it needs. The pill spins for a moment while it
-picks up the agent's skills.
+![The Approvals button beside Send, open: Ask Me (checked) and Automatic, each with its hint](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-12-approvals.png)
+
+- **Ask Me** — every file change and every command shows up as a card in
+  the reply that you allow or deny.
+- **Automatic** — Code works without asking. *Use it only in folders you
+  trust.* With Cowork on, it also acts on your screen without asking.
+
+A computer where nobody has chosen yet runs **Automatic**. An Ask Me you
+chose on another computer is carried over to one that has no choice saved;
+an Automatic is not.
 
 ### 2. Choose who does the work
 
@@ -48,7 +53,7 @@ still missing before you can send.
 
 | Agent | What you need | What it runs on |
 |---|---|---|
-| **ibl.ai** | Nothing to sign in to | Your organization's models and credits, with the app's skills. The only choice on a phone. |
+| **ibl.ai** | Nothing to sign in to | Your organization's models and credits, or the model on this computer when Local Models is on, with the app's skills |
 | **Codex** | A ChatGPT plan, or an OpenAI API key | OpenAI's Codex, on your plan |
 | **Claude Code** | A Claude plan, or an Anthropic Console account | Anthropic's Claude Code, on your plan |
 
@@ -65,6 +70,13 @@ While Code runs on Codex or Claude Code, the picker at the top left shows
 that agent and its model ("Codex · GPT-6-Luna", "Claude Code · Default" in
 the pictures). Change the model there. The choice is saved on this
 computer only.
+
+**On this computer's model.** With Local Models on
+([`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md)), the ibl.ai
+agent runs Code on the model on this computer. The app runs a copy of it
+sized to 32,768 tokens, so the model sees all its tools, and refuses a
+model that cannot reach that size in plain words. The first reply in a chat
+can take a few minutes; the line under the reply says so.
 
 ### 3. Sign in to Codex
 
@@ -132,44 +144,30 @@ Every change Code makes is saved there as a step you can go back to.
 ### 6. Approve what Code wants to do
 
 With **Ask Me** on, each thing Code wants to do appears in its reply as a
-card titled **Code needs your permission**, naming the action (read,
-write, exec, delete, move, search, fetch) and the file or command, with
-**Allow** and **Deny**. A card left alone for about three minutes counts
-as Deny. On Codex, Ask Me also asks before it reaches the internet. With
-**Automatic** on, no cards appear on any agent.
+card titled **Code needs your permission**, saying what it wants (change a
+file, run a command, use the screen…) with **Allow** and **Deny**.
+**Switch to Automatic** allows this step and stops the cards in every chat.
+A card left alone for three minutes counts as Deny. With **Automatic** on,
+no cards appear on any agent.
 
-### 7. Code from your phone
+![A Code reply with the Code needs your permission card: Allow, Deny and Switch to Automatic with its warning](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-13-permission-card.png)
 
-Your phone cannot run Code by itself; it runs it on your computer, over
-your home or office network.
+### 7. Code with Cowork
 
-On the computer, open the Code panel and click **Enable** next to
-**Phone Access**. A QR code, an address and a password appear:
+Turn **Cowork** on as well and Code keeps the turn, with the screen tools
+added: one message can edit a file and then click through an app to check
+it. Approvals covers the screen too; with Ask Me, every screen action gets
+a card. Turning Cowork on or off mid-chat keeps the chat. Setting up Cowork
+(the consent, the two macOS permissions) is in
+[`/iblai-vibe-os-agent-cowork`](../iblai-vibe-os-agent-cowork/SKILL.md).
 
-![The Code panel with Phone Access enabled: the pairing QR code, the address and the password](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-1-code-pill.png)
+### 8. Code from your phone (paused)
 
-On the phone, open Code. Under **Your Computer**, tap **Scan QR Code**, or
-type the address and password:
-
-![Phone, not yet paired: Your Computer with Scan QR Code, or the address and password typed by hand](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-2-phone-pairing.png)
-
-Once paired, the panel says **Connected To** your computer and shows its
-workspace; pick another with **Select Workspace** or start a **New
-Workspace**, then send your message as usual:
-
-![Phone, paired: Connected To the computer, its workspace, Select / New Workspace, Disconnect](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-3-phone-connected.png)
-
-![Phone, Code on: choosing one of the computer's workspaces](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-4-phone-workspaces.png)
-
-Good to know:
-
-- Both devices must be on the same network. If the phone asks to find
-  devices on your local network, tap **Allow**.
-- The phone runs Code with the ibl.ai agent; Codex and Claude Code are
-  choices on the computer.
-- **Disconnect** on the phone, or **Disable** on the computer, ends it.
-  Closing the desktop app ends it too, and the next **Enable** makes a
-  new password.
+For now the iPhone and Android apps show no **Code** pill: the way a phone
+connects to a computer's Code is not ready yet. A phone that paired with a
+computer earlier stops sending its messages to that computer's Code. The
+computer's panel still has **Phone Access**, but there is nothing on the
+phone to pair with it until this comes back.
 
 ### When something's off
 
@@ -180,50 +178,44 @@ Good to know:
 | **Skills couldn’t be synced — Code will run without them** | Code still works; it just does not know the ibl.ai skills this time. Check your connection and turn Code off and on. |
 | **Codex isn’t signed in** / **Claude Code isn’t signed in** | Steps 3 and 4 above. |
 | *… isn’t available for Code — turns will fail* | You are on an on-device model that cannot use tools. Pick another model at the top left; see [`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md). |
-| **Your computer isn't reachable** | The desktop app is closed, Phone Access is off, or the two devices are on different networks. |
 
 ## Adding Code to your own app
 
-> **The Agent row (Codex, Claude Code) ships with the OS app.** The copies
-> below are the OS app's own implementation of Code on the ibl.ai agent:
-> the Rust modules in [`assets/tauri/src-tauri/`](assets/tauri/src-tauri/)
-> (copy into your `src-tauri/`, same layout as `/iblai-vibe-ops-build`'s
-> templates, nothing to render) and the chat pieces in
-> [`assets/nextjs/`](assets/nextjs/). Codex and Claude Code land here once
-> that OS work merges. The mechanics, every command and event, and the
-> wiring are in [`references/`](references/).
+The copies below are the OS app's own implementation of Code, with Codex
+and Claude Code: the Rust modules in
+[`assets/tauri/src-tauri/`](assets/tauri/src-tauri/) (copy into your
+`src-tauri/`, same layout as `/iblai-vibe-ops-build`'s templates, nothing to
+render) and the composer pieces in [`assets/nextjs/`](assets/nextjs/). The
+mechanics, every command and event, and the wiring are in
+[`references/`](references/).
 
 How it works, in one paragraph: with the Code pill on, a chat turn no
-longer goes to the hosted agent. The Tauri backend spawns
-[opencode](https://github.com/sst/opencode) as a per-chat subprocess,
-drives it over the Agent Client Protocol, and points its model calls at
-ibl.ai's OpenAI-compatible API through a loopback proxy that injects the
-user's token. The agent edits files, runs shell commands and commits in a
-git-backed workspace; every operation it wants surfaces as a permission
-card the user answers. A mobile build cannot spawn binaries, so a phone
-pairs to a desktop over the LAN and runs the same turns against it.
+longer goes to the hosted agent. The Tauri backend spawns the chosen agent
+(opencode for ibl.ai, or Codex or Claude Code through their Agent Client
+Protocol adapters) as a per-chat subprocess and drives it over ACP. The
+ibl.ai agent's model calls go to ibl.ai's OpenAI-compatible API through a
+loopback proxy that injects the user's token. The agent edits files, runs
+commands and commits in a git-backed workspace. With **Ask Me**, every
+operation it wants surfaces as a permission card in the SDK chat; with
+Cowork on too, it also gets the screen tools.
 
 ### Prerequisites
 
 1. **Tauri shell** via [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
    — `src-tauri/` with the template `lib.rs`, plus the Rust toolchain.
 2. **Sign-in** via [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md)
-   — Code reads the org key and DM token from the SDK's auth storage.
-3. **Platform**: macOS or Linux desktop for the agent itself (Linux also
-   needs `bwrap`/bubblewrap on PATH for the sandbox); iOS/Android only
-   as a *paired* client. **Windows is not supported** — `install_opencode`
-   returns an error and the pill hides. A **Mac App Store** build hides it
-   too: under the App Sandbox (`APP_SANDBOX_CONTAINER_ID` set) the app
-   can't spawn the downloaded binary, so ship Code in the Developer ID /
-   notarized `.dmg` build from `/iblai-vibe-ops-build`, not the MAS one.
-4. **Your own chat surface.** The SDK's `<Chat>` transport already routes
-   Code turns, but `<Chat>` has no composer slot and does not render
-   reasoning, tool calls, or permission cards — the OS app owns those
-   pieces (shipped here). If your app mounts the SDK `<Chat>` unchanged,
-   you get streaming Code replies but no way to answer permission prompts:
-   every manual-mode operation times out as denied after 180 s. Either
-   host the shipped components in your own composer/message bubble, or
-   consciously choose `auto` approvals (see Security).
+   — Code reads the org key and session token from the SDK's auth storage.
+3. **`@iblai/iblai-js@^2.83.0`** (resolves `@iblai/web-containers` 1.79.0):
+   the SDK `<Chat>` renders the permission cards, the thinking and the tool
+   activity itself, and takes the Code pill and the Approvals button
+   through its `slots`.
+4. **Platform**: a macOS or Linux desktop (Linux also needs
+   `bwrap`/bubblewrap on PATH for the sandbox; Codex and Claude Code need
+   macOS 13.5 or later). **Windows is not supported** (`install_opencode`
+   returns an error and the pill hides). A **Mac App Store** build hides it
+   too: under the App Sandbox the app can't spawn the downloaded binaries,
+   so ship the Developer ID / notarized `.dmg` from `/iblai-vibe-ops-build`.
+   Phones show no Code pill for now (`use-code-shown-here.ts`).
 5. Ask the user for a real agent UUID for testing. Do NOT invent one.
 
 ### Step 1: Rust — drop in the modules
@@ -236,28 +228,29 @@ cp    <skill>/assets/tauri/src-tauri/capabilities/mobile-pairing.json src-tauri/
 
 | File | What it is |
 |---|---|
-| `opencode_acp.rs` | The ACP transport: one `opencode acp` child per chat, sandboxing (macOS `sandbox-exec`, Linux `bwrap`), permission cards, workspaces, per-agent skills dir, session reuse and reaping |
+| `opencode_acp.rs` | The ACP transport: one agent child per chat (opencode, Codex or Claude Code), sandboxing (macOS `sandbox-exec`, Linux `bwrap`), the approval mode, permission requests, workspaces, per-agent skills, session reuse and reaping, the sized on-device model, and the screen tools when Cowork is on |
 | `opencode_proxy.rs` | Loopback token-injecting proxy the agent's model calls go through; mints the scoped `IBLAI_API_KEY`; composes `AGENTS.md` guidance |
-| `opencode_installer.rs` | Downloads the pinned opencode release (`OPENCODE_VERSION`), writes `opencode.json`, syncs the latest `iblai/vibe` release into the agent's skills |
+| `opencode_installer.rs` | Downloads the pinned opencode release (1.19.0), writes `opencode.json`, syncs the latest `iblai/vibe` release into the agent's skills |
+| `code_agent_installer.rs` | Installs and updates Codex and Claude Code (a pinned Node runtime plus their ACP adapters from npm), checks their sign-in |
+| `code_agent_models.rs` | The Codex and Claude Code model lists behind the top-left picker |
 | `opencode_build_prompt.txt` | System-prompt line compiled in via `include_str!` — keep the name |
-| `remote_code.rs` | Desktop phone-access host: `opencode serve` + pairing QR |
-| `remote_code_client.rs` | Mobile: the same `opencode_*` commands proxied to a paired desktop over HTTP + SSE |
+| `remote_code.rs`, `remote_code_client.rs` | The phone-access host and the phone client (paused in the OS for now; they still compile) |
 | `permissions/code-mode.toml` | One `allow-*` per command, grouped as the `code-mode` set |
 | `capabilities/mobile-pairing.json` | Camera permissions for scanning the pairing QR (iOS/Android only) |
 
 Then wire them — module declarations with their `cfg` gates, the
 `emit_on_main` helper, `log_fe`, plugins, setup hooks, the two
-`generate_handler!` lists, and the exit hook — exactly as in
+`generate_handler!` lists, and the exit and resume hooks — exactly as in
 [`references/lib-rs-wiring.md`](references/lib-rs-wiring.md). Add the
 Cargo entries from [`references/cargo-deps.toml`](references/cargo-deps.toml)
 and reference the `code-mode` set from `capabilities/default.json` per
 [`references/capabilities.md`](references/capabilities.md).
 
-**On-device models:** `opencode_acp.rs` can run Code against a local
-Ollama/Foundry model and reaches into the local-LLM modules for that. If you
-have not implemented [`/iblai-vibe-local-llm`](../iblai-vibe-local-llm/SKILL.md),
-add the two small stubs in the wiring reference (§4) — cloud Code never
-touches them.
+**Stubs.** `opencode_acp.rs` reaches into the Cowork driver, the on-device
+model manager and telemetry. Add the five small stub files in the wiring
+reference (§4) for any of those you have not added; cloud Code never calls
+them. [`/iblai-vibe-os-agent-cowork`](../iblai-vibe-os-agent-cowork/SKILL.md)
+replaces the two Cowork stubs with the real modules.
 
 ```bash
 cd src-tauri && cargo check          # must compile before touching the frontend
@@ -265,80 +258,121 @@ cd src-tauri && cargo check          # must compile before touching the frontend
 
 ### Step 2: Frontend — the transport is already in the SDK
 
-`useChatV2` (in `@iblai/web-utils`, used by the SDK `<Chat>` and by the OS
-chat) routes a turn to `opencode_chat_stream` whenever **both** hold:
+`useChatV2` (in `@iblai/web-utils`, used by the SDK `<Chat>`) routes a turn
+to `opencode_chat_stream` whenever **both** hold:
 
-- `isTauriCodeHost()` — a Tauri desktop, or a Tauri mobile app with
-  `localStorage.ibl_remote_code_ready === "true"` (set by pairing);
+- `isTauriCodeHost()` — a Tauri desktop (a phone only when paired, which the
+  OS has paused);
 - `localStorage.ibl_coding_mode_enabled === "true"`.
 
-It reads `ibl_coding_mode_model` (`provider/model`, default `openai/gpt-4o`)
-and `ibl_coding_mode_mentor` (the active agent UUID, for that agent's synced
-skills), calls the command with the DM token, and listens on `ollama:token`
-/ `ollama:done` / `ollama:error` / `ollama:restart` plus `opencode:reasoning`
-/ `opencode:tool_call`, populating `reasoningContent` and `toolCalls` on the
-streaming message. Stop → `opencode_stop`; chat closed → `opencode_close`.
-Nothing per-surface to wire for the transport.
+It reads `ibl_coding_mode_model` (`provider/model`) and
+`ibl_coding_mode_mentor` (the active agent UUID, for that agent's synced
+skills), calls the command with the session token, and adds `cowork: true`
+when Cowork is on and this computer has the screen driver. It listens on
+`ollama:token` / `ollama:done` / `ollama:error` / `ollama:restart` plus
+`opencode:reasoning` / `opencode:tool_call`, and the chat's message bubble
+listens on `opencode:permission_request` for the cards. Stop →
+`opencode_stop`; chat closed → `opencode_close`. Nothing per-surface to wire
+for the transport or the cards.
 
-### Step 3: Frontend — host the OS chat pieces
+### Step 3: Frontend — mount the Code pill and the Approvals button
 
-Copy [`assets/nextjs/`](assets/nextjs/) into your app and adapt the `@/…`
-imports. These are the OS app's components (paths in the OS repo shown),
-not SDK exports:
+Copy [`assets/nextjs/`](assets/nextjs/) into your app, adapt the `@/…`
+imports, and pass the two controls to the SDK `<Chat>` through `slots`, as
+the OS app's chat page does:
 
-| Asset | OS path | Role |
-|---|---|---|
-| `components/chat-input-form/coding-mode-button.tsx` | `components/chat-input-form/coding-mode-button.tsx` | The **Code** pill + popover: enable toggle, first-run **Approvals** dialog (Ask Me / Automatic), workspace picker (Select / New / open folder), install + vibe-skills status, desktop **phone access** (QR), mobile **pairing** (scan / manual, Your Computer card, Disconnect). Writes the `ibl_coding_mode_*` flags and mirrors `permission_mode` to platform user-metadata under `code_mode` |
-| `components/chat/code-permission-card.tsx` | `components/chat/code-permission-card.tsx` | `<CodePermissionCards>` — listens on `opencode:permission_request` / `opencode:permission_resolved`, renders Allow / Deny inside the reply bubble, answers with `opencode_permission_respond`. **This is the security boundary** |
-| `components/chat/tool-call-indicator.tsx`, `tool-call-item.tsx`, `tool-call-utils.ts` | `components/chat/…` | Collapsible tool-activity list for the `toolCalls` the transport fills (`TOOL_NAME_MAP` / `ToolCallInfo` from `@iblai/web-utils`) |
-| `components/chat/reasoning-section.tsx` | `components/chat/reasoning-section.tsx` | Collapsible "thinking" panel for `reasoningContent` |
-| `hooks/use-opencode-skill-sync.ts` | `hooks/use-opencode-skill-sync.ts` | Fetches the active agent's Agent Skills + resources (`useLazyGetAgentSkillsQuery`, `useLazyGetMentorSkillAssignmentsQuery`, `useLazyGetAgentSkillResourcesQuery` from `@iblai/data-layer`) and materialises them on disk via `begin_opencode_skills_sync` + `set_opencode_skills`, with bounded retries |
-| `hooks/use-opencode-learner.ts` | `hooks/use-opencode-learner.ts` | On sign-in calls `set_opencode_learner` (who the agent acts as, DM base, platform domain, auth URL) and pre-warms `ensure_opencode_platform_key` |
-| `messages/code-mode.en.json` | `messages/en.json` (`chatInputFormCodingModeButton`, `chatCodePermissionCard`) | The `next-intl` strings the button and cards use |
+```tsx
+// app/(app)/page.tsx — the <Chat> props the Code pieces add
+<Chat
+  {...chatProps}
+  config={{ ...chatConfig, onSwitchToAutomatic: () => chooseMode("auto", { quiet: true }) }}
+  slots={{
+    composerExtraControls: codeShown ? (
+      <CodingModeButton sessionId={sessionId} skillSync={skillSync} approvalsSlot={null} />
+    ) : undefined,
+    composerActionControls:
+      codeShown && approvalsOffered ? (
+        <CodeApprovalsButton mode={approvalMode} onChange={(mode) => void chooseMode(mode)} />
+      ) : undefined,
+  }}
+/>
+```
+
+where `codeShown = useCodeShownHere(inTauri)`, `{ chooseMode } =
+useApprovalModeChoice(inTauri)`, `approvalMode = useApprovalMode()` and
+`approvalsOffered = useApprovalsOffered()` (both from
+`code-approvals-button.tsx`), and `skillSync = useOpencodeSkillSync({ org,
+mentorUniqueId })`. Call `useOpencodeLearner()` and `useOpencodeAuthRequired()`
+once near the app root.
+
+| Asset | Role |
+|---|---|
+| `components/chat-input-form/coding-mode-button.tsx` | The **Code** pill + popover: the switch, **Approvals** (Ask Me / Automatic, with the screen line when Cowork is on), **Agent** (ibl.ai / Codex / Claude Code with install and sign-in status), the workspace (Select / New / open folder), skills status, desktop **Phone Access**. Writes the `ibl_coding_mode_*` flags |
+| `components/chat-input-form/code-approvals-button.tsx` | The SDK's `ApprovalsModeButton` with the app's strings, and the one shared approval-mode store (`createApprovalModeStore`) |
+| `components/chat-input-form/use-approval-mode-choice.ts` | Saves a choice on the computer (`set_opencode_permission_mode`) and to the user's platform metadata under `code_mode` |
+| `components/chat-input-form/code-agents.ts` | The three agents and their labels |
+| `hooks/use-code-shown-here.ts` | Shows the pill on a desktop app only (never on a phone, never during hydration) |
+| `hooks/use-opencode-skill-sync.ts` | Fetches the active agent's Agent Skills + resources and writes them to disk (`begin_opencode_skills_sync` + `set_opencode_skills`), with bounded retries |
+| `hooks/use-opencode-learner.ts` | On sign-in calls `set_opencode_learner` (who the agent acts as, DM base, platform domain, auth URL) |
+| `hooks/use-opencode-auth-required.tsx` | The *Codex isn’t signed in* / *Claude Code isn’t signed in* notice on `opencode:auth_required` |
+| `lib/cowork-approvals.ts`, `lib/local-llm-flags.ts` | Small storage readers the button uses (is Cowork on, is Local Models on) |
+| `messages/code-mode.en.json` | The `next-intl` strings (`chatInputFormCodingModeButton`, plus `common.close`) |
 
 **Adapt these imports** (everything else is shadcn primitives + SDK):
 
 | In the asset | In a vibe-starter app |
 |---|---|
 | `@/lib/config` → `config.dmUrl()`, `getEnv('NEXT_PUBLIC_AUTH_URL')` | `@/lib/iblai/config` — same `config.dmUrl()`, `config.authUrl()`, `config.platformBaseDomain()`, `getEnv` |
-| `@/types/tauri` → `isTauriApp`, `isTauriMobile` | drop [`/iblai-vibe-local-llm`'s `types/tauri.ts`](../iblai-vibe-local-llm/assets/nextjs/types/tauri.ts) in, or copy the two probes (`__TAURI__` on `window`; `platform()` from `@tauri-apps/plugin-os` ∈ ios/android) |
+| `@/lib/auth-storage` | `getAuthItem` from `@iblai/iblai-js/web-utils` |
+| `@/types/tauri` → `isTauriApp`, `isTauriMobile`, `isTauriPhone` | drop [`/iblai-vibe-local-llm`'s `types/tauri.ts`](../iblai-vibe-local-llm/assets/nextjs/types/tauri.ts) in, or copy the probes (`__TAURI__` on `window`; `platform()` from `@tauri-apps/plugin-os` ∈ ios/android) |
 | `@/hooks/use-mentors/use-mentor-settings` → `llmProvider`, `llmName` | `useGetMentorSettingsQuery` from `@iblai/data-layer` (used only to pre-select the agent's model) |
 | `@/hooks/use-tauri-offline` → `isTauriOfflineMode()` | `() => localStorage.getItem('ibl_local_llm_enabled') === 'true'` if you have local models, else `() => false` |
 | `@/lib/utils` → `getUserOS()` | `platform()` from `@tauri-apps/plugin-os` |
-| `@/hooks/use-user`, `@/features/utils` → `useUsername`, `getUserEmail` | read `userData` from localStorage (`user_nicename`, `user_email`) |
-| `@/components/markdown` | your Markdown renderer (the SDK `Chat` uses `react-markdown`) |
-| `@/components/ui/{popover,switch,tooltip,alert-dialog,collapsible}` | `npx shadcn@latest add popover switch tooltip alert-dialog collapsible` |
-| `next-intl` `useTranslations('…')` | already installed: merge `messages/code-mode.en.json`'s two namespaces into every `messages/<locale>.json`, or inline the strings |
+| `@/hooks/use-user`, `@/features/utils` → `useUsername`, `getUserEmail` | `useUsername` from `@iblai/iblai-js/web-utils`; `userData.user_email` from localStorage |
+| `@/components/ui/{popover,switch,tooltip,button}` | `npx shadcn@latest add popover switch tooltip button` |
+| `next-intl` `useTranslations('…')` | already installed: merge `messages/code-mode.en.json` into every `messages/<locale>.json`, or inline the strings |
 
-Mount them: `<CodingModeButton sessionId={…} skillSync={useOpencodeSkillSync({ org, mentorUniqueId })} />`
-in your composer's button row (the OS gates it to Tauri after mount, never
-during hydration), `<CodePermissionCards generationId={…} />` +
-`<ReasoningSection>` + `<ToolCallIndicator>` inside the assistant bubble,
-and `useOpencodeLearner()` once near the app root. Frontend deps:
+Frontend deps:
 
 ```bash
-pnpm add @tauri-apps/plugin-os @tauri-apps/plugin-dialog @tauri-apps/plugin-opener
+pnpm add @tauri-apps/api @tauri-apps/plugin-dialog @tauri-apps/plugin-opener
 pnpm add @tauri-apps/plugin-barcode-scanner   # mobile builds only
 ```
+
+An app that ships Code but not Cowork should pass `features: { cowork:
+false }` in the chat's `config`; otherwise the desktop shows a disabled
+Cowork pill (see `/iblai-vibe-os-agent-cowork`).
 
 ### Step 4: Use MCP tools for the SDK side
 
 ```
 get_hook_info("useChatV2")
 get_component_info("Chat")
+get_component_info("ApprovalsModeButton")
 get_api_query_info("useGetAgentSkillsQuery")
 ```
 
 ## Linked SDK exports
+
+From `@iblai/iblai-js/web-containers/next`:
+
+- `ApprovalsModeButton` (+ `ApprovalsModeButtonProps`,
+  `ApprovalsModeButtonLabels`) — the composer's Approvals button and menu.
+- `createApprovalModeStore` (+ `ApprovalModeStore`) — one mode shared by
+  every Code control on screen: `useApprovalMode`, `setApprovalMode`,
+  `applyApprovalMode`, `loadApprovalMode`, `seedApprovalMode`,
+  `useOfferApprovals`, `useApprovalsOffered`.
+- `PERMISSION_MODES`, `PERMISSION_MODE_ICONS`, `PermissionMode` (`manual` |
+  `auto`).
+- `Chat` with `slots.composerExtraControls`, `slots.composerActionControls`
+  and `config.onSwitchToAutomatic` (`/iblai-vibe-agent-chat`).
 
 From `@iblai/iblai-js/web-utils` (the transport lives here):
 
 - `useChatV2` — routes turns to Code when the flags are set; fills
   `reasoningContent` / `toolCalls` on the streaming message.
 - `isTauriDesktop()`, `isTauriEmbeddedLLMHost()` — the public platform
-  predicates (the streaming internals of `opencode-client.ts` are
-  deliberately private; `isTauriCodeHost` is used by `useChatV2`).
-- `TOOL_NAME_MAP`, `ToolCallInfo` — what the tool-call components render.
+  predicates (`isTauriCodeHost` is internal to `useChatV2`).
 
 From `@iblai/iblai-js/data-layer`:
 
@@ -353,17 +387,21 @@ From `@iblai/iblai-js/data-layer`:
 
 ## Security (read before shipping)
 
-- **Permission cards are the boundary.** The agent runs at the user's own
-  privilege; the sandbox only hides secrets and confines writes. Rust pins
-  `permission: "ask"` into the config on every spawn — it cannot be
-  loosened on disk. Render the cards.
-- **No default approval mode.** `get_opencode_permission_mode()` is
-  `null` until the user chooses; the button raises the first-run dialog.
-  Never pick `auto` for them.
-- **The DM token never reaches the agent** — the loopback proxy injects
-  it. The one credential handed over is a scoped, week-long, revocable
-  platform API key (`IBLAI_API_KEY`), so the synced `iblai-*` skills can act
-  on the platform; non-admins get none and turns continue.
+- **Ask Me's cards are the boundary.** The agent runs at the user's own
+  privilege; the sandbox only hides secrets and confines writes. With Ask
+  Me, nothing changes until the user answers a card, and a card left alone
+  for three minutes is denied. Codex is pinned read-only under Ask Me.
+- **Automatic is the default.** A computer with no saved choice runs
+  Automatic (`get_opencode_permission_mode` returns `"auto"`), and an
+  unreadable settings file reads as Ask Me. Show the Approvals button so
+  people can see and change it; a profile's Ask Me is copied to a computer
+  with nothing saved, an Automatic never is.
+- **With Cowork on, Automatic includes the screen.** Say so where people
+  choose it (the shipped hint does).
+- **The session token never reaches the agent** — the loopback proxy
+  injects it. The one credential handed over is a scoped, week-long,
+  revocable platform API key (`IBLAI_API_KEY`), so the synced `iblai-*`
+  skills can act on the platform; non-admins get none and turns continue.
 - **Phone access** binds `0.0.0.0` with a fresh password per enable and is
   killed with the app. Show the QR only to the person at the desk.
 
@@ -374,26 +412,27 @@ Full rationale, on-disk layout, and the agent's environment:
 
 1. `cd src-tauri && cargo check` — zero errors.
 2. `pnpm build` — zero errors; `pnpm test` passes.
-3. `pnpm exec tauri dev` (desktop): open a chat, click **Code** — first
-   click installs opencode (log lines on `model:installation-log`) and
-   asks for an approval mode; ask the agent to *"create hello.txt with one
-   line"*; a **permission card** appears in the reply; Allow; the file
-   exists under `~/.local/share/iblai/workspaces/…`.
-4. `pnpm exec tauri ios dev "<device>"` after **phone access** is on
-   the desktop: scan the QR, send the same prompt, see the same card.
-5. Touch test `/` in the browser as `/iblai-vibe-ops-test` says: the composer
-   shows the **Code** pill.
+3. `pnpm exec tauri dev` (desktop): open a chat, click **Code** — the first
+   click installs opencode (log lines on `model:installation-log`). Choose
+   **Ask Me** with the Approvals button, ask the agent to *"create
+   hello.txt with one line"*; a **Code needs your permission** card
+   appears in the reply; Allow; the file exists under
+   `~/.local/share/iblai/workspaces/…`. Switch to Automatic and repeat: no
+   card.
+4. Touch test `/` in the browser as `/iblai-vibe-ops-test` says: in a plain
+   browser there is **no** Code pill (it is desktop-only).
 
 ## Platform data
 
 | Call | Purpose |
 |---|---|
-| `POST {asgi}/api/ai-mentor/orgs/{org}/v1/chat/completions` | the agent's model calls, via the loopback proxy with the DM token injected |
+| `POST {asgi}/api/ai-mentor/orgs/{org}/v1/chat/completions` | the ibl.ai agent's model calls, via the loopback proxy with the session token injected |
 | `GET {dm}/api/ai-mentor/orgs/{org}/v1/models` | the Code model picker |
 | `GET …/orgs/{org}/agent-skills/`, `…/agents/{uuid}/skills/`, `…/agent-skill-resources/` | the agent's skills synced to disk — [`/iblai-api-agent-skill`](../iblai-api-agent-skill/SKILL.md) |
 | `POST {dm}/api/core/platform/api-tokens/` (by `platform_api_key`) | the scoped `IBLAI_API_KEY` — [`/iblai-api-token`](../../organizations/iblai-api-token/SKILL.md) |
 | `GET/POST {dm}/api/core/users/platform-metadata/` (`code_mode.permission_mode`) | approval mode following the user — [`/iblai-api-profile-metadata`](../../users/iblai-api-profile-metadata/SKILL.md) |
 | `https://github.com/iblai/vibe/releases/latest` | the vibe skills the agent gets, resolved at every launch |
+| `https://github.com/sst/opencode/releases`, `https://nodejs.org/dist/`, the npm registry | opencode, and the Node runtime and ACP adapters for Codex and Claude Code |
 
 ## Related skills
 

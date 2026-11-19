@@ -1,0 +1,100 @@
+# Permissions for the Cowork commands (the screen driver, its macOS grants,
+# and the on-device model for the webview's Cowork loop). Tauri v2 only lets a
+# window invoke commands a capability allows, and app commands need an
+# explicit `[[permission]]` each — reference the `cowork` set from
+# `capabilities/default.json`.
+#
+# Drop this file into `src-tauri/permissions/` next to your app's own set.
+# Entries are the OS app's (`src-tauri/permissions/default.toml`).
+
+# A named set, not `[default]`: an app's `[default]` is always the set
+# called "default", whatever identifier it is given.
+[[set]]
+identifier = "cowork"
+description = "Everything the SDK chat's Cowork pill, its setup dialog and its on-device model route invoke"
+permissions = [
+    "allow-install-cua-driver",
+    "allow-check-cua-driver-status",
+    "allow-cua-driver-support",
+    "allow-cua-driver-start",
+    "allow-cua-driver-send",
+    "allow-cua-driver-stop",
+    "allow-request-cowork-permission",
+    "allow-open-privacy-settings",
+    "allow-relaunch-app",
+    "allow-bring-app-to-front",
+    "allow-local-llm-openai-stream",
+    "allow-local-llm-openai-stream-cancel",
+]
+
+[[permission]]
+identifier = "allow-install-cua-driver"
+description = "Enables downloading and installing the Cua Driver (Cowork)"
+[permission.commands]
+allow = ["install_cua_driver"]
+
+[[permission]]
+identifier = "allow-check-cua-driver-status"
+description = "Enables checking Cua Driver (Cowork) install and session support"
+[permission.commands]
+allow = ["check_cua_driver_status"]
+
+[[permission]]
+identifier = "allow-cua-driver-support"
+description = "Enables checking whether Cowork can run on this desktop session"
+[permission.commands]
+allow = ["cua_driver_support"]
+
+[[permission]]
+identifier = "allow-cua-driver-start"
+description = "Enables starting the on-device Cua Driver MCP process for Computer Use"
+[permission.commands]
+allow = ["cua_driver_start"]
+
+[[permission]]
+identifier = "allow-cua-driver-send"
+description = "Enables forwarding a JSON-RPC message to the Cua Driver MCP process"
+[permission.commands]
+allow = ["cua_driver_send"]
+
+[[permission]]
+identifier = "allow-cua-driver-stop"
+description = "Enables stopping the Cua Driver MCP process for Computer Use"
+[permission.commands]
+allow = ["cua_driver_stop"]
+
+[[permission]]
+identifier = "allow-request-cowork-permission"
+description = "Enables asking macOS for one of the grants Cowork needs (Accessibility or Screen Recording)"
+[permission.commands]
+allow = ["request_cowork_permission"]
+
+[[permission]]
+identifier = "allow-open-privacy-settings"
+description = "Enables opening the macOS Privacy & Security pane a Cowork grant lives in"
+[permission.commands]
+allow = ["open_privacy_settings"]
+
+[[permission]]
+identifier = "allow-relaunch-app"
+description = "Enables relaunching the app so a new Screen Recording grant takes effect"
+[permission.commands]
+allow = ["relaunch_app"]
+
+[[permission]]
+identifier = "allow-bring-app-to-front"
+description = "Enables bringing the app back in front once a Cowork grant lands in System Settings"
+[permission.commands]
+allow = ["bring_app_to_front"]
+
+[[permission]]
+identifier = "allow-local-llm-openai-stream"
+description = "Streams one chat completion from the on-device model for the webview's Cowork loop"
+[permission.commands]
+allow = ["local_llm_openai_stream"]
+
+[[permission]]
+identifier = "allow-local-llm-openai-stream-cancel"
+description = "Stops an in-flight on-device completion the page started"
+[permission.commands]
+allow = ["local_llm_openai_stream_cancel"]

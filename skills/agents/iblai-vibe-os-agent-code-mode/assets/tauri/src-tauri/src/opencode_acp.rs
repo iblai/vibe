@@ -7,8 +7,9 @@
 //!
 //! Agent `session/update` notifications are translated into the SAME Tauri events
 //! the chat UI already renders for local models — `ollama:token` / `ollama:done` /
-//! `ollama:error` (keyed by `generation_id`) — plus `opencode:reasoning` and
-//! `opencode:tool_call` for thinking and tool activity.
+//! `ollama:error` (keyed by `generation_id`) — plus `opencode:reasoning`,
+//! `opencode:tool_call` and `opencode:plan` for thinking, tool activity and
+//! the agent's task list.
 //!
 //! This is hand-rolled (serde_json + tokio) rather than using the
 //! `agent-client-protocol` crate: the ACP surface we need is small and we want
@@ -17,14 +18,14 @@
 
 #![cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
 
 use serde_json::{json, Value};
-use tauri::{command, AppHandle, Emitter};
+use tauri::{command, AppHandle};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, Command};
 use tokio::sync::{oneshot, Mutex};
@@ -50,6 +51,10 @@ const TOKEN_EMIT_WINDOW: Duration = Duration::from_millis(200);
 /// How long a permission card may sit unanswered before it resolves as denied. An
 /// ignored prompt must never leave the turn hanging with no explanation.
 const PERMISSION_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// How long a finished turn waits for the main thread to run its queued emits
+/// before the command returns anyway.
+const FLUSH_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Live `opencode acp` processes allowed at once. Each is a Bun binary holding real
 /// memory, and a user with many chats open would otherwise accumulate one per chat.
@@ -154,23 +159,25 @@ pub async fn opencode_permission_respond(
     Ok(())
 }
 
-/// Whether operations are approved automatically.
+/// Whether operations are approved automatically — one mode for every chat.
 ///
 /// Seeded from `settings.json` on first read rather than at startup, so a turn
-/// that begins before any UI has asked still honours the saved choice. Never
-/// chosen → manual, which is the safe direction: the user gets asked.
+/// that begins before any UI has asked still honours the saved choice.
 fn permission_auto() -> &'static AtomicBool {
     static AUTO: OnceLock<AtomicBool> = OnceLock::new();
-    AUTO.get_or_init(|| AtomicBool::new(saved_permission_mode().as_deref() == Some("auto")))
+    AUTO.get_or_init(|| AtomicBool::new(permission_mode() == "auto"))
 }
 
-/// The saved approval mode, or `None` when the user has never chosen one.
-fn saved_permission_mode() -> Option<String> {
-    read_settings()
-        .get(SETTINGS_PERMISSION_MODE)
-        .and_then(|v| v.as_str())
-        .filter(|m| *m == "manual" || *m == "auto")
-        .map(str::to_string)
+/// The saved approval mode. No settings file, or no mode in it, is `"auto"`
+/// (Automatic); a saved `"auto"` too. Anything else — Ask Me, a garbled value,
+/// or a file that exists but can't be read or parsed — is `"manual"`, so damage
+/// can only make Code ask more, never less.
+fn permission_mode() -> &'static str {
+    match read_settings().get(SETTINGS_PERMISSION_MODE) {
+        None => "auto",
+        Some(v) if v.as_str() == Some("auto") => "auto",
+        Some(_) => "manual",
+    }
 }
 
 /// Answer every open card as allowed — for the moment the user switches to auto.
@@ -192,31 +199,249 @@ async fn allow_all_pending() {
     }
 }
 
-/// The saved approval mode: `"manual"`, `"auto"`, or `null` when never chosen
-/// (the frontend takes null as "ask the user which they want").
-#[command]
-pub async fn get_opencode_permission_mode() -> Result<Option<String>, String> {
-    Ok(saved_permission_mode())
+/// Queue a request for its card — unless the mode is Automatic and the request
+/// can be allowed, when the allow option comes back for the caller to send.
+/// Decided under the lock `allow_all_pending` sweeps with, so a switch to
+/// Automatic can't land between the check and the queueing and leave a card up.
+async fn queue_unless_auto(request_id: &str, pending: PendingPermission) -> Option<String> {
+    let mut map = permissions().lock().await;
+    if permission_auto().load(Ordering::SeqCst) {
+        if let Some(opt) = pending.allow_option_id.clone() {
+            return Some(opt);
+        }
+    }
+    map.insert(request_id.to_string(), pending);
+    None
 }
 
-/// Record the approval mode and apply it to running sessions immediately.
+/// The saved approval mode, `"manual"` or `"auto"` — never null, which an older
+/// web app takes as "ask which they want" and raises a dialog.
 #[command]
-pub async fn set_opencode_permission_mode(mode: String) -> Result<(), String> {
-    let auto = match mode.as_str() {
-        "auto" => true,
-        "manual" => false,
+pub async fn get_opencode_permission_mode() -> Result<String, String> {
+    Ok(permission_mode().to_string())
+}
+
+/// Every live session of one backend, by chat id — the targets of a setting
+/// pushed mid-session.
+async fn live_sessions(backend: Backend) -> Vec<(String, Arc<Session>)> {
+    registry()
+        .lock()
+        .await
+        .iter()
+        .filter(|(_, s)| s.backend == backend)
+        .map(|(id, s)| (id.clone(), s.clone()))
+        .collect()
+}
+
+/// Apply a session config option (the `model`) to every live session of the
+/// backend, so a pick in the top-left reaches a running chat without a
+/// respawn and with its conversation intact. The first refusal is the error
+/// — the caller must not save what a live session rejected. `None` (a default
+/// the agent hasn't reported yet) has nothing to push: refused while it runs.
+pub(crate) async fn push_config_option(
+    backend: Backend,
+    config_id: &str,
+    value: Option<String>,
+) -> Result<(), String> {
+    let name = crate::code_agent_installer::display_name(backend);
+    let sessions = live_sessions(backend).await;
+    let Some(value) = value else {
+        if sessions.is_empty() {
+            return Ok(());
+        }
+        return Err(format!(
+            "{name} hasn't reported its own default yet — start a new {name} chat, then pick Default again."
+        ));
+    };
+    for (_, s) in sessions {
+        let req = s.request(
+            "session/set_config_option",
+            json!({ "sessionId": s.acp_session_id, "configId": config_id, "value": value }),
+        );
+        match tokio::time::timeout(Duration::from_secs(10), req).await {
+            Ok(Ok(_)) => {}
+            Ok(Err(e)) => return Err(format!("{name} refused {config_id} = {value}: {e}")),
+            Err(_) => {
+                return Err(format!(
+                    "{name} did not answer the {config_id} change within 10s."
+                ))
+            }
+        }
+    }
+    Ok(())
+}
+
+fn parse_permission_mode(mode: &str) -> Result<bool, String> {
+    match mode {
+        "auto" => Ok(true),
+        "manual" => Ok(false),
         // Loud rather than defaulting: a typo here would silently pick a
         // security posture on the user's behalf.
-        other => return Err(format!("unknown permission mode: {other}")),
+        other => Err(format!("unknown permission mode: {other}")),
+    }
+}
+
+/// Held from saving an approval mode through moving the in-memory flag and
+/// sweeping the cards, so two changes landing together can't leave the flag
+/// disagreeing with the saved file. Never held across a Codex pin, which can
+/// take 10s per session: a switch to Ask Me must not wait behind one.
+static MODE_CHANGE: Mutex<()> = Mutex::const_new(());
+
+/// Serializes every Codex mode pin, each sending the flag as it is once its
+/// turn comes, so the last pin a session gets is the mode in force.
+static CODEX_PIN: Mutex<()> = Mutex::const_new(());
+
+/// Save the approval mode and apply it to running sessions immediately.
+#[command]
+pub async fn set_opencode_permission_mode(mode: String) -> Result<(), String> {
+    let auto = parse_permission_mode(&mode)?;
+    let was_auto = {
+        let _change = MODE_CHANGE.lock().await;
+        update_settings(|settings| {
+            settings.insert(SETTINGS_PERMISSION_MODE.to_string(), json!(mode));
+        })?;
+        apply_permission_mode(auto).await
     };
-    let mut settings = read_settings();
-    settings.insert(SETTINGS_PERMISSION_MODE.to_string(), json!(mode));
-    write_settings(&settings)?;
-    permission_auto().store(auto, Ordering::SeqCst);
+    repin_codex_sessions(auto, was_auto && !auto).await;
+    Ok(())
+}
+
+/// Save the Ask Me the user chose on the platform, but only on a machine with
+/// no mode saved: there, nothing saved would otherwise run Automatic for
+/// someone who chose Ask Me. Any saved value — a garbled one included, which
+/// reads as Ask Me — is this machine's own choice and stays, with the file
+/// left untouched. Returns the mode in force, as
+/// [`get_opencode_permission_mode`] reports it.
+#[command]
+pub async fn seed_opencode_permission_mode(mode: String) -> Result<String, String> {
+    let auto = parse_permission_mode(&mode)?;
+    let was_auto = {
+        let _change = MODE_CHANGE.lock().await;
+        let seeded = update_settings_if(|settings| {
+            // A platform Automatic is never saved: nothing saved already runs
+            // Automatic, and saving it would shut this machine to a later Ask Me
+            // chosen on another machine or tenant.
+            if auto || settings.contains_key(SETTINGS_PERMISSION_MODE) {
+                return false;
+            }
+            settings.insert(SETTINGS_PERMISSION_MODE.to_string(), json!(mode));
+            true
+        })?;
+        if seeded && permission_auto().load(Ordering::SeqCst) != auto {
+            Some(apply_permission_mode(auto).await)
+        } else {
+            None
+        }
+    };
+    if let Some(was_auto) = was_auto {
+        repin_codex_sessions(auto, was_auto && !auto).await;
+    }
+    Ok(permission_mode().to_string())
+}
+
+/// Move the flag and, on a switch to Automatic, answer the waiting cards.
+/// Hands back whether Automatic was in force before.
+async fn apply_permission_mode(auto: bool) -> bool {
+    let was_auto = permission_auto().swap(auto, Ordering::SeqCst);
     if auto {
         allow_all_pending().await;
     }
-    Ok(())
+    was_auto
+}
+
+/// Codex carries its own approval mode (see `codex_mode`): repoint every live
+/// Codex session so the flip applies mid-session; one that doesn't confirm is
+/// closed (`pin_codex_mode`). opencode and Claude need nothing — they are
+/// governed by how this app answers their requests.
+async fn repin_codex_sessions(auto: bool, stop_running: bool) {
+    let _pin = CODEX_PIN.lock().await;
+    for (session_id, s) in live_sessions(Backend::Codex).await {
+        // A newer change moved the flag meanwhile; its own repin follows.
+        if permission_auto().load(Ordering::SeqCst) != auto {
+            return;
+        }
+        if let Err(e) = pin_codex_mode(&session_id, &s, auto, stop_running).await {
+            crate::telemetry::report("[code-agent] could not pin the Codex approval mode", e);
+        }
+    }
+}
+
+/// Pin a just-spawned Codex session to the mode in force. Waits for any pin
+/// already running, so a switch made during the spawn can't be overtaken.
+async fn pin_new_codex_session(session_id: &str, s: &Session) -> Result<(), String> {
+    let _pin = CODEX_PIN.lock().await;
+    pin_codex_mode(
+        session_id,
+        s,
+        permission_auto().load(Ordering::SeqCst),
+        false,
+    )
+    .await
+}
+
+/// Point a live Codex session at the approval mode. codex-acp applies a mode
+/// from the next turn on, so `stop_running` (a switch from Automatic to Ask Me)
+/// cancels a turn running with full access. One that doesn't confirm within
+/// 10s is closed, so none keeps running in the other mode; the next message
+/// starts it in this one.
+async fn pin_codex_mode(
+    session_id: &str,
+    s: &Session,
+    auto: bool,
+    stop_running: bool,
+) -> Result<(), String> {
+    let mode = codex_mode(auto);
+    let req = s.request(
+        "session/set_mode",
+        json!({ "sessionId": s.acp_session_id, "modeId": mode }),
+    );
+    let failure = match tokio::time::timeout(Duration::from_secs(10), req).await {
+        Ok(Ok(_)) if stop_running && s.active_turns.load(Ordering::SeqCst) > 0 => {
+            return s
+                .notify("session/cancel", json!({ "sessionId": s.acp_session_id }))
+                .await;
+        }
+        Ok(Ok(_)) => return Ok(()),
+        Ok(Err(e)) => format!("Codex refused the {mode} mode: {e}"),
+        Err(_) => format!("Codex did not confirm the {mode} mode within 10s"),
+    };
+    // Identity-checked like `reader_gone`: a respawn may already hold the id.
+    let removed = {
+        let mut reg = registry().lock().await;
+        match reg.get(session_id) {
+            Some(cur) if Arc::ptr_eq(&cur.pending, &s.pending) => reg.remove(session_id),
+            _ => None,
+        }
+    };
+    s.closing.store(true, Ordering::SeqCst);
+    if removed.is_some() {
+        teardown(session_id, removed).await;
+    } else {
+        let _ = s.child.lock().await.start_kill();
+    }
+    Err(format!(
+        "{failure} — the chat was closed; the next message starts it in that mode."
+    ))
+}
+
+/// The tool-update fields the chat UI reads (the SDK's `mergeToolCall` /
+/// `addToolCall`); an update that changes none of them carries only output.
+const TOOL_VISIBLE_FIELDS: [&str; 6] = ["status", "title", "kind", "name", "rawInput", "locations"];
+
+/// A `content` item of type `diff`: an edit's final text, which the UI shows.
+fn is_diff(item: &Value) -> bool {
+    item.get("type").and_then(Value::as_str) == Some("diff")
+}
+
+fn carries_diff(update: &Value) -> bool {
+    update
+        .get("content")
+        .and_then(Value::as_array)
+        .is_some_and(|items| items.iter().any(is_diff))
+}
+
+fn is_failed(status: Option<&Value>) -> bool {
+    status.and_then(Value::as_str) == Some("failed")
 }
 
 /// Per-turn streaming accumulator, shared between the reader task and the command.
@@ -230,15 +455,147 @@ struct TurnState {
     /// section rather than the reply. Kept so a turn that ends on a tool call
     /// with no trailing text still shows the model's only words.
     last_narration: String,
+    /// The thoughts since the last tool call started: what a turn that ends
+    /// without reply text shows instead (`empty_reply_fallback`).
+    closing_thought: String,
+    /// Thought deltas batched like `pending_delta`.
+    pending_reasoning: String,
+    /// `None` = no thoughts flushed yet this turn, so the first batch goes out at once.
+    last_reasoning_emit: Option<Instant>,
+    /// Per tool call, the visible fields last forwarded — the gate in `admit_tool_update`.
+    tool_shapes: HashMap<String, serde_json::Map<String, Value>>,
+    /// How many tool calls the turn had when it was last told to make the call
+    /// it wrote as text: the same reply with no call since is its answer.
+    asked_to_call_after: Option<usize>,
 }
 
 impl TurnState {
+    fn new() -> Self {
+        Self {
+            generation_id: String::new(),
+            full_content: String::new(),
+            pending_delta: String::new(),
+            last_emit: Instant::now(),
+            last_narration: String::new(),
+            closing_thought: String::new(),
+            pending_reasoning: String::new(),
+            last_reasoning_emit: None,
+            tool_shapes: HashMap::new(),
+            asked_to_call_after: None,
+        }
+    }
+
     fn reset(&mut self, generation_id: String) {
-        self.generation_id = generation_id;
-        self.full_content.clear();
-        self.pending_delta.clear();
-        self.last_narration.clear();
-        self.last_emit = Instant::now();
+        *self = Self {
+            generation_id,
+            ..Self::new()
+        };
+    }
+
+    /// Whether a `tool_call` / `tool_call_update` is worth a WebView event: a call's
+    /// first update that carries more than `_meta`, a visible field that changed, a
+    /// diff riding along (claude-agent-acp reports an edit's final diff on a
+    /// status-less PostToolUse update), or the error text of a call that already
+    /// failed (the SDK reads `content` only then). Everything else is output growth
+    /// — opencode re-sends a bash call's whole output on every stdout chunk, Codex a
+    /// delta per chunk — which no consumer renders and which, forwarded one-for-one,
+    /// re-rendered the chat per chunk until the webview froze.
+    // ponytail: dropped outright, no window; add a per-call window here if an SDK
+    // ever shows live output.
+    fn admit_tool_update(&mut self, update: &Value) -> bool {
+        if carries_only_meta(update) {
+            return false;
+        }
+        let Some(id) = update.get("toolCallId").and_then(Value::as_str) else {
+            return true;
+        };
+        let known = self.tool_shapes.get(id);
+        let failed =
+            is_failed(update.get("status")) || known.is_some_and(|k| is_failed(k.get("status")));
+        let fields = TOOL_VISIBLE_FIELDS
+            .iter()
+            .copied()
+            .chain(failed.then_some("content"));
+        let admit = known.is_none_or(|known| {
+            carries_diff(update)
+                || fields
+                    .clone()
+                    .any(|k| update.get(k).is_some_and(|v| known.get(k) != Some(v)))
+        });
+        if admit {
+            let shape = self.tool_shapes.entry(id.to_string()).or_default();
+            for k in fields {
+                if let Some(v) = update.get(k) {
+                    shape.insert(k.to_string(), v.clone());
+                }
+            }
+        }
+        admit
+    }
+
+    /// The event an admitted update becomes: the update minus what the chat never
+    /// reads — `rawOutput`, output text (kept only as a failed call's error) and
+    /// `_meta` beyond the tool name. opencode sends a finished call's whole output
+    /// in `content` and `rawOutput` both.
+    fn forward_tool_update(&mut self, update: &Value) -> Option<Value> {
+        if !self.admit_tool_update(update) {
+            return None;
+        }
+        let obj = update.as_object()?;
+        let failed = is_failed(update.get("status"))
+            || update
+                .get("toolCallId")
+                .and_then(Value::as_str)
+                .and_then(|id| self.tool_shapes.get(id))
+                .is_some_and(|shape| is_failed(shape.get("status")));
+        let mut out = serde_json::Map::with_capacity(obj.len());
+        for (k, v) in obj {
+            match k.as_str() {
+                "rawOutput" => {}
+                "content" if !failed => {
+                    let diffs: Vec<Value> = v
+                        .as_array()
+                        .map(|items| items.iter().filter(|i| is_diff(i)).cloned().collect())
+                        .unwrap_or_default();
+                    if !diffs.is_empty() {
+                        out.insert(k.clone(), Value::Array(diffs));
+                    }
+                }
+                "_meta" => {
+                    if let Some(name) = v.pointer("/claudeCode/toolName") {
+                        out.insert(k.clone(), json!({ "claudeCode": { "toolName": name } }));
+                    }
+                }
+                _ => {
+                    out.insert(k.clone(), v.clone());
+                }
+            }
+        }
+        Some(Value::Object(out))
+    }
+
+    /// Batch thought deltas as `pending_delta` batches reply text: the first flushes
+    /// at once, the rest at most once per `TOKEN_EMIT_WINDOW`.
+    fn push_reasoning(&mut self, delta: &str, now: Instant) -> Option<String> {
+        self.closing_thought.push_str(delta);
+        self.pending_reasoning.push_str(delta);
+        let due = self
+            .last_reasoning_emit
+            .is_none_or(|t| now.duration_since(t) >= TOKEN_EMIT_WINDOW);
+        if due {
+            self.take_reasoning(now)
+        } else {
+            None
+        }
+    }
+
+    /// The buffered thought text, if any — flushed before anything that must follow it.
+    fn take_reasoning(&mut self, now: Instant) -> Option<String> {
+        if self.pending_reasoning.is_empty() {
+            return None;
+        }
+        self.last_reasoning_emit = Some(now);
+        Some(std::mem::take(&mut self.pending_reasoning))
     }
 
     /// A NEW tool call starts: whatever streamed so far was a preamble ("Let
@@ -255,6 +612,20 @@ impl TurnState {
         Some(text)
     }
 
+    /// A tool call or a permission card is about to show: pre-tool text moves into
+    /// the thoughts, and `true` says the reply bubble must be emptied.
+    fn narration_to_reasoning(&mut self) -> bool {
+        self.closing_thought.clear();
+        match self.take_narration() {
+            Some(text) => {
+                self.pending_reasoning.push_str(&text);
+                self.pending_reasoning.push('\n');
+                true
+            }
+            None => false,
+        }
+    }
+
     /// The visible reply: the text after the last tool call, or — when the
     /// turn ended on a tool call (abort/error shapes) — the model's only text.
     fn final_reply(&self) -> &str {
@@ -263,6 +634,41 @@ impl TurnState {
         } else {
             &self.full_content
         }
+    }
+
+    /// A model that thinks before it answers can end a turn with the answer
+    /// still in its thoughts and no reply text at all (seen with on-device
+    /// reasoning models). A finished turn with nothing to show takes those
+    /// closing thoughts as its reply, or failing that the words it wrote
+    /// before its last tool call; a turn that spent its whole reply budget
+    /// thinking says so. Returned for the token event that fills the bubble.
+    fn empty_reply_fallback(&mut self, stop_reason: Option<&str>) -> Option<String> {
+        if !self.full_content.trim().is_empty() {
+            return None;
+        }
+        let reply = match stop_reason {
+            Some("end_turn") => {
+                let closing = self.closing_thought.trim();
+                let notes = self.last_narration.trim();
+                if !closing.is_empty() {
+                    closing
+                } else if announces_next_step(notes) {
+                    // "Let me find Chrome." is no answer to show.
+                    ""
+                } else {
+                    notes
+                }
+            }
+            // The thoughts of a turn cut at its limit are 8,000 tokens of
+            // working out, not an answer.
+            Some("max_tokens") => OUT_OF_ROOM_REPLY,
+            _ => "",
+        };
+        if reply.is_empty() {
+            return None;
+        }
+        self.full_content = reply.to_string();
+        Some(self.full_content.clone())
     }
 
     /// A turn is streaming — updates arriving with no generation in flight
@@ -282,6 +688,12 @@ struct Session {
     /// The compat model id this process was spawned for (e.g. "openai/gpt-5.5"); a
     /// change means the mentor's LLM switched → respawn with the new model.
     requested_model: Option<String>,
+    /// Which agent this process runs: opencode, Codex or Claude Code. Fixed at
+    /// spawn — switching agents changes `requested_model`, which respawns.
+    backend: Backend,
+    /// Spawned with the screen tools (Cowork on). Fixed at spawn — a flip
+    /// respawns, like a model switch.
+    cowork: bool,
     /// Throwaway key this session uses against the loopback model proxy (cloud only).
     /// The real DM token lives in the proxy, keyed by this.
     proxy_secret: Option<String>,
@@ -307,6 +719,10 @@ struct Session {
 /// crash-retry keys on these, so they live as consts the check can't drift from.
 const CHILD_GONE: &str = "opencode closed before responding";
 const CHILD_WRITE_FAILED: &str = "failed writing to opencode";
+/// Prefix of the error a signed-out subscription agent produces (ACP
+/// `authRequired`, JSON-RPC `-32000`). Disjoint from the two crash prefixes on
+/// purpose: `should_retry` must never respawn a process for it.
+const AUTH_REQUIRED: &str = "agent sign-in required";
 
 impl Session {
     fn new_id(&self) -> i64 {
@@ -322,7 +738,7 @@ impl Session {
         write_line(&self.stdin, &msg).await?;
         let resp = rx.await.map_err(|_| format!("{CHILD_GONE} to {method}"))?;
         if let Some(err) = resp.get("error") {
-            return Err(format!("opencode error on {method}: {err}"));
+            return Err(rpc_error(method, err));
         }
         Ok(resp.get("result").cloned().unwrap_or(Value::Null))
     }
@@ -347,6 +763,107 @@ async fn write_line(stdin: &Arc<Mutex<ChildStdin>>, msg: &Value) -> Result<(), S
     guard.flush().await.map_err(|e| e.to_string())
 }
 
+/// The error text for a JSON-RPC error response. ACP's `authRequired`
+/// (`-32000`) gets the [`AUTH_REQUIRED`] prefix so the turn can name the fix
+/// instead of echoing the adapter; every other code keeps the historical text.
+fn rpc_error(method: &str, err: &Value) -> String {
+    if err.get("code").and_then(|c| c.as_i64()) == Some(-32000) {
+        format!("{AUTH_REQUIRED} ({method}): {err}")
+    } else {
+        format!("opencode error on {method}: {err}")
+    }
+}
+
+/// The one-sentence hint for a sign-in failure on a subscription agent —
+/// `None` for opencode (it never authenticates) and for every other error.
+fn auth_hint(backend: Backend, err: &str) -> Option<&'static str> {
+    (backend != Backend::Opencode && err.starts_with(AUTH_REQUIRED)).then(|| backend.sign_in_hint())
+}
+
+/// Has this agent's CLI ever signed in on this machine: its own state dir
+/// under `home` exists (`~/.codex`, `~/.claude`). The cheap pre-check before
+/// a spawn or a probe — a stale login still surfaces from the agent itself as
+/// `-32000`. opencode never signs in, so it never passes.
+fn login_dir_present(backend: Backend, home: &Path) -> bool {
+    backend.own().iter().any(|rel| home.join(rel).is_dir())
+}
+
+/// Announce a signed-out agent (`opencode:auth_required`) and return its hint
+/// as the error text; any other error passes through untouched. Emitted
+/// BEFORE the caller's `ollama:error` — the frontend's generic error toast
+/// stays quiet only if the sign-in toast was raised first.
+fn surface_auth(app: &AppHandle, generation_id: &str, backend: Backend, err: String) -> String {
+    match auth_hint(backend, &err) {
+        Some(hint) => {
+            crate::emit_on_main(
+                app,
+                "opencode:auth_required",
+                json!({ "generation_id": generation_id, "backend": backend.id() }),
+            );
+            hint.to_string()
+        }
+        None => err,
+    }
+}
+
+/// Wait until the main thread has run every emit posted so far (`emit_on_main` is
+/// FIFO), at most `FLUSH_TIMEOUT`. Before a command returns after emitting: the SDK
+/// drops its listeners the moment `invoke` resolves, so a terminal event still
+/// queued would be lost — but a stuck main thread must not hold the invoke open.
+async fn flush_emits(app: &AppHandle) {
+    let (tx, rx) = oneshot::channel::<()>();
+    if app
+        .run_on_main_thread(move || {
+            let _ = tx.send(());
+        })
+        .is_ok()
+    {
+        if tokio::time::timeout(FLUSH_TIMEOUT, rx).await.is_err() {
+            crate::telemetry::report_warning(
+                "[opencode] main thread did not run a turn's last events in time",
+                format!("waited {FLUSH_TIMEOUT:?}"),
+            );
+        }
+    }
+}
+
+/// Inherited environment the agents must never see: provider credentials and
+/// routing (`ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, `OPENAI_API_KEY`,
+/// `CODEX_API_KEY`, `ANTHROPIC_BASE_URL`, Bedrock/Vertex switches), the
+/// config-dir and binary overrides (`CLAUDE_CONFIG_DIR`, `CODEX_HOME`,
+/// `CODEX_PATH`, `CLAUDE_CODE_EXECUTABLE` — the sandbox binds `~/.claude` and
+/// `~/.codex`, so the adapters must agree on those paths), the adapters' own
+/// knobs, `CLAUDECODE` (a dev build launched from a Claude Code terminal
+/// would otherwise trip the nested-session guard), and npm's env config
+/// (`npm_config_*`, any case): pnpm 10 exports the repo's `.npmrc` to
+/// `pnpm tauri:dev`, `min-release-age=7` included, and the managed npm obeys it.
+const STRIPPED_ENV_PREFIXES: &[&str] = &["ANTHROPIC_", "CLAUDE_", "OPENAI_", "CODEX_"];
+const STRIPPED_ENV_NAMES: &[&str] = &["CLAUDECODE", "MODEL_PROVIDER", "DEFAULT_AUTH_REQUEST"];
+
+/// The subset of `keys` [`strip_agent_env`] removes — pure, so the test can
+/// feed it a fixed list.
+pub(crate) fn stripped_env(
+    keys: impl Iterator<Item = std::ffi::OsString>,
+) -> Vec<std::ffi::OsString> {
+    keys.filter(|k| {
+        let k = k.to_string_lossy();
+        STRIPPED_ENV_PREFIXES.iter().any(|p| k.starts_with(p))
+            || STRIPPED_ENV_NAMES.contains(&k.as_ref())
+            || k.to_ascii_lowercase().starts_with("npm_config_")
+    })
+    .collect()
+}
+
+/// Remove every inherited provider credential/routing variable from a child's
+/// environment. A remove list, not `env_clear`: the agents' shells need the
+/// desktop environment (DISPLAY/DBUS for the browser, locale, proxies, SSL
+/// bundles). Call it BEFORE the caller's own `env()`s — a later `env` wins.
+pub(crate) fn strip_agent_env(cmd: &mut Command) {
+    for key in stripped_env(std::env::vars_os().map(|(k, _)| k)) {
+        cmd.env_remove(key);
+    }
+}
+
 /// Build a tokio Command with a hidden console window on Windows.
 fn create_command(program: &str) -> Command {
     let cmd = Command::new(program);
@@ -363,7 +880,7 @@ fn create_command(program: &str) -> Command {
 }
 
 /// Home directory (HOME on unix, USERPROFILE on Windows).
-fn home_dir() -> Option<PathBuf> {
+pub(crate) fn home_dir() -> Option<PathBuf> {
     std::env::var_os("HOME")
         .or_else(|| std::env::var_os("USERPROFILE"))
         .map(PathBuf::from)
@@ -429,6 +946,90 @@ pub fn iblai_data_dir() -> PathBuf {
 pub(crate) fn data_dir_lock() -> std::sync::MutexGuard<'static, ()> {
     static L: std::sync::Mutex<()> = std::sync::Mutex::new(());
     L.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// A fresh path no sandbox may write, for tests that run the real wrapper:
+/// this crate's `target` folder, which any test runner can write, unless the
+/// checkout itself sits under a temp root; then the real home.
+#[cfg(all(test, unix))]
+pub(crate) fn outside_the_sandbox(tag: &str) -> PathBuf {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let name = format!("serve-sbx-{tag}-{}-{nanos}", std::process::id());
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = manifest
+        .canonicalize()
+        .unwrap_or_else(|_| manifest.to_path_buf());
+    let mut temp_roots: Vec<PathBuf> = [
+        "/tmp",
+        "/var/tmp",
+        "/private/tmp",
+        "/private/var/tmp",
+        "/private/var/folders",
+    ]
+    .iter()
+    .map(PathBuf::from)
+    .collect();
+    temp_roots.extend(std::env::var_os("TMPDIR").map(PathBuf::from));
+    temp_roots.push(std::env::temp_dir());
+    let in_temp = temp_roots.iter().any(|t| {
+        manifest.starts_with(t) || t.canonicalize().is_ok_and(|t| manifest.starts_with(t))
+    });
+    if in_temp {
+        home_dir()
+            .expect("a home dir")
+            .join(format!(".iblai-{name}"))
+    } else {
+        manifest.join("target").join(name)
+    }
+}
+
+/// A test's own data dir: takes [`data_dir_lock`], points `XDG_DATA_HOME` at
+/// a fresh `temp_dir()/<tag>-<pid>`, and on drop — a panic included, unlike
+/// the restore-by-hand pattern — puts the env back and removes the dir. The
+/// lock is released last, after the restore.
+#[cfg(test)]
+pub(crate) struct ScratchDataDir {
+    _lock: std::sync::MutexGuard<'static, ()>,
+    prior: Option<std::ffi::OsString>,
+    pub(crate) path: PathBuf,
+}
+
+#[cfg(test)]
+impl ScratchDataDir {
+    pub(crate) fn new(tag: &str) -> Self {
+        let lock = data_dir_lock();
+        let path = std::env::temp_dir().join(format!("{tag}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).unwrap();
+        let prior = std::env::var_os("XDG_DATA_HOME");
+        std::env::set_var("XDG_DATA_HOME", &path);
+        Self {
+            _lock: lock,
+            prior,
+            path,
+        }
+    }
+}
+
+#[cfg(test)]
+impl Drop for ScratchDataDir {
+    fn drop(&mut self) {
+        match self.prior.take() {
+            Some(v) => std::env::set_var("XDG_DATA_HOME", v),
+            None => std::env::remove_var("XDG_DATA_HOME"),
+        }
+        let _ = std::fs::remove_dir_all(&self.path);
+    }
+}
+
+/// Every folder Code makes for a chat or a phone. The phone's serve runs with
+/// this whole root as its sandbox workspace, so a phone turn can change files
+/// here but not elsewhere in the home.
+pub(crate) fn workspaces_root() -> PathBuf {
+    iblai_data_dir().join("workspaces")
 }
 
 /// Managed opencode binary: `~/.local/share/iblai/bin/opencode[.exe]`.
@@ -531,12 +1132,15 @@ pub fn augmented_path() -> std::ffi::OsString {
 /// Write-allowed dirs, relative to `$HOME`, pre-created when missing
 /// ([`ensure_write_dirs`]) — Code can't function without them. `.cache` is the
 /// umbrella every XDG-caching tool shares (pip, pnpm, corepack, uv,
-/// go-build…); `.local/share/opencode` is opencode's own state.
+/// go-build…); `.local/share/opencode` and `.local/state/opencode` are
+/// opencode's own state — it creates the state dir at startup and exits with
+/// EPERM when it can't, and `serve` keeps its locks there.
 const WRITE_DIRS_CORE: &[&str] = &[
     ".cache",
     ".npm",
     ".local/share/pnpm",
     ".local/share/opencode",
+    ".local/state/opencode",
 ];
 
 /// macOS extras: the native caches root and the mac pnpm store.
@@ -592,6 +1196,7 @@ const SECRET_DIRS: &[&str] = &[
     ".kube",
     ".docker",
     ".claude",
+    ".codex",
     ".config/gh",
     ".config/gcloud",
     ".config/op",
@@ -635,6 +1240,7 @@ fn bwrap_args(
     workspace: &Path,
     config_home: &Path,
     tmpdir: Option<&Path>,
+    backend: Backend,
 ) -> Vec<String> {
     let mut args: Vec<String> = vec![
         "--ro-bind".into(),
@@ -668,17 +1274,30 @@ fn bwrap_args(
             rw_targets.push(p);
         }
     }
+    // The agent's own login/state dir (`~/.codex`, `~/.claude`): read-write
+    // for THIS backend only — credential refresh and the transcripts that
+    // `session/load` reads back live there. Every other backend gets the
+    // usual mask below.
+    for rel in backend.own() {
+        rw_targets.push(home.join(rel));
+    }
     for target in &rw_targets {
         let p = target.to_string_lossy().into_owned();
         args.extend(["--bind-try".into(), p.clone(), p]);
     }
     for rel in SECRET_DIRS.iter().chain(SECRET_DIRS_LINUX) {
+        if backend.own().contains(rel) {
+            continue;
+        }
         let p = home.join(rel);
         if p.is_dir() {
             args.extend(["--tmpfs".into(), p.to_string_lossy().into_owned()]);
         }
     }
     for rel in SECRET_FILES {
+        if backend.visible().contains(rel) {
+            continue;
+        }
         let p = home.join(rel);
         if p.is_file() {
             args.extend([
@@ -688,10 +1307,60 @@ fn bwrap_args(
             ]);
         }
     }
+    // The agent's CLI config, frozen read-only on top of its rw dir (see
+    // `Backend::frozen`). `freeze_missing` has created what the agent could
+    // create there; `-try` skips only what sits in read-only `$HOME`.
+    for rel in backend.frozen() {
+        let p = home.join(rel).to_string_lossy().into_owned();
+        args.extend(["--ro-bind-try".into(), p.clone(), p]);
+    }
     // Killing the bwrap monitor (what `start_kill` hits) takes the sandboxed
     // opencode down with it, and both die if the app does.
     args.push("--die-with-parent".into());
     args
+}
+
+/// Linux: create each `Backend::frozen` entry missing from the agent's own
+/// (read-write) login dir, so the read-only re-bind covers it — bwrap can't
+/// freeze a path that doesn't exist, and the agent could create it for the
+/// user's next unsandboxed run. Nothing is made outside an existing login dir.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn freeze_missing(home: &Path, backend: Backend) -> Result<(), String> {
+    for rel in backend.frozen() {
+        let in_login_dir = backend
+            .own()
+            .iter()
+            .any(|own| rel.starts_with(&format!("{own}/")) && home.join(own).is_dir());
+        let path = home.join(rel);
+        if !in_login_dir || path.symlink_metadata().is_ok() {
+            continue;
+        }
+        // `rules`, `hooks`, … are dirs; `config.toml`, `.env`, `settings.json` files.
+        let made = if rel
+            .rsplit('/')
+            .next()
+            .is_some_and(|name| name.contains('.'))
+        {
+            let body: &[u8] = if rel.ends_with(".json") { b"{}" } else { b"" };
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&path)
+                .and_then(|mut f| std::io::Write::write_all(&mut f, body))
+        } else {
+            std::fs::create_dir_all(&path)
+        };
+        match made {
+            Err(e) if e.kind() != std::io::ErrorKind::AlreadyExists => {
+                return Err(format!(
+                    "couldn't freeze {} for the sandbox: {e}",
+                    path.display()
+                ))
+            }
+            _ => {}
+        }
+    }
+    Ok(())
 }
 
 /// Pre-create the core write dirs so their rw binds (Linux) and the decoy's
@@ -723,9 +1392,9 @@ fn sbpl_quote(p: &Path) -> String {
 
 /// SBPL profile for `sandbox-exec` on macOS: allow everything, deny ALL
 /// writes, re-allow them for the write list, and deny the real credential
-/// paths outright. Later rules win in SBPL, so the order IS the policy — the
-/// trailing secrets deny keeps `~/.cargo/credentials.toml` blocked inside the
-/// allowed `~/.cargo`.
+/// paths outright. Among rules for the same operation the later one wins, so
+/// the order IS the policy — the trailing secrets deny keeps
+/// `~/.cargo/credentials.toml` blocked inside the allowed `~/.cargo`.
 ///
 /// sandbox-exec can only deny (EPERM) — the fake-empty view comes from the
 /// decoy home ([`build_decoy_home`]); the secret denies are the enforcement
@@ -737,7 +1406,12 @@ fn sbpl_quote(p: &Path) -> String {
 /// the decoy `$HOME`: a toolchain the user doesn't have isn't symlinked in, so
 /// creating it lands in the throwaway decoy rather than the real home.
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
-fn sandbox_profile_macos(home: &Path, workspace: &Path, config_home: &Path) -> String {
+fn sandbox_profile_macos(
+    home: &Path,
+    workspace: &Path,
+    config_home: &Path,
+    backend: Backend,
+) -> String {
     let mut p = String::from(
         "(version 1)\n(allow default)\n(deny file-write* (subpath \"/\"))\n(allow file-write*",
     );
@@ -763,20 +1437,60 @@ fn sandbox_profile_macos(home: &Path, workspace: &Path, config_home: &Path) -> S
         .chain(WRITE_DIRS_CORE_MACOS)
         .chain(WRITE_DIRS_TOOLCHAIN)
         .chain(WRITE_DIRS_TOOLCHAIN_MACOS)
+        // This backend's own login dir, plus the Keychain both subscription
+        // agents may keep their login in (see `Backend::own_macos`).
+        .chain(backend.own())
+        .chain(backend.own_macos())
     {
         p.push_str("\n  (subpath ");
         p.push_str(&sbpl_quote(&home.join(rel)));
         p.push(')');
     }
-    p.push_str(")\n(deny file*");
+    // `file-write*` named on its own: a rule for a narrower operation beats a
+    // wildcard one whatever the order, so a bare `file*` deny lost to the
+    // `file-write*` allow above — it hid `~/.cargo/credentials.toml` from
+    // reads, but the agent could still overwrite, rename or create it.
+    p.push_str(")\n(deny file* file-write*");
     for rel in SECRET_DIRS.iter().chain(SECRET_DIRS_MACOS) {
+        if backend.own().contains(rel) || backend.own_macos().contains(rel) {
+            continue;
+        }
         p.push_str("\n  (subpath ");
         p.push_str(&sbpl_quote(&home.join(rel)));
         p.push(')');
     }
     for rel in SECRET_FILES {
+        if backend.visible().contains(rel) {
+            continue;
+        }
         p.push_str("\n  (literal ");
         p.push_str(&sbpl_quote(&home.join(rel)));
+        p.push(')');
+    }
+    p.push_str(")\n");
+    // Last, so it wins over the allow above: the agent's CLI config stays
+    // read-only inside its otherwise writable login dir (`Backend::frozen`),
+    // paths that don't exist yet included.
+    if !backend.frozen().is_empty() {
+        p.push_str("(deny file-write*");
+        for rel in backend.frozen() {
+            p.push_str("\n  (subpath ");
+            p.push_str(&sbpl_quote(&home.join(rel)));
+            p.push(')');
+        }
+        p.push_str(")\n");
+    }
+    // The workspace and config home themselves can't be removed, renamed or
+    // replaced, only what is in them, as on Linux where they are mount
+    // points. The phone's workspace is the whole workspaces root: a turn that
+    // swapped it for a link would have the unsandboxed app create chat
+    // folders and `git init` wherever the link points. Create and unlink, not
+    // `file-write*`: the template skill's `cp -a <template>/. .` sets the
+    // times and xattrs of a desktop chat's own folder.
+    p.push_str("(deny file-write-create file-write-unlink");
+    for abs in [workspace, config_home] {
+        p.push_str("\n  (literal ");
+        p.push_str(&sbpl_quote(abs));
         p.push(')');
     }
     p.push_str(")\n");
@@ -793,16 +1507,23 @@ fn sandbox_profile_macos(home: &Path, workspace: &Path, config_home: &Path) -> S
 /// the existing close-time `remove_dir_all` cleans it up.
 #[cfg(unix)]
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
-fn build_decoy_home(real_home: &Path, decoy: &Path) -> Result<(), String> {
+fn build_decoy_home(real_home: &Path, decoy: &Path, backend: Backend) -> Result<(), String> {
     // Rebuild from scratch on respawn (`remove_dir_all` deletes symlinks,
     // never their targets).
     let _ = std::fs::remove_dir_all(decoy);
+    // The backend's own login dir and state file are linked, not faked: the
+    // agent has to find its credentials and transcripts through the decoy.
     let secret_dirs: Vec<PathBuf> = SECRET_DIRS
         .iter()
         .chain(SECRET_DIRS_MACOS)
+        .filter(|rel| !backend.own().contains(rel) && !backend.own_macos().contains(rel))
         .map(PathBuf::from)
         .collect();
-    let secret_files: Vec<PathBuf> = SECRET_FILES.iter().map(PathBuf::from).collect();
+    let secret_files: Vec<PathBuf> = SECRET_FILES
+        .iter()
+        .filter(|rel| !backend.visible().contains(rel))
+        .map(PathBuf::from)
+        .collect();
     populate_decoy(real_home, decoy, Path::new(""), &secret_dirs, &secret_files)
 }
 
@@ -861,48 +1582,119 @@ pub fn sandbox_ready() -> bool {
     true
 }
 
-/// The sandboxed Command for a session's opencode spawn: the wrapper program
-/// plus its sandbox argv, ending with the opencode program name. The caller
-/// layers the ACP args, cwd, env and stdio on top unchanged.
-fn sandboxed_opencode_command(_session_id: &str, workspace: &Path) -> Result<Command, String> {
+/// Why Code can't run on this machine, in words for the person using it, or
+/// `None` when it can. Desktop chats and phone Code share it: neither may run
+/// outside the OS sandbox.
+pub(crate) fn code_unavailable() -> Option<&'static str> {
+    unavailable_reason(
+        crate::opencode_installer::is_sandboxed(),
+        cfg!(target_os = "windows"),
+        sandbox_ready(),
+    )
+}
+
+fn unavailable_reason(app_store: bool, windows: bool, sandbox_ready: bool) -> Option<&'static str> {
+    if app_store {
+        return Some("Code isn't available in the sandboxed Mac App Store build.");
+    }
+    if windows {
+        return Some("Code isn't available on Windows.");
+    }
+    if !sandbox_ready {
+        return Some(
+            "Code needs bubblewrap (bwrap) — install it with your package manager, then reopen the app.",
+        );
+    }
+    None
+}
+
+/// The three places the sandbox policy is built around. Named fields, not
+/// positional `&Path`s: a swapped workspace and config home still compiles,
+/// and would build the decoy home inside the user's project.
+pub(crate) struct SandboxPaths {
+    pub(crate) home: PathBuf,
+    pub(crate) workspace: PathBuf,
+    pub(crate) config_home: PathBuf,
+}
+
+/// The OS sandbox around one agent process: the wrapper program and its argv
+/// (the confined program and its args go after them) plus the env the wrapper
+/// needs. The one policy for desktop chats ([`sandboxed_command`]) and the
+/// phone's `opencode serve` (`remote_code`, a std `Command`).
+pub(crate) struct SandboxWrapper {
+    pub(crate) program: &'static str,
+    pub(crate) args: Vec<String>,
+    pub(crate) env: Vec<(&'static str, PathBuf)>,
+}
+
+pub(crate) fn sandbox_wrapper(
+    paths: &SandboxPaths,
+    backend: Backend,
+) -> Result<SandboxWrapper, String> {
+    let SandboxPaths {
+        home,
+        workspace,
+        config_home,
+    } = paths;
     #[cfg(target_os = "linux")]
     {
-        let home = home_dir().unwrap_or_default();
-        ensure_write_dirs(&home);
+        ensure_write_dirs(home);
+        freeze_missing(home, backend)?;
         let tmpdir = std::env::var_os("TMPDIR").map(PathBuf::from);
-        let mut cmd = create_command("bwrap");
-        cmd.args(bwrap_args(
-            &home,
-            workspace,
-            &config_home(_session_id),
-            tmpdir.as_deref(),
-        ));
-        cmd.arg(opencode_program());
-        return Ok(cmd);
+        return Ok(SandboxWrapper {
+            program: "bwrap",
+            args: bwrap_args(home, workspace, config_home, tmpdir.as_deref(), backend),
+            env: Vec::new(),
+        });
     }
     #[cfg(target_os = "macos")]
     {
-        let home = home_dir().unwrap_or_default();
-        ensure_write_dirs(&home);
+        ensure_write_dirs(home);
         // Named so `echo $HOME` doesn't give the game away.
-        let fake_home = config_home(_session_id).join("code-mode-home");
-        build_decoy_home(&home, &fake_home)?;
-        let mut cmd = create_command("/usr/bin/sandbox-exec");
-        cmd.args([
-            "-p",
-            &sandbox_profile_macos(&home, workspace, &config_home(_session_id)),
-        ]);
-        cmd.arg(opencode_program());
-        // The fake layer: $HOME-respecting tools see the fake home; the SBPL
-        // denies above catch anything that resolves the real one.
-        cmd.env("HOME", fake_home);
-        return Ok(cmd);
+        let fake_home = config_home.join("code-mode-home");
+        build_decoy_home(home, &fake_home, backend)?;
+        return Ok(SandboxWrapper {
+            program: "/usr/bin/sandbox-exec",
+            args: vec![
+                "-p".to_string(),
+                sandbox_profile_macos(home, workspace, config_home, backend),
+            ],
+            // The fake layer: $HOME-respecting tools see the fake home; the
+            // SBPL denies catch anything that resolves the real one.
+            env: vec![("HOME", fake_home)],
+        });
     }
     #[cfg(target_os = "windows")]
     {
-        let _ = workspace;
+        let _ = (home, workspace, config_home, backend);
         Err("Code isn't available on Windows.".to_string())
     }
+}
+
+fn session_sandbox_paths(session_id: &str, workspace: &Path) -> SandboxPaths {
+    SandboxPaths {
+        home: home_dir().unwrap_or_default(),
+        workspace: workspace.to_path_buf(),
+        config_home: config_home(session_id),
+    }
+}
+
+/// The sandboxed Command for a session's agent spawn, ending where the agent
+/// program goes. The caller appends the program and its args, then layers cwd,
+/// env and stdio on top.
+fn sandboxed_command(
+    session_id: &str,
+    workspace: &Path,
+    backend: Backend,
+) -> Result<Command, String> {
+    sandboxed_command_in(&session_sandbox_paths(session_id, workspace), backend)
+}
+
+fn sandboxed_command_in(paths: &SandboxPaths, backend: Backend) -> Result<Command, String> {
+    let wrapper = sandbox_wrapper(paths, backend)?;
+    let mut cmd = create_command(wrapper.program);
+    cmd.args(&wrapper.args).envs(wrapper.env);
+    Ok(cmd)
 }
 
 /// Chat → workspace folder, persisted as `~/.local/share/iblai/workspaces.json`.
@@ -947,12 +1739,77 @@ fn settings_file() -> PathBuf {
 
 // pub(crate): the model proxy persists its minted platform API key here too
 // (same read-modify-write-the-whole-object discipline keeps owners apart).
+/// Ask Me and nothing else: what a file we could read but not parse comes
+/// back as, so a mode lost to damage can only ask more, never less.
+fn asks_only() -> serde_json::Map<String, Value> {
+    let mut asks = serde_json::Map::new();
+    asks.insert(SETTINGS_PERMISSION_MODE.into(), json!("manual"));
+    asks
+}
+
+/// The settings, or why they could not be read at all.
+///
+/// A missing file is empty. One that is there but unparseable is
+/// [`asks_only`]. Anything else — no permission, an I/O error, a directory in
+/// its place — is an error, so [`update_settings`] refuses to write over a
+/// file it never saw: that write would discard the saved workspaces, the
+/// per-agent models and the minted platform key along with the mode.
+fn try_read_settings() -> Result<serde_json::Map<String, Value>, String> {
+    let raw = match std::fs::read_to_string(settings_file()) {
+        Ok(raw) => raw,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(serde_json::Map::new()),
+        Err(e) => return Err(format!("failed reading settings: {e}")),
+    };
+    Ok(match serde_json::from_str::<Value>(&raw) {
+        Ok(Value::Object(map)) => map,
+        _ => asks_only(),
+    })
+}
+
+/// Read-only view. An unreadable file reads as Ask Me here, like a damaged
+/// one: a read can never grant more than the user chose.
 pub(crate) fn read_settings() -> serde_json::Map<String, Value> {
-    std::fs::read_to_string(settings_file())
-        .ok()
-        .and_then(|s| serde_json::from_str::<Value>(&s).ok())
-        .and_then(|v| v.as_object().cloned())
-        .unwrap_or_default()
+    try_read_settings().unwrap_or_else(|_| asks_only())
+}
+
+/// Serializes every read-change-write of the settings file.
+///
+/// Four owners share it: the approval mode, the mentor workspaces, the
+/// per-agent models and the minted platform key. Each reads the whole object,
+/// changes one key and writes it all back, so two interleaving dropped one's
+/// change entirely — the atomic rename makes the loser's stale snapshot the
+/// whole file rather than merging it. A mode saved while a turn recorded its
+/// workspace came back wrong at the next launch, with the in-memory
+/// `permission_auto()` flag still disagreeing. Held only across the
+/// synchronous read, change and write, never across an await.
+// `Mutex` unqualified in this file is tokio's async lock; this one is held
+// across a synchronous read-change-write, so it is deliberately std's.
+static SETTINGS_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// Read the settings, apply `change` and write them back, atomically with
+/// respect to every other owner. Hands back what `change` returns.
+pub(crate) fn update_settings<T>(
+    change: impl FnOnce(&mut serde_json::Map<String, Value>) -> T,
+) -> Result<T, String> {
+    let _serial = SETTINGS_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let mut settings = try_read_settings()?;
+    let out = change(&mut settings);
+    write_settings(&settings)?;
+    Ok(out)
+}
+
+/// Same, for a change that may have nothing to do: `change` reports whether
+/// it touched anything, and the file is only rewritten when it did.
+fn update_settings_if(
+    change: impl FnOnce(&mut serde_json::Map<String, Value>) -> bool,
+) -> Result<bool, String> {
+    let _serial = SETTINGS_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    let mut settings = try_read_settings()?;
+    if !change(&mut settings) {
+        return Ok(false);
+    }
+    write_settings(&settings)?;
+    Ok(true)
 }
 
 pub(crate) fn write_settings(map: &serde_json::Map<String, Value>) -> Result<(), String> {
@@ -962,13 +1819,25 @@ pub(crate) fn write_settings(map: &serde_json::Map<String, Value>) -> Result<(),
     }
     let out =
         serde_json::to_string_pretty(&Value::Object(map.clone())).map_err(|e| e.to_string())?;
-    std::fs::write(&f, out).map_err(|e| format!("failed writing settings: {e}"))
+    // Written aside and renamed into place, so a reader (or a crash) never
+    // finds the file cut short — an unparseable file reads as Ask Me.
+    static SEQ: AtomicUsize = AtomicUsize::new(0);
+    let tmp = f.with_extension(format!(
+        "json.{}-{}.tmp",
+        std::process::id(),
+        SEQ.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&tmp, out).map_err(|e| format!("failed writing settings: {e}"))?;
+    std::fs::rename(&tmp, &f).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        format!("failed writing settings: {e}")
+    })
 }
 
 /// Settings key holding `{ "<tenant>/<mentor>": "<workspace path>" }`.
 const SETTINGS_WORKSPACES: &str = "workspaces";
 
-/// Settings key holding `"manual"` or `"auto"`; absent until the user chooses.
+/// Settings key holding `"manual"` or `"auto"`; absent means Automatic.
 const SETTINGS_PERMISSION_MODE: &str = "permission_mode";
 
 /// Word pools for [`workspace_slug`]. Sized so a mentor's folder name is
@@ -1022,12 +1891,15 @@ fn is_empty_project(dir: &Path) -> bool {
 }
 
 /// The first (name-sorted, for determinism) recyclable workspace under `root`.
+/// A link is never one: the phone's sandboxed serve can write the whole root,
+/// and a link it leaves there would hand the next chat its target.
 fn find_empty_workspace(root: &Path) -> Option<PathBuf> {
     let mut candidates: Vec<PathBuf> = std::fs::read_dir(root)
         .ok()?
         .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()))
         .map(|e| e.path())
-        .filter(|p| p.is_dir() && is_empty_project(p))
+        .filter(|p| is_empty_project(p))
         .collect();
     candidates.sort();
     candidates.into_iter().next()
@@ -1046,7 +1918,7 @@ pub fn resolve_workspace(session_id: &str) -> PathBuf {
             return PathBuf::from(path);
         }
     }
-    let root = iblai_data_dir().join("workspaces");
+    let root = workspaces_root();
     if let Some(dir) = find_empty_workspace(&root) {
         map.insert(session_id.to_string(), json!(dir.to_string_lossy()));
         let _ = write_workspace_map(&map);
@@ -1106,7 +1978,7 @@ fn claimed_workspaces() -> Vec<String> {
 /// Collisions are astronomically unlikely but cheap to rule out, and one would
 /// silently hand two owners the same folder.
 fn mint_workspace_dir(taken: &[String]) -> PathBuf {
-    let root = iblai_data_dir().join("workspaces");
+    let root = workspaces_root();
     std::iter::repeat_with(workspace_slug)
         .map(|slug| root.join(slug))
         .find(|d| !d.exists() && !taken.iter().any(|t| Path::new(t) == d))
@@ -1115,15 +1987,15 @@ fn mint_workspace_dir(taken: &[String]) -> PathBuf {
 
 /// Record which folder a mentor works in.
 fn record_mentor_workspace(tenant: &str, mentor: &str, dir: &Path) -> Result<(), String> {
-    let mut settings = read_settings();
-    let mut workspaces = settings
-        .get(SETTINGS_WORKSPACES)
-        .and_then(|v| v.as_object())
-        .cloned()
-        .unwrap_or_default();
-    workspaces.insert(workspace_key(tenant, mentor), json!(dir.to_string_lossy()));
-    settings.insert(SETTINGS_WORKSPACES.to_string(), Value::Object(workspaces));
-    write_settings(&settings)
+    update_settings(|settings| {
+        let mut workspaces = settings
+            .get(SETTINGS_WORKSPACES)
+            .and_then(|v| v.as_object())
+            .cloned()
+            .unwrap_or_default();
+        workspaces.insert(workspace_key(tenant, mentor), json!(dir.to_string_lossy()));
+        settings.insert(SETTINGS_WORKSPACES.to_string(), Value::Object(workspaces));
+    })
 }
 
 /// This mentor's workspace, generating and recording one the first time.
@@ -1148,7 +2020,7 @@ fn mentor_workspace(tenant: &str, mentor: &str) -> PathBuf {
     // `resolve_workspace` does it: otherwise every launch that never writes
     // anything strands one more empty folder.
     let taken = claimed_workspaces();
-    let root = iblai_data_dir().join("workspaces");
+    let root = workspaces_root();
     let dir = find_empty_workspace(&root)
         .filter(|d| !taken.iter().any(|t| Path::new(t) == d))
         .unwrap_or_else(|| mint_workspace_dir(&taken));
@@ -1288,7 +2160,24 @@ pub async fn new_opencode_workspace(
 /// git. The snapshots themselves were revert-safety for the auto-approve era — now that
 /// every write is individually approved they only added noise to the user's history, and
 /// two concurrent sessions would have collided on `.git/index.lock`.
+///
+/// A link or file sitting where a folder of the managed root should be is
+/// replaced by a real folder (its target is never touched): the phone's
+/// sandboxed serve can write the whole root, `git` here runs outside any
+/// sandbox, and the folder becomes the next chat's writable workspace.
+/// Anything outside the root is the user's own pick and is used as it is, and
+/// so is the root itself when the user has made it a link (say, to another
+/// drive): a sandboxed turn can't, since the sandbox never lets it remove or
+/// replace the root itself (`sandbox_profile_macos`, the Linux bind mount).
 pub(crate) fn ensure_workspace(dir: &PathBuf) -> Result<(), String> {
+    let root = workspaces_root();
+    if let (Some(parent), Some(name)) = (dir.parent(), dir.file_name()) {
+        if parent == root {
+            let real_root = root.canonicalize().unwrap_or(root);
+            make_real_dirs(&real_root, Path::new(name))
+                .map_err(|e| format!("workspace create failed: {e}"))?;
+        }
+    }
     std::fs::create_dir_all(dir).map_err(|e| format!("workspace create failed: {e}"))?;
     if !dir.join(".git").exists() {
         let _ = std::process::Command::new("git")
@@ -1524,12 +2413,12 @@ pub async fn set_opencode_skills(
 /// picks up on every model call.
 fn apply_skills_config(
     root: &mut serde_json::Map<String, Value>,
-    vibe_dir: &Path,
+    vibe_dir: Option<&Path>,
     mentor_dir: Option<&Path>,
 ) {
     let mut paths: Vec<String> = Vec::new();
-    if vibe_dir.is_dir() {
-        paths.push(vibe_dir.to_string_lossy().to_string());
+    if let Some(dir) = vibe_dir.filter(|dir| dir.is_dir()) {
+        paths.push(dir.to_string_lossy().to_string());
     }
     if let Some(dir) = mentor_dir {
         if dir.is_dir() {
@@ -1546,12 +2435,88 @@ fn apply_skills_config(
     }
 }
 
+/// Subdir of `config_home(session)` holding the per-spawn skills view the
+/// subscription agents read (see [`link_skills`]).
+const AGENT_SKILLS_DIR: &str = "agent-skills";
+
+/// Immediate subdirectories of `dir`, sorted, hidden entries skipped; empty
+/// when `dir` is missing.
+fn sorted_dirs(dir: &Path) -> Vec<PathBuf> {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut out: Vec<PathBuf> = entries
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| {
+            p.is_dir()
+                && p.file_name()
+                    .map(|n| !n.to_string_lossy().starts_with('.'))
+                    .unwrap_or(false)
+        })
+        .collect();
+    out.sort();
+    out
+}
+
+/// Build the flattened skills view Codex and Claude read: `dest/<name>` → a
+/// symlink to every directory holding a `SKILL.md` within two levels of the
+/// vibe checkout (`<family>/<name>`, or a family that is itself a skill) and
+/// one level of the mentor staging. Mentor last, so an assigned skill wins a
+/// name clash — the same last-wins rule `apply_skills_config` relies on for
+/// opencode. Rebuilt from scratch on every spawn: `dest` lives under
+/// `config_home`, which teardown deletes (links only, never their targets).
+/// Missing roots contribute nothing rather than failing — no skills is a
+/// valid session. Returns how many skills the view holds.
+fn link_skills(dest: &Path, vibe_dir: &Path, mentor_dir: Option<&Path>) -> Result<usize, String> {
+    #[cfg(not(unix))]
+    {
+        let _ = (dest, vibe_dir, mentor_dir);
+        Err("Code isn't available on Windows.".to_string())
+    }
+    #[cfg(unix)]
+    {
+        let _ = std::fs::remove_dir_all(dest);
+        std::fs::create_dir_all(dest).map_err(|e| format!("skills view failed: {e}"))?;
+        let mut sources: Vec<PathBuf> = Vec::new();
+        for family in sorted_dirs(vibe_dir) {
+            if family.join("SKILL.md").is_file() {
+                sources.push(family);
+                continue;
+            }
+            for skill in sorted_dirs(&family) {
+                if skill.join("SKILL.md").is_file() {
+                    sources.push(skill);
+                }
+            }
+        }
+        if let Some(mentor) = mentor_dir {
+            for skill in sorted_dirs(mentor) {
+                if skill.join("SKILL.md").is_file() {
+                    sources.push(skill);
+                }
+            }
+        }
+        for src in sources {
+            let Some(name) = src.file_name() else {
+                continue;
+            };
+            let link = dest.join(name);
+            // A later source (the mentor's) replaces an earlier link of the same name.
+            let _ = std::fs::remove_file(&link);
+            std::os::unix::fs::symlink(&src, &link)
+                .map_err(|e| format!("skills view link failed ({}): {e}", link.display()))?;
+        }
+        Ok(std::fs::read_dir(dest).map(|r| r.count()).unwrap_or(0))
+    }
+}
+
 /// Write (or clear) the per-session ibl.ai guidance as the global-scope
 /// AGENTS.md beside the session's opencode.json. opencode checks
 /// `$XDG_CONFIG_HOME/opencode/AGENTS.md` for existence on every model call
 /// and folds it into the system prompt first among instruction files — main
 /// turns, subagents and ACP alike, cloud and on-device sessions both.
-/// (Verified against pinned opencode v1.18.13 `session/instruction.ts`;
+/// (Verified against pinned opencode v1.19.0 `session/instruction.ts`;
 /// re-verify when `OPENCODE_VERSION` bumps.) The file lives only under the
 /// per-session ibl.ai config home — never the user's workspace or any
 /// non-ibl.ai directory; opencode reads it from there because spawn points
@@ -1571,20 +2536,268 @@ fn apply_skills_config(
 /// end-to-end guidance test writes the per-turn AGENTS.md through this exact
 /// production writer, never a hand-rolled copy.
 pub(crate) fn write_iblai_guidance(config_home: &Path, text: Option<&str>) -> Result<(), String> {
-    let path = config_home.join("opencode").join("AGENTS.md");
+    let rel = Path::new("opencode").join("AGENTS.md");
+    let path = config_home.join(&rel);
     match text {
-        Some(t) => std::fs::write(&path, t)
+        Some(t) => write_config_file(config_home, &rel, t.as_bytes())
             .map_err(|e| format!("failed writing ibl.ai guidance ({}): {e}", path.display())),
-        None => match std::fs::remove_file(&path) {
-            Ok(()) => Ok(()),
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(e) => Err(format!(
+        None => remove_config_file(config_home, &rel).map_err(|e| {
+            format!(
                 "failed clearing stale ibl.ai guidance ({}): {e}",
                 path.display()
-            )),
-        },
+            )
+        }),
     }
 }
+
+/// The app's own reads and writes inside a folder a sandboxed agent can also
+/// write (a config home, the workspaces root). The agent can swap any entry
+/// there for a link (or a fifo) aimed outside its sandbox, and the app runs
+/// unsandboxed, so these never follow one: each walks down from `root` one
+/// folder at a time without following a link, writes through a fresh temp
+/// file renamed into place (a rename replaces a link, a plain write goes
+/// through it), and reads only a regular file. `root`'s own parent is
+/// trusted: no sandbox can write it.
+#[cfg(unix)]
+mod config_file {
+    use std::ffi::{CString, OsStr, OsString};
+    use std::io::{Error, ErrorKind, Read, Result, Write};
+    use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+    use std::os::unix::ffi::OsStrExt;
+    use std::path::{Component, Path};
+
+    fn c_name(name: &OsStr) -> Result<CString> {
+        CString::new(name.as_bytes()).map_err(|_| Error::from(ErrorKind::InvalidInput))
+    }
+
+    fn fd_or_error(fd: libc::c_int) -> Result<OwnedFd> {
+        if fd < 0 {
+            return Err(Error::last_os_error());
+        }
+        // SAFETY: a non-negative return from open/openat is a new descriptor
+        // nothing else owns.
+        Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+    }
+
+    const DIR_FLAGS: libc::c_int =
+        libc::O_RDONLY | libc::O_DIRECTORY | libc::O_NOFOLLOW | libc::O_CLOEXEC;
+
+    fn open_root(root: &Path) -> Result<OwnedFd> {
+        let c = c_name(root.as_os_str())?;
+        // SAFETY: `c` is a valid NUL-terminated path for the whole call.
+        fd_or_error(unsafe { libc::open(c.as_ptr(), DIR_FLAGS) })
+    }
+
+    fn open_dir_in(dir: &OwnedFd, name: &OsStr) -> Result<OwnedFd> {
+        let c = c_name(name)?;
+        // SAFETY: as above; `dir` is an open directory descriptor.
+        fd_or_error(unsafe { libc::openat(dir.as_raw_fd(), c.as_ptr(), DIR_FLAGS) })
+    }
+
+    fn unlink_in(dir: &OwnedFd, name: &OsStr) -> Result<()> {
+        let c = c_name(name)?;
+        // SAFETY: as above.
+        if unsafe { libc::unlinkat(dir.as_raw_fd(), c.as_ptr(), 0) } < 0 {
+            return Err(Error::last_os_error());
+        }
+        Ok(())
+    }
+
+    fn mkdir_in(dir: &OwnedFd, name: &OsStr) -> Result<()> {
+        let c = c_name(name)?;
+        // SAFETY: as above.
+        if unsafe { libc::mkdirat(dir.as_raw_fd(), c.as_ptr(), 0o777) } < 0 {
+            let e = Error::last_os_error();
+            if e.kind() != ErrorKind::AlreadyExists {
+                return Err(e);
+            }
+        }
+        Ok(())
+    }
+
+    fn parts(rel: &Path) -> Result<Vec<&OsStr>> {
+        rel.components()
+            .map(|c| match c {
+                Component::Normal(n) => Ok(n),
+                _ => Err(Error::from(ErrorKind::InvalidInput)),
+            })
+            .collect()
+    }
+
+    /// A link (ELOOP) or a non-folder (ENOTDIR) where a folder was expected.
+    fn not_a_real_dir(e: &Error) -> bool {
+        matches!(e.raw_os_error(), Some(libc::ELOOP) | Some(libc::ENOTDIR))
+    }
+
+    /// The folder holding `rel`'s last component, and that component's name.
+    fn parent_of(root: &Path, rel: &Path) -> Result<(OwnedFd, OsString)> {
+        let mut parts = parts(rel)?;
+        let name = parts.pop().ok_or(Error::from(ErrorKind::InvalidInput))?;
+        let mut dir = open_root(root)?;
+        for part in parts {
+            dir = open_dir_in(&dir, part)?;
+        }
+        Ok((dir, name.to_os_string()))
+    }
+
+    /// `root` and every folder of `rel` as real folders: missing ones are
+    /// made, and a link or file in the way is removed (never its target).
+    pub(crate) fn make_dirs(root: &Path, rel: &Path) -> Result<()> {
+        match std::fs::symlink_metadata(root) {
+            Ok(m) if m.is_dir() => {}
+            Ok(_) => std::fs::remove_file(root)?,
+            Err(e) if e.kind() == ErrorKind::NotFound => {}
+            Err(e) => return Err(e),
+        }
+        std::fs::create_dir_all(root)?;
+        let mut dir = open_root(root)?;
+        for part in parts(rel)? {
+            dir = match open_dir_in(&dir, part) {
+                Ok(next) => next,
+                Err(e) if e.kind() == ErrorKind::NotFound => {
+                    mkdir_in(&dir, part)?;
+                    open_dir_in(&dir, part)?
+                }
+                Err(e) if not_a_real_dir(&e) => {
+                    unlink_in(&dir, part)?;
+                    mkdir_in(&dir, part)?;
+                    open_dir_in(&dir, part)?
+                }
+                Err(e) => return Err(e),
+            };
+        }
+        Ok(())
+    }
+
+    pub(crate) fn write(root: &Path, rel: &Path, bytes: &[u8]) -> Result<()> {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static SEQ: AtomicU64 = AtomicU64::new(0);
+        let (dir, name) = parent_of(root, rel)?;
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or_default();
+        let mut tmp = OsString::from(".");
+        tmp.push(&name);
+        tmp.push(format!(
+            ".{}-{}-{nanos}.tmp",
+            std::process::id(),
+            SEQ.fetch_add(1, Ordering::Relaxed)
+        ));
+        let c_tmp = c_name(&tmp)?;
+        let c_dst = c_name(&name)?;
+        // O_EXCL refuses anything already at the temp name, a link included.
+        // SAFETY: as above; the mode is the variadic argument O_CREAT reads.
+        let fd = fd_or_error(unsafe {
+            libc::openat(
+                dir.as_raw_fd(),
+                c_tmp.as_ptr(),
+                libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL | libc::O_NOFOLLOW | libc::O_CLOEXEC,
+                0o666 as libc::c_uint,
+            )
+        })?;
+        let written = std::fs::File::from(fd).write_all(bytes);
+        let placed = written.and_then(|()| {
+            // SAFETY: as above.
+            let r = unsafe {
+                libc::renameat(
+                    dir.as_raw_fd(),
+                    c_tmp.as_ptr(),
+                    dir.as_raw_fd(),
+                    c_dst.as_ptr(),
+                )
+            };
+            if r < 0 {
+                Err(Error::last_os_error())
+            } else {
+                Ok(())
+            }
+        });
+        if placed.is_err() {
+            let _ = unlink_in(&dir, &tmp);
+        }
+        placed
+    }
+
+    /// `None` when there is no regular file there: missing, a link, a
+    /// folder, or a fifo (O_NONBLOCK, so opening one cannot hang the app).
+    pub(crate) fn read(root: &Path, rel: &Path) -> Result<Option<String>> {
+        let missing = |e: &Error| e.kind() == ErrorKind::NotFound || not_a_real_dir(e);
+        let (dir, name) = match parent_of(root, rel) {
+            Ok(found) => found,
+            Err(e) if missing(&e) => return Ok(None),
+            Err(e) => return Err(e),
+        };
+        let c = c_name(&name)?;
+        // SAFETY: as above.
+        let fd = match fd_or_error(unsafe {
+            libc::openat(
+                dir.as_raw_fd(),
+                c.as_ptr(),
+                libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_NONBLOCK | libc::O_CLOEXEC,
+            )
+        }) {
+            Ok(fd) => fd,
+            Err(e) if missing(&e) => return Ok(None),
+            Err(e) => return Err(e),
+        };
+        let mut file = std::fs::File::from(fd);
+        if !file.metadata()?.is_file() {
+            return Ok(None);
+        }
+        let mut text = String::new();
+        file.read_to_string(&mut text)?;
+        Ok(Some(text))
+    }
+
+    pub(crate) fn remove(root: &Path, rel: &Path) -> Result<()> {
+        let (dir, name) = match parent_of(root, rel) {
+            Ok(found) => found,
+            Err(e) if e.kind() == ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(e),
+        };
+        match unlink_in(&dir, &name) {
+            Err(e) if e.kind() == ErrorKind::NotFound => Ok(()),
+            other => other,
+        }
+    }
+}
+
+/// Windows never runs Code (see [`code_unavailable`]), so no sandboxed agent
+/// shares these folders there: plain file calls.
+#[cfg(not(unix))]
+mod config_file {
+    use std::io::{ErrorKind, Result};
+    use std::path::Path;
+
+    pub(crate) fn make_dirs(root: &Path, rel: &Path) -> Result<()> {
+        std::fs::create_dir_all(root.join(rel))
+    }
+
+    pub(crate) fn write(root: &Path, rel: &Path, bytes: &[u8]) -> Result<()> {
+        std::fs::write(root.join(rel), bytes)
+    }
+
+    pub(crate) fn read(root: &Path, rel: &Path) -> Result<Option<String>> {
+        let path = root.join(rel);
+        if !path.is_file() {
+            return Ok(None);
+        }
+        std::fs::read_to_string(path).map(Some)
+    }
+
+    pub(crate) fn remove(root: &Path, rel: &Path) -> Result<()> {
+        match std::fs::remove_file(root.join(rel)) {
+            Err(e) if e.kind() == ErrorKind::NotFound => Ok(()),
+            other => other,
+        }
+    }
+}
+
+pub(crate) use config_file::{
+    make_dirs as make_real_dirs, read as read_config_file, remove as remove_config_file,
+    write as write_config_file,
+};
 
 /// Extract the latest user-message text from the frontend `messages` array.
 /// opencode keeps its own conversation state, so we only forward the newest turn.
@@ -1649,20 +2862,31 @@ fn prompt_with_history(messages: &[Value], latest: &str) -> String {
     )
 }
 
-/// Pick the option id of the first option whose ACP `kind` starts with `prefix`
-/// ("allow" / "reject").
-fn option_id(options: &Value, prefix: &str) -> Option<String> {
-    options
-        .as_array()?
-        .iter()
-        .find(|o| {
-            o.get("kind")
-                .and_then(|k| k.as_str())
-                .map(|k| k.starts_with(prefix))
-                .unwrap_or(false)
+/// The option id to answer a `session/request_permission` with: the option of
+/// exactly `kind` (`allow_once` / `reject_once`), else the first whose kind
+/// starts with `fallback_prefix` (opencode's shapes resolve identically either
+/// way). Exact first because the agents order their options freely: Codex lists
+/// `reject_always` ("block this host in future") BEFORE `decline`, so a prefix
+/// pick would store a permanent block on every Deny or timeout, and Claude's
+/// ExitPlanMode puts `allow_always` mode switches beside the plain `allow_once`.
+fn pick_option(options: &Value, kind: &str, fallback_prefix: &str) -> Option<String> {
+    fn kind_of(o: &Value) -> &str {
+        o.get("kind").and_then(|k| k.as_str()).unwrap_or("")
+    }
+    fn id_of(o: &Value) -> Option<String> {
+        o.get("optionId")
+            .and_then(|x| x.as_str())
+            .map(|s| s.to_string())
+    }
+    let list = options.as_array()?;
+    list.iter()
+        .find(|o| kind_of(o) == kind)
+        .and_then(id_of)
+        .or_else(|| {
+            list.iter()
+                .find(|o| kind_of(o).starts_with(fallback_prefix))
+                .and_then(id_of)
         })
-        .and_then(|o| o.get("optionId").and_then(|x| x.as_str()))
-        .map(|s| s.to_string())
 }
 
 /// The JSON-RPC result answering a `session/request_permission`.
@@ -1686,6 +2910,35 @@ fn command_of(tool_call: &Value) -> Option<String> {
     })
 }
 
+/// What the permission card gets. The whole ACP toolCall rides along so the card
+/// can say in plain words what is being asked (locations, diffs, rawInput);
+/// older frontends ignore it.
+fn permission_payload(
+    generation_id: &str,
+    session_id: &str,
+    request_id: &str,
+    tool_call: &Value,
+    allow: &Option<String>,
+    reject: &Option<String>,
+    options: &Value,
+) -> Value {
+    json!({
+        "generation_id": generation_id,
+        // Which chat is waiting. The card itself scopes by generation_id (it renders
+        // in the streaming message that produced it); this is what lets the sidebar
+        // badge a chat the user isn't currently looking at.
+        "session_id": session_id,
+        "request_id": request_id,
+        "title": tool_call.get("title").cloned().unwrap_or(Value::Null),
+        "kind": tool_call.get("kind").cloned().unwrap_or(Value::Null),
+        "command": command_of(tool_call),
+        "allow_option_id": allow,
+        "reject_option_id": reject,
+        "options": options,
+        "tool_call": tool_call,
+    })
+}
+
 /// Handle one `session/request_permission`.
 ///
 /// In manual mode every request becomes an inline card and the person reading it decides.
@@ -1694,8 +2947,8 @@ fn command_of(tool_call: &Value) -> Option<String> {
 /// What opencode asks about is decided by the `permission` block we write into its config
 /// (`edit`/`bash`/`webfetch` all `"ask"`) — that stays pinned in both modes, so the mode
 /// is enforced here rather than by relaxing opencode's own policy on disk. In manual mode
-/// this is the boundary; in auto mode the OS sandbox is, which is why the mode is an
-/// explicit, deliberate choice rather than a default.
+/// this is the boundary; in auto mode — the default unless the user chose Ask Me — the
+/// OS sandbox is.
 ///
 /// The wait runs in its own task so the turn keeps streaming while a card is up —
 /// blocking the reader loop would freeze the reasoning/tool output the user needs in
@@ -1710,48 +2963,62 @@ async fn handle_permission_request(
 ) {
     let tool_call = params.get("toolCall").cloned().unwrap_or(Value::Null);
     let options = params.get("options").cloned().unwrap_or(Value::Null);
-    let allow = option_id(&options, "allow");
-    let reject = option_id(&options, "reject");
-
-    // Auto mode answers without involving the user at all. A request that
-    // somehow offers no allow option falls through to a card rather than being
-    // guessed at.
-    if permission_auto().load(Ordering::SeqCst) {
-        if let Some(opt) = allow.clone() {
-            let _ = write_line(stdin, &permission_result(&id, Some(opt))).await;
-            return;
-        }
-    }
+    let allow = pick_option(&options, "allow_once", "allow");
+    let reject = pick_option(&options, "reject_once", "reject");
 
     static NEXT_REQ: AtomicI64 = AtomicI64::new(1);
     let request_id = format!("perm-{}", NEXT_REQ.fetch_add(1, Ordering::SeqCst));
     let (tx, rx) = oneshot::channel();
-    permissions().lock().await.insert(
-        request_id.clone(),
-        PendingPermission {
-            session_id: session_id.to_string(),
-            allow_option_id: allow.clone(),
-            tx,
-        },
-    );
+    let pending = PendingPermission {
+        session_id: session_id.to_string(),
+        allow_option_id: allow.clone(),
+        tx,
+    };
+    // Auto mode answers without involving the user at all. A request that
+    // somehow offers no allow option falls through to a card rather than being
+    // guessed at.
+    if let Some(opt) = queue_unless_auto(&request_id, pending).await {
+        let _ = write_line(stdin, &permission_result(&id, Some(opt))).await;
+        return;
+    }
 
-    let generation_id = turn.lock().await.generation_id.clone();
-    let _ = app.emit(
+    let (generation_id, retract, reasoning) = {
+        let mut ts = turn.lock().await;
+        // Codex asks before it reports the call: text streamed so far is narration.
+        let retract = ts.narration_to_reasoning();
+        (
+            ts.generation_id.clone(),
+            retract,
+            ts.take_reasoning(Instant::now()),
+        )
+    };
+    // The card can wait minutes; the thoughts behind it must be on screen first.
+    if let Some(delta) = reasoning {
+        crate::emit_on_main(
+            app,
+            "opencode:reasoning",
+            json!({ "generation_id": generation_id, "delta": delta }),
+        );
+    }
+    if retract {
+        crate::emit_on_main(
+            app,
+            "ollama:token",
+            json!({ "generation_id": generation_id, "token": "", "full_content": "" }),
+        );
+    }
+    crate::emit_on_main(
+        app,
         "opencode:permission_request",
-        json!({
-            "generation_id": generation_id,
-            // Which chat is waiting. The card itself scopes by generation_id (it renders
-            // in the streaming message that produced it); this is what lets the sidebar
-            // badge a chat the user isn't currently looking at.
-            "session_id": session_id,
-            "request_id": request_id,
-            "title": tool_call.get("title").cloned().unwrap_or(Value::Null),
-            "kind": tool_call.get("kind").cloned().unwrap_or(Value::Null),
-            "command": command_of(&tool_call),
-            "allow_option_id": allow,
-            "reject_option_id": reject.clone(),
-            "options": options,
-        }),
+        permission_payload(
+            &generation_id,
+            session_id,
+            &request_id,
+            &tool_call,
+            &allow,
+            &reject,
+            &options,
+        ),
     );
 
     let app = app.clone();
@@ -1764,11 +3031,49 @@ async fn handle_permission_request(
             _ => reject,
         };
         permissions().lock().await.remove(&request_id);
-        let _ = app.emit(
+        crate::emit_on_main(
+            &app,
             "opencode:permission_resolved",
             json!({ "request_id": request_id }),
         );
         let _ = write_line(&stdin, &permission_result(&id, chosen)).await;
+    });
+}
+
+/// Deliver a JSON-RPC response to the request waiting on it. `true` when `v`
+/// was a response at all (matched or stale), so the caller skips the
+/// request/notification arms. Separate from the loop so the scripted-agent
+/// tests can drive a `Session` without a reader task.
+async fn route_response(pending: &Mutex<HashMap<i64, oneshot::Sender<Value>>>, v: &Value) -> bool {
+    if v.get("id").is_none() || (v.get("result").is_none() && v.get("error").is_none()) {
+        return false;
+    }
+    if let Some(id) = v.get("id").and_then(|i| i.as_i64()) {
+        if let Some(tx) = pending.lock().await.remove(&id) {
+            let _ = tx.send(v.clone());
+        }
+    }
+    true
+}
+
+/// Route the agent's responses to `pending` until its stdout closes, then
+/// drop every waiting sender so an in-flight `request` fails with
+/// [`CHILD_GONE`] at once — an adapter that exits mid-handshake must not
+/// wait out its caller's deadline. Responses only: a probe has no turn, so
+/// updates and requests are noise. (A chat session's reader is
+/// [`reader_loop`], which also answers requests and frees the registry.)
+fn route_responses(
+    stdout: tokio::process::ChildStdout,
+    pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>>,
+) {
+    tokio::spawn(async move {
+        let mut lines = BufReader::new(stdout).lines();
+        while let Ok(Some(line)) = lines.next_line().await {
+            if let Ok(v) = serde_json::from_str::<Value>(&line) {
+                route_response(&pending, &v).await;
+            }
+        }
+        pending.lock().await.clear();
     });
 }
 
@@ -1787,18 +3092,14 @@ async fn reader_loop(
         if line.trim().is_empty() {
             continue;
         }
-        eprintln!("[acp←] {line}");
+        // The first 400 chars: a bash update carries up to 30 KB of output per line.
+        eprintln!("[acp←] {}", line.chars().take(400).collect::<String>());
         let Ok(v) = serde_json::from_str::<Value>(&line) else {
             continue;
         };
 
         // Response to one of our requests.
-        if v.get("id").is_some() && (v.get("result").is_some() || v.get("error").is_some()) {
-            if let Some(id) = v.get("id").and_then(|i| i.as_i64()) {
-                if let Some(tx) = pending.lock().await.remove(&id) {
-                    let _ = tx.send(v);
-                }
-            }
+        if route_response(&pending, &v).await {
             continue;
         }
 
@@ -1824,7 +3125,7 @@ async fn reader_loop(
 
         // Notification from the agent.
         if method == "session/update" {
-            handle_update(&app, &v, &turn).await;
+            handle_update(&mut emit_via(&app), &v, &turn).await;
         }
     }
     reader_gone(&session_id, &pending).await;
@@ -1853,7 +3154,469 @@ async fn reader_gone(session_id: &str, pending: &Arc<Mutex<HashMap<i64, oneshot:
     pending.lock().await.clear();
 }
 
-async fn handle_update(app: &AppHandle, v: &Value, turn: &Arc<Mutex<TurnState>>) {
+/// The agent's task list rides to the webview whole on `opencode:plan`; the rest
+/// of its bookkeeping (usage, mode and command lists) never becomes an event.
+/// Tool calls take the `admit_tool_update` gate instead.
+fn forwarded_update(generation_id: &str, update: &Value) -> Option<(&'static str, Value)> {
+    (update.get("sessionUpdate")?.as_str()? == "plan").then(|| {
+        (
+            "opencode:plan",
+            json!({ "generation_id": generation_id, "update": update }),
+        )
+    })
+}
+
+/// Nothing but `_meta` (Codex's output chunks, Claude's heartbeat beats): the
+/// chat shows none of it, and each one made the SDK rename the call to "tool"
+/// and re-render every bubble.
+fn carries_only_meta(update: &Value) -> bool {
+    update.as_object().is_some_and(|o| {
+        o.keys()
+            .all(|k| matches!(k.as_str(), "sessionUpdate" | "toolCallId" | "_meta"))
+    })
+}
+
+/// Where `handle_update` and `flush_turn` write: `emit_via(&app)` in production, a
+/// `Vec` in tests.
+type Emit<'a> = &'a mut (dyn FnMut(&'static str, Value) + Send);
+
+fn emit_via(app: &AppHandle) -> impl FnMut(&'static str, Value) + Send + '_ {
+    move |event, payload| crate::emit_on_main(app, event, payload)
+}
+
+/// What a turn still holds when it ends — the last thought batch and the throttled
+/// tail of the reply — as the events they would have ridden, in order.
+fn flush_turn(emit: Emit<'_>, ts: &mut TurnState, now: Instant) {
+    if let Some(delta) = ts.take_reasoning(now) {
+        emit(
+            "opencode:reasoning",
+            json!({ "generation_id": ts.generation_id, "delta": delta }),
+        );
+    }
+    if !ts.pending_delta.is_empty() {
+        emit(
+            "ollama:token",
+            json!({
+                "generation_id": ts.generation_id,
+                "token": ts.pending_delta,
+                "full_content": ts.full_content,
+            }),
+        );
+        ts.pending_delta.clear();
+    }
+}
+
+/// How many times one on-device turn is told to carry on after stopping early.
+const LOCAL_CARRY_ON_LIMIT: usize = 3;
+
+/// Opens every carry-on prompt. They go in the user's role, and a model must
+/// never read one as the user's approval: no detection of "waiting for the
+/// user" is complete, so the prompt itself has to leave that choice open.
+macro_rules! automatic_note {
+    ($text:literal) => {
+        concat!(
+            "Automatic note, not from the user. It approves nothing. ",
+            $text
+        )
+    };
+}
+
+const LOCAL_CARRY_ON: &str = automatic_note!("You said what you would do next but did not do it. If that step needs the user's approval or an answer from them, ask them in one short message and stop. Otherwise call the tool for that step now, or give the final answer if the task is finished.");
+
+/// Whether the last sentence (lowercase words, apostrophes kept) waits on the
+/// user: a phrase that asks for an answer, a choice or a signal only they can
+/// give ("I'll leave it to you."), or an approval word in a sentence about the
+/// user ("once you confirm", where "Let me confirm the page loaded" is a step
+/// of the model's own). The SDK keeps the same lists (`WAITS_ON_THE_USER`,
+/// `APPROVAL_WORDS` in `remote-ai-client.ts`).
+fn waits_on_the_user(words: &str) -> bool {
+    // "you're" and "the user's" read as "you re" and "the user s", the way the
+    // SDK's word boundaries see them.
+    let words = words.replace('\'', " ");
+    let words: Vec<&str> = words.split_whitespace().collect();
+    let padded = format!(" {} ", words.join(" "));
+    let has = |phrase: &str| padded.contains(&format!(" {phrase} "));
+    const PHRASES: &[&str] = &[
+        "know",
+        "tell me",
+        "hear back",
+        "hear from",
+        "stand by",
+        "standing by",
+        "on standby",
+        "hold off",
+        "stop here",
+        "pause here",
+        "be here",
+        "happy to",
+        "glad to",
+        "up to you",
+        "say the word",
+        "green light",
+        "your go ahead",
+        "the go ahead",
+    ];
+    const WHEN: &[&str] = &[
+        "if",
+        "when",
+        "whenever",
+        "once",
+        "after",
+        "until",
+        "unless",
+        "before",
+        "as soon as",
+        "provided",
+        "should",
+    ];
+    const WHEN_WHAT: &[&str] = &[
+        "you",
+        "the user",
+        "instructed",
+        "told",
+        "given",
+        "requested",
+    ];
+    const CHOICES: &[&str] = &["decide", "choose", "pick", "prefer", "select"];
+    const YOURS: &[&str] = &[
+        "choice", "decision", "input", "say so", "ok", "okay", "signal", "nod",
+    ];
+    const APPROVAL: &[&str] = &[
+        "confirm",
+        "approv",
+        "permission",
+        "consent",
+        "authoris",
+        "authoriz",
+        "ask",
+    ];
+    let hands_it_over = words.iter().enumerate().any(|(i, word)| {
+        matches!(*word, "defer" | "leave" | "hand")
+            && (i + 1..=i + 4).any(|to| {
+                words.get(to) == Some(&"to")
+                    && (words.get(to + 1) == Some(&"you")
+                        || (words.get(to + 1) == Some(&"the")
+                            && words.get(to + 2) == Some(&"user")))
+            })
+    });
+    let waits = PHRASES.iter().any(|p| has(p))
+        || words
+            .iter()
+            .any(|w| w.starts_with("wait") || w.starts_with("await"))
+        || WHEN
+            .iter()
+            .any(|w| WHEN_WHAT.iter().any(|what| has(&format!("{w} {what}"))))
+        || ["need", "want", "would like"]
+            .iter()
+            .any(|w| has(&format!("{w} you")) || has(&format!("{w} the user")))
+        || has("from you")
+        || (has("from the user") && !has("from the user s"))
+        || ["you", "the user", "them"].iter().any(|who| {
+            CHOICES
+                .iter()
+                .any(|v| has(&format!("{who} {v}")) || has(&format!("{who} to {v}")))
+        })
+        || hands_it_over
+        || ["pending", "upon"]
+            .iter()
+            .any(|w| has(&format!("{w} your")) || has(&format!("{w} the user s")))
+        || YOURS
+            .iter()
+            .any(|t| has(&format!("your {t}")) || has(&format!("the user s {t}")));
+    let about_the_user = has("you") || has("your") || has("the user");
+    waits
+        || (about_the_user
+            && words
+                .iter()
+                .any(|w| APPROVAL.iter().any(|a| w.starts_with(a))))
+}
+
+/// The last sentence, cut where the SDK cuts it: after a `.`, `!`, `:` or `…`
+/// followed by whitespace, so "Let me read package.json." stays one sentence.
+fn last_sentence(text: &str) -> &str {
+    let mut start = 0;
+    let mut after_end_mark = false;
+    for (i, c) in text.char_indices() {
+        if c.is_whitespace() && after_end_mark {
+            start = i;
+        }
+        after_end_mark = matches!(c, '.' | '!' | ':' | '…');
+    }
+    text[start..].trim()
+}
+
+/// Whether a reply ends by announcing a step instead of taking it ("Let me
+/// read the file first."). Small models often write that and end the turn
+/// with no tool call, so the user is told the work is under way and nothing
+/// more happens. The SDK applies the same rule to Cowork on its own
+/// (`announcesNextStep` in `remote-ai-client.ts`).
+///
+/// Only the start of the last sentence counts, quoted text is left out, and a
+/// reply with a question or a last sentence that waits on the user never
+/// counts. The carry-on prompt leaves approval to the user as well, since no
+/// word list catches every way of asking.
+fn announces_next_step(reply: &str) -> bool {
+    let reply = reply.trim();
+    if reply.is_empty() || reply.contains('?') {
+        return false;
+    }
+    let mut unquoted = String::with_capacity(reply.len());
+    let mut in_quote = false;
+    for c in reply.chars() {
+        match c {
+            '"' => in_quote = !in_quote,
+            '“' => in_quote = true,
+            '”' => in_quote = false,
+            _ if !in_quote => unquoted.push(c),
+            _ => {}
+        }
+    }
+    let last = last_sentence(unquoted.trim())
+        .to_lowercase()
+        .replace('’', "'");
+    // Punctuation, list markers and bold markup are not part of the words.
+    let words: String = last
+        .chars()
+        .map(|c| {
+            if c.is_alphanumeric() || c == '\'' {
+                c
+            } else {
+                ' '
+            }
+        })
+        .collect();
+    let words = words.split_whitespace().collect::<Vec<_>>().join(" ");
+    if waits_on_the_user(&words) {
+        return false;
+    }
+    // A short opener ("Okay,", "First,", "Now") may come before the step.
+    let step = [
+        "okay ",
+        "ok ",
+        "alright ",
+        "all right ",
+        "first ",
+        "now ",
+        "next ",
+    ]
+    .iter()
+    .find_map(|opener| words.strip_prefix(opener))
+    .unwrap_or(&words);
+    let padded = format!(" {step} ");
+    [
+        " let me ",
+        " let's ",
+        " i'll ",
+        " i will ",
+        " i need to ",
+        " i am going to ",
+        " i'm going to ",
+        " proceeding to ",
+    ]
+    .iter()
+    .any(|phrase| padded.starts_with(phrase))
+}
+
+/// The arguments each tool an on-device Code session can call takes: the
+/// agent's own file and shell tools, and the screen tools in the form the
+/// relay offers them (`cua_driver_mcp::LOCAL_TOOLS`).
+const LOCAL_TOOL_ARGUMENTS: &[&[&str]] = &[
+    &["filePath", "content"],
+    &["filePath", "oldString", "newString", "replaceAll"],
+    &["filePath", "offset", "limit"],
+    &["command", "description", "timeout", "workdir"],
+    &["pattern", "path"],
+    &["pattern", "path", "include"],
+    &["url", "format", "timeout"],
+    &["name"],
+    &["on_screen_only", "pid"],
+    &["max_depth", "max_elements", "pid", "query", "window_id"],
+    &[
+        "additional_arguments",
+        "bundle_id",
+        "creates_new_application_instance",
+        "name",
+        "urls",
+        "webkit_inspector_port",
+    ],
+    &[
+        "action",
+        "button",
+        "count",
+        "element_index",
+        "element_token",
+        "modifier",
+        "pid",
+        "snapshot_id",
+        "window_id",
+        "x",
+        "y",
+    ],
+    &[
+        "delay_ms",
+        "element_index",
+        "element_token",
+        "pid",
+        "snapshot_id",
+        "text",
+        "window_id",
+        "x",
+        "y",
+    ],
+    &[
+        "element_index",
+        "element_token",
+        "key",
+        "modifiers",
+        "pid",
+        "snapshot_id",
+        "window_id",
+        "x",
+        "y",
+    ],
+    &["keys", "pid", "window_id", "x", "y"],
+    &[
+        "element_index",
+        "element_token",
+        "pid",
+        "snapshot_id",
+        "value",
+        "window_id",
+    ],
+    &[
+        "amount",
+        "by",
+        "direction",
+        "element_index",
+        "element_token",
+        "pid",
+        "snapshot_id",
+        "window_id",
+        "x",
+        "y",
+    ],
+    &["action", "css_selector", "pid", "window_id"],
+];
+
+/// Whether a reply is a tool call's arguments written as text
+/// (`{"on_screen_only":true}`): a small model sometimes writes the call into
+/// its answer instead of making it, and the user is shown the raw arguments.
+/// Only an object whose every key is an argument of one tool counts, and the
+/// turn asks about it once: written again, it is the answer.
+fn wrote_tool_arguments(reply: &str) -> bool {
+    let reply = reply.trim();
+    if !reply.starts_with('{') || !reply.ends_with('}') {
+        return false;
+    }
+    let Ok(object) = serde_json::from_str::<serde_json::Map<String, Value>>(reply) else {
+        return false;
+    };
+    !object.is_empty()
+        && LOCAL_TOOL_ARGUMENTS
+            .iter()
+            .any(|names| object.keys().all(|key| names.contains(&key.as_str())))
+}
+
+const LOCAL_ANSWER_NOW: &str = automatic_note!(
+    "You ended without an answer. Give the user the final answer now, from the tool results above."
+);
+
+const LOCAL_MAKE_THE_CALL: &str = automatic_note!("Your reply was only a tool call's arguments. If you meant to call that tool, call it now, unless it needs the user's approval: then ask them and stop. If those arguments were your answer, write them again.");
+
+/// The prompt that sends an on-device turn on when its reply only announced
+/// the next step or held a tool call written as text, after clearing that
+/// reply from the bubble; `None` when the reply is an answer.
+async fn carry_on_prompt(emit: Emit<'_>, session: &Session) -> Option<&'static str> {
+    next_carry_on(emit, &mut *session.turn.lock().await)
+}
+
+fn next_carry_on(emit: Emit<'_>, ts: &mut TurnState) -> Option<&'static str> {
+    // Each carry-on is a new prompt, and the agent's own step limit starts
+    // over with it: the turn's tool calls so far keep the limit for the turn.
+    if ts.tool_shapes.len() >= LOCAL_STEP_LIMIT as usize {
+        return None;
+    }
+    let asked_already = ts.asked_to_call_after == Some(ts.tool_shapes.len());
+    if !asked_already && wrote_tool_arguments(&ts.full_content) {
+        ts.asked_to_call_after = Some(ts.tool_shapes.len());
+        ts.full_content.clear();
+        ts.pending_delta.clear();
+        // Or the next round, if it ends empty, is judged on these thoughts.
+        ts.closing_thought.clear();
+        emit(
+            "ollama:token",
+            json!({ "generation_id": ts.generation_id, "token": "", "full_content": "" }),
+        );
+        return Some(LOCAL_MAKE_THE_CALL);
+    }
+    if ts.full_content.trim().is_empty() {
+        // A model that thinks first often leaves the announcement in its
+        // thoughts and writes no reply at all.
+        if announces_next_step(&ts.closing_thought) {
+            ts.closing_thought.clear();
+            return Some(LOCAL_CARRY_ON);
+        }
+        // Tools ran, then the last step said nothing at all: no answer and no
+        // thoughts to show in its place. Notes from before the tool calls are
+        // no answer either.
+        let said_nothing = !ts.tool_shapes.is_empty() && ts.closing_thought.trim().is_empty();
+        return said_nothing.then_some(LOCAL_ANSWER_NOW);
+    }
+    if !announces_next_step(&ts.full_content) || !ts.narration_to_reasoning() {
+        return None;
+    }
+    if let Some(delta) = ts.take_reasoning(Instant::now()) {
+        emit(
+            "opencode:reasoning",
+            json!({ "generation_id": ts.generation_id, "delta": delta }),
+        );
+    }
+    emit(
+        "ollama:token",
+        json!({ "generation_id": ts.generation_id, "token": "", "full_content": "" }),
+    );
+    Some(LOCAL_CARRY_ON)
+}
+
+const OUT_OF_ROOM_REPLY: &str =
+    "The model ran out of room before it could answer. Try a shorter request.";
+
+/// Fill an on-device turn's empty reply bubble (`TurnState::empty_reply_fallback`).
+/// The SDK renders the reply from token events only; the text on
+/// `ollama:done` never reaches the bubble. On-device only: a cloud model's or
+/// a subscription agent's thoughts are never shown as its answer.
+fn show_closing_thought(
+    emit: Emit<'_>,
+    ts: &mut TurnState,
+    stop_reason: Option<&str>,
+    local: bool,
+) {
+    if !local {
+        return;
+    }
+    if let Some(reply) = ts.empty_reply_fallback(stop_reason) {
+        emit(
+            "ollama:token",
+            json!({
+                "generation_id": ts.generation_id,
+                "token": reply,
+                "full_content": reply,
+            }),
+        );
+    }
+}
+
+/// A failed turn's one signal is `ollama:error`: the invoke resolves after it, or the
+/// SDK's `catch` toasts the same failure a second time.
+fn fail_turn(emit: Emit<'_>, generation_id: &str, error: String) -> Result<(), String> {
+    emit(
+        "ollama:error",
+        json!({ "generation_id": generation_id, "error": error }),
+    );
+    Ok(())
+}
+
+async fn handle_update(emit: Emit<'_>, v: &Value, turn: &Arc<Mutex<TurnState>>) {
     // No generation in flight → this is the `session/load` history replay at
     // spawn time (or a stray post-turn notification): drop it, never re-stream
     // old turns into the UI.
@@ -1873,16 +3636,25 @@ async fn handle_update(app: &AppHandle, v: &Value, turn: &Arc<Mutex<TurnState>>)
         .and_then(|c| c.get("text"))
         .and_then(|t| t.as_str());
 
+    let now = Instant::now();
+
     match kind {
         "agent_message_chunk" => {
             let Some(text) = text else { return };
             let mut ts = turn.lock().await;
+            // Batched thoughts precede the reply they led to.
+            if let Some(delta) = ts.take_reasoning(now) {
+                emit(
+                    "opencode:reasoning",
+                    json!({ "generation_id": ts.generation_id, "delta": delta }),
+                );
+            }
             ts.full_content.push_str(text);
             ts.pending_delta.push_str(text);
-            // Throttle: emit at most once per window; the trailing delta is flushed
-            // on `ollama:done`.
+            // Throttle: emit at most once per window; `flush_turn` ships the
+            // trailing delta at the turn's end.
             if ts.last_emit.elapsed() >= TOKEN_EMIT_WINDOW {
-                let _ = app.emit(
+                emit(
                     "ollama:token",
                     json!({
                         "generation_id": ts.generation_id,
@@ -1895,45 +3667,179 @@ async fn handle_update(app: &AppHandle, v: &Value, turn: &Arc<Mutex<TurnState>>)
             }
         }
         "agent_thought_chunk" => {
-            if let Some(text) = text {
-                let gid = turn.lock().await.generation_id.clone();
-                let _ = app.emit(
+            let Some(text) = text else { return };
+            let (gid, batch) = {
+                let mut ts = turn.lock().await;
+                (ts.generation_id.clone(), ts.push_reasoning(text, now))
+            };
+            if let Some(delta) = batch {
+                emit(
                     "opencode:reasoning",
-                    json!({ "generation_id": gid, "delta": text }),
+                    json!({ "generation_id": gid, "delta": delta }),
                 );
             }
         }
-        "tool_call" => {
-            let (gid, narration) = {
+        "tool_call" | "tool_call_update" => {
+            let (gid, forward, retract, reasoning) = {
                 let mut ts = turn.lock().await;
-                (ts.generation_id.clone(), ts.take_narration())
+                let forward = ts.forward_tool_update(update);
+                // Pre-tool text is process narration: it moves to the reasoning
+                // section and the reply bubble is retracted (the frontend replaces
+                // its content with `full_content`).
+                let retract = kind == "tool_call" && ts.narration_to_reasoning();
+                // Batched thoughts precede the call they led to.
+                let reasoning = if forward.is_some() || retract {
+                    ts.take_reasoning(now)
+                } else {
+                    None
+                };
+                (ts.generation_id.clone(), forward, retract, reasoning)
             };
-            if let Some(text) = narration {
-                // Pre-tool text is process narration: move it to the reasoning
-                // section and retract it from the reply bubble (the frontend
-                // replaces its content with `full_content`).
-                let _ = app.emit(
+            if let Some(delta) = reasoning {
+                emit(
                     "opencode:reasoning",
-                    json!({ "generation_id": gid, "delta": format!("{text}\n") }),
+                    json!({ "generation_id": gid, "delta": delta }),
                 );
-                let _ = app.emit(
+            }
+            if retract {
+                emit(
                     "ollama:token",
                     json!({ "generation_id": gid, "token": "", "full_content": "" }),
                 );
             }
-            let _ = app.emit(
-                "opencode:tool_call",
-                json!({ "generation_id": gid, "update": update }),
-            );
+            if let Some(update) = forward {
+                emit(
+                    "opencode:tool_call",
+                    json!({ "generation_id": gid, "update": update }),
+                );
+            }
         }
-        "tool_call_update" => {
+        _ => {
             let gid = turn.lock().await.generation_id.clone();
-            let _ = app.emit(
-                "opencode:tool_call",
-                json!({ "generation_id": gid, "update": update }),
-            );
+            if let Some((event, payload)) = forwarded_update(&gid, update) {
+                emit(event, payload);
+            }
         }
-        _ => {}
+    }
+}
+
+/// Which agent a Code session runs on, picked by the model string the frontend
+/// writes into `ibl_coding_mode_model`: exactly `codex/default` or
+/// `claude/default` select the subscription agents; anything else — every
+/// ibl.ai compat id, `ollama/…`, `foundry/…` — is opencode as before. Exact
+/// strings, not a prefix: a platform provider could legitimately be named
+/// `claude`, and a mis-route would silently bill the wrong account.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum Backend {
+    Opencode,
+    Codex,
+    Claude,
+}
+
+impl Backend {
+    pub(crate) fn of(model: &str) -> Self {
+        match model {
+            "codex/default" => Backend::Codex,
+            "claude/default" => Backend::Claude,
+            _ => Backend::Opencode,
+        }
+    }
+
+    /// The agents a `backend` command argument may name. opencode is not one:
+    /// it has its own install and status commands.
+    pub(crate) fn agent(name: &str) -> Result<Self, String> {
+        match name {
+            "codex" => Ok(Backend::Codex),
+            "claude" => Ok(Backend::Claude),
+            other => Err(format!("unknown code agent: {other}")),
+        }
+    }
+
+    pub(crate) fn id(self) -> &'static str {
+        match self {
+            Backend::Opencode => "opencode",
+            Backend::Codex => "codex",
+            Backend::Claude => "claude",
+        }
+    }
+
+    /// Where each agent looks for skills inside an additional directory.
+    fn skills_subdir(self) -> &'static str {
+        match self {
+            Backend::Opencode => "",
+            Backend::Codex => ".agents/skills",
+            Backend::Claude => ".claude/skills",
+        }
+    }
+
+    /// The one-sentence error a signed-out turn surfaces.
+    pub(crate) fn sign_in_hint(self) -> &'static str {
+        match self {
+            Backend::Opencode => "",
+            Backend::Codex => {
+                "Codex isn't signed in — sign in to Codex in the ChatGPT app, then send again."
+            }
+            Backend::Claude => {
+                "Claude Code isn't signed in — run `claude` in a terminal and sign in with /login, then send again."
+            }
+        }
+    }
+
+    /// The agent's own login/state dir under `$HOME`, bound read-write for
+    /// this backend only (credential refresh, transcripts for `session/load`).
+    fn own(self) -> &'static [&'static str] {
+        match self {
+            Backend::Opencode => &[],
+            Backend::Codex => &[".codex"],
+            Backend::Claude => &[".claude"],
+        }
+    }
+
+    /// macOS: both subscription agents may keep their login in the Keychain.
+    fn own_macos(self) -> &'static [&'static str] {
+        match self {
+            Backend::Opencode => &[],
+            _ => &["Library/Keychains"],
+        }
+    }
+
+    /// Secret files this backend must READ (left unmasked) but never write
+    /// from inside: `~/.claude.json` holds the Claude CLI's state.
+    fn visible(self) -> &'static [&'static str] {
+        match self {
+            Backend::Claude => &[".claude.json"],
+            _ => &[],
+        }
+    }
+
+    /// CLI config the user's next UNSANDBOXED run of the same tool executes
+    /// or obeys — hooks, MCP servers, instructions, skills. Re-bound
+    /// read-only after the rw bind, so an agent cannot plant anything for
+    /// that run (the reasoning behind keeping `~/.local/bin` read-only).
+    fn frozen(self) -> &'static [&'static str] {
+        match self {
+            Backend::Opencode => &[],
+            Backend::Codex => &[
+                ".codex/config.toml",
+                ".codex/.env",
+                ".codex/AGENTS.md",
+                ".codex/AGENTS.override.md",
+                ".codex/rules",
+                ".codex/skills",
+                ".codex/prompts",
+            ],
+            Backend::Claude => &[
+                ".claude.json",
+                ".claude/settings.json",
+                ".claude/CLAUDE.md",
+                ".claude/rules",
+                ".claude/commands",
+                ".claude/agents",
+                ".claude/skills",
+                ".claude/plugins",
+                ".claude/hooks",
+            ],
+        }
     }
 }
 
@@ -1949,6 +3855,19 @@ pub(crate) struct ModelSpec {
     pub(crate) model: String,
     /// On-device runtimes need an explicit baseURL and no ibl.ai auth.
     pub(crate) local: bool,
+    /// How an on-device session is cut down to the model's window; `None` for
+    /// cloud models and until the spawn has sized the model.
+    pub(crate) fit: Option<LocalFit>,
+}
+
+/// An on-device session's budget: the model copy Ollama loads with a known
+/// context window, and whether the screen tools share that window.
+pub(crate) struct LocalFit {
+    /// The name Ollama knows the sized model by (`model_manager::sized_local_model`).
+    pub(crate) model: String,
+    /// Its context window, which the agent prunes its history against.
+    pub(crate) context: u32,
+    pub(crate) cowork: bool,
 }
 
 fn parse_model_spec(model: &str) -> ModelSpec {
@@ -1957,18 +3876,21 @@ fn parse_model_spec(model: &str) -> ModelSpec {
             provider: "ollama",
             model: rest.to_string(),
             local: true,
+            fit: None,
         }
     } else if let Some(rest) = model.strip_prefix("foundry/") {
         ModelSpec {
             provider: "foundry",
             model: rest.to_string(),
             local: true,
+            fit: None,
         }
     } else {
         ModelSpec {
             provider: "iblai",
             model: model.to_string(),
             local: false,
+            fit: None,
         }
     }
 }
@@ -2005,7 +3927,7 @@ fn enforce_permission_policy(root: &mut serde_json::Map<String, Value>) {
     // asked in prose the way they are on the desktop. Written as a
     // permission rather than the `tools: {question: false}` shorthand: opencode
     // turns that shorthand into a permission rule which a top-level string
-    // policy then overwrites (verified against 1.18.13 — the model still got
+    // policy then overwrites (verified against 1.19.0 — the model still got
     // the tool).
     root.insert(
         "permission".to_string(),
@@ -2023,6 +3945,138 @@ fn enforce_permission_policy(root: &mut serde_json::Map<String, Value>) {
     }
 }
 
+/// Built-in tools an on-device session goes without: each is thousands of
+/// characters of definition the local window has no room for, and small models
+/// misuse both (side tasks they never finish, a task list instead of the work).
+const LOCAL_DENIED_TOOLS: &[&str] = &["task", "todowrite"];
+
+/// Leave the tools above, and every screen tool outside
+/// `cua_driver_mcp::LOCAL_TOOLS`, out of an on-device session's requests. A denied tool
+/// is never offered to the model, the way `question` is. opencode takes the
+/// LAST rule that matches, and this map is written in key order, so the
+/// `cowork_*` deny sorts ahead of the named tools that override it (pinned by
+/// `an_on_device_session_keeps_only_the_core_tools`).
+fn trim_local_tools(root: &mut serde_json::Map<String, Value>, cowork: bool) {
+    let Some(rules) = root.get_mut("permission").and_then(|p| p.as_object_mut()) else {
+        return;
+    };
+    for tool in LOCAL_DENIED_TOOLS {
+        rules.insert(tool.to_string(), json!("deny"));
+    }
+    if cowork {
+        rules.insert(format!("{COWORK_MCP_NAME}_*"), json!("deny"));
+        for tool in crate::cua_driver_mcp::LOCAL_TOOLS {
+            rules.insert(format!("{COWORK_MCP_NAME}_{tool}"), json!("ask"));
+        }
+    }
+}
+
+/// opencode names each new session with a model call of its own, sent alongside
+/// the first reply. A local runtime serves one request at a time, so the reply
+/// waits behind it, for minutes on a model that thinks before it answers.
+/// Nothing shows that name, so an on-device session goes without; a session
+/// back on a cloud model gets it again.
+fn set_session_naming(root: &mut serde_json::Map<String, Value>, on: bool) {
+    let Some(agents) = root
+        .entry("agent")
+        .or_insert_with(|| json!({}))
+        .as_object_mut()
+    else {
+        return;
+    };
+    if on {
+        agents.remove("title");
+    } else {
+        agents.insert("title".to_string(), json!({ "disable": true }));
+    }
+}
+
+const LOCAL_REQUEST_TIMEOUT_MS: u64 = 30 * 60 * 1000;
+
+/// The most of one tool result an on-device session keeps. opencode's own
+/// limit is 51,200 bytes, about 12,800 tokens: one large result would take
+/// the whole window. A session back on a cloud model gets the default again.
+fn set_tool_output_limit(root: &mut serde_json::Map<String, Value>, local: bool) {
+    if local {
+        root.insert(
+            "tool_output".to_string(),
+            json!({ "max_bytes": 16_000, "max_lines": 400 }),
+        );
+    } else {
+        root.remove("tool_output");
+    }
+}
+
+/// The vibe skills an on-device session keeps: the ones its guidance names
+/// (the template, deploying, the paywall). The guidance orders the agent to
+/// load them and not to improvise, so a session with none of them reports it
+/// cannot do the task; the whole catalog is 160-odd skills, about 26,000
+/// tokens. Each named skill's own folder is added to the skills paths.
+fn add_named_skills(root: &mut serde_json::Map<String, Value>, vibe_dir: &Path, guidance: &str) {
+    let named: HashSet<&str> = guidance
+        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+        .filter(|word| word.starts_with("iblai-") && !word.ends_with('-'))
+        .collect();
+    if named.is_empty() {
+        return;
+    }
+    let mut found: Vec<Value> = Vec::new();
+    for family in sorted_dirs(vibe_dir) {
+        let skills = if family.join("SKILL.md").is_file() {
+            vec![family]
+        } else {
+            sorted_dirs(&family)
+        };
+        for skill in skills {
+            let is_named = skill
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| named.contains(name));
+            if is_named && skill.join("SKILL.md").is_file() {
+                found.push(json!(skill.to_string_lossy()));
+            }
+        }
+    }
+    if found.is_empty() {
+        return;
+    }
+    let paths = root
+        .entry("skills")
+        .or_insert_with(|| json!({}))
+        .as_object_mut()
+        .map(|skills| skills.entry("paths").or_insert_with(|| json!([])));
+    if let Some(Value::Array(paths)) = paths {
+        // Ahead of the agent's own skills, which win a name clash by coming last.
+        found.append(paths);
+        *paths = found;
+    }
+}
+
+/// The most model steps an on-device Code turn takes before the agent makes it
+/// answer in text. A small model can go on listing windows long after it has
+/// what it needs; building an app takes many steps, so the limit is generous.
+/// A session back on a cloud model has none.
+const LOCAL_STEP_LIMIT: u32 = 40;
+
+fn set_step_limit(root: &mut serde_json::Map<String, Value>, local: bool) {
+    let Some(build) = root
+        .get_mut("agent")
+        .and_then(|agents| agents.get_mut("build"))
+        .and_then(Value::as_object_mut)
+    else {
+        return;
+    };
+    if local {
+        build.insert("steps".to_string(), json!(LOCAL_STEP_LIMIT));
+    } else {
+        build.remove("steps");
+    }
+}
+
+/// What a local model may write in one reply; the rest of its window is the
+/// prompt. opencode otherwise asks for 32,000 tokens and keeps that much free.
+const LOCAL_OUTPUT_TOKENS: u32 = 8_192;
+
 /// The `build` agent's ONE-LINE suppressor stub. Its only job is to exist:
 /// opencode resolves `agent.prompt ? [agent.prompt] : SystemPrompt.provider`
 /// (`llm/request.ts`), so a non-empty prompt SUPPRESSES the built-in per-model
@@ -2039,16 +4093,32 @@ const OPENCODE_BUILD_PROMPT: &str = include_str!("opencode_build_prompt.txt");
 /// every spawn like [`enforce_permission_policy`] — persisted per-session
 /// configs self-heal to the current stub; any other keys on the entry are
 /// left alone.
-fn enforce_build_prompt(root: &mut serde_json::Map<String, Value>) {
+///
+/// `local_guidance` is an on-device session's guidance, which follows the stub
+/// here instead of living in AGENTS.md. opencode prints the AGENTS.md path,
+/// which holds the chat's id, ahead of that file's text, and a local runtime
+/// reuses a prompt only up to its first changed token: with the guidance in
+/// the file every new chat read all 6,000 tokens of it again (over a minute
+/// before the first step); here it sits ahead of anything chat-specific and is
+/// read once. The authored text is the same single source either way.
+fn enforce_build_prompt(root: &mut serde_json::Map<String, Value>, local_guidance: Option<&str>) {
     root.insert("default_agent".to_string(), json!("build"));
+    let prompt = match local_guidance {
+        Some(guidance) => format!("{OPENCODE_BUILD_PROMPT}\n\n{guidance}"),
+        None => OPENCODE_BUILD_PROMPT.to_string(),
+    };
     let agents = root.entry("agent").or_insert_with(|| json!({}));
     if let Some(obj) = agents.as_object_mut() {
         let build = obj.entry("build").or_insert_with(|| json!({}));
         if let Some(b) = build.as_object_mut() {
-            b.insert("prompt".to_string(), json!(OPENCODE_BUILD_PROMPT));
+            b.insert("prompt".to_string(), json!(prompt));
         }
     }
 }
+
+/// What an on-device session's AGENTS.md holds once its guidance has moved
+/// into the build prompt. The file still exists: opencode reads it every call.
+const LOCAL_GUIDANCE_POINTER: &str = "Follow the instructions at the top of this prompt.\n";
 
 /// Point opencode at a model by patching its config: set the top-level `model`, keep
 /// `enabled_providers` to just the active provider, and reset that provider's `models`
@@ -2072,22 +4142,44 @@ pub(crate) fn apply_opencode_model(
     display_name: &str,
     guidance: Option<&str>,
 ) -> Result<(), String> {
+    apply_opencode_model_at(
+        &config_home(session_id),
+        mentor,
+        spec,
+        base_url,
+        api_key,
+        display_name,
+        guidance,
+    )
+}
+
+fn apply_opencode_model_at(
+    home: &Path,
+    mentor: Option<&str>,
+    spec: &ModelSpec,
+    base_url: &str,
+    api_key: &str,
+    display_name: &str,
+    guidance: Option<&str>,
+) -> Result<(), String> {
     // The config ships embedded in the app and is materialized on first use — make
     // sure this session's copy is on disk before we patch it.
-    let home = config_home(session_id);
-    crate::opencode_installer::ensure_opencode_config_at(&home)?;
-    let path = home.join("opencode").join("opencode.json");
-    let text = std::fs::read_to_string(&path)
-        .map_err(|e| format!("opencode config not found ({}): {e}", path.display()))?;
+    crate::opencode_installer::ensure_opencode_config_at(home)?;
+    let rel = Path::new("opencode").join("opencode.json");
+    let path = home.join(&rel);
+    let text = read_config_file(home, &rel)
+        .map_err(|e| format!("opencode config not found ({}): {e}", path.display()))?
+        .ok_or_else(|| format!("opencode config not found ({})", path.display()))?;
     let mut cfg: Value =
         serde_json::from_str(&text).map_err(|e| format!("bad opencode config: {e}"))?;
 
     let root = cfg
         .as_object_mut()
         .ok_or("opencode config is not a JSON object")?;
+    let model_id = spec.fit.as_ref().map_or(spec.model.as_str(), |f| &f.model);
     root.insert(
         "model".to_string(),
-        json!(format!("{}/{}", spec.provider, spec.model)),
+        json!(format!("{}/{model_id}", spec.provider)),
     );
     // Only the active provider is enabled, so opencode never tries to resolve
     // credentials for one we're not using this session.
@@ -2095,14 +4187,32 @@ pub(crate) fn apply_opencode_model(
     // The security boundary — see `enforce_permission_policy`. Re-applied here because
     // this runs on every spawn, immediately before the process starts.
     enforce_permission_policy(root);
+    if spec.local {
+        trim_local_tools(root, spec.fit.as_ref().is_some_and(|f| f.cowork));
+    }
     // The one-line suppressor stub — see `enforce_build_prompt`.
-    enforce_build_prompt(root);
+    let (top_guidance, file_guidance) = if spec.local {
+        (guidance, guidance.map(|_| LOCAL_GUIDANCE_POINTER))
+    } else {
+        (None, guidance)
+    };
+    enforce_build_prompt(root, top_guidance);
+    set_step_limit(root, spec.local);
+    set_session_naming(root, !spec.local);
     // Skills the agent discovers at startup — see `apply_skills_config`.
     let mentor_dir = mentor.map(mentor_skills_dir);
-    apply_skills_config(root, &vibe_skills_dir(), mentor_dir.as_deref());
+    // The vibe catalog lists 160-odd skills, about 26,000 tokens before the
+    // first message: more than most on-device windows hold. An on-device
+    // session keeps the agent's own skills and the few its guidance names.
+    let vibe_dir = (!spec.local).then(vibe_skills_dir);
+    apply_skills_config(root, vibe_dir.as_deref(), mentor_dir.as_deref());
+    if spec.local {
+        add_named_skills(root, &vibe_skills_dir(), guidance.unwrap_or_default());
+    }
+    set_tool_output_limit(root, spec.local);
     // The ibl.ai guidance, as the per-session AGENTS.md opencode reads on
     // every model call — see `write_iblai_guidance`.
-    write_iblai_guidance(&home, guidance)?;
+    write_iblai_guidance(home, file_guidance)?;
 
     let providers = root
         .entry("provider")
@@ -2117,20 +4227,407 @@ pub(crate) fn apply_opencode_model(
 
     // Reset to JUST the active model each spawn (no accumulation across sessions).
     let mut models = serde_json::Map::new();
-    models.insert(spec.model.clone(), json!({ "name": spec.model }));
+    let mut model = json!({ "name": spec.model });
+    // A model left on Ollama's small default has no room to reserve from.
+    if let Some(fit) = spec
+        .fit
+        .as_ref()
+        .filter(|f| f.context >= 2 * LOCAL_OUTPUT_TOKENS)
+    {
+        model["limit"] = json!({ "context": fit.context, "output": LOCAL_OUTPUT_TOKENS });
+    }
+    models.insert(model_id.to_string(), model);
     entry.insert("models".to_string(), Value::Object(models));
 
     entry.insert("npm".to_string(), json!("@ai-sdk/openai-compatible"));
     entry.insert("name".to_string(), json!(display_name));
     // On-device runtimes are unauthenticated and the key is a placeholder that just
     // satisfies @ai-sdk/openai-compatible; cloud gets the throwaway proxy secret.
-    entry.insert(
-        "options".to_string(),
-        json!({ "baseURL": base_url, "apiKey": api_key }),
-    );
+    let mut options = json!({ "baseURL": base_url, "apiKey": api_key });
+    if spec.local {
+        // opencode gives a request five minutes, then drops it and starts
+        // over. A local model can need longer than that just to read a first
+        // prompt, so the turn failed once and paid for the read twice.
+        options["timeout"] = json!(LOCAL_REQUEST_TIMEOUT_MS);
+        // A second limit of the same five minutes, on the wait for the first
+        // byte: loading a large model into memory alone can take that long.
+        options["headerTimeout"] = json!(LOCAL_REQUEST_TIMEOUT_MS);
+    }
+    entry.insert("options".to_string(), options);
 
     let out = serde_json::to_string_pretty(&cfg).map_err(|e| e.to_string())?;
-    std::fs::write(&path, out).map_err(|e| format!("failed writing opencode config: {e}"))
+    write_config_file(home, &rel, out.as_bytes())
+        .map_err(|e| format!("failed writing opencode config: {e}"))
+}
+
+/// Codex's own approval mode for the OS setting. Ask Me → `read-only`: Codex's
+/// sandbox blocks every write and network command, so each becomes an
+/// escalation request the card can show — the closest match to opencode's
+/// ask-everything policy. Automatic (also what an unset mode means) →
+/// `agent-full-access`: no Codex sandbox and no requests; the OS sandbox is
+/// the boundary, exactly as for opencode.
+fn codex_mode(auto: bool) -> &'static str {
+    if auto {
+        "agent-full-access"
+    } else {
+        "read-only"
+    }
+}
+
+/// The ACP mode pinned right after `session/new` / `session/load`, or `None`
+/// (opencode has no modes). Claude otherwise starts in the user's own
+/// `permissions.defaultMode`; the OS approval toggle must be the only policy.
+fn session_mode(backend: Backend, auto: bool) -> Option<&'static str> {
+    match backend {
+        Backend::Opencode => None,
+        Backend::Codex => Some(codex_mode(auto)),
+        Backend::Claude => Some("default"),
+    }
+}
+
+/// Everything that differs between the agents at spawn time, as data so the
+/// tests can pin it without a process: program and argv, the env this backend
+/// needs on top of the shared `IBLAI_*` set, and the `session/new` params
+/// (which `session/load` reuses with a `sessionId`).
+struct AgentLaunch {
+    program: PathBuf,
+    args: Vec<String>,
+    env: Vec<(&'static str, String)>,
+    session: Value,
+}
+
+/// Stdio, PATH and the launch's own env for an agent process — shared by a
+/// chat session and a model probe. No provider credential or routing
+/// override reaches any agent; then this backend's own env on top.
+fn wire_agent_command(cmd: &mut Command, launch: &AgentLaunch, workspace: &Path, backend: Backend) {
+    cmd.arg(&launch.program)
+        .args(&launch.args)
+        .current_dir(workspace)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .kill_on_drop(true);
+    strip_agent_env(cmd);
+    let path = if backend == Backend::Opencode {
+        augmented_path()
+    } else {
+        crate::code_agent_installer::agent_path()
+    };
+    cmd.env("PATH", path);
+    for (key, value) in &launch.env {
+        cmd.env(key, value);
+    }
+}
+
+/// How long a model probe may take: the adapters spawn the vendor binary and
+/// ask it for its models (Claude's takes a few seconds).
+const PROBE_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// A short session against the agent just to read its `configOptions` — the
+/// way to list models before any chat has run one (ACP lists them per session
+/// only). Same launch, sandbox and login checks as a chat session, a scratch
+/// workspace under the agent's own data dir instead of a chat's (never /tmp,
+/// which the sandbox masks), no guidance, no skills; the process is killed
+/// right after the handshake. The workspace path is FIXED per agent: the
+/// agents index sessions by cwd (`~/.claude/projects/<encoded cwd>`), so a
+/// fresh path per probe would leave one entry per probe behind. One probe at
+/// a time per process, so a cleanup never pulls the workspace from under
+/// another probe.
+pub(crate) async fn probe_config_options(backend: Backend) -> Result<Value, String> {
+    if backend == Backend::Opencode {
+        return Err("opencode has no agent model list.".to_string());
+    }
+    crate::code_agent_installer::agent_ready(backend)?;
+    if !login_dir_present(backend, &home_dir().unwrap_or_default()) {
+        return Err(format!("{AUTH_REQUIRED}: {}", backend.sign_in_hint()));
+    }
+    static PROBE: OnceLock<Mutex<()>> = OnceLock::new();
+    let _one_at_a_time = PROBE.get_or_init(|| Mutex::new(())).lock().await;
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let key = format!("probe-{}-{}-{nonce}", backend.id(), std::process::id());
+    let scratch = iblai_data_dir()
+        .join("acp")
+        .join(backend.id())
+        .join("probe");
+    let ws = scratch.join("ws");
+    let skills = scratch.join("skills");
+    let cfg = config_home(&key);
+    for d in [&ws, &skills, &cfg] {
+        std::fs::create_dir_all(d).map_err(|e| format!("probe dir failed: {e}"))?;
+    }
+    let result = tokio::time::timeout(PROBE_TIMEOUT, probe_in(backend, &key, &ws, &skills, &cfg))
+        .await
+        .unwrap_or_else(|_| {
+            Err(format!(
+                "{} did not answer within {}s.",
+                crate::code_agent_installer::display_name(backend),
+                PROBE_TIMEOUT.as_secs()
+            ))
+        });
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _ = std::fs::remove_dir_all(&cfg);
+    result
+}
+
+async fn probe_in(
+    backend: Backend,
+    key: &str,
+    ws: &Path,
+    skills: &Path,
+    cfg: &Path,
+) -> Result<Value, String> {
+    let launch = agent_launch(backend, ws, skills, cfg, "", false, None);
+    let mut cmd = sandboxed_command(key, ws, backend)?;
+    wire_agent_command(&mut cmd, &launch, ws, backend);
+    let mut child = cmd
+        .spawn()
+        .map_err(|e| format!("failed to launch the {} agent: {e}", backend.id()))?;
+    let stdin = Arc::new(Mutex::new(child.stdin.take().ok_or("no stdin")?));
+    let stdout = child.stdout.take().ok_or("no stdout")?;
+    if let Some(stderr) = child.stderr.take() {
+        let tag = backend.id();
+        tokio::spawn(async move {
+            let mut lines = BufReader::new(stderr).lines();
+            while let Ok(Some(l)) = lines.next_line().await {
+                eprintln!("[{tag} probe] {l}");
+            }
+        });
+    }
+    let pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>> =
+        Arc::new(Mutex::new(HashMap::new()));
+    route_responses(stdout, pending.clone());
+    let session = Session {
+        child: Mutex::new(child),
+        stdin,
+        next_id: AtomicI64::new(1),
+        pending,
+        acp_session_id: String::new(),
+        requested_model: None,
+        backend,
+        cowork: false,
+        proxy_secret: None,
+        turn: Arc::new(Mutex::new(TurnState::new())),
+        last_used: Mutex::new(Instant::now()),
+        active_turns: AtomicUsize::new(0),
+        closing: AtomicBool::new(false),
+        context_fresh: AtomicBool::new(false),
+    };
+    let hs = handshake(&session, &launch.session, None, None, None).await;
+    session.closing.store(true, Ordering::SeqCst);
+    let _ = session.child.lock().await.start_kill();
+    hs?.config_options.ok_or_else(|| {
+        format!(
+            "{} reported no config options.",
+            crate::code_agent_installer::display_name(backend)
+        )
+    })
+}
+
+/// The screen driver as an ACP MCP server, for a Code chat with Cowork on: the
+/// agent spawns the driver's stdio proxy (`cua_driver_mcp::proxy_argv`) to the
+/// app's own daemon, so the tools ride the agent's permission policy while the
+/// driver keeps the app's grants. `args` and `env` are always present — the
+/// adapters spread the one and map the other.
+/// The screen tools' MCP server name; the agent sees each tool as `cowork_<tool>`.
+const COWORK_MCP_NAME: &str = "cowork";
+
+fn cowork_mcp_server(driver: &Path, socket: &Path) -> Value {
+    json!({
+        "name": COWORK_MCP_NAME,
+        "command": driver.to_string_lossy(),
+        "args": crate::cua_driver_mcp::proxy_argv(socket),
+        "env": [],
+    })
+}
+
+/// What Cowork adds to a Code session's guidance: the screen rules the webview's
+/// Cowork prompt carries (`remote-ai-client.ts`), plus the one difference on
+/// this path — no screenshot reaches a Code agent, so the element list is the
+/// whole picture.
+const COWORK_GUIDANCE: &str = "\
+## Screen tools (Cowork)
+You can control the user's computer through the `cowork` tools to complete tasks on their behalf.
+Work by discovery, never by guesswork: use list_apps to find the app and its pid, then list_windows with that pid to get its window_id (launch_app with the bundle id also lists them, and opens an app that is not running). Then call get_window_state for that pid and window_id to read its elements before you act on it.
+Screenshots are not available here: the element list is the whole picture.
+To click, type into or set an element, pass its element_index (the number in [brackets] in the element list) together with the snapshot_id printed at the end of the same get_window_state reply. The driver refuses an element_index without its snapshot_id.
+A snapshot_id belongs to the reply that printed it, and the next get_window_state on that window replaces it: take a snapshot right before you act, and a fresh one before each further action on that window.
+If a call comes back saying the snapshot is stale, do not retry it: take a new snapshot, find the element again, and use the new numbers.
+Keep each snapshot small: pass `query` to get_window_state to project the tree to the rows you care about, and `max_elements` on large or web-based windows.
+In the reply, say what you did on the screen in everyday words.
+";
+
+/// The guidance a session is spawned with: the ibl.ai guidance, plus the screen
+/// rules when Cowork is on.
+fn with_cowork_guidance(guidance: String, cowork: bool) -> String {
+    if cowork {
+        format!("{guidance}\n\n{COWORK_GUIDANCE}")
+    } else {
+        guidance
+    }
+}
+
+/// What an on-device session adds to its guidance. Small models narrate work
+/// instead of doing it, report success no tool call produced, or give up
+/// without trying; each line answers one of those.
+const LOCAL_MODEL_GUIDANCE: &str = "\
+## Working on this computer's own model
+Do the work with tool calls, one step at a time. Never write that you are about to do something or that you are working on it: call the tool instead.
+Never say something was done unless a tool call in this turn did it and its result shows it worked. If you have not called the tool yet, call it now.
+Never say you cannot do something before you have tried the tool for it. When a tool returns an error, read the error and make a different call; report a failure only after that, and say which step failed.
+Use only the tools you were given, with exactly the argument names in their definitions.
+";
+
+/// The driver's own instructions, which the agent passes on unchanged, open
+/// with tools an on-device session does not carry (`cua_driver_mcp::LOCAL_TOOLS`).
+const LOCAL_COWORK_GUIDANCE: &str = "\
+The screen tools' sessions and checks are handled for you: there is no start_session, end_session or verify_state to call. Start with list_apps, then list_windows or launch_app, then get_window_state.
+To read a web page that is open in a browser (an inbox, an article, search results), call page with action get_text, the browser's pid and the window_id of its window: the one that has a title. get_window_state on a browser shows its buttons and menus, not the page.
+To open a web address, call launch_app with the browser's bundle_id and urls set to a list holding the address, then list_windows again and read the page.
+";
+
+/// The guidance an on-device session is spawned with: the rest, plus the
+/// rules a small model needs spelled out.
+fn with_local_guidance(guidance: String, local: bool, cowork: bool) -> String {
+    match (local, cowork) {
+        (false, _) => guidance,
+        (true, false) => format!("{guidance}\n\n{LOCAL_MODEL_GUIDANCE}"),
+        (true, true) => format!("{guidance}\n\n{LOCAL_MODEL_GUIDANCE}{LOCAL_COWORK_GUIDANCE}"),
+    }
+}
+
+/// Why a Code turn with Cowork on can't run here, decided before anything is
+/// spawned; `Ok` is the driver whose proxy the agent runs. Every agent and both
+/// desktop platforms qualify: the driver is the app's own daemon, outside the
+/// agent's sandbox, and opencode, Codex and Claude Code each ask before a
+/// screen tool runs.
+fn cowork_preflight() -> Result<PathBuf, String> {
+    if cfg!(target_os = "windows") {
+        return Err("Cowork inside Code isn't available on Windows.".to_string());
+    }
+    cowork_preflight_with(
+        &crate::cua_driver_mcp::session_support(&crate::cua_driver_mcp::current_session_env()),
+        crate::cua_driver_mcp::resolved_driver_path(),
+    )
+}
+
+/// The decision itself, with the environment read by the caller.
+fn cowork_preflight_with(
+    support: &crate::cua_driver_mcp::DriverSupport,
+    driver: Option<PathBuf>,
+) -> Result<PathBuf, String> {
+    if !support.supported {
+        return Err("Cowork isn't supported on this desktop session.".to_string());
+    }
+    driver.ok_or_else(|| {
+        "Cowork isn't set up on this computer yet — turn Cowork on from the chat to install it."
+            .to_string()
+    })
+}
+
+/// A live session serves the next turn only when it was spawned for the same
+/// model and the same Cowork setting; either change is a respawn, and the
+/// conversation survives it through `session/load`. A Cowork session whose
+/// driver is gone respawns too: its agent holds a socket nothing listens on,
+/// and only a spawn starts the driver again.
+fn reusable(s: &Session, model: Option<&str>, cowork: bool, driver_alive: bool) -> bool {
+    s.requested_model.as_deref() == model && s.cowork == cowork && (!s.cowork || driver_alive)
+}
+
+/// The chats whose session was spawned with the screen tools, minus `except`.
+fn cowork_session_ids<'a>(
+    sessions: impl Iterator<Item = (&'a String, &'a Arc<Session>)>,
+    except: Option<&str>,
+) -> Vec<String> {
+    sessions
+        .filter(|(id, s)| s.cowork && except != Some(id.as_str()))
+        .map(|(id, _)| id.clone())
+        .collect()
+}
+
+/// Close every session spawned with the screen tools except `except`. The
+/// driver owns the screen, so a new Cowork session — or the webview's own
+/// driver — must not run beside an older one's.
+pub(crate) async fn close_cowork_sessions(except: Option<&str>) {
+    let ids = cowork_session_ids(registry().lock().await.iter(), except);
+    for id in ids {
+        close_session(&id).await;
+    }
+}
+
+/// The `session/new` params per backend. Codex and Claude get the per-spawn
+/// skills view as an additional directory (each scans its own subdir of it);
+/// Claude also takes the ibl.ai guidance as `_meta.systemPrompt.append`, which
+/// the adapter folds into its Claude Code preset — appended, never replacing
+/// it. opencode's params are byte-identical to before.
+fn session_params(backend: Backend, workspace: &Path, skills_root: &Path, guidance: &str) -> Value {
+    let cwd = workspace.to_string_lossy();
+    match backend {
+        Backend::Opencode => json!({ "cwd": cwd, "mcpServers": [] }),
+        Backend::Codex => json!({
+            "cwd": cwd,
+            "mcpServers": [],
+            "additionalDirectories": [skills_root.to_string_lossy()],
+        }),
+        Backend::Claude => json!({
+            "cwd": cwd,
+            "mcpServers": [],
+            "additionalDirectories": [skills_root.to_string_lossy()],
+            "_meta": { "systemPrompt": { "append": guidance } },
+        }),
+    }
+}
+
+fn agent_launch(
+    backend: Backend,
+    workspace: &Path,
+    skills_root: &Path,
+    config_home: &Path,
+    guidance: &str,
+    auto: bool,
+    // The screen driver and its daemon's socket for a Cowork session, as the
+    // one MCP server every backend receives in `session/new` (and `session/load`).
+    cowork_driver: Option<(&Path, &Path)>,
+) -> AgentLaunch {
+    let mut session = session_params(backend, workspace, skills_root, guidance);
+    if let Some((driver, socket)) = cowork_driver {
+        session["mcpServers"] = json!([cowork_mcp_server(driver, socket)]);
+    }
+    let node_launch = |env: Vec<(&'static str, String)>| AgentLaunch {
+        program: crate::code_agent_installer::node_bin(),
+        args: vec![crate::code_agent_installer::adapter_entry(backend)
+            .to_string_lossy()
+            .into_owned()],
+        env,
+        session: session.clone(),
+    };
+    match backend {
+        Backend::Opencode => AgentLaunch {
+            program: PathBuf::from(opencode_program()),
+            args: ["acp", "--print-logs", "--log-level", "INFO"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+            env: vec![(
+                "XDG_CONFIG_HOME",
+                config_home.to_string_lossy().into_owned(),
+            )],
+            session,
+        },
+        // The guidance rides Codex's real `developer_instructions` config key,
+        // merged by the adapter into every session's config overrides — the
+        // user's own `~/.codex/AGENTS.md` is never touched.
+        Backend::Codex => node_launch(vec![
+            (
+                "CODEX_CONFIG",
+                json!({ "developer_instructions": guidance }).to_string(),
+            ),
+            ("INITIAL_AGENT_MODE", codex_mode(auto).to_string()),
+        ]),
+        Backend::Claude => node_launch(Vec::new()),
+    }
 }
 
 /// Resolve the OpenAI-compatible base URL for an on-device runtime, starting Ollama
@@ -2289,7 +4786,9 @@ fn foundry_result(model: &str, endpoint: Option<String>) -> Value {
     }
 }
 
-/// Spawn `opencode acp`, run the ACP handshake, and register the session.
+/// Spawn the chat's agent (`opencode acp`, or the Codex / Claude Code ACP
+/// adapter the model string selects — see [`Backend`]), run the ACP handshake,
+/// and register the session.
 ///
 /// `resume` carries the previous ACP session id after a mid-turn crash: when
 /// the agent advertises `loadSession`, the fresh process re-loads that session
@@ -2307,6 +4806,7 @@ async fn spawn_session(
     mentor: Option<String>,
     generation_id: &str,
     resume: Option<String>,
+    cowork: bool,
 ) -> Result<Arc<Session>, String> {
     ensure_workspace(workspace)?;
 
@@ -2322,7 +4822,8 @@ async fn spawn_session(
             || mentor_key.as_deref().is_some_and(|k| map.contains_key(k))
     };
     if sync_in_flight {
-        let _ = app.emit(
+        crate::emit_on_main(
+            app,
             "opencode:reasoning",
             json!({ "generation_id": generation_id, "delta": "Preparing skills…\n" }),
         );
@@ -2339,75 +4840,143 @@ async fn spawn_session(
         Some(m) if !m.is_empty() => m.to_string(),
         _ => return Err("no model selected for Code".to_string()),
     };
-    let spec = parse_model_spec(&chosen_model);
+    let mut spec = parse_model_spec(&chosen_model);
+    let backend = Backend::of(&chosen_model);
 
-    // The ibl.ai guidance rides opencode's own instructions mechanism (the
-    // per-session AGENTS.md, re-read on every model call). It is composed for
-    // EVERY spawn — cloud and on-device alike, skills wired or not: the build
-    // prompt is a one-line suppressor stub, so this guidance is the agent's
-    // entire authored behavior and a session must never run without it.
-    let guidance = crate::opencode_proxy::guidance_with_identity(tenant).await;
+    // The subscription agents are refused up front rather than mid-handshake:
+    // a missing install or a never-signed-in CLI is a one-sentence answer, not
+    // a crash. (A stale login still surfaces from the prompt, see `rpc_error`.)
+    if backend != Backend::Opencode {
+        crate::code_agent_installer::agent_ready(backend)?;
+        if !login_dir_present(backend, &home_dir().unwrap_or_default()) {
+            return Err(format!("{AUTH_REQUIRED}: {}", backend.sign_in_hint()));
+        }
+    }
 
-    // On-device runtimes talk straight to their own local endpoint. Cloud goes through
-    // the loopback proxy, which holds the real DM token — the agent only ever sees a
-    // throwaway per-session key, so `echo $IBL_AUTH_HEADER` has nothing to steal.
-    let (base_url, api_key, display_name, proxy_secret) = if spec.local {
-        let url = resolve_local_base_url(&spec).await?;
-        let name = if spec.provider == "ollama" {
-            "Ollama (on-device)"
-        } else {
-            "Foundry Local (on-device)"
-        };
-        (url, "local".to_string(), name, None)
+    // The ibl.ai guidance is composed for EVERY spawn — cloud and on-device
+    // alike, skills wired or not: it is the agent's entire authored behavior
+    // and a session must never run without it. opencode reads it as the
+    // per-session AGENTS.md (re-read on every model call); Codex takes it as
+    // developer instructions and Claude as a system-prompt append (both in
+    // `agent_launch`), each with its own wording where opencode's doesn't fit.
+    let guidance = crate::opencode_proxy::guidance_for(backend, tenant).await?;
+
+    // Cowork on: the screen driver rides the session as an MCP server and the
+    // screen rules ride the guidance. One driver owns the screen, so any other
+    // Cowork session and the webview's own driver go first.
+    let cowork_driver = if cowork {
+        let driver = cowork_preflight()?;
+        close_cowork_sessions(Some(session_id)).await;
+        crate::cua_driver_mcp::stop_driver();
+        let daemon =
+            crate::cua_driver_mcp::ensure_driver_daemon(&driver, &app.config().identifier)?;
+        Some((
+            driver,
+            crate::cua_driver_mcp::agent_socket(&daemon, spec.local),
+        ))
     } else {
-        // Per-request `api_base` (future SDK plumbing) outranks; otherwise the
-        // host is composed from the one platform base domain the frontend (or
-        // a local dev override) delivered — `iblai.app` by default.
-        let api_base = match api_base.filter(|b| !b.trim().is_empty()) {
-            Some(b) => b,
-            None => default_api_base(&crate::opencode_proxy::platform_base_domain().await),
-        };
-        let upstream = format!(
-            "{}/api/ai-mentor/orgs/{}/v1",
-            api_base.trim_end_matches('/'),
-            tenant
-        );
-        let port = crate::opencode_proxy::ensure_started().await?;
-        // The proxy announces upstream 402s (insufficient credit) to the webview.
-        crate::opencode_proxy::set_app(app);
-        let secret = crate::opencode_proxy::new_secret();
-        crate::opencode_proxy::register(&secret, upstream, token.to_string()).await;
-        (
-            format!("http://127.0.0.1:{port}/v1"),
-            secret.clone(),
-            "ibl.ai",
-            Some(secret),
-        )
+        None
     };
-    apply_opencode_model(
-        session_id,
-        mentor.as_deref(),
-        &spec,
-        &base_url,
-        &api_key,
-        display_name,
-        Some(guidance.as_str()),
-    )?;
+    let guidance = with_local_guidance(with_cowork_guidance(guidance, cowork), spec.local, cowork);
+
+    // opencode's model provider: on-device runtimes talk straight to their own
+    // local endpoint; cloud goes through the loopback proxy, which holds the
+    // real DM token — the agent only ever sees a throwaway per-session key, so
+    // `echo $IBL_AUTH_HEADER` has nothing to steal. The subscription agents
+    // bring their own model access and skip all of it.
+    let proxy_secret = if backend == Backend::Opencode {
+        let (base_url, api_key, display_name, proxy_secret) = if spec.local {
+            let url = resolve_local_base_url(&spec).await?;
+            if spec.provider == "ollama" {
+                let sized = crate::model_manager::sized_local_model(&spec.model).await;
+                if let Some(why) =
+                    sized.too_small_for(crate::model_manager::LOCAL_CODE_MIN_CONTEXT_TOKENS)
+                {
+                    return Err(why);
+                }
+                spec.fit = Some(LocalFit {
+                    model: sized.name,
+                    context: sized.context,
+                    cowork,
+                });
+            }
+            let name = if spec.provider == "ollama" {
+                "Ollama (on-device)"
+            } else {
+                "Foundry Local (on-device)"
+            };
+            (url, "local".to_string(), name, None)
+        } else {
+            // Per-request `api_base` (future SDK plumbing) outranks; otherwise the
+            // host is composed from the one platform base domain the frontend (or
+            // a local dev override) delivered — `iblai.app` by default.
+            let api_base = match api_base.filter(|b| !b.trim().is_empty()) {
+                Some(b) => b,
+                None => default_api_base(&crate::opencode_proxy::platform_base_domain().await),
+            };
+            let upstream = format!(
+                "{}/api/ai-mentor/orgs/{}/v1",
+                api_base.trim_end_matches('/'),
+                tenant
+            );
+            let port = crate::opencode_proxy::ensure_started().await?;
+            // The proxy announces upstream 402s (insufficient credit) to the webview.
+            crate::opencode_proxy::set_app(app);
+            let secret = crate::opencode_proxy::new_secret();
+            crate::opencode_proxy::register(&secret, upstream, token.to_string()).await;
+            (
+                format!("http://127.0.0.1:{port}/v1"),
+                secret.clone(),
+                "ibl.ai",
+                Some(secret),
+            )
+        };
+        apply_opencode_model(
+            session_id,
+            mentor.as_deref(),
+            &spec,
+            &base_url,
+            &api_key,
+            display_name,
+            Some(guidance.as_str()),
+        )?;
+        proxy_secret
+    } else {
+        None
+    };
+
+    // The skills view the subscription agents read (`link_skills`): built
+    // after the sync wait above, so it never captures a half-written tree.
+    let skills_root = config_home(session_id).join(AGENT_SKILLS_DIR);
+    if backend != Backend::Opencode {
+        let mentor_dir = mentor.as_deref().map(mentor_skills_dir);
+        link_skills(
+            &skills_root.join(backend.skills_subdir()),
+            &vibe_skills_dir(),
+            mentor_dir.as_deref(),
+        )?;
+    }
 
     // Kernel confinement on top of the permission prompt in
     // `handle_permission_request`: the child spawns inside an OS sandbox — bwrap on
     // Linux, sandbox-exec + a decoy $HOME on macOS (see the sandbox section near
     // `bwrap_args`). `PATH` carries our managed `bin` dir so a downloaded opencode is
-    // found when the system has none.
-    let mut cmd = sandboxed_opencode_command(session_id, workspace)?;
-    cmd.args(["acp", "--print-logs", "--log-level", "INFO"])
-        .current_dir(workspace)
-        .env("PATH", augmented_path())
-        .env("XDG_CONFIG_HOME", config_home(session_id))
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .kill_on_drop(true);
+    // found when the system has none; the subscription agents run our managed Node
+    // by absolute path with its `bin` dir prepended.
+    let auto = permission_auto().load(Ordering::SeqCst);
+    let launch = agent_launch(
+        backend,
+        workspace,
+        &skills_root,
+        &config_home(session_id),
+        &guidance,
+        auto,
+        cowork_driver
+            .as_ref()
+            .map(|(driver, socket)| (driver.as_path(), socket.as_path())),
+    );
+    let mut cmd = sandboxed_command(session_id, workspace, backend)?;
+    wire_agent_command(&mut cmd, &launch, workspace, backend);
 
     // Attribution/config for the agent's shell. The vibe skills read these
     // instead of asking the user who/where they are.
@@ -2432,35 +5001,30 @@ async fn spawn_session(
         cmd.env("IBLAI_API_KEY_EXPIRES_AT", expires_at.to_string());
     }
 
-    let mut child = cmd.spawn().map_err(|e| {
-        if cfg!(target_os = "linux") {
+    let mut child = cmd.spawn().map_err(|e| match backend {
+        Backend::Opencode if cfg!(target_os = "linux") => {
             format!("failed to launch the sandboxed `opencode acp` (is bubblewrap (bwrap) installed?): {e}")
-        } else {
-            format!("failed to launch `opencode acp` (is opencode installed?): {e}")
         }
+        Backend::Opencode => format!("failed to launch `opencode acp` (is opencode installed?): {e}"),
+        other => format!("failed to launch the {} agent: {e}", other.id()),
     })?;
 
     let stdin = Arc::new(Mutex::new(child.stdin.take().ok_or("no stdin")?));
     let stdout = child.stdout.take().ok_or("no stdout")?;
     let stderr = child.stderr.take().ok_or("no stderr")?;
 
-    // Log opencode stderr (never contains the token; it lives only in env).
+    // Log the agent's stderr (never contains the token; it lives only in env).
+    let tag = backend.id();
     tokio::spawn(async move {
         let mut lines = BufReader::new(stderr).lines();
         while let Ok(Some(l)) = lines.next_line().await {
-            eprintln!("[opencode] {l}");
+            eprintln!("[{tag}] {l}");
         }
     });
 
     let pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>> =
         Arc::new(Mutex::new(HashMap::new()));
-    let turn = Arc::new(Mutex::new(TurnState {
-        generation_id: String::new(),
-        full_content: String::new(),
-        pending_delta: String::new(),
-        last_narration: String::new(),
-        last_emit: Instant::now(),
-    }));
+    let turn = Arc::new(Mutex::new(TurnState::new()));
 
     // Start the reader BEFORE the handshake so responses are routed.
     tokio::spawn(reader_loop(
@@ -2480,6 +5044,8 @@ async fn spawn_session(
         pending,
         acp_session_id: String::new(),
         requested_model: model,
+        backend,
+        cowork,
         proxy_secret,
         turn,
         last_used: Mutex::new(Instant::now()),
@@ -2488,8 +5054,75 @@ async fn spawn_session(
         context_fresh: AtomicBool::new(false),
     };
 
-    // 1) initialize — we advertise NO fs/terminal capabilities so opencode uses its
-    //    own built-in file/shell tools directly on the workspace.
+    // The model saved in the top-left picker is applied by the handshake right
+    // after the mode pin; opencode's model rides in its config instead.
+    let saved_model = if backend == Backend::Opencode {
+        None
+    } else {
+        crate::code_agent_models::saved(backend)
+    };
+    let hs = timed_handshake(
+        HANDSHAKE_TIMEOUT,
+        &session,
+        &launch.session,
+        resume.as_deref(),
+        session_mode(backend, auto),
+        saved_model.as_deref(),
+    )
+    .await?;
+    // Claude's model list for the picker; a fresh session's opening snapshot
+    // also names the agent's own default. Codex's list is the CLI's catalog
+    // (`code_agent_models::codex_catalog`), named as OpenAI names it: the
+    // adapter's snapshot renames the same slugs ("6 Astra") and would make the
+    // picker flip between the two after the first run, so only its default is
+    // kept — what Default pushes to a running chat.
+    if let Some(opts) = &hs.config_options {
+        match backend {
+            Backend::Claude => crate::code_agent_models::remember(backend, opts, !hs.loaded),
+            Backend::Codex if !hs.loaded => {
+                crate::code_agent_models::remember_default(backend, opts)
+            }
+            _ => {}
+        }
+    }
+    let loaded = hs.loaded;
+    session.acp_session_id = hs.id;
+    // A brand-new ACP session has no conversation memory — the first prompt on it
+    // may need the frontend's transcript prepended.
+    session.context_fresh.store(!loaded, Ordering::SeqCst);
+    // The id outlives this process: a later spawn for the same chat loads it back.
+    remember_resume(session_id, &session.acp_session_id).await;
+
+    Ok(Arc::new(session))
+}
+
+/// The ACP handshake on a freshly spawned agent: `initialize`, then
+/// `session/load` of the remembered session when the agent can (falling back
+/// to `session/new` on any failure — context lost, the re-sent prompt still
+/// completes), then the backend's mode pin. `new_params` are the
+/// `session/new` params; a load sends the same object plus the `sessionId`,
+/// so Claude's guidance and both agents' skills view apply on resume too.
+/// Returns the ACP session id and whether it was loaded (vs created).
+/// What a handshake established: the ACP session id, whether it came from a
+/// `session/load`, and the agent's `configOptions` as the new/load response
+/// reported them — BEFORE any saved model was applied, so a fresh session's
+/// snapshot names the agent's own default model.
+#[derive(Debug)]
+struct Handshake {
+    id: String,
+    loaded: bool,
+    config_options: Option<Value>,
+}
+
+async fn handshake(
+    session: &Session,
+    new_params: &Value,
+    resume: Option<&str>,
+    mode: Option<&str>,
+    model: Option<&str>,
+) -> Result<Handshake, String> {
+    // 1) initialize — we advertise NO fs/terminal capabilities so the agent uses
+    //    its own built-in file/shell tools directly on the workspace.
     let init = session
         .request(
             "initialize",
@@ -2507,37 +5140,32 @@ async fn spawn_session(
         .unwrap_or(false);
 
     // 2) After a crash, resume the previous ACP session when the agent can —
-    //    opencode persists sessions under its (shared) data dir, which our
-    //    teardown never deletes. The load's history replay streams as
+    //    opencode persists sessions under its (shared) data dir, Codex under
+    //    `~/.codex/sessions`, Claude under `~/.claude/projects`; none of which
+    //    our teardown deletes. The load's history replay streams as
     //    `session/update` with no turn in flight, so `handle_update` drops it.
-    //    Any failure falls back to a fresh session: context lost, but the
-    //    re-sent prompt still completes.
     let mut acp_session_id: Option<String> = None;
+    let mut config_options: Option<Value> = None;
     if can_load {
-        if let Some(prev) = resume.as_deref() {
-            if session
-                .request(
-                    "session/load",
-                    json!({ "sessionId": prev, "cwd": workspace.to_string_lossy(), "mcpServers": [] }),
-                )
-                .await
-                .is_ok()
-            {
+        if let Some(prev) = resume {
+            let mut load = new_params.clone();
+            load["sessionId"] = json!(prev);
+            if let Ok(res) = session.request("session/load", load).await {
                 acp_session_id = Some(prev.to_string());
+                config_options = res.get("configOptions").filter(|c| c.is_array()).cloned();
             }
         }
     }
     // 3) …or session/new with the workspace cwd.
     let loaded = acp_session_id.is_some();
-    session.acp_session_id = match acp_session_id {
+    let id = match acp_session_id {
         Some(id) => id,
         None => {
-            let new_res = session
-                .request(
-                    "session/new",
-                    json!({ "cwd": workspace.to_string_lossy(), "mcpServers": [] }),
-                )
-                .await?;
+            let new_res = session.request("session/new", new_params.clone()).await?;
+            config_options = new_res
+                .get("configOptions")
+                .filter(|c| c.is_array())
+                .cloned();
             new_res
                 .get("sessionId")
                 .and_then(|s| s.as_str())
@@ -2545,13 +5173,69 @@ async fn spawn_session(
                 .to_string()
         }
     };
-    // A brand-new ACP session has no conversation memory — the first prompt on it
-    // may need the frontend's transcript prepended.
-    session.context_fresh.store(!loaded, Ordering::SeqCst);
-    // The id outlives this process: a later spawn for the same chat loads it back.
-    remember_resume(session_id, &session.acp_session_id).await;
+    // 4) Pin the agent's own mode (see `session_mode`).
+    if let Some(mode) = mode {
+        session
+            .request(
+                "session/set_mode",
+                json!({ "sessionId": id, "modeId": mode }),
+            )
+            .await?;
+    }
+    // 5) The model saved in the top-left picker. A refusal (the agent no
+    //    longer offers it) fails the spawn and names the picker — never a
+    //    silent fall-back to whatever the agent would have picked.
+    if let Some(model) = model {
+        session
+            .request(
+                "session/set_config_option",
+                json!({
+                    "sessionId": id,
+                    "configId": crate::code_agent_models::MODEL_CONFIG_ID,
+                    "value": model,
+                }),
+            )
+            .await
+            .map_err(|e| {
+                format!(
+                    "{} rejected the model {model}: {e} — pick another one in the top-left.",
+                    crate::code_agent_installer::display_name(session.backend)
+                )
+            })?;
+    }
+    Ok(Handshake {
+        id,
+        loaded,
+        config_options,
+    })
+}
 
-    Ok(Arc::new(session))
+/// How long a freshly spawned agent may take over the whole handshake.
+/// Claude's adapter starts the native binary first and answers in a few
+/// seconds; an adapter that starts but never answers used to hang the turn
+/// forever, out of Stop's reach (a session is registered only after its
+/// handshake). The model probe keeps its own, shorter cap.
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(120);
+
+/// [`handshake`] under a deadline: past it the spawn fails with one sentence
+/// naming the agent, and the caller's dropped `Session` kills the child.
+async fn timed_handshake(
+    limit: Duration,
+    session: &Session,
+    new_params: &Value,
+    resume: Option<&str>,
+    mode: Option<&str>,
+    model: Option<&str>,
+) -> Result<Handshake, String> {
+    tokio::time::timeout(limit, handshake(session, new_params, resume, mode, model))
+        .await
+        .unwrap_or_else(|_| {
+            Err(format!(
+                "{} did not answer within {}s.",
+                crate::code_agent_installer::display_name(session.backend),
+                limit.as_secs()
+            ))
+        })
 }
 
 /// Get an existing live session or spawn one.
@@ -2571,12 +5255,14 @@ async fn get_or_spawn(
     mentor: Option<String>,
     generation_id: &str,
     resume: Option<String>,
+    cowork: bool,
 ) -> Result<Arc<Session>, String> {
     let live = { registry().lock().await.get(session_id).cloned() };
     if let Some(s) = live {
         // A dead child can sit here for a beat before its reader's EOF cleanup
         // lands — never hand it out; fall through to the respawn below.
-        if !child_exited(&s).await && s.requested_model.as_deref() == model.as_deref() {
+        let driver_alive = crate::cua_driver_mcp::driver_daemon_alive();
+        if !child_exited(&s).await && reusable(&s, model.as_deref(), cowork, driver_alive) {
             *s.last_used.lock().await = Instant::now();
             if let Some(secret) = &s.proxy_secret {
                 crate::opencode_proxy::set_token(secret, token).await;
@@ -2584,7 +5270,7 @@ async fn get_or_spawn(
             return Ok(s);
         }
     }
-    // Missing, dead, or the model switched → (re)spawn.
+    // Missing, dead, the model switched, Cowork flipped or its driver died → (re)spawn.
     close_session(session_id).await;
     evict_for_new_session(session_id).await;
     start_reaper();
@@ -2599,12 +5285,18 @@ async fn get_or_spawn(
         mentor,
         generation_id,
         resume,
+        cowork,
     )
     .await?;
     registry()
         .lock()
         .await
         .insert(session_id.to_string(), s.clone());
+    // A mode switch during the spawn found no session to repoint, and the
+    // handshake pinned the mode read before it: pin what is stored now.
+    if s.backend == Backend::Codex {
+        pin_new_codex_session(session_id, &s).await?;
+    }
     Ok(s)
 }
 
@@ -2811,20 +5503,50 @@ pub async fn opencode_chat_stream(
     // turn's workspace (and reap its process) so the chat keeps ONE folder.
     // Absent with an older SDK: no migration.
     new_chat_key: Option<String>,
+    // Cowork is on in the chat: the agent gets the screen tools. Absent with
+    // an older SDK: plain Code.
+    cowork: Option<bool>,
 ) -> Result<(), String> {
-    if crate::opencode_installer::is_sandboxed() {
-        return Err("Code isn't available in the sandboxed Mac App Store build.".to_string());
-    }
-    if cfg!(target_os = "windows") {
-        return Err("Code isn't available on Windows.".to_string());
-    }
+    let res = chat_stream(
+        app.clone(),
+        session_id,
+        messages,
+        generation_id,
+        tenant,
+        token,
+        model,
+        api_base,
+        workspace,
+        mentor,
+        new_chat_key,
+        cowork.unwrap_or(false),
+    )
+    .await;
+    // The SDK drops its listeners the moment `invoke` resolves: every emit of the
+    // turn must have run on the main thread first, whichever way it ended.
+    flush_emits(&app).await;
+    res
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn chat_stream(
+    app: AppHandle,
+    session_id: String,
+    messages: Vec<Value>,
+    generation_id: String,
+    tenant: String,
+    token: String,
+    model: Option<String>,
+    api_base: Option<String>,
+    workspace: Option<String>,
+    mentor: Option<String>,
+    new_chat_key: Option<String>,
+    cowork: bool,
+) -> Result<(), String> {
     // Belt for the UI gate: on Linux the pill is disabled while bwrap is missing,
     // but a stale flag or an older frontend could still send.
-    if !sandbox_ready() {
-        return Err(
-            "Code needs bubblewrap (bwrap) — install it with your package manager, then reopen the app."
-                .to_string(),
-        );
+    if let Some(why) = code_unavailable() {
+        return Err(why.to_string());
     }
     // BEFORE workspace resolution, so the real id resolves to the migrated dir.
     if let Some(prior) = new_chat_key.as_deref() {
@@ -2837,17 +5559,19 @@ pub async fn opencode_chat_stream(
     });
 
     let prompt_text = last_user_text(&messages).ok_or("no user message to send to opencode")?;
+    let backend = Backend::of(model.as_deref().unwrap_or(""));
 
     // An on-device turn can sit silent for minutes the first time: opencode refreshes
     // the models.dev registry into ~/.cache/opencode/models.json, and the runtime loads
     // the model into memory. Both are one-off, but the chat would otherwise just hang
     // with no explanation — emit the hint BEFORE spawning so it lands immediately.
-    if model
+    let local_turn = model
         .as_deref()
         .map(|m| parse_model_spec(m).local)
-        .unwrap_or(false)
-    {
-        let _ = app.emit(
+        .unwrap_or(false);
+    if local_turn {
+        crate::emit_on_main(
+            &app,
             "opencode:reasoning",
             json!({
                 "generation_id": generation_id,
@@ -2868,7 +5592,7 @@ pub async fn opencode_chat_stream(
     let mut resume: Option<String> = resume_for(&session_id).await;
     let mut turn_guard = None;
     let mut attempt = 1;
-    let (session, res) = loop {
+    let (session, mut res) = loop {
         let session = match get_or_spawn(
             &app,
             &session_id,
@@ -2880,21 +5604,23 @@ pub async fn opencode_chat_stream(
             mentor.clone(),
             &generation_id,
             resume.take(),
+            cowork,
         )
         .await
         {
             Ok(s) => s,
             Err(e) if attempt > 1 => {
                 // The recovery respawn itself failed — that IS the loud failure.
-                let _ = app.emit(
-                    "ollama:error",
-                    json!({ "generation_id": generation_id, "error": e }),
-                );
-                return Err(e);
+                let e = surface_auth(&app, &generation_id, backend, e);
+                return fail_turn(&mut emit_via(&app), &generation_id, e);
             }
             // First spawn: keep today's invoke-rejection (a missing binary
-            // stays immediately loud in the UI's own error path).
-            Err(e) => return Err(e),
+            // stays immediately loud in the UI's own error path). A signed-out
+            // agent additionally announces itself so the UI can offer the fix.
+            Err(e) => {
+                let e = surface_auth(&app, &generation_id, backend, e);
+                return Err(e);
+            }
         };
         // Replace (and thereby drop) the previous attempt's guard, if any.
         drop(turn_guard.take());
@@ -2921,59 +5647,93 @@ pub async fn opencode_chat_stream(
 
         match &res {
             Err(e) if should_retry(e, session.closing.load(Ordering::SeqCst), attempt) => {
-                eprintln!(
-                    "[opencode] child died mid-turn ({e}) — respawning silently, attempt {}",
-                    attempt + 1
+                // Warning, not error: the respawn is expected to recover the
+                // turn, so this is a rate to watch rather than a failure to
+                // chase — but a jump in it means the child is dying often.
+                crate::telemetry::report_warning(
+                    "[opencode] child died mid-turn — respawning silently",
+                    format!("{e} (attempt {})", attempt + 1),
                 );
                 // Machine event only — the SDK clears the partial stream for
                 // this generation; nothing user-visible marks the seam.
-                let _ = app.emit("ollama:restart", json!({ "generation_id": generation_id }));
+                crate::emit_on_main(
+                    &app,
+                    "ollama:restart",
+                    json!({ "generation_id": generation_id }),
+                );
                 resume = Some(session.acp_session_id.clone());
                 attempt += 1;
             }
             _ => break (session, res),
         }
     };
-    // Held to fn end, as before — busy until after the done/error emit.
+    // Busy until the done/error is queued; it drops before the wrapper's flush.
     let _turn_guard = turn_guard;
+
+    // An on-device model that ended its turn on "Let me do X" is told to do it.
+    if local_turn {
+        for _ in 0..LOCAL_CARRY_ON_LIMIT {
+            let finished = res
+                .as_ref()
+                .is_ok_and(|r| r.get("stopReason").and_then(Value::as_str) == Some("end_turn"));
+            if !finished {
+                break;
+            }
+            let Some(prompt) = carry_on_prompt(&mut emit_via(&app), &session).await else {
+                break;
+            };
+            res = session
+                .request(
+                    "session/prompt",
+                    json!({
+                        "sessionId": session.acp_session_id,
+                        "prompt": [ { "type": "text", "text": prompt } ]
+                    }),
+                )
+                .await;
+        }
+        crate::model_manager::keep_sized_models_loaded();
+    }
 
     match res {
         Ok(result) => {
-            let mut ts = session.turn.lock().await;
-            // Flush the final throttled delta as one last token so the committed
-            // message includes the tail — the last <TOKEN_EMIT_WINDOW of tokens lived
-            // only in `pending_delta` and never shipped. Then signal done.
-            if !ts.pending_delta.is_empty() {
-                let _ = app.emit(
-                    "ollama:token",
-                    json!({
-                        "generation_id": generation_id,
-                        "token": ts.pending_delta,
-                        "full_content": ts.full_content,
-                    }),
-                );
-                ts.pending_delta.clear();
-            }
-            let _ = app.emit(
-                "ollama:done",
+            let done = {
+                let mut ts = session.turn.lock().await;
+                // The last <TOKEN_EMIT_WINDOW of thoughts and tokens lived only in the
+                // buffers and never shipped: flush them, then signal done.
+                flush_turn(&mut emit_via(&app), &mut ts, Instant::now());
+                let stop_reason = result.get("stopReason").and_then(Value::as_str);
+                show_closing_thought(&mut emit_via(&app), &mut ts, stop_reason, local_turn);
                 json!({
                     "generation_id": generation_id,
                     "full_content": ts.final_reply(),
                     "stop_reason": result.get("stopReason").cloned().unwrap_or(Value::Null),
-                }),
-            );
+                })
+            };
+            crate::emit_on_main(&app, "ollama:done", done);
             Ok(())
         }
         Err(e) => {
             // A JSON-RPC error from a live child, an intentional close, or a
             // spent retry budget — the crash-retry above already consumed the
             // recoverable case. A live child keeps its session (conversation
-            // state survives); a dead one was torn down by `reader_gone`.
-            let _ = app.emit(
-                "ollama:error",
-                json!({ "generation_id": generation_id, "error": e }),
+            // state survives); a dead one was torn down by `reader_gone`. The
+            // signed-out agent is the exception: its process is closed so the
+            // next turn (after the user signs in) starts fresh and `session/load`s.
+            let signed_out = auth_hint(backend, &e).is_some();
+            let e = surface_auth(&app, &generation_id, backend, e);
+            // The error toast keeps the partial message on screen: its last
+            // thoughts and reply tail ship first, as on success.
+            flush_turn(
+                &mut emit_via(&app),
+                &mut *session.turn.lock().await,
+                Instant::now(),
             );
-            Err(e)
+            let res = fail_turn(&mut emit_via(&app), &generation_id, e);
+            if signed_out {
+                close_session(&session_id).await;
+            }
+            res
         }
     }
 }
@@ -3135,7 +5895,7 @@ mod tests {
         )
         .unwrap();
 
-        enforce_build_prompt(&mut cfg);
+        enforce_build_prompt(&mut cfg, None);
 
         assert_eq!(cfg.get("default_agent").unwrap(), &json!("build"));
         let agents = cfg.get("agent").unwrap();
@@ -3152,7 +5912,7 @@ mod tests {
 
         // A config with no `agent` block at all still gets the override.
         let mut bare = serde_json::Map::new();
-        enforce_build_prompt(&mut bare);
+        enforce_build_prompt(&mut bare, None);
         assert_eq!(
             bare["agent"]["build"]["prompt"],
             json!(OPENCODE_BUILD_PROMPT)
@@ -3239,6 +5999,7 @@ mod tests {
         let workspace = scratch.join("ws");
         let cfg_home = scratch.join("cfg");
         std::fs::create_dir_all(home.join(".ssh")).unwrap();
+        std::fs::create_dir_all(home.join(".codex")).unwrap();
         // An installed toolchain opts in; .bun and .nvm are deliberately absent.
         std::fs::create_dir_all(home.join(".cargo")).unwrap();
         std::fs::create_dir_all(home.join(".asdf")).unwrap();
@@ -3247,7 +6008,7 @@ mod tests {
         std::fs::create_dir_all(home.join(".gem")).unwrap();
         std::fs::write(home.join(".gem/credentials"), ":rubygems_api_key: k").unwrap();
 
-        let args = bwrap_args(&home, &workspace, &cfg_home, None);
+        let args = bwrap_args(&home, &workspace, &cfg_home, None, Backend::Opencode);
         let flat = args.join(" ");
 
         assert_eq!(&args[..3], &["--ro-bind", "/", "/"]);
@@ -3281,6 +6042,9 @@ mod tests {
         // Masks stack AFTER the rw binds and only for existing secrets.
         let ssh_mask = format!("--tmpfs {}", home.join(".ssh").display());
         assert!(flat.contains(&ssh_mask));
+        // Codex's login is a credential like any other for the opencode agent.
+        assert!(flat.contains(&format!("--tmpfs {}", home.join(".codex").display())));
+        assert!(!flat.contains("--ro-bind-try"), "opencode freezes nothing");
         assert!(flat.rfind(&ssh_mask).unwrap() > flat.rfind("--bind-try").unwrap());
         let netrc = home.join(".netrc");
         assert!(flat.contains(&format!("--ro-bind /dev/null {}", netrc.display())));
@@ -3298,8 +6062,14 @@ mod tests {
         assert_eq!(args.last().unwrap(), "--die-with-parent");
 
         // A custom $TMPDIR is bound too.
-        let with_tmp =
-            bwrap_args(&home, &workspace, &cfg_home, Some(Path::new("/custom/tmp"))).join(" ");
+        let with_tmp = bwrap_args(
+            &home,
+            &workspace,
+            &cfg_home,
+            Some(Path::new("/custom/tmp")),
+            Backend::Opencode,
+        )
+        .join(" ");
         assert!(with_tmp.contains("--bind-try /custom/tmp /custom/tmp"));
 
         let _ = std::fs::remove_dir_all(&scratch);
@@ -3326,7 +6096,7 @@ mod tests {
         std::fs::create_dir_all(real.join(".config/nvim")).unwrap();
         std::fs::create_dir_all(real.join("projects")).unwrap();
 
-        build_decoy_home(&real, &decoy).unwrap();
+        build_decoy_home(&real, &decoy, Backend::Opencode).unwrap();
 
         // Fake .ssh: a real empty dir, writable, host untouched.
         let ssh = decoy.join(".ssh");
@@ -3361,6 +6131,7 @@ mod tests {
             Path::new("/Users/dev"),
             Path::new("/Users/dev/proj"),
             Path::new("/Users/dev/.config/iblai/agents/sessions/k"),
+            Backend::Opencode,
         );
         assert!(p.starts_with("(version 1)\n(allow default)\n(deny file-write* (subpath \"/\"))"));
         assert!(p.contains("(allow file-write*"));
@@ -3373,11 +6144,36 @@ mod tests {
         assert!(p.contains("(subpath \"/Users/dev/.cargo\")"));
         assert!(p.contains("(deny file*"));
         assert!(p.contains("(subpath \"/Users/dev/.ssh\")"));
+        assert!(p.contains("(subpath \"/Users/dev/.codex\")"));
         assert!(p.contains("(subpath \"/Users/dev/Library/Keychains\")"));
         assert!(p.contains("(literal \"/Users/dev/.netrc\")"));
         assert!(p.contains("(literal \"/Users/dev/.cargo/credentials.toml\")"));
-        // Later rules win: the secrets deny must come after the write allows.
+        // Later rules win: the secrets deny must come after the write allows,
+        // and name `file-write*` itself, or the narrower allow beats it.
+        assert!(p.contains("(deny file* file-write*"));
         assert!(p.find("(deny file*").unwrap() > p.find("(allow file-write*").unwrap());
+    }
+
+    /// The workspace and config home are allowed as subpaths, so without a
+    /// later deny the folders themselves could be removed and replaced by a
+    /// link. The deny closes the profile, after every allow, and names only
+    /// create and unlink, so the folder's own times and xattrs stay writable.
+    #[test]
+    fn the_macos_profile_keeps_the_workspace_and_config_home_themselves() {
+        let keep = "(deny file-write-create file-write-unlink\n  \
+                    (literal \"/Users/dev/proj\")\n  \
+                    (literal \"/Users/dev/.config/iblai/agents/sessions/k\"))\n";
+        for backend in [Backend::Opencode, Backend::Claude, Backend::Codex] {
+            let p = sandbox_profile_macos(
+                Path::new("/Users/dev"),
+                Path::new("/Users/dev/proj"),
+                Path::new("/Users/dev/.config/iblai/agents/sessions/k"),
+                backend,
+            );
+            assert!(p.ends_with(keep), "{p}");
+            assert!(p.rfind(keep).unwrap() > p.rfind("(allow file-write*").unwrap());
+            assert_eq!(p.matches("(literal \"/Users/dev/proj\")").count(), 1);
+        }
     }
 
     /// A home path containing SBPL string metacharacters cannot break out of
@@ -3414,6 +6210,373 @@ mod tests {
         assert!(has_executable(&path_var, "bwrap"));
 
         let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// Every refusal in the person's words, and none when Code can run: a
+    /// missing bubblewrap must refuse, never fall back to running unsandboxed.
+    #[test]
+    fn code_is_refused_wherever_the_sandbox_cannot_run() {
+        let bwrap = "Code needs bubblewrap (bwrap) — install it with your package manager, then reopen the app.";
+        let windows = "Code isn't available on Windows.";
+        let app_store = "Code isn't available in the sandboxed Mac App Store build.";
+        assert_eq!(unavailable_reason(false, false, false), Some(bwrap));
+        assert_eq!(unavailable_reason(false, true, false), Some(windows));
+        assert_eq!(unavailable_reason(false, true, true), Some(windows));
+        for (windows, ready) in [(false, false), (false, true), (true, false), (true, true)] {
+            assert_eq!(unavailable_reason(true, windows, ready), Some(app_store));
+        }
+        assert_eq!(unavailable_reason(false, false, true), None);
+    }
+
+    #[test]
+    fn a_desktop_chat_is_sandboxed_around_its_own_folders() {
+        let ws = Path::new("/projects/site");
+        let paths = session_sandbox_paths("chat-1", ws);
+        assert_eq!(paths.workspace, ws);
+        assert_eq!(paths.config_home, config_home("chat-1"));
+        assert_eq!(paths.home, home_dir().unwrap_or_default());
+    }
+
+    /// How the desktop command is put together: the decoy home is built in
+    /// the config home (never the user's project) and the wrapper's env is
+    /// applied, so `$HOME` is the decoy.
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    #[test]
+    fn the_desktop_command_carries_the_wrapper_and_its_env() {
+        let scratch = std::env::temp_dir().join(format!("opencode-sbx-cmd-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let paths = SandboxPaths {
+            home: scratch.join("home"),
+            workspace: scratch.join("project"),
+            config_home: scratch.join("config"),
+        };
+        for d in [&paths.home, &paths.workspace, &paths.config_home] {
+            std::fs::create_dir_all(d).unwrap();
+        }
+        let cmd = sandboxed_command_in(&paths, Backend::Opencode).unwrap();
+        let std_cmd = cmd.as_std();
+        let args: Vec<String> = std_cmd
+            .get_args()
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect();
+        let home_env = std_cmd
+            .get_envs()
+            .find(|(k, _)| *k == "HOME")
+            .and_then(|(_, v)| v.map(PathBuf::from));
+        let decoy_in_config = paths.config_home.join("code-mode-home").is_dir();
+        let decoy_in_project = paths.workspace.join("code-mode-home").exists();
+        let _ = std::fs::remove_dir_all(&scratch);
+
+        #[cfg(target_os = "macos")]
+        {
+            assert_eq!(std_cmd.get_program(), "/usr/bin/sandbox-exec");
+            assert_eq!(args[0], "-p");
+            let subpath = |p: &Path| format!("(subpath \"{}\")", p.display());
+            assert!(args[1].contains(&subpath(&paths.workspace)), "{}", args[1]);
+            assert!(
+                args[1].contains(&subpath(&paths.config_home)),
+                "{}",
+                args[1]
+            );
+            assert_eq!(home_env, Some(paths.config_home.join("code-mode-home")));
+            assert!(
+                decoy_in_config,
+                "the decoy home is built in the config home"
+            );
+        }
+        #[cfg(target_os = "linux")]
+        {
+            assert_eq!(std_cmd.get_program(), "bwrap");
+            let bound = |p: &Path| {
+                let p = p.to_string_lossy();
+                args.windows(3)
+                    .any(|w| w[0] == "--bind-try" && w[1] == p && w[2] == p)
+            };
+            assert!(bound(&paths.workspace), "{args:?}");
+            assert!(bound(&paths.config_home), "{args:?}");
+            assert_eq!(home_env, None);
+            assert!(!decoy_in_config);
+        }
+        assert!(!decoy_in_project, "never inside the user's project");
+    }
+
+    /// A desktop chat, really sandboxed, does its ordinary work in its own
+    /// folder, the template skill's `cp -a <template>/. .` included (it sets
+    /// the folder's own times), and still can't remove or move that folder.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn a_desktop_chat_works_in_its_folder_but_cannot_remove_it() {
+        let scratch = outside_the_sandbox("desktop");
+        let paths = SandboxPaths {
+            home: scratch.join("home"),
+            workspace: scratch.join("project"),
+            config_home: scratch.join("config"),
+        };
+        let template = scratch.join("template");
+        for d in [
+            &paths.home,
+            &paths.workspace,
+            &paths.config_home,
+            &template.join("app"),
+        ] {
+            std::fs::create_dir_all(d).unwrap();
+        }
+        std::fs::write(template.join("app").join("page.tsx"), "x").unwrap();
+        let cmd = sandboxed_command_in(&paths, Backend::Opencode).unwrap();
+        let cmd = cmd.as_std();
+        let script = format!(
+            "git init -q && echo GIT-INIT
+             echo x > a.txt && git add a.txt \
+               && git -c user.name=t -c user.email=t@t commit -qm t && echo GIT-COMMIT
+             git checkout -qb side && echo GIT-CHECKOUT
+             mkdir sub && rm -r sub && echo SUBFOLDER
+             echo y > b.txt && rm b.txt && echo FILES
+             cp -a '{}/.' . && echo TEMPLATE-COPIED
+             cd ..
+             mv '{ws}' '{cfg}/moved' && echo GONE-MOVED
+             rm -rf '{ws}'
+             rmdir '{ws}' && echo GONE-REMOVED
+             true",
+            template.display(),
+            ws = paths.workspace.display(),
+            cfg = paths.config_home.display(),
+        );
+        let mut sh = std::process::Command::new(cmd.get_program());
+        sh.args(cmd.get_args())
+            .args(["/bin/sh", "-c", &script])
+            .current_dir(&paths.workspace);
+        for (key, value) in cmd.get_envs() {
+            match value {
+                Some(v) => sh.env(key, v),
+                None => sh.env_remove(key),
+            };
+        }
+        let out = sh.output().expect("run a shell the way a chat runs");
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        let kept = std::fs::symlink_metadata(&paths.workspace).is_ok_and(|m| m.is_dir());
+        let _ = std::fs::remove_dir_all(&scratch);
+
+        assert!(
+            !stderr.contains("sandbox_apply"),
+            "sandbox-exec could not start here, so this proves nothing: {stderr}"
+        );
+        for done in [
+            "GIT-INIT",
+            "GIT-COMMIT",
+            "GIT-CHECKOUT",
+            "SUBFOLDER",
+            "FILES",
+            "TEMPLATE-COPIED",
+        ] {
+            assert!(stdout.contains(done), "{done}: {stdout}\n{stderr}");
+        }
+        assert!(!stdout.contains("GONE-"), "{stdout}\n{stderr}");
+        assert!(kept, "the chat's folder is still a real folder");
+    }
+
+    /// A config home the sandboxed agent wrote into, with a link where each
+    /// app-written entry should be, aimed at `outside`.
+    #[cfg(unix)]
+    struct PlantedConfigHome {
+        scratch: PathBuf,
+        config_home: PathBuf,
+        outside: PathBuf,
+    }
+
+    #[cfg(unix)]
+    impl PlantedConfigHome {
+        fn new(tag: &str) -> Self {
+            let scratch =
+                std::env::temp_dir().join(format!("opencode-planted-{tag}-{}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&scratch);
+            let config_home = scratch.join("config");
+            let outside = scratch.join("outside");
+            std::fs::create_dir_all(&outside).unwrap();
+            Self {
+                scratch,
+                config_home,
+                outside,
+            }
+        }
+
+        fn outside_entries(&self) -> Vec<(String, String)> {
+            let mut entries: Vec<(String, String)> = std::fs::read_dir(&self.outside)
+                .unwrap()
+                .flatten()
+                .map(|e| {
+                    (
+                        e.file_name().to_string_lossy().into_owned(),
+                        std::fs::read_to_string(e.path()).unwrap_or_default(),
+                    )
+                })
+                .collect();
+            entries.sort();
+            entries
+        }
+
+        fn apply(&self) -> Result<(), String> {
+            let spec = ModelSpec {
+                provider: "iblai",
+                model: "openai/gpt-4o".to_string(),
+                local: false,
+                fit: None,
+            };
+            apply_opencode_model_at(
+                &self.config_home,
+                None,
+                &spec,
+                "http://127.0.0.1:1/v1",
+                "proxy-secret",
+                "ibl.ai",
+                Some("guidance"),
+            )
+        }
+
+        fn assert_real_files(&self) {
+            for name in ["opencode.json", "AGENTS.md"] {
+                let path = self.config_home.join("opencode").join(name);
+                let meta = std::fs::symlink_metadata(&path).unwrap();
+                assert!(meta.file_type().is_file(), "{name} is a regular file");
+            }
+            assert!(std::fs::symlink_metadata(&self.config_home)
+                .unwrap()
+                .is_dir());
+            assert!(std::fs::symlink_metadata(self.config_home.join("opencode"))
+                .unwrap()
+                .is_dir());
+        }
+    }
+
+    #[cfg(unix)]
+    impl Drop for PlantedConfigHome {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.scratch);
+        }
+    }
+
+    /// The app writes the config home from outside any sandbox, and the agent
+    /// inside can leave links there: none of them may carry the app's writes
+    /// (or reads) out to their target.
+    #[cfg(unix)]
+    #[test]
+    fn the_app_never_writes_through_a_link_in_a_config_home() {
+        use std::os::unix::fs::symlink;
+
+        let files = PlantedConfigHome::new("files");
+        std::fs::create_dir_all(files.config_home.join("opencode")).unwrap();
+        let config_json = r#"{"provider":{"iblai":{"models":{}}},"secret":"theirs"}"#;
+        std::fs::write(files.outside.join("auth.json"), config_json).unwrap();
+        std::fs::write(files.outside.join("AGENTS.md"), "theirs").unwrap();
+        symlink(
+            files.outside.join("auth.json"),
+            files.config_home.join("opencode/opencode.json"),
+        )
+        .unwrap();
+        symlink(
+            files.outside.join("AGENTS.md"),
+            files.config_home.join("opencode/AGENTS.md"),
+        )
+        .unwrap();
+        let before = files.outside_entries();
+        files.apply().unwrap();
+        assert_eq!(files.outside_entries(), before);
+        files.assert_real_files();
+        let written =
+            std::fs::read_to_string(files.config_home.join("opencode/opencode.json")).unwrap();
+        assert!(
+            !written.contains("theirs"),
+            "a linked file is never read into the agent's reach: {written}"
+        );
+
+        let folder = PlantedConfigHome::new("folder");
+        std::fs::create_dir_all(&folder.config_home).unwrap();
+        symlink(&folder.outside, folder.config_home.join("opencode")).unwrap();
+        folder.apply().unwrap();
+        assert_eq!(folder.outside_entries(), []);
+        folder.assert_real_files();
+
+        let root = PlantedConfigHome::new("root");
+        symlink(&root.outside, &root.config_home).unwrap();
+        root.apply().unwrap();
+        assert_eq!(root.outside_entries(), []);
+        root.assert_real_files();
+    }
+
+    /// The guidance refresh runs while the serve is up, against whatever the
+    /// agent left: a linked folder fails the write instead of following it,
+    /// and clearing never removes the link's target.
+    #[cfg(unix)]
+    #[test]
+    fn the_guidance_is_never_written_or_cleared_through_a_link() {
+        let planted = PlantedConfigHome::new("guidance");
+        std::fs::create_dir_all(&planted.config_home).unwrap();
+        std::fs::write(planted.outside.join("AGENTS.md"), "theirs").unwrap();
+        std::os::unix::fs::symlink(&planted.outside, planted.config_home.join("opencode")).unwrap();
+        assert!(write_iblai_guidance(&planted.config_home, Some("ours")).is_err());
+        let _ = write_iblai_guidance(&planted.config_home, None);
+        assert_eq!(
+            planted.outside_entries(),
+            [("AGENTS.md".to_string(), "theirs".to_string())]
+        );
+    }
+
+    /// A fifo left where the config should be reads as missing at once
+    /// instead of blocking the app forever.
+    #[cfg(unix)]
+    #[test]
+    fn a_fifo_in_a_config_home_reads_as_missing() {
+        let planted = PlantedConfigHome::new("fifo");
+        std::fs::create_dir_all(planted.config_home.join("opencode")).unwrap();
+        let fifo = planted.config_home.join("opencode/opencode.json");
+        let c = std::ffi::CString::new(fifo.to_string_lossy().as_bytes()).unwrap();
+        // SAFETY: a valid NUL-terminated path.
+        assert_eq!(unsafe { libc::mkfifo(c.as_ptr(), 0o600) }, 0);
+        let rel = Path::new("opencode").join("opencode.json");
+        assert_eq!(read_config_file(&planted.config_home, &rel).unwrap(), None);
+        planted.apply().unwrap();
+        planted.assert_real_files();
+    }
+
+    /// The phone's serve can write the whole workspaces root, so a link it
+    /// leaves there is never recycled for a desktop chat (whose sandbox
+    /// would then make the target writable) nor `git init`-ed by the app.
+    #[cfg(unix)]
+    #[test]
+    fn a_link_in_the_workspaces_root_is_never_used_as_a_workspace() {
+        let data = ScratchDataDir::new("opencode-ws-links");
+        let root = workspaces_root();
+        let outside = data.path.join("outside");
+        std::fs::create_dir_all(outside.join(".git")).unwrap();
+        std::fs::create_dir_all(&root).unwrap();
+        std::os::unix::fs::symlink(&outside, root.join("a-link")).unwrap();
+        assert_eq!(find_empty_workspace(&root), None);
+
+        let bare = data.path.join("bare");
+        std::fs::create_dir_all(&bare).unwrap();
+        std::os::unix::fs::symlink(&bare, root.join("phone")).unwrap();
+        ensure_workspace(&root.join("phone")).unwrap();
+        assert!(!bare.join(".git").exists(), "git never runs in the target");
+        let phone = std::fs::symlink_metadata(root.join("phone")).unwrap();
+        assert!(phone.is_dir(), "a real folder took the link's place");
+
+        let moved = data.path.join("moved-root");
+        std::fs::rename(&root, &moved).unwrap();
+        std::os::unix::fs::symlink(&moved, &root).unwrap();
+        ensure_workspace(&root.join("phone-abc123")).unwrap();
+        assert!(
+            root.is_symlink(),
+            "a root the user linked elsewhere is kept"
+        );
+        assert!(moved.join("phone-abc123").join(".git").is_dir());
+
+        let picked = data.path.join("picked-link");
+        std::os::unix::fs::symlink(&bare, &picked).unwrap();
+        ensure_workspace(&picked).unwrap();
+        assert!(
+            picked.is_symlink(),
+            "a folder the user picked outside the root is used as it is"
+        );
     }
 
     /// Untouched workspaces (nothing beyond `.git`/`.DS_Store`) are
@@ -3628,11 +6791,11 @@ mod tests {
     fn settings_keys_do_not_clobber_each_other() {
         with_scratch_data_dir("settings", || {
             assert_eq!(read_settings().len(), 0, "no file yet reads as empty");
-            assert_eq!(saved_permission_mode(), None, "and no mode is chosen");
+            assert_eq!(permission_mode(), "auto", "and no mode chosen is Automatic");
 
             let mut seeded = read_settings();
             seeded.insert("some_future_key".into(), json!("keep me"));
-            seeded.insert(SETTINGS_PERMISSION_MODE.into(), json!("auto"));
+            seeded.insert(SETTINGS_PERMISSION_MODE.into(), json!("manual"));
             write_settings(&seeded).unwrap();
 
             record_mentor_workspace("acme", "mentor-1", Path::new("/ws/one")).unwrap();
@@ -3640,7 +6803,7 @@ mod tests {
 
             let settings = read_settings();
             assert_eq!(settings["some_future_key"], json!("keep me"));
-            assert_eq!(saved_permission_mode().as_deref(), Some("auto"));
+            assert_eq!(permission_mode(), "manual");
             let ws = settings[SETTINGS_WORKSPACES].as_object().unwrap();
             assert_eq!(ws[&workspace_key("acme", "mentor-1")], json!("/ws/one"));
             assert_eq!(
@@ -3651,7 +6814,7 @@ mod tests {
 
             // …and writing the mode back leaves the workspaces alone.
             let mut settings = read_settings();
-            settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("manual"));
+            settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("auto"));
             write_settings(&settings).unwrap();
             assert_eq!(
                 read_settings()[SETTINGS_WORKSPACES]
@@ -3663,16 +6826,591 @@ mod tests {
         });
     }
 
-    /// A garbled or hand-edited mode must read as "never chosen" so the app
-    /// asks again, rather than silently picking a security posture.
+    /// Only an absent mode means Automatic: a garbled or hand-edited value asks,
+    /// and so does a file cut short mid-write, so damage can never quietly
+    /// grant more than the user chose.
     #[test]
-    fn an_unrecognised_saved_mode_reads_as_unset() {
+    fn a_garbled_saved_mode_asks_and_only_absence_means_automatic() {
         with_scratch_data_dir("settings-bad", || {
+            assert_eq!(permission_mode(), "auto", "no file at all");
+
             let mut settings = serde_json::Map::new();
             settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("YOLO"));
             write_settings(&settings).unwrap();
-            assert_eq!(saved_permission_mode(), None);
+            assert_eq!(permission_mode(), "manual");
+
+            settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("manual"));
+            write_settings(&settings).unwrap();
+            assert_eq!(permission_mode(), "manual");
+
+            std::fs::write(settings_file(), "{\"permission_mode\": \"man").unwrap();
+            assert_eq!(permission_mode(), "manual", "a file cut short asks");
+            std::fs::write(settings_file(), "").unwrap();
+            assert_eq!(permission_mode(), "manual", "an emptied file asks");
+
+            // An unreadable file is NOT damage: it is unknown. Writing over it
+            // would discard the workspaces, the per-agent models and the
+            // minted platform key along with the mode, so the write is refused.
+            std::fs::remove_file(settings_file()).unwrap();
+            std::fs::create_dir(settings_file()).unwrap();
+            assert!(
+                update_settings(|s| s.insert("x".into(), json!(1))).is_err(),
+                "a file we could not read is never written over"
+            );
+            assert!(settings_file().is_dir(), "and is left exactly as it was");
+            std::fs::remove_dir(settings_file()).unwrap();
+
+            std::fs::write(settings_file(), "{\"permission_mode\": \"man").unwrap();
+            // …and keeps asking after another key is saved over the damage.
+            record_mentor_workspace("acme", "mentor-1", Path::new("/ws/one")).unwrap();
+            assert_eq!(permission_mode(), "manual");
         });
+    }
+
+    /// The bug this pins: with no mode saved, Code asked at every step and
+    /// Codex started read-only. Unset is Automatic — operations go through
+    /// without a card and Codex starts with full access.
+    #[test]
+    fn no_saved_mode_means_automatic() {
+        with_scratch_data_dir("settings-default", || {
+            assert_eq!(permission_mode(), "auto");
+            let auto = permission_mode() == "auto";
+            let codex = agent_launch(
+                Backend::Codex,
+                Path::new("/tmp/ws"),
+                Path::new("/tmp/cfg/agent-skills"),
+                Path::new("/tmp/cfg"),
+                "GUIDE",
+                auto,
+                None,
+            );
+            assert_eq!(
+                codex
+                    .env
+                    .iter()
+                    .find(|(k, _)| *k == "INITIAL_AGENT_MODE")
+                    .unwrap()
+                    .1,
+                "agent-full-access"
+            );
+            assert_eq!(
+                session_mode(Backend::Codex, auto),
+                Some("agent-full-access")
+            );
+        });
+    }
+
+    /// The web app reads the mode before its first chat: unset must come back
+    /// as "auto", never null (an older web app takes null as "ask which they
+    /// want"). A typo must never pick a mode for the user, so set refuses it
+    /// and the saved choice stays.
+    #[tokio::test]
+    async fn the_mode_commands_default_to_auto_and_refuse_unknown_modes() {
+        let _scratch = ScratchDataDir::new("opencode-mode-commands");
+        assert_eq!(get_opencode_permission_mode().await.unwrap(), "auto");
+
+        let mut settings = serde_json::Map::new();
+        settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("manual"));
+        write_settings(&settings).unwrap();
+        let err = set_opencode_permission_mode("YOLO".into())
+            .await
+            .unwrap_err();
+        assert!(err.contains("YOLO"), "{err}");
+        assert_eq!(get_opencode_permission_mode().await.unwrap(), "manual");
+    }
+
+    /// Puts the process-wide approval flag back however the test ends.
+    struct RestoreAuto(bool);
+
+    impl RestoreAuto {
+        fn new() -> Self {
+            Self(permission_auto().load(Ordering::SeqCst))
+        }
+    }
+
+    impl Drop for RestoreAuto {
+        fn drop(&mut self) {
+            permission_auto().store(self.0, Ordering::SeqCst);
+        }
+    }
+
+    fn settings_snapshot() -> (Vec<u8>, std::time::SystemTime) {
+        let f = settings_file();
+        let modified = std::fs::metadata(&f).unwrap().modified().unwrap();
+        (std::fs::read(&f).unwrap(), modified)
+    }
+
+    /// Moved into the past first, so a rewrite can't keep the same timestamp.
+    fn backdated_settings_snapshot() -> (Vec<u8>, std::time::SystemTime) {
+        let past = std::time::UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+        std::fs::File::options()
+            .write(true)
+            .open(settings_file())
+            .unwrap()
+            .set_modified(past)
+            .unwrap();
+        settings_snapshot()
+    }
+
+    /// A machine with no approval mode saved already runs Automatic, so the
+    /// platform's Automatic writes nothing and leaves the machine open to a
+    /// later Ask Me — from another machine or tenant — which is saved and in
+    /// force at once.
+    #[tokio::test]
+    async fn a_machine_with_no_mode_saved_takes_the_platform_choice() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let _scratch = ScratchDataDir::new("opencode-seed-empty");
+        let _restore = RestoreAuto::new();
+        permission_auto().store(true, Ordering::SeqCst);
+
+        assert_eq!(
+            seed_opencode_permission_mode("auto".into()).await.unwrap(),
+            "auto"
+        );
+        assert!(
+            !settings_file().exists(),
+            "no file is written for Automatic"
+        );
+
+        let mut others = serde_json::Map::new();
+        others.insert("some_future_key".into(), json!("keep me"));
+        write_settings(&others).unwrap();
+        let before = backdated_settings_snapshot();
+        assert_eq!(
+            seed_opencode_permission_mode("auto".into()).await.unwrap(),
+            "auto"
+        );
+        assert_eq!(
+            settings_snapshot(),
+            before,
+            "nor is the file rewritten for it"
+        );
+        assert!(
+            permission_auto().load(Ordering::SeqCst),
+            "Automatic stays in force"
+        );
+
+        assert_eq!(
+            seed_opencode_permission_mode("manual".into())
+                .await
+                .unwrap(),
+            "manual"
+        );
+        let settings = read_settings();
+        assert_eq!(settings[SETTINGS_PERMISSION_MODE], json!("manual"));
+        assert_eq!(settings["some_future_key"], json!("keep me"));
+        assert!(
+            !permission_auto().load(Ordering::SeqCst),
+            "Ask Me is in force"
+        );
+        assert_eq!(get_opencode_permission_mode().await.unwrap(), "manual");
+    }
+
+    /// An Ask Me taken from the platform holds each request for its card, and
+    /// a later platform Automatic doesn't release it; the user's own switch to
+    /// Automatic answers it with its allow option.
+    #[tokio::test]
+    async fn a_card_held_by_a_seeded_ask_me_is_answered_by_the_users_switch() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let _scratch = ScratchDataDir::new("opencode-seed-cards");
+        let _restore = RestoreAuto::new();
+        permission_auto().store(true, Ordering::SeqCst);
+
+        seed_opencode_permission_mode("manual".into())
+            .await
+            .unwrap();
+        let (tx, mut rx) = oneshot::channel();
+        let answered = queue_unless_auto(
+            "perm-seed-card",
+            PendingPermission {
+                session_id: "chat-seed".into(),
+                allow_option_id: Some("allow-seed".into()),
+                tx,
+            },
+        )
+        .await;
+        assert!(answered.is_none(), "Ask Me queues it for its card");
+
+        assert_eq!(
+            seed_opencode_permission_mode("auto".into()).await.unwrap(),
+            "manual"
+        );
+        assert!(rx.try_recv().is_err(), "the card is still waiting");
+
+        set_opencode_permission_mode("auto".into()).await.unwrap();
+        let answer = tokio::time::timeout(Duration::from_secs(5), rx)
+            .await
+            .expect("the switch answers the waiting card");
+        assert_eq!(answer.unwrap().as_deref(), Some("allow-seed"));
+    }
+
+    /// Each change of mode finishes saving and moving the flag before the next
+    /// one starts, so the in-memory flag always matches the saved mode.
+    #[tokio::test]
+    async fn a_mode_change_waits_for_the_one_already_running() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let _scratch = ScratchDataDir::new("opencode-mode-change");
+        let _restore = RestoreAuto::new();
+        permission_auto().store(true, Ordering::SeqCst);
+
+        let running = MODE_CHANGE.lock().await;
+        let seed = tokio::spawn(seed_opencode_permission_mode("manual".into()));
+        let set = tokio::spawn(set_opencode_permission_mode("auto".into()));
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert!(
+            !settings_file().exists(),
+            "nothing is saved while another change runs"
+        );
+        assert!(
+            permission_auto().load(Ordering::SeqCst),
+            "nor is the flag moved"
+        );
+
+        drop(running);
+        seed.await.unwrap().unwrap();
+        set.await.unwrap().unwrap();
+        assert_eq!(
+            permission_auto().load(Ordering::SeqCst),
+            permission_mode() == "auto",
+            "the flag matches the saved mode"
+        );
+    }
+
+    /// Codex can take up to 10s to confirm a pin. A switch to Ask Me made
+    /// meanwhile takes hold at once, and the session ends pinned to Ask Me.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_switch_to_ask_me_never_waits_behind_a_slow_codex_pin() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let scratch = ScratchDataDir::new("opencode-slow-pin");
+        let _restore = RestoreAuto::new();
+        permission_auto().store(false, Ordering::SeqCst);
+        let script = scratch.path.join("agent.sh");
+        std::fs::write(&script, FAULTY_AGENT).unwrap();
+        let id = format!("pin-slow-{}", std::process::id());
+        let slow = faulty_agent(
+            &script,
+            &scratch.path.join("slow.log"),
+            Backend::Codex,
+            Some("mode-slow"),
+        );
+        registry().lock().await.insert(id.clone(), slow);
+        let log = || std::fs::read_to_string(scratch.path.join("slow.log")).unwrap_or_default();
+
+        let to_auto = tokio::spawn(set_opencode_permission_mode("auto".into()));
+        let start = Instant::now();
+        while !log().contains("agent-full-access") {
+            assert!(start.elapsed() < Duration::from_secs(5), "{}", log());
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        let to_ask = tokio::spawn(set_opencode_permission_mode("manual".into()));
+        let start = Instant::now();
+        while permission_auto().load(Ordering::SeqCst) {
+            assert!(
+                start.elapsed() < Duration::from_millis(500),
+                "Ask Me takes hold while Codex is still confirming Automatic"
+            );
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        assert_eq!(permission_mode(), "manual");
+
+        to_auto.await.unwrap().unwrap();
+        to_ask.await.unwrap().unwrap();
+        let last_pin = log()
+            .lines()
+            .rfind(|l| l.contains("session/set_mode"))
+            .map(str::to_string)
+            .unwrap_or_default();
+        assert!(last_pin.contains(r#""modeId":"read-only""#), "{}", log());
+        close_session(&id).await;
+    }
+
+    /// A Codex session spawned while a switch is pinning the others is pinned
+    /// after it, to the mode in force then — never to one read before.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_new_codex_session_is_pinned_to_the_mode_in_force_after_a_running_pin() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let scratch = ScratchDataDir::new("opencode-new-pin");
+        let _restore = RestoreAuto::new();
+        permission_auto().store(true, Ordering::SeqCst);
+        let script = scratch.path.join("agent.sh");
+        std::fs::write(&script, FAULTY_AGENT).unwrap();
+        let id = format!("pin-new-{}", std::process::id());
+        let fresh = piped_agent(&script, &scratch.path.join("new.log"), Backend::Codex);
+        registry().lock().await.insert(id.clone(), fresh.clone());
+
+        let running = CODEX_PIN.lock().await;
+        let pin = tokio::spawn({
+            let (id, fresh) = (id.clone(), fresh.clone());
+            async move { pin_new_codex_session(&id, &fresh).await }
+        });
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        permission_auto().store(false, Ordering::SeqCst);
+        drop(running);
+        pin.await.unwrap().unwrap();
+
+        let log = std::fs::read_to_string(scratch.path.join("new.log")).unwrap();
+        assert!(log.contains(r#""modeId":"read-only""#), "{log}");
+        assert!(!log.contains("agent-full-access"), "{log}");
+        close_session(&id).await;
+    }
+
+    /// A mode saved on this machine is its own choice: Automatic, Ask Me or a
+    /// garbled value (which asks) is never replaced by the platform's, in the
+    /// file or in force. A mode the app doesn't know is refused.
+    #[tokio::test]
+    async fn a_saved_mode_is_never_replaced_by_the_platform_choice() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let _scratch = ScratchDataDir::new("opencode-seed-saved");
+        let _restore = RestoreAuto::new();
+
+        for (saved, in_force) in [
+            (json!("auto"), "auto"),
+            (json!("manual"), "manual"),
+            (json!("YOLO"), "manual"),
+            (Value::Null, "manual"),
+        ] {
+            let mut settings = serde_json::Map::new();
+            settings.insert(SETTINGS_PERMISSION_MODE.into(), saved.clone());
+            write_settings(&settings).unwrap();
+            let before = backdated_settings_snapshot();
+            for platform in ["auto", "manual"] {
+                let flag = in_force == "auto";
+                permission_auto().store(flag, Ordering::SeqCst);
+                assert_eq!(
+                    seed_opencode_permission_mode(platform.into())
+                        .await
+                        .unwrap(),
+                    in_force,
+                    "saved {saved}, platform {platform}"
+                );
+                assert_eq!(
+                    permission_auto().load(Ordering::SeqCst),
+                    flag,
+                    "saved {saved}, platform {platform}: the mode in force stays"
+                );
+            }
+            assert_eq!(settings_snapshot(), before, "saved {saved}: file untouched");
+        }
+
+        std::fs::write(settings_file(), "{\"permission_mode\": \"au").unwrap();
+        permission_auto().store(false, Ordering::SeqCst);
+        let before = backdated_settings_snapshot();
+        assert_eq!(
+            seed_opencode_permission_mode("auto".into()).await.unwrap(),
+            "manual",
+            "a file cut short asks, and keeps asking"
+        );
+        assert!(!permission_auto().load(Ordering::SeqCst));
+        assert_eq!(settings_snapshot(), before);
+
+        std::fs::remove_file(settings_file()).unwrap();
+        let err = seed_opencode_permission_mode("YOLO".into())
+            .await
+            .unwrap_err();
+        assert!(err.contains("YOLO"), "{err}");
+        assert!(
+            !settings_file().exists(),
+            "nothing saved for an unknown mode"
+        );
+    }
+
+    /// A settings file this process may not read, for as long as it lives.
+    #[cfg(unix)]
+    struct Unreadable(PathBuf);
+
+    #[cfg(unix)]
+    impl Unreadable {
+        /// `None` when the process reads it anyway, as root does.
+        fn new(path: PathBuf) -> Option<Self> {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o000)).unwrap();
+            let guard = Self(path);
+            if std::fs::read(&guard.0).is_ok() {
+                eprintln!("skipped: this process reads a 0o000 file anyway (root?)");
+                return None;
+            }
+            Some(guard)
+        }
+    }
+
+    #[cfg(unix)]
+    impl Drop for Unreadable {
+        fn drop(&mut self) {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(&self.0, std::fs::Permissions::from_mode(0o600));
+        }
+    }
+
+    /// A settings file that is there but can't be read is unknown, not
+    /// damage: writing over it would discard the workspaces, the per-agent
+    /// models and the minted platform key along with the mode.
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_settings_file_is_never_written_over() {
+        let _scratch = ScratchDataDir::new("opencode-settings-unreadable");
+        let mut settings = serde_json::Map::new();
+        settings.insert(
+            SETTINGS_WORKSPACES.into(),
+            json!({ workspace_key("acme", "mentor-1"): "/ws/one" }),
+        );
+        settings.insert(SETTINGS_PERMISSION_MODE.into(), json!("auto"));
+        write_settings(&settings).unwrap();
+        let original = std::fs::read(settings_file()).unwrap();
+        {
+            let Some(_unreadable) = Unreadable::new(settings_file()) else {
+                return;
+            };
+            assert!(update_settings(|s| s.insert("x".into(), json!(1))).is_err());
+            assert!(
+                record_mentor_workspace("acme", "mentor-2", Path::new("/ws/two")).is_err(),
+                "a real writer is refused too"
+            );
+        }
+        assert_eq!(
+            std::fs::read(settings_file()).unwrap(),
+            original,
+            "the file keeps every byte"
+        );
+    }
+
+    /// The platform's choice is never saved over a settings file that can't
+    /// be read: the refusal comes back and the file keeps every byte.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_seed_over_an_unreadable_settings_file_is_refused() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let _scratch = ScratchDataDir::new("opencode-seed-unreadable");
+        let _restore = RestoreAuto::new();
+        let mut settings = serde_json::Map::new();
+        settings.insert(
+            SETTINGS_WORKSPACES.into(),
+            json!({ workspace_key("acme", "mentor-1"): "/ws/one" }),
+        );
+        write_settings(&settings).unwrap();
+        let original = std::fs::read(settings_file()).unwrap();
+        {
+            let Some(_unreadable) = Unreadable::new(settings_file()) else {
+                return;
+            };
+            assert!(seed_opencode_permission_mode("manual".into())
+                .await
+                .is_err());
+        }
+        assert_eq!(std::fs::read(settings_file()).unwrap(), original);
+    }
+
+    /// Every settings owner reads the whole file, changes its own key and
+    /// writes it all back. Run at once, each owner's every write must survive
+    /// the others'.
+    #[test]
+    fn concurrent_settings_writers_never_lose_a_write() {
+        const ROUNDS: usize = 40;
+        const DM: &str = "https://dm.race.test";
+        const EXPIRES: u64 = 4_000_000_000;
+        let _scratch = ScratchDataDir::new("opencode-settings-race");
+        let start = std::sync::Barrier::new(7);
+        std::thread::scope(|s| {
+            let start = &start;
+            for t in 0..2 {
+                s.spawn(move || {
+                    start.wait();
+                    for i in 0..ROUNDS {
+                        let dir = format!("/ws/{t}/{i}");
+                        record_mentor_workspace("race", &format!("m{t}-{i}"), Path::new(&dir))
+                            .unwrap();
+                    }
+                });
+                s.spawn(move || {
+                    start.wait();
+                    for i in 0..ROUNDS {
+                        update_settings(|settings| {
+                            crate::opencode_proxy::record_platform_key(
+                                settings,
+                                DM,
+                                &format!("tenant-{t}-{i}"),
+                                &format!("key-{t}-{i}"),
+                                EXPIRES,
+                            );
+                        })
+                        .unwrap();
+                    }
+                });
+            }
+            s.spawn(move || {
+                start.wait();
+                for i in 0..ROUNDS {
+                    let backend = if i % 2 == 0 {
+                        Backend::Codex
+                    } else {
+                        Backend::Claude
+                    };
+                    crate::code_agent_models::save(backend, Some(&format!("model-{i}"))).unwrap();
+                }
+            });
+            s.spawn(move || {
+                start.wait();
+                for i in 0..ROUNDS {
+                    let mode = if i % 2 == 0 { "manual" } else { "auto" };
+                    update_settings(|settings| {
+                        settings.insert(SETTINGS_PERMISSION_MODE.to_string(), json!(mode));
+                    })
+                    .unwrap();
+                }
+            });
+            s.spawn(move || {
+                start.wait();
+                for i in 0..ROUNDS {
+                    update_settings_if(|settings| {
+                        if i % 2 == 1 {
+                            return false;
+                        }
+                        settings.insert(format!("only-if-{i}"), json!(i));
+                        true
+                    })
+                    .unwrap();
+                }
+            });
+        });
+
+        let settings = read_settings();
+        let workspaces = settings
+            .get(SETTINGS_WORKSPACES)
+            .and_then(|v| v.as_object())
+            .cloned()
+            .unwrap_or_default();
+        let mut lost = Vec::new();
+        for t in 0..2 {
+            for i in 0..ROUNDS {
+                let key = workspace_key("race", &format!("m{t}-{i}"));
+                if workspaces.get(&key) != Some(&json!(format!("/ws/{t}/{i}"))) {
+                    lost.push(key);
+                }
+                let tenant = format!("tenant-{t}-{i}");
+                if crate::opencode_proxy::stored_platform_key(&settings, DM, &tenant, 0)
+                    != Some((format!("key-{t}-{i}"), EXPIRES))
+                {
+                    lost.push(tenant);
+                }
+            }
+        }
+        for i in (0..ROUNDS).step_by(2) {
+            let key = format!("only-if-{i}");
+            if settings.get(&key) != Some(&json!(i)) {
+                lost.push(key);
+            }
+        }
+        assert!(lost.is_empty(), "{} writes lost: {lost:?}", lost.len());
+        assert_eq!(
+            crate::code_agent_models::saved(Backend::Codex),
+            Some(format!("model-{}", ROUNDS - 2))
+        );
+        assert_eq!(
+            crate::code_agent_models::saved(Backend::Claude),
+            Some(format!("model-{}", ROUNDS - 1))
+        );
+        assert_eq!(settings.get(SETTINGS_PERMISSION_MODE), Some(&json!("auto")));
     }
 
     /// The mentor keeps one folder across chats, and a fresh one is genuinely
@@ -3705,6 +7443,7 @@ mod tests {
     /// too: leaving those cards up would be incoherent.
     #[tokio::test]
     async fn switching_to_auto_answers_the_cards_already_waiting() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
         let (tx_allow, rx_allow) = oneshot::channel();
         let (tx_none, rx_none) = oneshot::channel();
         {
@@ -3739,6 +7478,60 @@ mod tests {
             "a card with no allow option is left for the user, not guessed at"
         );
         drop(rx_none);
+    }
+
+    /// `permission_auto()` and the pending map are process-wide, and
+    /// `allow_all_pending()` sweeps EVERY queued card rather than just the
+    /// caller's, so tests touching them must not interleave: Rust runs them in
+    /// parallel threads, and a neighbour otherwise loses its entry or reads
+    /// the wrong mode.
+    static PERMISSION_TEST_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+    /// The race this pins: a switch to Automatic landing between a request's
+    /// auto check and its queueing left that card up in Automatic. The check now
+    /// runs under the sweep's lock, so a request is either answered by Automatic
+    /// or queued where the switch's sweep answers it.
+    #[tokio::test]
+    async fn a_request_is_answered_by_automatic_or_queued_for_its_sweep() {
+        let _serial = PERMISSION_TEST_LOCK.lock().await;
+        let auto = permission_auto();
+        let before = auto.load(Ordering::SeqCst);
+
+        auto.store(true, Ordering::SeqCst);
+        let (tx, _rx) = oneshot::channel();
+        let answered = queue_unless_auto(
+            "perm-race-auto",
+            PendingPermission {
+                session_id: "chat-race".into(),
+                allow_option_id: Some("allow-auto".into()),
+                tx,
+            },
+        )
+        .await;
+        assert_eq!(answered.as_deref(), Some("allow-auto"));
+        assert!(
+            !permissions().lock().await.contains_key("perm-race-auto"),
+            "nothing is queued in Automatic"
+        );
+
+        auto.store(false, Ordering::SeqCst);
+        let (tx, rx) = oneshot::channel();
+        let answered = queue_unless_auto(
+            "perm-race-ask",
+            PendingPermission {
+                session_id: "chat-race".into(),
+                allow_option_id: Some("allow-ask".into()),
+                tx,
+            },
+        )
+        .await;
+        assert!(answered.is_none(), "Ask Me queues it for its card");
+        // The switch itself: flip, then sweep.
+        auto.store(true, Ordering::SeqCst);
+        allow_all_pending().await;
+        assert_eq!(rx.await.unwrap().as_deref(), Some("allow-ask"));
+
+        auto.store(before, Ordering::SeqCst);
     }
 
     /// Workspaces are keyed by (tenant, mentor), and the ids are opaque backend
@@ -3933,7 +7726,7 @@ mod tests {
         // A persisted config from the retired instructions-based approach.
         cfg.insert("instructions".to_string(), json!(["http://stale"]));
 
-        apply_skills_config(&mut cfg, &vibe, Some(&mentor));
+        apply_skills_config(&mut cfg, Some(&vibe), Some(&mentor));
         assert!(cfg.get("skills").is_none(), "nothing on disk → no key");
         assert!(
             cfg.get("instructions").is_none(),
@@ -3941,7 +7734,7 @@ mod tests {
         );
 
         std::fs::create_dir_all(&vibe).unwrap();
-        apply_skills_config(&mut cfg, &vibe, Some(&mentor));
+        apply_skills_config(&mut cfg, Some(&vibe), Some(&mentor));
         assert_eq!(
             cfg["skills"]["paths"],
             json!([vibe.to_string_lossy()]),
@@ -3949,18 +7742,18 @@ mod tests {
         );
 
         std::fs::create_dir_all(&mentor).unwrap();
-        apply_skills_config(&mut cfg, &vibe, Some(&mentor));
+        apply_skills_config(&mut cfg, Some(&vibe), Some(&mentor));
         assert_eq!(
             cfg["skills"]["paths"],
             json!([vibe.to_string_lossy(), mentor.to_string_lossy()]),
             "mentor last: duplicate names resolve last-wins in opencode"
         );
 
-        apply_skills_config(&mut cfg, &vibe, None);
+        apply_skills_config(&mut cfg, Some(&vibe), None);
         assert_eq!(cfg["skills"]["paths"], json!([vibe.to_string_lossy()]));
 
         std::fs::remove_dir_all(&vibe).unwrap();
-        apply_skills_config(&mut cfg, &vibe, None);
+        apply_skills_config(&mut cfg, Some(&vibe), None);
         assert!(
             cfg.get("skills").is_none(),
             "a leftover key from a previous spawn is removed"
@@ -4093,14 +7886,10 @@ mod tests {
             pending: Arc::new(Mutex::new(HashMap::new())),
             acp_session_id: "acp-test".to_string(),
             requested_model: Some("m".to_string()),
+            backend: Backend::Opencode,
+            cowork: false,
             proxy_secret: None,
-            turn: Arc::new(Mutex::new(TurnState {
-                generation_id: String::new(),
-                full_content: String::new(),
-                pending_delta: String::new(),
-                last_narration: String::new(),
-                last_emit: Instant::now(),
-            })),
+            turn: Arc::new(Mutex::new(TurnState::new())),
             last_used: Mutex::new(Instant::now()),
             active_turns: AtomicUsize::new(0),
             closing: AtomicBool::new(false),
@@ -4333,13 +8122,7 @@ mod tests {
     /// falling back to the model's only text when a turn ends on a tool call.
     #[test]
     fn pre_tool_text_is_reclassified_as_narration() {
-        let mut ts = TurnState {
-            generation_id: String::new(),
-            full_content: String::new(),
-            pending_delta: String::new(),
-            last_narration: String::new(),
-            last_emit: Instant::now(),
-        };
+        let mut ts = TurnState::new();
         ts.reset("g1".to_string());
         assert_eq!(
             ts.take_narration(),
@@ -4374,19 +8157,2460 @@ mod tests {
         assert_eq!(ts.final_reply(), "", "reset clears the narration too");
     }
 
+    /// A tool call or a permission card moves the pre-tool text into the thoughts
+    /// (with a line break) and says whether the reply bubble must be emptied.
+    #[test]
+    fn narration_moves_into_the_thoughts_once() {
+        let mut ts = TurnState::new();
+        ts.reset("g1".to_string());
+        assert!(
+            !ts.narration_to_reasoning(),
+            "nothing streamed, nothing to retract"
+        );
+
+        ts.full_content.push_str("I'll run the build now.");
+        ts.pending_delta.push_str("now.");
+        assert!(ts.narration_to_reasoning());
+        assert_eq!(ts.pending_reasoning, "I'll run the build now.\n");
+        assert!(ts.full_content.is_empty() && ts.pending_delta.is_empty());
+        assert!(
+            !ts.narration_to_reasoning(),
+            "the tool call that follows the card finds nothing left"
+        );
+        assert_eq!(
+            ts.final_reply(),
+            "I'll run the build now.",
+            "still the only text if the turn ends here"
+        );
+    }
+
+    /// A reasoning model can finish with its answer in the thought stream and
+    /// no reply text: the finished turn shows that instead of an empty bubble.
+    #[test]
+    fn a_turn_that_ends_with_only_thoughts_shows_the_closing_ones() {
+        let mut ts = TurnState::new();
+        let t0 = Instant::now();
+        ts.push_reasoning("I need to read the file first.", t0);
+        ts.narration_to_reasoning();
+        ts.push_reasoning("The file now holds two lines.\n", t0);
+
+        let mut events: Vec<(&'static str, Value)> = Vec::new();
+        let mut emit = |event, payload| events.push((event, payload));
+        show_closing_thought(&mut emit, &mut ts, Some("cancelled"), true);
+        assert_eq!(ts.final_reply(), "", "a stopped turn shows no half thought");
+        show_closing_thought(&mut emit, &mut ts, Some("end_turn"), false);
+        assert_eq!(
+            ts.final_reply(),
+            "",
+            "a cloud model's thoughts are never its reply"
+        );
+        show_closing_thought(&mut emit, &mut ts, Some("end_turn"), true);
+        assert_eq!(ts.final_reply(), "The file now holds two lines.");
+        show_closing_thought(&mut emit, &mut ts, Some("end_turn"), true);
+        assert_eq!(
+            events.len(),
+            1,
+            "sent once, as the token the bubble renders"
+        );
+        assert_eq!(events[0].0, "ollama:token");
+        assert_eq!(events[0].1["full_content"], "The file now holds two lines.");
+
+        let mut answered = TurnState::new();
+        answered.push_reasoning("Thinking.", t0);
+        answered.full_content.push_str("Done.");
+        assert_eq!(
+            answered.empty_reply_fallback(Some("end_turn")),
+            None,
+            "reply text always wins"
+        );
+
+        let mut blank = TurnState::new();
+        blank.push_reasoning("Six apps are running.", t0);
+        blank.full_content.push('\n');
+        assert_eq!(
+            blank.empty_reply_fallback(Some("end_turn")).as_deref(),
+            Some("Six apps are running."),
+            "a reply of only a line break is no reply"
+        );
+
+        let mut noted = TurnState::new();
+        noted.full_content.push_str("The file has two lines.");
+        noted.narration_to_reasoning();
+        assert_eq!(
+            noted.empty_reply_fallback(Some("end_turn")).as_deref(),
+            Some("The file has two lines."),
+            "with no closing thought, its last words"
+        );
+
+        let mut announced = TurnState::new();
+        announced.full_content.push_str("Let me find Chrome.");
+        announced.narration_to_reasoning();
+        assert_eq!(
+            announced.empty_reply_fallback(Some("end_turn")),
+            None,
+            "an announced step is no answer to show"
+        );
+
+        let mut spent = TurnState::new();
+        spent.push_reasoning("Still working it out", t0);
+        assert_eq!(
+            spent.empty_reply_fallback(Some("max_tokens")).as_deref(),
+            Some(OUT_OF_ROOM_REPLY),
+            "not eight thousand tokens of working out"
+        );
+    }
+
+    /// Plans ride to the webview whole on `opencode:plan`; the agent's
+    /// bookkeeping — usage, mode and command lists — never becomes an event, and
+    /// tool updates take the `admit_tool_update` gate, not this path.
+    #[test]
+    fn plans_reach_the_webview_and_agent_bookkeeping_does_not() {
+        let plan = serde_json::json!({
+            "sessionUpdate": "plan",
+            "entries": [{ "content": "Add the page", "status": "in_progress", "priority": "medium" }]
+        });
+        let (event, payload) = forwarded_update("g1", &plan).expect("plans are forwarded");
+        assert_eq!(event, "opencode:plan");
+        assert_eq!(payload["generation_id"], "g1");
+        assert_eq!(payload["update"], plan, "the whole update rides along");
+
+        for update in [
+            serde_json::json!({ "sessionUpdate": "tool_call_update", "toolCallId": "t1", "status": "completed" }),
+            serde_json::json!({ "sessionUpdate": "usage_update", "used": 1, "size": 2 }),
+            serde_json::json!({ "sessionUpdate": "current_mode_update", "currentModeId": "read-only" }),
+            serde_json::json!({ "sessionUpdate": "available_commands_update", "availableCommands": [] }),
+            serde_json::json!({ "entries": [] }),
+        ] {
+            assert!(
+                forwarded_update("g1", &update).is_none(),
+                "not an event: {update}"
+            );
+        }
+    }
+
     /// The spawn-time `session/load` replay window: no generation in flight →
     /// updates are dropped; a reset opens the gate.
     #[test]
     fn updates_between_turns_are_not_emitted() {
-        let mut ts = TurnState {
-            generation_id: String::new(),
-            full_content: String::new(),
-            pending_delta: String::new(),
-            last_narration: String::new(),
-            last_emit: Instant::now(),
-        };
+        let mut ts = TurnState::new();
         assert!(!ts.in_flight(), "fresh spawn: replay must be droppable");
         ts.reset("g1".to_string());
         assert!(ts.in_flight());
+    }
+
+    /// The tool-update gate. opencode re-sends a bash call's whole output on every
+    /// stdout chunk (a content-less duplicate when it didn't change), Codex a
+    /// `_meta` delta per chunk; forwarded one-for-one they re-rendered the chat per
+    /// chunk until the webview froze. Only what the UI reads passes: a new call, a
+    /// changed visible field, a diff.
+    #[test]
+    fn output_only_tool_updates_never_reach_the_webview() {
+        let mut ts = TurnState::new();
+        ts.reset("g1".to_string());
+        let pending = json!({
+            "sessionUpdate": "tool_call", "toolCallId": "c1", "title": "bash",
+            "kind": "execute", "status": "pending", "rawInput": {}
+        });
+        assert!(
+            ts.admit_tool_update(&pending),
+            "a call's first update is shown"
+        );
+        let running = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "in_progress",
+            "kind": "execute", "title": "pnpm install", "locations": [],
+            "rawInput": { "command": "pnpm install", "cwd": "/w" }
+        });
+        assert!(
+            ts.admit_tool_update(&running),
+            "the command and status changed"
+        );
+        for i in 0..50 {
+            let mut snapshot = running.clone();
+            if i % 2 == 0 {
+                snapshot["content"] = json!([{
+                    "type": "content",
+                    "content": { "type": "text", "text": "x".repeat(i * 600) }
+                }]);
+            }
+            assert!(
+                !ts.admit_tool_update(&snapshot),
+                "output growth #{i} is not an event"
+            );
+        }
+        let codex = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1",
+            "_meta": { "terminal_output_delta": { "data": "…", "terminal_id": "t" } }
+        });
+        assert!(
+            !ts.admit_tool_update(&codex),
+            "a Codex output delta is not an event"
+        );
+        let heartbeat = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "never-seen",
+            "_meta": { "claudeCode": { "toolResponse": { "elapsedTimeSeconds": 3 } } }
+        });
+        assert!(
+            !ts.admit_tool_update(&heartbeat),
+            "nothing but _meta is never an event, known call or not"
+        );
+        let hook = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1", "_meta": { "claudeCode": {} },
+            "content": [{ "type": "diff", "path": "/w/a.ts", "oldText": "a", "newText": "b" }]
+        });
+        assert!(
+            ts.admit_tool_update(&hook),
+            "an edit's final diff rides a status-less update"
+        );
+        let completed = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "completed",
+            "content": [{ "type": "content", "content": { "type": "text", "text": "done" } }],
+            "rawOutput": { "output": "done" }
+        });
+        assert!(ts.admit_tool_update(&completed));
+        assert!(
+            !ts.admit_tool_update(&completed),
+            "nothing new, nothing shown"
+        );
+        let failed = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c2", "status": "failed",
+            "content": [{ "type": "content", "content": { "type": "text", "text": "exit 1" } }]
+        });
+        assert!(
+            ts.admit_tool_update(&failed),
+            "calls are gated independently"
+        );
+        let resent = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c2", "content": failed["content"]
+        });
+        assert!(
+            !ts.admit_tool_update(&resent),
+            "the error text it failed with is not news"
+        );
+        let error_text = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c2",
+            "content": [{ "type": "content", "content": { "type": "text", "text": "Permission denied: rm" } }]
+        });
+        assert!(
+            ts.admit_tool_update(&error_text),
+            "a failed call's error text is what the UI shows for it"
+        );
+        assert!(
+            !ts.admit_tool_update(&error_text),
+            "the same error text again is not an event"
+        );
+        ts.reset("g2".to_string());
+        assert!(ts.admit_tool_update(&completed), "a new turn starts over");
+    }
+
+    /// An admitted update goes out without what the chat never reads: `rawOutput`,
+    /// output text (kept only as a failed call's error) and `_meta` beyond the tool
+    /// name — opencode's finished call carries its whole output twice.
+    #[test]
+    fn admitted_updates_carry_only_what_the_chat_reads() {
+        let mut ts = TurnState::new();
+        ts.reset("g1".to_string());
+        let pending = json!({
+            "sessionUpdate": "tool_call", "toolCallId": "c1", "title": "Edit", "kind": "edit",
+            "status": "pending"
+        });
+        assert_eq!(
+            ts.forward_tool_update(&pending),
+            Some(pending.clone()),
+            "nothing to leave out"
+        );
+        let diff = json!({ "type": "diff", "path": "/w/a.ts", "oldText": "a", "newText": "b" });
+        let output = "x".repeat(30_000);
+        let completed = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "completed",
+            "rawInput": { "file_path": "/w/a.ts" },
+            "content": [
+                { "type": "content", "content": { "type": "text", "text": output } },
+                diff
+            ],
+            "rawOutput": { "output": output },
+            "_meta": { "claudeCode": { "toolName": "Edit", "toolResponse": { "originalFile": output } } }
+        });
+        assert_eq!(
+            ts.forward_tool_update(&completed),
+            Some(json!({
+                "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "completed",
+                "rawInput": { "file_path": "/w/a.ts" },
+                "content": [diff],
+                "_meta": { "claudeCode": { "toolName": "Edit" } }
+            })),
+            "the diff, the input and the tool name are all the chat reads"
+        );
+        let more_output = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "completed",
+            "content": [{ "type": "content", "content": { "type": "text", "text": output } }],
+            "rawOutput": { "output": output }
+        });
+        assert_eq!(
+            ts.forward_tool_update(&more_output),
+            None,
+            "nothing new, nothing shown"
+        );
+        let failed = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c2", "status": "failed",
+            "content": [{ "type": "content", "content": { "type": "text", "text": "exit 1" } }],
+            "rawOutput": { "error": "exit 1" }
+        });
+        let shown = ts
+            .forward_tool_update(&failed)
+            .expect("the failure is shown");
+        assert_eq!(
+            shown["content"], failed["content"],
+            "a failed call's text is its error"
+        );
+        assert!(shown.get("rawOutput").is_none());
+        let error_text = json!({
+            "sessionUpdate": "tool_call_update", "toolCallId": "c2",
+            "content": [{ "type": "content", "content": { "type": "text", "text": "Permission denied: rm" } }]
+        });
+        assert_eq!(
+            ts.forward_tool_update(&error_text)
+                .map(|u| u["content"].clone()),
+            Some(error_text["content"].clone()),
+            "later error text for a failed call is kept"
+        );
+    }
+
+    /// Thought deltas stream at token rate; they are batched like reply text — the
+    /// first at once, then one per window — and flushed before what must follow.
+    #[test]
+    fn reasoning_chunks_are_batched_per_window() {
+        let mut ts = TurnState::new();
+        ts.reset("g1".to_string());
+        let t0 = Instant::now();
+        let at = |ms: u64| t0 + Duration::from_millis(ms);
+        assert_eq!(
+            ts.push_reasoning("Let", t0).as_deref(),
+            Some("Let"),
+            "the first chunk goes out at once"
+        );
+        for _ in 0..20 {
+            assert_eq!(ts.push_reasoning(" me", at(50)), None, "inside the window");
+        }
+        assert_eq!(
+            ts.push_reasoning(" think.", at(250)).as_deref(),
+            Some(format!("{} think.", " me".repeat(20)).as_str()),
+            "one batch per window"
+        );
+        assert_eq!(ts.push_reasoning("x", at(300)), None);
+        assert_eq!(
+            ts.take_reasoning(at(300)).as_deref(),
+            Some("x"),
+            "a flush takes the rest"
+        );
+        assert_eq!(
+            ts.take_reasoning(at(300)),
+            None,
+            "nothing buffered, nothing flushed"
+        );
+        assert_eq!(ts.push_reasoning("y", at(310)), None);
+        ts.reset("g2".to_string());
+        assert_eq!(ts.take_reasoning(at(400)), None, "reset clears the buffer");
+    }
+
+    /// What a turn still holds at its end ships before `ollama:done` / `ollama:error`:
+    /// the thought batch inside the window and the throttled tail of the reply.
+    #[test]
+    fn a_turn_s_end_flushes_its_last_thoughts_and_reply_tail() {
+        let mut ts = TurnState::new();
+        ts.reset("g1".to_string());
+        let t0 = Instant::now();
+        assert!(
+            ts.push_reasoning("Let", t0).is_some(),
+            "the first chunk goes out at once"
+        );
+        assert_eq!(
+            ts.push_reasoning(" me think.", t0),
+            None,
+            "inside the window"
+        );
+        ts.full_content.push_str("Fixed it.");
+        ts.pending_delta.push_str("it.");
+
+        let mut events: Vec<(&'static str, Value)> = Vec::new();
+        flush_turn(&mut |e, p| events.push((e, p)), &mut ts, t0);
+        assert_eq!(
+            events,
+            [
+                (
+                    "opencode:reasoning",
+                    json!({ "generation_id": "g1", "delta": " me think." })
+                ),
+                (
+                    "ollama:token",
+                    json!({ "generation_id": "g1", "token": "it.", "full_content": "Fixed it." })
+                ),
+            ]
+        );
+        let mut again: Vec<(&'static str, Value)> = Vec::new();
+        flush_turn(&mut |e, p| again.push((e, p)), &mut ts, t0);
+        assert!(again.is_empty(), "nothing buffered, nothing emitted");
+    }
+
+    /// The SDK toasts an `ollama:error` and a rejected invoke alike, and the flush
+    /// lands the event before the invoke settles: a failed turn that also rejected
+    /// showed every failure twice.
+    #[test]
+    fn a_failed_turn_is_reported_once() {
+        let mut events: Vec<(&'static str, Value)> = Vec::new();
+        let res = fail_turn(&mut |e, p| events.push((e, p)), "g1", "boom".to_string());
+        assert_eq!(
+            events,
+            [(
+                "ollama:error",
+                json!({ "generation_id": "g1", "error": "boom" })
+            )]
+        );
+        assert_eq!(res, Ok(()), "a rejection would be the second toast");
+    }
+
+    /// The wiring behind the gate, through `handle_update` itself: a chatty
+    /// command's output growth is no event and its finished call ships without the
+    /// output, a plan rides whole, and batched thoughts land ahead of the tool call
+    /// and the reply text they led to.
+    #[tokio::test]
+    async fn handle_update_forwards_only_what_the_webview_renders() {
+        let turn = Arc::new(Mutex::new(TurnState::new()));
+        turn.lock().await.reset("g1".to_string());
+        let mut events: Vec<(&'static str, Value)> = Vec::new();
+        let mut sink = |event: &'static str, payload: Value| events.push((event, payload));
+        let notification = |update: Value| {
+            json!({
+                "jsonrpc": "2.0",
+                "method": "session/update",
+                "params": { "sessionId": "s1", "update": update }
+            })
+        };
+        let thought = |text: &str| {
+            notification(json!({
+                "sessionUpdate": "agent_thought_chunk",
+                "content": { "type": "text", "text": text }
+            }))
+        };
+
+        let mut updates = vec![
+            thought("Let me build it."),
+            thought(" First the install."),
+            notification(json!({
+                "sessionUpdate": "tool_call", "toolCallId": "c1", "title": "pnpm install",
+                "kind": "execute", "status": "pending"
+            })),
+        ];
+        for i in 0..50 {
+            updates.push(notification(json!({
+                "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "in_progress",
+                "content": [{ "type": "content", "content": { "type": "text", "text": "x".repeat(i * 600) } }]
+            })));
+        }
+        updates.extend([
+            notification(json!({
+                "sessionUpdate": "tool_call_update", "toolCallId": "c1",
+                "_meta": { "terminal_output_delta": { "data": "…", "terminal_id": "t" } }
+            })),
+            notification(json!({
+                "sessionUpdate": "plan",
+                "entries": [{ "content": "Install", "status": "in_progress", "priority": "medium" }]
+            })),
+            notification(json!({
+                "sessionUpdate": "tool_call_update", "toolCallId": "c1", "status": "completed",
+                "content": [{ "type": "content", "content": { "type": "text", "text": "x".repeat(30_000) } }],
+                "rawOutput": { "output": "x".repeat(30_000) }
+            })),
+            thought("Done; summarising."),
+            notification(json!({
+                "sessionUpdate": "agent_message_chunk",
+                "content": { "type": "text", "text": "Installed." }
+            })),
+            notification(json!({ "sessionUpdate": "usage_update", "used": 1, "size": 2 })),
+        ]);
+        let reply_at = updates.len() - 2;
+        for (i, v) in updates.iter().enumerate() {
+            if i == reply_at {
+                // Put the token window behind the reply chunk so it ships at once.
+                turn.lock().await.last_emit = Instant::now()
+                    .checked_sub(TOKEN_EMIT_WINDOW)
+                    .expect("the monotonic clock is past the window");
+            }
+            handle_update(&mut sink, v, &turn).await;
+        }
+
+        // Consecutive thought batches fold together: how many the window makes of
+        // them depends on the clock; where they land does not.
+        let mut seen: Vec<(&str, String)> = Vec::new();
+        for (event, payload) in &events {
+            let detail = match *event {
+                "opencode:reasoning" => payload["delta"].as_str().unwrap_or("").to_string(),
+                "opencode:tool_call" => payload["update"]["status"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string(),
+                "ollama:token" => payload["token"].as_str().unwrap_or("").to_string(),
+                _ => String::new(),
+            };
+            match seen.last_mut() {
+                Some((last, text)) if *last == "opencode:reasoning" && *event == *last => {
+                    text.push_str(&detail)
+                }
+                _ => seen.push((event, detail)),
+            }
+        }
+        assert_eq!(
+            seen,
+            [
+                (
+                    "opencode:reasoning",
+                    "Let me build it. First the install.".to_string()
+                ),
+                ("opencode:tool_call", "pending".to_string()),
+                ("opencode:tool_call", "in_progress".to_string()),
+                ("opencode:plan", String::new()),
+                ("opencode:tool_call", "completed".to_string()),
+                ("opencode:reasoning", "Done; summarising.".to_string()),
+                ("ollama:token", "Installed.".to_string()),
+            ],
+            "50 output chunks, a Codex delta and the usage update are not events"
+        );
+        let completed = events
+            .iter()
+            .find(|(event, payload)| {
+                *event == "opencode:tool_call" && payload["update"]["status"] == "completed"
+            })
+            .map(|(_, payload)| &payload["update"])
+            .expect("the finished call is shown");
+        assert!(
+            completed.get("rawOutput").is_none() && completed.get("content").is_none(),
+            "a finished call's output never reaches the chat: {:?}",
+            completed.as_object().map(|o| o.keys().collect::<Vec<_>>())
+        );
+    }
+
+    // ---------- Codex / Claude Code backends ----------
+
+    /// Exact strings pick the subscription agents; every other model string —
+    /// ibl.ai compat ids (even ones naming `claude`), on-device specs, near
+    /// misses — is opencode. And a command's `backend` argument may only name
+    /// the two agents.
+    #[test]
+    fn the_model_string_picks_the_backend() {
+        assert_eq!(Backend::of("codex/default"), Backend::Codex);
+        assert_eq!(Backend::of("claude/default"), Backend::Claude);
+        for opencode in [
+            "openai/gpt-5.5",
+            "anthropic/claude-sonnet-5",
+            "claude/opus",
+            "claudex/x",
+            "codex",
+            "ollama/qwen3:latest",
+            "foundry/phi-4",
+            "",
+        ] {
+            assert_eq!(Backend::of(opencode), Backend::Opencode, "{opencode}");
+        }
+        assert_eq!(Backend::agent("codex").unwrap(), Backend::Codex);
+        assert_eq!(Backend::agent("claude").unwrap(), Backend::Claude);
+        assert!(Backend::agent("opencode").is_err());
+        assert!(Backend::agent("gemini").is_err());
+        assert_eq!(Backend::Codex.id(), "codex");
+        assert_eq!(Backend::Claude.id(), "claude");
+    }
+
+    /// The launch shapes: opencode byte-identical to before; Codex takes the
+    /// guidance as `developer_instructions` in `CODEX_CONFIG` and the OS
+    /// approval mode as its own; Claude takes the guidance as a system-prompt
+    /// APPEND (never a replacement — no `type` key) and no env; both get the
+    /// skills view as an additional directory.
+    #[test]
+    fn each_backend_carries_guidance_and_skills_its_own_way() {
+        let _lock = data_dir_lock();
+        let ws = Path::new("/tmp/ws");
+        let skills = Path::new("/tmp/cfg/agent-skills");
+        let cfg = Path::new("/tmp/cfg");
+
+        let oc = agent_launch(Backend::Opencode, ws, skills, cfg, "GUIDE", false, None);
+        assert_eq!(oc.program, PathBuf::from("opencode"));
+        assert_eq!(oc.args, ["acp", "--print-logs", "--log-level", "INFO"]);
+        assert_eq!(oc.env, vec![("XDG_CONFIG_HOME", "/tmp/cfg".to_string())]);
+        assert_eq!(oc.session, json!({ "cwd": "/tmp/ws", "mcpServers": [] }));
+        assert_eq!(session_mode(Backend::Opencode, false), None);
+
+        let codex = agent_launch(Backend::Codex, ws, skills, cfg, "GUIDE", false, None);
+        assert!(codex.program.ends_with("bin/node"), "{:?}", codex.program);
+        assert!(
+            codex.args[0].ends_with("@agentclientprotocol/codex-acp/dist/index.js"),
+            "{:?}",
+            codex.args
+        );
+        let config: Value = serde_json::from_str(
+            &codex
+                .env
+                .iter()
+                .find(|(k, _)| *k == "CODEX_CONFIG")
+                .unwrap()
+                .1,
+        )
+        .unwrap();
+        assert_eq!(config, json!({ "developer_instructions": "GUIDE" }));
+        assert_eq!(
+            codex
+                .env
+                .iter()
+                .find(|(k, _)| *k == "INITIAL_AGENT_MODE")
+                .unwrap()
+                .1,
+            "read-only"
+        );
+        assert_eq!(
+            codex.session,
+            json!({ "cwd": "/tmp/ws", "mcpServers": [], "additionalDirectories": ["/tmp/cfg/agent-skills"] })
+        );
+        assert_eq!(session_mode(Backend::Codex, false), Some("read-only"));
+        assert_eq!(
+            session_mode(Backend::Codex, true),
+            Some("agent-full-access")
+        );
+        let auto = agent_launch(Backend::Codex, ws, skills, cfg, "GUIDE", true, None);
+        assert_eq!(
+            auto.env
+                .iter()
+                .find(|(k, _)| *k == "INITIAL_AGENT_MODE")
+                .unwrap()
+                .1,
+            "agent-full-access"
+        );
+
+        let claude = agent_launch(Backend::Claude, ws, skills, cfg, "GUIDE", false, None);
+        assert!(claude.program.ends_with("bin/node"));
+        assert!(claude.args[0].ends_with("@agentclientprotocol/claude-agent-acp/dist/index.js"));
+        assert!(claude.env.is_empty(), "{:?}", claude.env);
+        assert_eq!(
+            claude.session["additionalDirectories"],
+            json!(["/tmp/cfg/agent-skills"])
+        );
+        assert_eq!(
+            claude.session["_meta"]["systemPrompt"]["append"],
+            json!("GUIDE")
+        );
+        assert!(
+            claude.session["_meta"]["systemPrompt"]
+                .get("type")
+                .is_none(),
+            "a `type` key would let the append replace the preset"
+        );
+        assert_eq!(session_mode(Backend::Claude, true), Some("default"));
+        assert_eq!(session_mode(Backend::Claude, false), Some("default"));
+    }
+
+    /// No provider credential, routing override or config-dir override reaches
+    /// any agent's environment; everything else is inherited.
+    #[test]
+    fn provider_credentials_never_reach_the_agent() {
+        let keys = [
+            "ANTHROPIC_API_KEY",
+            "ANTHROPIC_BASE_URL",
+            "CLAUDE_CODE_OAUTH_TOKEN",
+            "CLAUDE_CODE_USE_BEDROCK",
+            "CLAUDE_CONFIG_DIR",
+            "CLAUDE_CODE_EXECUTABLE",
+            "CLAUDECODE",
+            "OPENAI_API_KEY",
+            "OPENAI_BASE_URL",
+            "CODEX_API_KEY",
+            "CODEX_HOME",
+            "CODEX_PATH",
+            "MODEL_PROVIDER",
+            "DEFAULT_AUTH_REQUEST",
+            "PATH",
+            "HOME",
+            "LANG",
+            "DISPLAY",
+            "DBUS_SESSION_BUS_ADDRESS",
+            "IBLAI_API_KEY",
+            "IBLAI_USERNAME",
+            "XDG_CONFIG_HOME",
+            "npm_config_min_release_age",
+            "NPM_CONFIG_REGISTRY",
+            "npm_lifecycle_event",
+        ];
+        let stripped: Vec<String> = stripped_env(keys.iter().map(std::ffi::OsString::from))
+            .into_iter()
+            .map(|k| k.to_string_lossy().into_owned())
+            .collect();
+        for gone in [
+            "ANTHROPIC_API_KEY",
+            "ANTHROPIC_BASE_URL",
+            "CLAUDE_CODE_OAUTH_TOKEN",
+            "CLAUDE_CODE_USE_BEDROCK",
+            "CLAUDE_CONFIG_DIR",
+            "CLAUDE_CODE_EXECUTABLE",
+            "CLAUDECODE",
+            "OPENAI_API_KEY",
+            "OPENAI_BASE_URL",
+            "CODEX_API_KEY",
+            "CODEX_HOME",
+            "CODEX_PATH",
+            "MODEL_PROVIDER",
+            "DEFAULT_AUTH_REQUEST",
+            "npm_config_min_release_age",
+            "NPM_CONFIG_REGISTRY",
+        ] {
+            assert!(
+                stripped.iter().any(|k| k == gone),
+                "{gone} must be stripped"
+            );
+        }
+        for kept in [
+            "PATH",
+            "HOME",
+            "LANG",
+            "DISPLAY",
+            "DBUS_SESSION_BUS_ADDRESS",
+            "IBLAI_API_KEY",
+            "IBLAI_USERNAME",
+            "XDG_CONFIG_HOME",
+            "npm_lifecycle_event",
+        ] {
+            assert!(!stripped.iter().any(|k| k == kept), "{kept} must survive");
+        }
+    }
+
+    #[test]
+    fn permission_payloads_carry_the_whole_tool_call() {
+        let tool_call = json!({
+            "toolCallId": "call-1",
+            "title": "Terminal",
+            "kind": "execute",
+            "rawInput": { "command": "pnpm install" },
+            "locations": [{ "path": "/w/app/package.json" }]
+        });
+        let payload = permission_payload(
+            "opencode-7",
+            "chat-1",
+            "perm-1",
+            &tool_call,
+            &Some("allow".to_string()),
+            &Some("reject".to_string()),
+            &json!([{ "optionId": "allow", "kind": "allow_once" }]),
+        );
+        assert_eq!(payload["tool_call"], tool_call);
+        assert_eq!(payload["title"], "Terminal");
+        assert_eq!(payload["kind"], "execute");
+        assert_eq!(payload["command"], "pnpm install");
+        assert_eq!(payload["generation_id"], "opencode-7");
+        assert_eq!(payload["allow_option_id"], "allow");
+        assert_eq!(payload["reject_option_id"], "reject");
+
+        // No toolCall at all: the card still comes up, with nothing to describe.
+        let bare = permission_payload(
+            "opencode-7",
+            "chat-1",
+            "perm-2",
+            &Value::Null,
+            &None,
+            &None,
+            &Value::Null,
+        );
+        assert_eq!(bare["tool_call"], Value::Null);
+        assert_eq!(bare["title"], Value::Null);
+        assert_eq!(bare["command"], Value::Null);
+        assert_eq!(bare["allow_option_id"], Value::Null);
+    }
+
+    /// The exact-kind pick: Claude's ExitPlanMode lists `allow_always` mode
+    /// switches before its plain `allow_once`; Codex's network approval lists
+    /// `reject_always` ("block this host") before `decline`. opencode's shape
+    /// resolves as before, an allow_always-only list still falls back, and an
+    /// empty list answers nothing.
+    #[test]
+    fn permission_answers_pick_the_exact_once_kinds() {
+        let claude = json!([
+            { "optionId": "exit-plan-clear-auto", "kind": "allow_always", "name": "Yes, auto" },
+            { "optionId": "exit-plan-accept-edits", "kind": "allow_always", "name": "Yes, accept edits" },
+            { "optionId": "exit-plan-default", "kind": "allow_once", "name": "Yes, manually approve" },
+            { "optionId": "reject", "kind": "reject_once", "name": "No" }
+        ]);
+        assert_eq!(
+            pick_option(&claude, "allow_once", "allow").as_deref(),
+            Some("exit-plan-default")
+        );
+        assert_eq!(
+            pick_option(&claude, "reject_once", "reject").as_deref(),
+            Some("reject")
+        );
+
+        let codex = json!([
+            { "optionId": "allow", "kind": "allow_once", "name": "Yes" },
+            { "optionId": "reject_always", "kind": "reject_always", "name": "No, and block this host" },
+            { "optionId": "decline", "kind": "reject_once", "name": "No" }
+        ]);
+        assert_eq!(
+            pick_option(&codex, "reject_once", "reject").as_deref(),
+            Some("decline")
+        );
+        assert_eq!(
+            pick_option(&codex, "allow_once", "allow").as_deref(),
+            Some("allow")
+        );
+
+        let opencode = json!([
+            { "optionId": "once", "kind": "allow_once" },
+            { "optionId": "always", "kind": "allow_always" },
+            { "optionId": "no", "kind": "reject_once" }
+        ]);
+        assert_eq!(
+            pick_option(&opencode, "allow_once", "allow").as_deref(),
+            Some("once")
+        );
+        assert_eq!(
+            pick_option(&opencode, "reject_once", "reject").as_deref(),
+            Some("no")
+        );
+
+        let always_only = json!([{ "optionId": "always", "kind": "allow_always" }]);
+        assert_eq!(
+            pick_option(&always_only, "allow_once", "allow").as_deref(),
+            Some("always")
+        );
+        assert_eq!(pick_option(&always_only, "reject_once", "reject"), None);
+        assert_eq!(pick_option(&json!([]), "allow_once", "allow"), None);
+        assert_eq!(pick_option(&Value::Null, "allow_once", "allow"), None);
+    }
+
+    /// ACP's `authRequired` becomes the sign-in prefix, every other code keeps
+    /// the historical text, only the subscription agents get a hint, and the
+    /// prefix never reads as a crash to the retry logic.
+    #[test]
+    fn sign_in_errors_become_one_sentence_and_never_retry() {
+        let auth = rpc_error(
+            "session/prompt",
+            &json!({ "code": -32000, "message": "Authentication required" }),
+        );
+        assert!(auth.starts_with(AUTH_REQUIRED), "{auth}");
+        assert!(auth.contains("session/prompt"), "{auth}");
+        let other = rpc_error(
+            "session/new",
+            &json!({ "code": -32602, "message": "bad params" }),
+        );
+        assert!(
+            other.starts_with("opencode error on session/new"),
+            "{other}"
+        );
+        assert!(!other.starts_with(AUTH_REQUIRED));
+
+        assert_eq!(auth_hint(Backend::Opencode, &auth), None);
+        assert_eq!(auth_hint(Backend::Codex, &other), None);
+        let codex = auth_hint(Backend::Codex, &auth).unwrap();
+        assert!(codex.contains("ChatGPT app"), "{codex}");
+        let claude = auth_hint(Backend::Claude, &auth).unwrap();
+        assert!(
+            claude.contains("`claude`") && claude.contains("terminal"),
+            "{claude}"
+        );
+
+        assert!(
+            !should_retry(&auth, false, 1),
+            "a signed-out agent is not a crash"
+        );
+        assert!(should_retry(
+            &format!("{CHILD_GONE} to session/prompt"),
+            false,
+            1
+        ));
+    }
+
+    /// The OS approval toggle maps onto Codex's own modes — read-only for Ask
+    /// Me (every write and network command escalates into a card), full
+    /// access for Automatic — while opencode and Claude get nothing on a flip.
+    #[test]
+    fn the_os_approval_mode_drives_codex_s_own_mode() {
+        assert_eq!(codex_mode(false), "read-only");
+        assert_eq!(codex_mode(true), "agent-full-access");
+        assert_eq!(session_mode(Backend::Codex, false), Some("read-only"));
+        assert_eq!(
+            session_mode(Backend::Codex, true),
+            Some("agent-full-access")
+        );
+        assert_eq!(session_mode(Backend::Opencode, true), None);
+        assert_eq!(session_mode(Backend::Claude, true), Some("default"));
+    }
+
+    /// Each agent sees only its own login: its dir is bound read-write, the
+    /// other agent's stays masked, and the shared secrets stay masked for all.
+    /// Claude's `~/.claude.json` is readable (unmasked) for Claude only.
+    #[test]
+    fn each_backend_sees_only_its_own_login() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-sbx-agents-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let home = scratch.join("home");
+        for dir in [".claude", ".codex", ".ssh"] {
+            std::fs::create_dir_all(home.join(dir)).unwrap();
+        }
+        std::fs::write(home.join(".claude.json"), "{}").unwrap();
+        std::fs::write(home.join(".claude/settings.json"), "{}").unwrap();
+        std::fs::write(home.join(".codex/config.toml"), "").unwrap();
+        let ws = scratch.join("ws");
+        let cfg = scratch.join("cfg");
+        let rw = |p: &Path| format!("--bind-try {} {}", p.display(), p.display());
+        let mask = |p: &Path| format!("--tmpfs {}", p.display());
+        let null = |p: &Path| format!("--ro-bind /dev/null {}", p.display());
+
+        let oc = bwrap_args(&home, &ws, &cfg, None, Backend::Opencode).join(" ");
+        assert!(oc.contains(&mask(&home.join(".claude"))));
+        assert!(oc.contains(&mask(&home.join(".codex"))));
+        assert!(oc.contains(&null(&home.join(".claude.json"))));
+        assert!(!oc.contains("--ro-bind-try"));
+
+        let codex = bwrap_args(&home, &ws, &cfg, None, Backend::Codex).join(" ");
+        assert!(codex.contains(&rw(&home.join(".codex"))), "{codex}");
+        assert!(!codex.contains(&mask(&home.join(".codex"))));
+        assert!(codex.contains(&mask(&home.join(".claude"))));
+        assert!(codex.contains(&null(&home.join(".claude.json"))));
+        assert!(codex.contains(&mask(&home.join(".ssh"))));
+
+        let claude = bwrap_args(&home, &ws, &cfg, None, Backend::Claude).join(" ");
+        assert!(claude.contains(&rw(&home.join(".claude"))), "{claude}");
+        assert!(!claude.contains(&mask(&home.join(".claude"))));
+        assert!(
+            !claude.contains(&null(&home.join(".claude.json"))),
+            "readable for Claude"
+        );
+        assert!(claude.contains(&mask(&home.join(".codex"))));
+        assert!(claude.contains(&mask(&home.join(".ssh"))));
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// The agent's CLI config is frozen read-only AFTER its rw bind (later
+    /// mounts win in bwrap), so it cannot plant hooks or servers for the user's
+    /// next unsandboxed run; a missing file is skipped, not created; and the
+    /// monitor flag stays last.
+    #[test]
+    fn a_backend_cannot_rewrite_what_its_cli_runs_next() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-sbx-frozen-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let home = scratch.join("home");
+        std::fs::create_dir_all(home.join(".claude")).unwrap();
+        std::fs::create_dir_all(home.join(".codex")).unwrap();
+        std::fs::write(home.join(".claude/settings.json"), "{}").unwrap();
+        std::fs::write(home.join(".codex/config.toml"), "").unwrap();
+        let ws = scratch.join("ws");
+        let cfg = scratch.join("cfg");
+
+        for (backend, own, frozen) in [
+            (Backend::Codex, ".codex", ".codex/config.toml"),
+            (Backend::Claude, ".claude", ".claude/settings.json"),
+        ] {
+            let args = bwrap_args(&home, &ws, &cfg, None, backend);
+            let flat = args.join(" ");
+            let own_path = home.join(own);
+            let frozen_path = home.join(frozen);
+            let rw = format!("--bind-try {} {}", own_path.display(), own_path.display());
+            let ro = format!(
+                "--ro-bind-try {} {}",
+                frozen_path.display(),
+                frozen_path.display()
+            );
+            assert!(flat.contains(&ro), "{backend:?}: {flat}");
+            assert!(
+                flat.find(&ro).unwrap() > flat.find(&rw).unwrap(),
+                "{backend:?}: the freeze must land after the rw bind"
+            );
+            // `try`: the absent ones are listed (bwrap skips a missing source
+            // rather than creating a mount point) and never as plain --ro-bind.
+            assert!(flat.contains("--ro-bind-try"));
+            assert!(!flat.contains(&format!(
+                "--ro-bind {}",
+                home.join(".claude/hooks").display()
+            )));
+            assert_eq!(args.last().unwrap(), "--die-with-parent");
+        }
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// Linux: what the agent could create in its rw login dir is created
+    /// first, so the freeze covers it; what exists is left alone, and nothing
+    /// is made outside an existing login dir.
+    #[test]
+    fn missing_frozen_entries_are_created_before_the_freeze() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-sbx-freeze-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let home = scratch.join("home");
+        std::fs::create_dir_all(home.join(".claude")).unwrap();
+        std::fs::write(home.join(".claude/CLAUDE.md"), "mine").unwrap();
+
+        freeze_missing(&home, Backend::Claude).unwrap();
+        freeze_missing(&home, Backend::Claude).unwrap();
+        freeze_missing(&home, Backend::Codex).unwrap();
+
+        let read = |rel: &str| std::fs::read_to_string(home.join(rel)).unwrap();
+        assert_eq!(read(".claude/settings.json"), "{}");
+        assert_eq!(
+            read(".claude/CLAUDE.md"),
+            "mine",
+            "an existing entry is left alone"
+        );
+        assert!(home.join(".claude/hooks").is_dir());
+        assert!(home.join(".claude/skills").is_dir());
+        assert!(home.join(".claude/rules").is_dir());
+        assert!(
+            !home.join(".claude.json").exists(),
+            "outside the login dir: read-only $HOME"
+        );
+        assert!(
+            !home.join(".codex").exists(),
+            "no login dir, nothing to freeze"
+        );
+
+        std::fs::create_dir_all(home.join(".codex")).unwrap();
+        freeze_missing(&home, Backend::Codex).unwrap();
+        assert_eq!(read(".codex/config.toml"), "");
+        assert_eq!(
+            read(".codex/AGENTS.override.md"),
+            "",
+            "empty: Codex skips it"
+        );
+        assert!(home.join(".codex/rules").is_dir());
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// A Codex session that doesn't confirm an approval-mode switch is closed,
+    /// so none keeps running in the other mode; one that confirms stays.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_codex_session_that_refuses_a_mode_switch_is_closed() {
+        let scratch = ScratchDataDir::new("opencode-pin-mode");
+        let script = scratch.path.join("agent.sh");
+        std::fs::write(&script, FAULTY_AGENT).unwrap();
+        let ok_id = format!("pin-ok-{}", std::process::id());
+        let bad_id = format!("pin-refused-{}", std::process::id());
+        let ok = piped_agent(&script, &scratch.path.join("ok.log"), Backend::Codex);
+        let bad = faulty_agent(
+            &script,
+            &scratch.path.join("bad.log"),
+            Backend::Codex,
+            Some("mode-refused"),
+        );
+        registry().lock().await.insert(ok_id.clone(), ok.clone());
+        registry().lock().await.insert(bad_id.clone(), bad.clone());
+
+        pin_codex_mode(&ok_id, &ok, false, false).await.unwrap();
+        assert!(registry().lock().await.contains_key(&ok_id));
+        let log = || std::fs::read_to_string(scratch.path.join("ok.log")).unwrap();
+        assert!(log().contains(r#""modeId":"read-only""#), "{}", log());
+        // A turn already running keeps its mode in codex-acp: only a switch
+        // from Automatic to Ask Me stops it — not Ask Me picked again, not a
+        // switch to Automatic. The agent logs lines in order and answered every
+        // `set_mode`, so one cancel at the end proves the others sent none.
+        ok.active_turns.store(1, Ordering::SeqCst);
+        pin_codex_mode(&ok_id, &ok, false, false).await.unwrap();
+        pin_codex_mode(&ok_id, &ok, true, false).await.unwrap();
+        pin_codex_mode(&ok_id, &ok, false, true).await.unwrap();
+        let start = Instant::now();
+        while !log().contains("session/cancel") {
+            assert!(start.elapsed() < Duration::from_secs(5), "{}", log());
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        assert_eq!(log().matches("session/cancel").count(), 1, "{}", log());
+
+        let err = pin_codex_mode(&bad_id, &bad, true, false)
+            .await
+            .unwrap_err();
+        assert!(err.contains("agent-full-access"), "{err}");
+        assert!(
+            !registry().lock().await.contains_key(&bad_id),
+            "a session that refuses is closed"
+        );
+
+        // A refusal from a session the chat has already replaced closes that
+        // session alone, never its successor.
+        let stale = faulty_agent(
+            &script,
+            &scratch.path.join("stale.log"),
+            Backend::Codex,
+            Some("mode-refused"),
+        );
+        let successor = piped_agent(&script, &scratch.path.join("next.log"), Backend::Codex);
+        registry()
+            .lock()
+            .await
+            .insert(bad_id.clone(), successor.clone());
+        pin_codex_mode(&bad_id, &stale, true, false)
+            .await
+            .unwrap_err();
+        let still = registry().lock().await.get(&bad_id).cloned();
+        assert!(still.is_some_and(|s| Arc::ptr_eq(&s, &successor)));
+        assert!(!child_exited(&successor).await);
+        close_session(&bad_id).await;
+        close_session(&ok_id).await;
+    }
+
+    /// Default with no reported default has nothing to push: refused while a
+    /// chat of that agent runs, never saved as if applied.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn an_unreported_default_is_refused_while_the_agent_has_a_chat() {
+        let scratch = ScratchDataDir::new("opencode-push-default");
+        let script = scratch.path.join("agent.sh");
+        std::fs::write(&script, FAULTY_AGENT).unwrap();
+        push_config_option(Backend::Codex, "model", None)
+            .await
+            .expect("no chat of the agent: nothing to refuse");
+        let id = format!("push-default-{}", std::process::id());
+        let s = piped_agent(&script, &scratch.path.join("agent.log"), Backend::Codex);
+        registry().lock().await.insert(id.clone(), s);
+
+        let err = push_config_option(Backend::Codex, "model", None)
+            .await
+            .unwrap_err();
+        assert!(err.contains("start a new Codex chat"), "{err}");
+        close_session(&id).await;
+    }
+
+    /// macOS: the profile re-allows writes only to the backend's own login dir
+    /// (and the Keychain both agents may use), keeps the other agent's dir in
+    /// the secrets deny, leaves Claude's state file readable for Claude, and
+    /// ends with the frozen-config deny so it wins over the allow.
+    #[test]
+    fn the_macos_profile_opens_only_the_backends_own_login() {
+        let home = Path::new("/Users/dev");
+        let profile = |b| {
+            sandbox_profile_macos(
+                home,
+                Path::new("/Users/dev/proj"),
+                Path::new("/Users/dev/.config/iblai/agents/sessions/k"),
+                b,
+            )
+        };
+        let deny_part = |p: &str| p[p.find("(deny file*").unwrap()..].to_string();
+
+        let claude = profile(Backend::Claude);
+        let allow = &claude[..claude.find("(deny file*").unwrap()];
+        assert!(
+            allow.contains("(subpath \"/Users/dev/.claude\")"),
+            "{claude}"
+        );
+        assert!(allow.contains("(subpath \"/Users/dev/Library/Keychains\")"));
+        let deny = deny_part(&claude);
+        assert!(!deny.contains("(subpath \"/Users/dev/.claude\")"), "{deny}");
+        assert!(deny.contains("(subpath \"/Users/dev/.codex\")"));
+        assert!(deny.contains("(subpath \"/Users/dev/.ssh\")"));
+        assert!(!deny.contains("(subpath \"/Users/dev/Library/Keychains\")"));
+        assert!(
+            !deny.contains("(literal \"/Users/dev/.claude.json\")"),
+            "readable for Claude"
+        );
+        let frozen = &claude[claude.rfind("(deny file-write*").unwrap()..];
+        assert!(
+            frozen.contains("(subpath \"/Users/dev/.claude/settings.json\")"),
+            "{frozen}"
+        );
+        assert!(frozen.contains("(subpath \"/Users/dev/.claude.json\")"));
+        assert!(claude.rfind("(deny file-write*").unwrap() > claude.find("(deny file*").unwrap());
+
+        let codex = profile(Backend::Codex);
+        let allow = &codex[..codex.find("(deny file*").unwrap()];
+        assert!(allow.contains("(subpath \"/Users/dev/.codex\")"));
+        let deny = deny_part(&codex);
+        assert!(!deny.contains("(subpath \"/Users/dev/.codex\")"));
+        assert!(deny.contains("(subpath \"/Users/dev/.claude\")"));
+        assert!(deny.contains("(literal \"/Users/dev/.claude.json\")"));
+        assert!(codex[codex.rfind("(deny file-write*").unwrap()..]
+            .contains("(subpath \"/Users/dev/.codex/config.toml\")"));
+
+        // opencode: both agents' dirs denied, nothing frozen.
+        let oc = profile(Backend::Opencode);
+        let deny = deny_part(&oc);
+        assert!(deny.contains("(subpath \"/Users/dev/.claude\")"));
+        assert!(deny.contains("(subpath \"/Users/dev/.codex\")"));
+        assert_eq!(
+            oc.matches("(deny file-write*").count(),
+            1,
+            "only the root deny"
+        );
+    }
+
+    /// The macOS decoy home links the backend's own login (and its readable
+    /// state file) instead of faking them, and fakes the other agent's.
+    #[test]
+    #[cfg(unix)]
+    fn the_decoy_home_links_the_backends_own_login() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-sbx-decoy-agents-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let real = scratch.join("real");
+        std::fs::create_dir_all(real.join(".claude")).unwrap();
+        std::fs::write(real.join(".claude/.credentials.json"), "{}").unwrap();
+        std::fs::write(real.join(".claude.json"), "{}").unwrap();
+        std::fs::create_dir_all(real.join(".codex")).unwrap();
+        std::fs::write(real.join(".codex/auth.json"), "{}").unwrap();
+        std::fs::create_dir_all(real.join(".ssh")).unwrap();
+        std::fs::create_dir_all(real.join("Library/Keychains")).unwrap();
+
+        let claude = scratch.join("claude");
+        build_decoy_home(&real, &claude, Backend::Claude).unwrap();
+        assert!(claude.join(".claude").is_symlink(), "own dir linked");
+        assert!(
+            claude.join(".claude.json").is_symlink(),
+            "state file readable"
+        );
+        assert!(
+            claude.join(".codex").is_dir() && !claude.join(".codex").is_symlink(),
+            "other agent faked"
+        );
+        assert!(!claude.join(".codex/auth.json").exists());
+        assert!(claude.join(".ssh").is_dir() && !claude.join(".ssh").is_symlink());
+        assert!(
+            claude.join("Library").is_symlink(),
+            "no nested secret left under Library"
+        );
+
+        let codex = scratch.join("codex");
+        build_decoy_home(&real, &codex, Backend::Codex).unwrap();
+        assert!(codex.join(".codex").is_symlink());
+        assert!(codex.join(".claude").is_dir() && !codex.join(".claude").is_symlink());
+        assert!(
+            !codex.join(".claude.json").exists(),
+            "Claude's state file stays absent"
+        );
+
+        let oc = scratch.join("opencode");
+        build_decoy_home(&real, &oc, Backend::Opencode).unwrap();
+        assert!(oc.join(".claude").is_dir() && !oc.join(".claude").is_symlink());
+        assert!(oc.join(".codex").is_dir() && !oc.join(".codex").is_symlink());
+        assert!(oc.join("Library").is_dir() && !oc.join("Library").is_symlink());
+        assert!(
+            oc.join("Library/Keychains").is_dir() && !oc.join("Library/Keychains").is_symlink()
+        );
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// The skills view: the two-level vibe tree and the flat mentor staging
+    /// flattened into one directory of links, mentor winning a name clash,
+    /// directories without a SKILL.md skipped, hidden entries skipped, a
+    /// rebuild dropping stale links, missing roots contributing nothing.
+    #[test]
+    #[cfg(unix)]
+    fn the_skills_view_flattens_vibe_and_lets_mentor_skills_win() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-skills-view-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let vibe = scratch.join("vibe");
+        let mentor = scratch.join("mentor");
+        for (dir, skill) in [
+            ("ops/deploy", true),
+            ("ops/notes", false),
+            ("solo", true),
+            (".hidden/x", true),
+        ] {
+            std::fs::create_dir_all(vibe.join(dir)).unwrap();
+            if skill {
+                std::fs::write(vibe.join(dir).join("SKILL.md"), "vibe").unwrap();
+            }
+        }
+        for dir in ["deploy", "extra"] {
+            std::fs::create_dir_all(mentor.join(dir)).unwrap();
+            std::fs::write(mentor.join(dir).join("SKILL.md"), "mentor").unwrap();
+        }
+        let dest = scratch.join("view/.agents/skills");
+        std::fs::create_dir_all(dest.join("stale")).unwrap();
+
+        let n = link_skills(&dest, &vibe, Some(&mentor)).unwrap();
+        assert_eq!(n, 3, "deploy, solo, extra");
+        let mut names: Vec<String> = std::fs::read_dir(&dest)
+            .unwrap()
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        names.sort();
+        assert_eq!(names, ["deploy", "extra", "solo"]);
+        assert!(dest.join("deploy").is_symlink());
+        assert_eq!(
+            std::fs::read_to_string(dest.join("deploy/SKILL.md")).unwrap(),
+            "mentor"
+        );
+        assert_eq!(
+            std::fs::read_to_string(dest.join("solo/SKILL.md")).unwrap(),
+            "vibe"
+        );
+        assert!(!dest.join("stale").exists(), "rebuilt from scratch");
+        assert!(!dest.join("x").exists(), "hidden families are skipped");
+        assert!(!dest.join("notes").exists(), "no SKILL.md, no skill");
+
+        // Vibe only, and nothing at all.
+        assert_eq!(link_skills(&dest, &vibe, None).unwrap(), 2);
+        assert_eq!(
+            link_skills(&dest, &scratch.join("missing"), None).unwrap(),
+            0
+        );
+        assert!(dest.is_dir());
+        // The links' targets are never touched by a rebuild.
+        assert!(mentor.join("deploy/SKILL.md").is_file());
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// A `Session` over a scripted POSIX-sh agent, for the handshake tests: the
+    /// script logs every line it receives and answers with canned JSON.
+    #[cfg(unix)]
+    fn piped_agent(script: &Path, log: &Path, backend: Backend) -> Arc<Session> {
+        faulty_agent(script, log, backend, None)
+    }
+
+    /// `piped_agent` with a `FAULT` for [`FAULTY_AGENT`] to act on. The
+    /// reader is the production one, so a script that exits fails the
+    /// requests in flight instead of hanging the test.
+    fn faulty_agent(
+        script: &Path,
+        log: &Path,
+        backend: Backend,
+        fault: Option<&str>,
+    ) -> Arc<Session> {
+        let mut child = Command::new("sh")
+            .arg(script)
+            .env("LOG", log)
+            .env("FAULT", fault.unwrap_or(""))
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
+            .kill_on_drop(true)
+            .spawn()
+            .unwrap();
+        let stdin = Arc::new(Mutex::new(child.stdin.take().unwrap()));
+        let pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>> =
+            Arc::new(Mutex::new(HashMap::new()));
+        route_responses(child.stdout.take().unwrap(), pending.clone());
+        Arc::new(Session {
+            child: Mutex::new(child),
+            stdin,
+            next_id: AtomicI64::new(1),
+            pending,
+            acp_session_id: String::new(),
+            requested_model: Some(format!("{}/default", backend.id())),
+            backend,
+            cowork: false,
+            proxy_secret: None,
+            turn: Arc::new(Mutex::new(TurnState::new())),
+            last_used: Mutex::new(Instant::now()),
+            active_turns: AtomicUsize::new(0),
+            closing: AtomicBool::new(false),
+            context_fresh: AtomicBool::new(false),
+        })
+    }
+
+    /// Answers `initialize` (loadSession: true), `session/new` and
+    /// `session/load` (both with a Codex-shaped `model` config option),
+    /// `session/set_mode` and `session/set_config_option` (accepting only
+    /// `gpt-5.3-codex`, ACP's invalid-params error otherwise) with canned
+    /// results and `session/prompt` with ACP's `authRequired` error, logging
+    /// every request line to `$LOG`.
+    #[cfg(unix)]
+    const STUB_AGENT: &str = r#"
+while IFS= read -r l; do
+  printf '%s\n' "$l" >> "$LOG"
+  id=$(printf '%s' "$l" | sed -n 's/.*"id":\([0-9][0-9]*\).*/\1/p')
+  case "$l" in
+    *'"session/prompt"'*)
+      printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"Authentication required"}}\n' "$id"
+      continue ;;
+    *'"session/set_config_option"'*)
+      case "$l" in
+        *'"value":"gpt-5.3-codex"'*) r='{"configOptions":[{"id":"model","category":"model","type":"select","currentValue":"gpt-5.3-codex","options":[{"value":"gpt-5.2","name":"5.2"},{"value":"gpt-5.3-codex","name":"5.3 Codex"}]}]}' ;;
+        *)
+          printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32602,"message":"Invalid params"}}\n' "$id"
+          continue ;;
+      esac ;;
+    *'"initialize"'*) r='{"protocolVersion":1,"agentCapabilities":{"loadSession":true}}' ;;
+    *'"session/new"'*) r='{"sessionId":"acp-stub","configOptions":[{"id":"model","name":"Model","category":"model","type":"select","currentValue":"gpt-5.2","options":[{"value":"gpt-5.2","name":"5.2","description":"Default"},{"value":"gpt-5.3-codex","name":"5.3 Codex","description":"Coding"}]}]}' ;;
+    *'"session/load"'*) r='{"configOptions":[{"id":"model","category":"model","type":"select","currentValue":"gpt-5.3-codex","options":[{"value":"gpt-5.2","name":"5.2"},{"value":"gpt-5.3-codex","name":"5.3 Codex"}]}]}' ;;
+    *) r='{}' ;;
+  esac
+  printf '{"jsonrpc":"2.0","id":%s,"result":%s}\n' "$id" "$r"
+done
+"#;
+
+    /// `piped_agent` with the screen tools flag, for the session bookkeeping
+    /// the Cowork flip and close rely on.
+    fn stub_session(script: &Path, log: &Path, backend: Backend, cowork: bool) -> Arc<Session> {
+        let mut child = Command::new("sh")
+            .arg(script)
+            .env("LOG", log)
+            .env("FAULT", "")
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
+            .kill_on_drop(true)
+            .spawn()
+            .unwrap();
+        let stdin = Arc::new(Mutex::new(child.stdin.take().unwrap()));
+        let pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>> =
+            Arc::new(Mutex::new(HashMap::new()));
+        route_responses(child.stdout.take().unwrap(), pending.clone());
+        Arc::new(Session {
+            child: Mutex::new(child),
+            stdin,
+            next_id: AtomicI64::new(1),
+            pending,
+            acp_session_id: String::new(),
+            requested_model: Some(format!("{}/default", backend.id())),
+            backend,
+            cowork,
+            proxy_secret: None,
+            turn: Arc::new(Mutex::new(TurnState::new())),
+            last_used: Mutex::new(Instant::now()),
+            active_turns: AtomicUsize::new(0),
+            closing: AtomicBool::new(false),
+            context_fresh: AtomicBool::new(false),
+        })
+    }
+
+    #[test]
+    fn cowork_mcp_server_has_command_args_and_env() {
+        let server = cowork_mcp_server(
+            Path::new("/opt/x/cua-driver"),
+            Path::new("/d/iblai/cua-driver.sock"),
+        );
+        assert_eq!(server["name"], json!("cowork"));
+        assert_eq!(server["command"], json!("/opt/x/cua-driver"));
+        // The proxy, never the runtime: `--direct` would put the driver inside
+        // the agent's sandbox, and the grant belongs to the daemon.
+        assert_eq!(
+            server["args"],
+            json!(["mcp", "--embedded", "--socket", "/d/iblai/cua-driver.sock"])
+        );
+        assert_eq!(server["env"], json!([]));
+    }
+
+    /// Every backend's `session/new` params carry the driver when Cowork is on
+    /// and nothing extra when it is off.
+    #[test]
+    fn the_screen_tools_ride_the_launch_only_with_cowork_on() {
+        let (ws, skills, cfg) = (Path::new("/ws"), Path::new("/skills"), Path::new("/cfg"));
+        for backend in [Backend::Opencode, Backend::Codex, Backend::Claude] {
+            let plain = agent_launch(backend, ws, skills, cfg, "G", false, None);
+            assert_eq!(plain.session["mcpServers"], json!([]), "{}", backend.id());
+            let (driver, socket) = (Path::new("/d/cua-driver"), Path::new("/d/cua-driver.sock"));
+            let with = agent_launch(backend, ws, skills, cfg, "G", false, Some((driver, socket)));
+            assert_eq!(
+                with.session["mcpServers"],
+                json!([cowork_mcp_server(driver, socket)]),
+                "{}",
+                backend.id()
+            );
+        }
+    }
+
+    /// A resumed Cowork chat keeps its screen: the load carries the entry too.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn the_screen_tools_reach_session_new_and_session_load() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-cowork-agent-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let ws = scratch.join("ws");
+        let skills = scratch.join("cfg/agent-skills");
+        let driver = scratch.join("cua-driver");
+        let socket = scratch.join("cua-driver.sock");
+        for (resume, method) in [
+            (None, "session/new"),
+            (Some("prev-session"), "session/load"),
+        ] {
+            let log = scratch.join(format!("{}.log", method.replace('/', "-")));
+            let session = piped_agent(&script, &log, Backend::Opencode);
+            let launch = agent_launch(
+                Backend::Opencode,
+                &ws,
+                &skills,
+                &scratch,
+                "G",
+                false,
+                Some((&driver, &socket)),
+            );
+            handshake(&session, &launch.session, resume, None, None)
+                .await
+                .unwrap();
+            let seen = std::fs::read_to_string(&log).unwrap();
+            let lines: Vec<Value> = seen
+                .lines()
+                .map(|l| serde_json::from_str(l).unwrap())
+                .collect();
+            assert_eq!(lines[1]["method"], json!(method), "{seen}");
+            assert_eq!(
+                lines[1]["params"]["mcpServers"],
+                json!([cowork_mcp_server(&driver, &socket)]),
+                "{seen}"
+            );
+            let _ = session.child.lock().await.start_kill();
+        }
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_live_session_is_reused_only_for_the_same_model_and_cowork_setting() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-reusable-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let session = piped_agent(&script, &scratch.join("a.log"), Backend::Opencode);
+        assert!(reusable(&session, Some("opencode/default"), false, false));
+        assert!(
+            !reusable(&session, Some("opencode/default"), true, true),
+            "a Cowork flip respawns"
+        );
+        assert!(
+            !reusable(&session, Some("openai/gpt-5.5"), false, false),
+            "a model switch respawns"
+        );
+        let _ = session.child.lock().await.start_kill();
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_cowork_session_is_reused_only_while_its_driver_is_alive() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-driver-gone-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let session = stub_session(&script, &scratch.join("a.log"), Backend::Opencode, true);
+        assert!(reusable(&session, Some("opencode/default"), true, true));
+        assert!(
+            !reusable(&session, Some("opencode/default"), true, false),
+            "a session left on a dead driver respawns"
+        );
+        let _ = session.child.lock().await.start_kill();
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn closing_cowork_sessions_spares_plain_code_and_the_newcomer() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-cowork-close-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let sessions: HashMap<String, Arc<Session>> =
+            [("plain", false), ("screen", true), ("newcomer", true)]
+                .into_iter()
+                .map(|(id, cowork)| {
+                    let log = scratch.join(format!("{id}.log"));
+                    (
+                        id.to_string(),
+                        stub_session(&script, &log, Backend::Opencode, cowork),
+                    )
+                })
+                .collect();
+        let ids = cowork_session_ids(sessions.iter(), Some("newcomer"));
+        assert_eq!(ids, ["screen"]);
+        let mut all = cowork_session_ids(sessions.iter(), None);
+        all.sort();
+        assert_eq!(all, ["newcomer", "screen"]);
+        for s in sessions.values() {
+            let _ = s.child.lock().await.start_kill();
+        }
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    #[test]
+    fn a_reply_that_only_announces_its_next_step_is_told_apart_from_an_answer() {
+        for reply in [
+            "Chrome is running. Let me first list the windows for Chrome.",
+            "I'll read the file now",
+            "The file exists.\nNow I need to add the second line.",
+            "Next, I will open the settings:",
+            "Let me read package.json.",
+            "Now I need to edit src/app/page.tsx",
+        ] {
+            assert!(announces_next_step(reply), "{reply}");
+        }
+        for reply in [
+            "Six apps are running.",
+            "I created notes.txt with two lines. Let me know if you want more.",
+            "",
+            "The total is 42.",
+            // A question for the user, a quoted email and an offer were each
+            // answered with "Call the tool for that step now".
+            "I found 3 drafts. Should I delete them? I'll wait for your go-ahead.",
+            "He wrote: \"Let's meet on Friday.\"",
+            "I'll be here if you need anything else.",
+            // Requests for approval, an answer or a choice written as
+            // statements, in a reply or in the closing thoughts.
+            "I found 3 drafts. I'll delete them once you confirm.",
+            "I found 3 drafts. I'll need your confirmation before deleting them.",
+            "I found 3 drafts. I need to confirm with you before deleting them.",
+            "There are 3 drafts named Report. I need to know which one to delete.",
+            "The user wants the drafts gone. Deleting is irreversible. I'll ask the user to confirm before deleting them.",
+            "I'll delete them as soon as you say so.",
+            "I'll send it when I have your go-ahead.",
+            "I'll delete them when you're ready.",
+            "I'll delete them when you’re ready.",
+            "I'll send the email once you've reviewed it.",
+            "I'll continue after the user's answer.",
+            "I'll delete them on your say so.",
+            "I'll need your OK first.",
+            "I'll await further instructions.",
+            "I'll stand by.",
+            "I'll leave the decision to you.",
+            "I'll go with whichever you pick.",
+            "I'll need a yes from you before I delete anything.",
+            "I'll keep them for now, pending your review.",
+            "I'll proceed once instructed.",
+            "Now I've deleted the drafts.",
+            "Now I have all three windows.",
+        ] {
+            assert!(!announces_next_step(reply), "{reply}");
+        }
+        // A step that only mentions the user's things is still a step, and so
+        // is one whose approval words are about the model's own work.
+        for reply in [
+            "Let me open your inbox.",
+            "I'll read the user's latest email.",
+            "Let me check which apps are running.",
+            "Let me share the results with you.",
+            "I'll read the email you got from the user's bank.",
+            "Let me confirm the page loaded.",
+            "Let me check the app's permissions.",
+            "I'll click the Approve button.",
+            "I'll go ahead and open Chrome.",
+            "Okay, let me open the inbox.",
+            "First, I'll list the windows.",
+            "- Let me open Safari.",
+            "**Let me check the windows.**",
+        ] {
+            assert!(announces_next_step(reply), "{reply}");
+        }
+    }
+
+    #[test]
+    fn each_guard_on_an_announced_step_has_a_reply_only_it_catches() {
+        // Each turns true when its own guard is removed: the question mark,
+        // the start-of-sentence anchor, the quote stripping, the phrases that
+        // wait on the user, and approval words in a sentence about the user.
+        assert!(!announces_next_step("I'll delete them, okay?"));
+        assert!(!announces_next_step(
+            "Chrome is open and I'll leave it that way."
+        ));
+        assert!(!announces_next_step(
+            "He wrote: \"Running late. I'll call Sam at five\" in his note."
+        ));
+        assert!(!announces_next_step("I need to know which one to delete."));
+        assert!(!announces_next_step(
+            "I'll need your confirmation before deleting them."
+        ));
+    }
+
+    #[test]
+    fn no_carry_on_prompt_approves_a_step_for_the_user() {
+        // They go in the user's role; "Call the tool for that step now" read
+        // as approval to a model that had said it would wait for one.
+        for prompt in [LOCAL_CARRY_ON, LOCAL_MAKE_THE_CALL, LOCAL_ANSWER_NOW] {
+            assert!(
+                prompt.starts_with("Automatic note, not from the user. It approves nothing. "),
+                "{prompt}"
+            );
+        }
+        assert!(
+            LOCAL_CARRY_ON.contains("needs the user's approval or an answer from them, ask them")
+        );
+        assert!(LOCAL_MAKE_THE_CALL.contains("needs the user's approval: then ask them and stop"));
+    }
+
+    #[test]
+    fn a_json_answer_written_again_after_the_question_is_kept() {
+        // `{"pid": 4512}` fits a tool that takes `pid`: it got three "make that
+        // tool call" rounds, each clearing it from the bubble.
+        let mut ts = TurnState::new();
+        let mut emit = |_: &'static str, _: Value| {};
+        ts.full_content = "{\"pid\": 4512}".into();
+        assert_eq!(next_carry_on(&mut emit, &mut ts), Some(LOCAL_MAKE_THE_CALL));
+        assert!(ts.full_content.is_empty());
+
+        ts.full_content = "{\"pid\": 4512}".into();
+        assert_eq!(next_carry_on(&mut emit, &mut ts), None);
+        assert_eq!(ts.full_content, "{\"pid\": 4512}");
+
+        // A real call since the question: arguments written as text again
+        // are asked about again.
+        ts.tool_shapes
+            .insert("call-1".into(), serde_json::Map::new());
+        assert_eq!(next_carry_on(&mut emit, &mut ts), Some(LOCAL_MAKE_THE_CALL));
+    }
+
+    #[test]
+    fn a_tool_call_written_as_the_reply_is_told_apart_from_an_answer() {
+        assert!(wrote_tool_arguments("{\"on_screen_only\":true}"));
+        assert!(wrote_tool_arguments(" {\"pid\": 654, \"window_id\": 3} \n"));
+        assert!(wrote_tool_arguments(
+            "{\"filePath\": \"notes.txt\", \"content\": \"hi\"}"
+        ));
+        assert!(!wrote_tool_arguments("Six apps are running."));
+        assert!(!wrote_tool_arguments("{ not json }"));
+        assert!(!wrote_tool_arguments("[1, 2]"));
+        assert!(!wrote_tool_arguments("{}"));
+        // JSON the user asked for is an answer, not a call.
+        assert!(!wrote_tool_arguments(
+            "{\"windows\": [{\"title\": \"Inbox\"}]}"
+        ));
+        assert!(!wrote_tool_arguments("{\"pid\": 1, \"filePath\": \"x\"}"));
+    }
+
+    #[test]
+    fn local_guidance_is_appended_only_on_device() {
+        assert_eq!(with_local_guidance("G".into(), false, true), "G");
+        let on = with_local_guidance("G".into(), true, false);
+        assert!(!on.contains("start_session"), "{on}");
+        assert!(
+            with_local_guidance("G".into(), true, true).contains("no start_session"),
+            "the driver's own instructions name tools this session lacks"
+        );
+        assert!(
+            on.starts_with("G\n\n## Working on this computer's own model"),
+            "{on}"
+        );
+        for rule in [
+            "call the tool instead",
+            "unless a tool call in this turn did it",
+            "before you have tried the tool for it",
+        ] {
+            assert!(on.contains(rule), "{rule}");
+        }
+    }
+
+    /// An on-device request has to fit a window some thirty times smaller than
+    /// a cloud model's: 54,000 tokens went out before, cut to 2,000 by Ollama.
+    #[test]
+    fn an_on_device_session_is_written_to_fit_the_models_window() {
+        let s = Scratch::new("local-fit");
+        let spec = ModelSpec {
+            provider: "ollama",
+            model: "qwen3:latest".to_string(),
+            local: true,
+            fit: Some(LocalFit {
+                model: "qwen3:latest-ibl-32k".to_string(),
+                context: 32_768,
+                cowork: true,
+            }),
+        };
+        apply_opencode_model_at(
+            s.path(),
+            None,
+            &spec,
+            "http://localhost:11434/v1",
+            "local",
+            "Ollama (on-device)",
+            Some("G"),
+        )
+        .unwrap();
+        let text =
+            std::fs::read_to_string(s.path().join("opencode").join("opencode.json")).unwrap();
+        let cfg: Value = serde_json::from_str(&text).unwrap();
+
+        assert_eq!(cfg["model"], "ollama/qwen3:latest-ibl-32k");
+        let model = &cfg["provider"]["ollama"]["models"]["qwen3:latest-ibl-32k"];
+        assert_eq!(model["name"], "qwen3:latest", "shown under its own name");
+        assert_eq!(
+            model["limit"],
+            json!({ "context": 32_768, "output": 8_192 })
+        );
+        assert_eq!(
+            cfg["agent"]["title"]["disable"], true,
+            "no naming call ahead of the reply"
+        );
+        assert_eq!(cfg["agent"]["build"]["steps"], LOCAL_STEP_LIMIT);
+        assert_eq!(
+            cfg["agent"]["build"]["prompt"],
+            format!("{OPENCODE_BUILD_PROMPT}\n\nG"),
+            "the guidance sits ahead of anything that names the chat"
+        );
+        assert_eq!(
+            std::fs::read_to_string(s.path().join("opencode").join("AGENTS.md")).unwrap(),
+            LOCAL_GUIDANCE_POINTER
+        );
+        assert_eq!(cfg["provider"]["ollama"]["options"]["timeout"], 1_800_000);
+        assert_eq!(
+            cfg["provider"]["ollama"]["options"]["headerTimeout"],
+            1_800_000
+        );
+        assert!(cfg.get("skills").is_none(), "no vibe catalog on device");
+    }
+
+    #[test]
+    fn an_on_device_session_keeps_only_the_core_tools() {
+        let mut cfg = serde_json::Map::new();
+        enforce_permission_policy(&mut cfg);
+        trim_local_tools(&mut cfg, false);
+        assert_eq!(cfg["permission"]["task"], "deny");
+        assert_eq!(cfg["permission"]["todowrite"], "deny");
+        assert!(
+            cfg["permission"].get("cowork_*").is_none(),
+            "no screen rules without Cowork"
+        );
+
+        trim_local_tools(&mut cfg, true);
+        assert_eq!(cfg["permission"]["cowork_*"], "deny");
+        assert_eq!(cfg["permission"]["cowork_click"], "ask");
+        assert!(cfg["permission"].get("cowork_start_recording").is_none());
+        assert!(cfg["permission"].get("cowork_start_session").is_none());
+        // opencode takes the last matching rule: the deny must come first.
+        let written = serde_json::to_string(&cfg).unwrap();
+        let at = |key: &str| written.find(&format!("\"{key}\"")).expect(key);
+        assert!(at("*") < at("cowork_*"), "{written}");
+        for tool in crate::cua_driver_mcp::LOCAL_TOOLS {
+            assert!(
+                at("cowork_*") < at(&format!("cowork_{tool}")),
+                "{tool}: {written}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_cloud_session_keeps_its_tools_its_skills_and_its_session_name() {
+        let mut cfg = serde_json::Map::new();
+        set_session_naming(&mut cfg, false);
+        assert_eq!(cfg["agent"]["title"]["disable"], true);
+        set_session_naming(&mut cfg, true);
+        assert!(cfg["agent"].get("title").is_none(), "back on a cloud model");
+
+        let s = Scratch::new("cloud-fit");
+        let spec = parse_model_spec("openai/gpt-4o");
+        apply_opencode_model_at(
+            s.path(),
+            None,
+            &spec,
+            "http://127.0.0.1:1/v1",
+            "secret",
+            "ibl.ai",
+            Some("G"),
+        )
+        .unwrap();
+        let text =
+            std::fs::read_to_string(s.path().join("opencode").join("opencode.json")).unwrap();
+        let cfg: Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(cfg["permission"], json!({ "*": "ask", "question": "deny" }));
+        assert!(cfg["provider"]["iblai"]["models"]["openai/gpt-4o"]
+            .get("limit")
+            .is_none());
+        assert!(cfg["provider"]["iblai"]["options"].get("timeout").is_none());
+        assert_eq!(cfg["agent"]["build"]["prompt"], OPENCODE_BUILD_PROMPT);
+        assert!(cfg["agent"]["build"].get("steps").is_none());
+        assert_eq!(
+            std::fs::read_to_string(s.path().join("opencode").join("AGENTS.md")).unwrap(),
+            "G"
+        );
+        assert!(cfg["agent"].get("title").is_none());
+    }
+
+    #[test]
+    fn cowork_guidance_is_appended_only_when_on() {
+        assert_eq!(with_cowork_guidance("G".into(), false), "G");
+        let on = with_cowork_guidance("G".into(), true);
+        assert!(on.starts_with("G\n\n## Screen tools"), "{on}");
+        assert!(on.contains("Screenshots are not available here"), "{on}");
+        assert!(on.contains("together with the snapshot_id"), "{on}");
+        assert!(
+            !on.contains("include_screenshot"),
+            "the relay switches it off; the model is not asked to"
+        );
+    }
+
+    #[test]
+    fn cowork_preflight_refuses_only_an_unsupported_session_or_a_missing_driver() {
+        use crate::cua_driver_mcp::DriverSupport;
+        let ok = DriverSupport {
+            supported: true,
+            reason: None,
+        };
+        let driver = PathBuf::from("/opt/x/cua-driver");
+        assert_eq!(cowork_preflight_with(&ok, Some(driver.clone())), Ok(driver));
+        let kde = DriverSupport {
+            supported: false,
+            reason: Some("kde".into()),
+        };
+        let err = cowork_preflight_with(&kde, Some(PathBuf::from("/d"))).unwrap_err();
+        assert!(err.contains("desktop session"), "{err}");
+        let err = cowork_preflight_with(&ok, None).unwrap_err();
+        assert!(err.contains("isn't set up"), "{err}");
+    }
+
+    /// The wire contract against a scripted agent: Claude's load/new params
+    /// carry the guidance append and the skills view and are followed by the
+    /// `default` mode pin; Codex's carry no `_meta` and its own mode; a
+    /// signed-out `session/prompt` comes back as the non-retryable sign-in
+    /// error that maps to the agent's hint.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_scripted_agent_gets_our_session_params_and_a_signed_out_prompt_fails_loudly() {
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-stub-agent-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let ws = scratch.join("ws");
+        let skills = scratch.join("cfg/agent-skills");
+
+        // Claude, resuming: the load carries the same params plus the id.
+        let log = scratch.join("claude.log");
+        let session = piped_agent(&script, &log, Backend::Claude);
+        let params = session_params(Backend::Claude, &ws, &skills, "GUIDE");
+        let hs = handshake(
+            &session,
+            &params,
+            Some("prev-session"),
+            Some("default"),
+            None,
+        )
+        .await
+        .unwrap();
+        let (id, loaded) = (hs.id, hs.loaded);
+        assert_eq!((id.as_str(), loaded), ("prev-session", true));
+        let err = session
+            .request("session/prompt", json!({ "sessionId": id, "prompt": [] }))
+            .await
+            .unwrap_err();
+        assert!(err.starts_with(AUTH_REQUIRED), "{err}");
+        assert!(!should_retry(&err, false, 1));
+        assert!(auth_hint(Backend::Claude, &err)
+            .unwrap()
+            .contains("terminal"));
+        let seen = std::fs::read_to_string(&log).unwrap();
+        let lines: Vec<Value> = seen
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap())
+            .collect();
+        let methods: Vec<&str> = lines
+            .iter()
+            .map(|v| v["method"].as_str().unwrap())
+            .collect();
+        assert_eq!(
+            methods,
+            [
+                "initialize",
+                "session/load",
+                "session/set_mode",
+                "session/prompt"
+            ]
+        );
+        let load = &lines[1]["params"];
+        assert_eq!(load["sessionId"], json!("prev-session"));
+        assert_eq!(load["_meta"]["systemPrompt"]["append"], json!("GUIDE"));
+        assert_eq!(
+            load["additionalDirectories"],
+            json!([skills.to_string_lossy()])
+        );
+        assert_eq!(
+            lines[2]["params"],
+            json!({ "sessionId": "prev-session", "modeId": "default" })
+        );
+        assert_eq!(
+            lines[0]["params"]["clientCapabilities"],
+            json!({ "fs": { "readTextFile": false, "writeTextFile": false }, "terminal": false })
+        );
+        let _ = session.child.lock().await.start_kill();
+
+        // Codex, fresh: session/new without _meta, then its own mode.
+        let log = scratch.join("codex.log");
+        let session = piped_agent(&script, &log, Backend::Codex);
+        let params = session_params(Backend::Codex, &ws, &skills, "GUIDE");
+        let hs = handshake(&session, &params, None, Some("read-only"), None)
+            .await
+            .unwrap();
+        let (id, loaded) = (hs.id, hs.loaded);
+        assert_eq!((id.as_str(), loaded), ("acp-stub", false));
+        let seen = std::fs::read_to_string(&log).unwrap();
+        let lines: Vec<Value> = seen
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap())
+            .collect();
+        let methods: Vec<&str> = lines
+            .iter()
+            .map(|v| v["method"].as_str().unwrap())
+            .collect();
+        assert_eq!(methods, ["initialize", "session/new", "session/set_mode"]);
+        assert!(lines[1]["params"].get("_meta").is_none(), "{}", lines[1]);
+        assert_eq!(
+            lines[1]["params"]["additionalDirectories"],
+            json!([skills.to_string_lossy()])
+        );
+        assert_eq!(lines[2]["params"]["modeId"], json!("read-only"));
+        let _ = session.child.lock().await.start_kill();
+
+        // opencode: byte-identical to before — no additional dirs, no mode pin.
+        let log = scratch.join("opencode.log");
+        let session = piped_agent(&script, &log, Backend::Opencode);
+        let params = session_params(Backend::Opencode, &ws, &skills, "GUIDE");
+        let loaded = handshake(&session, &params, None, None, None)
+            .await
+            .unwrap()
+            .loaded;
+        assert!(!loaded);
+        let seen = std::fs::read_to_string(&log).unwrap();
+        let lines: Vec<Value> = seen
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap())
+            .collect();
+        assert_eq!(lines.len(), 2, "{seen}");
+        assert_eq!(
+            lines[1]["params"],
+            json!({ "cwd": ws.to_string_lossy(), "mcpServers": [] })
+        );
+        let _ = session.child.lock().await.start_kill();
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// The model plumbing against the scripted agent: the opening snapshot's
+    /// `configOptions` come back untouched (they name the agent's own default),
+    /// a saved model is applied right after the mode pin, one the agent no
+    /// longer offers fails the spawn loudly naming the picker, a load's
+    /// snapshot is the resumed session's, and no saved model means no
+    /// `session/set_config_option` at all.
+    #[tokio::test]
+    #[cfg(unix)]
+    async fn a_scripted_agent_reports_its_models_and_takes_the_saved_one() {
+        fn seen(log: &Path) -> (Vec<Value>, Vec<String>) {
+            let lines: Vec<Value> = std::fs::read_to_string(log)
+                .unwrap()
+                .lines()
+                .map(|l| serde_json::from_str(l).unwrap())
+                .collect();
+            let methods = lines
+                .iter()
+                .map(|v| v["method"].as_str().unwrap().to_string())
+                .collect();
+            (lines, methods)
+        }
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-stub-models-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, STUB_AGENT).unwrap();
+        let ws = scratch.join("ws");
+        let skills = scratch.join("cfg/agent-skills");
+        let params = session_params(Backend::Codex, &ws, &skills, "GUIDE");
+
+        let log = scratch.join("saved.log");
+        let session = piped_agent(&script, &log, Backend::Codex);
+        let hs = handshake(
+            &session,
+            &params,
+            None,
+            Some("read-only"),
+            Some("gpt-5.3-codex"),
+        )
+        .await
+        .unwrap();
+        assert_eq!((hs.id.as_str(), hs.loaded), ("acp-stub", false));
+        let opts = hs.config_options.expect("the opening snapshot");
+        assert_eq!(opts[0]["id"], json!("model"));
+        assert_eq!(
+            opts[0]["currentValue"],
+            json!("gpt-5.2"),
+            "pre-push: the agent's own default"
+        );
+        let (lines, methods) = seen(&log);
+        assert_eq!(
+            methods,
+            [
+                "initialize",
+                "session/new",
+                "session/set_mode",
+                "session/set_config_option"
+            ]
+        );
+        assert_eq!(
+            lines[3]["params"],
+            json!({ "sessionId": "acp-stub", "configId": "model", "value": "gpt-5.3-codex" })
+        );
+        let _ = session.child.lock().await.start_kill();
+
+        let log = scratch.join("stale.log");
+        let session = piped_agent(&script, &log, Backend::Codex);
+        let err = handshake(&session, &params, None, None, Some("gpt-9"))
+            .await
+            .unwrap_err();
+        assert!(
+            err.contains("Codex rejected the model gpt-9") && err.contains("top-left"),
+            "{err}"
+        );
+        let _ = session.child.lock().await.start_kill();
+
+        let log = scratch.join("resume.log");
+        let session = piped_agent(&script, &log, Backend::Claude);
+        let hs = handshake(&session, &params, Some("prev-session"), None, None)
+            .await
+            .unwrap();
+        assert!(hs.loaded);
+        assert_eq!(
+            hs.config_options.unwrap()[0]["currentValue"],
+            json!("gpt-5.3-codex"),
+            "a load's snapshot is the resumed session's"
+        );
+        let (_, methods) = seen(&log);
+        assert_eq!(methods, ["initialize", "session/load"]);
+        let _ = session.child.lock().await.start_kill();
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// The real pins list their models through the probe — needs the managed
+    /// Node + adapters and a signed-in agent (a signed-out one is skipped
+    /// with its hint): `cargo test code_agent_pins_list_models -- --ignored --nocapture`.
+    #[tokio::test]
+    #[ignore]
+    #[cfg(unix)]
+    async fn code_agent_pins_list_models() {
+        for backend in [Backend::Codex, Backend::Claude] {
+            match probe_config_options(backend).await {
+                Ok(opts) => {
+                    let model = opts
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|o| o["id"] == json!("model"))
+                        .expect("a model option");
+                    let n = model["options"].as_array().map(|a| a.len()).unwrap_or(0);
+                    println!(
+                        "{backend:?}: default {} — {n} models",
+                        model["currentValue"]
+                    );
+                    for o in model["options"].as_array().unwrap() {
+                        println!("  {} = {} ({})", o["value"], o["name"], o["description"]);
+                    }
+                    assert!(n > 0);
+                }
+                Err(e) if e.starts_with(AUTH_REQUIRED) => println!("{backend:?}: skipped — {e}"),
+                Err(e) => panic!("{backend:?}: {e}"),
+            }
+        }
+    }
+
+    /// The real pins accept our handshake: with the managed Node and adapters
+    /// installed (installing them first when missing — ~700 MB), `initialize`
+    /// + `session/new` + the mode pin either succeed or fail ONLY with the
+    /// sign-in error, never with an invalid-params rejection of our shapes.
+    /// `cargo test code_agent_pins -- --ignored --nocapture`.
+    #[cfg(unix)]
+    #[tokio::test]
+    #[ignore]
+    async fn code_agent_pins_accept_our_handshake() {
+        let log = |m: &str| println!("[install] {m}");
+        for backend in [Backend::Codex, Backend::Claude] {
+            if crate::code_agent_installer::agent_ready(backend).is_err() {
+                crate::code_agent_installer::install_with(backend, &log)
+                    .await
+                    .unwrap();
+            }
+        }
+        let scratch = std::env::temp_dir().join(format!("code-agent-pins-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        let ws = scratch.join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        for backend in [Backend::Codex, Backend::Claude] {
+            let skills = scratch.join(format!("{}-skills", backend.id()));
+            link_skills(
+                &skills.join(backend.skills_subdir()),
+                &scratch.join("no-vibe"),
+                None,
+            )
+            .unwrap();
+            let launch = agent_launch(
+                backend,
+                &ws,
+                &skills,
+                &scratch,
+                "# ibl.ai guidance\n",
+                false,
+                None,
+            );
+            let mut cmd = Command::new(&launch.program);
+            cmd.args(&launch.args)
+                .current_dir(&ws)
+                .env("PATH", crate::code_agent_installer::agent_path())
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::inherit())
+                .kill_on_drop(true);
+            strip_agent_env(&mut cmd);
+            for (k, v) in &launch.env {
+                cmd.env(k, v);
+            }
+            let mut child = cmd.spawn().unwrap();
+            let stdin = Arc::new(Mutex::new(child.stdin.take().unwrap()));
+            let stdout = child.stdout.take().unwrap();
+            let pending: Arc<Mutex<HashMap<i64, oneshot::Sender<Value>>>> =
+                Arc::new(Mutex::new(HashMap::new()));
+            let routed = pending.clone();
+            tokio::spawn(async move {
+                let mut lines = BufReader::new(stdout).lines();
+                while let Ok(Some(line)) = lines.next_line().await {
+                    if let Ok(v) = serde_json::from_str::<Value>(&line) {
+                        if !route_response(&routed, &v).await {
+                            println!("[{}] <- {line}", "agent");
+                        }
+                    }
+                }
+            });
+            let session = Session {
+                child: Mutex::new(child),
+                stdin,
+                next_id: AtomicI64::new(1),
+                pending,
+                acp_session_id: String::new(),
+                requested_model: Some(format!("{}/default", backend.id())),
+                backend,
+                cowork: false,
+                proxy_secret: None,
+                turn: Arc::new(Mutex::new(TurnState::new())),
+                last_used: Mutex::new(Instant::now()),
+                active_turns: AtomicUsize::new(0),
+                closing: AtomicBool::new(false),
+                context_fresh: AtomicBool::new(false),
+            };
+            let result = tokio::time::timeout(
+                Duration::from_secs(120),
+                handshake(
+                    &session,
+                    &launch.session,
+                    None,
+                    session_mode(backend, false),
+                    None,
+                ),
+            )
+            .await
+            .expect("handshake must answer within two minutes");
+            println!("{backend:?}: {result:?}");
+            match result {
+                Ok(hs) => assert!(!hs.id.is_empty() && !hs.loaded),
+                Err(e) => assert!(
+                    e.starts_with(AUTH_REQUIRED),
+                    "{backend:?} rejected our params: {e}"
+                ),
+            }
+            let _ = session.child.lock().await.start_kill();
+        }
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// A scripted agent that misbehaves as `$FAULT` says: `signed-out` (a
+    /// `-32000` on `session/new`, what codex-acp answers after its own auth
+    /// check), `init-error`, `no-id` (a `session/new` without a sessionId),
+    /// `load-fails` (`session/load` refused, `session/new` fine), `no-load`
+    /// (no `loadSession` capability), `mode-refused`, `dies` (exits on
+    /// `initialize`), `silent` (never answers). Requests are logged like
+    /// [`STUB_AGENT`]'s.
+    #[cfg(unix)]
+    const FAULTY_AGENT: &str = r#"
+while IFS= read -r l; do
+  printf '%s\n' "$l" >> "$LOG"
+  id=$(printf '%s' "$l" | sed -n 's/.*"id":\([0-9][0-9]*\).*/\1/p')
+  case "$l" in
+    *'"initialize"'*)
+      case "$FAULT" in
+        dies) exit 0 ;;
+        silent) continue ;;
+        init-error) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32603,"message":"boom"}}\n' "$id"; continue ;;
+        no-load) r='{"protocolVersion":1,"agentCapabilities":{"loadSession":false}}' ;;
+        *) r='{"protocolVersion":1,"agentCapabilities":{"loadSession":true}}' ;;
+      esac ;;
+    *'"session/load"'*)
+      printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32602,"message":"unknown session"}}\n' "$id"; continue ;;
+    *'"session/new"'*)
+      case "$FAULT" in
+        signed-out) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"Authentication required"}}\n' "$id"; continue ;;
+        no-id) r='{"configOptions":[]}' ;;
+        *) r='{"sessionId":"acp-stub"}' ;;
+      esac ;;
+    *'"session/set_mode"'*)
+      case "$FAULT" in
+        mode-refused) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32602,"message":"no such mode"}}\n' "$id"; continue ;;
+        mode-slow) sleep 1; r='{}' ;;
+        *) r='{}' ;;
+      esac ;;
+    *) r='{}' ;;
+  esac
+  printf '{"jsonrpc":"2.0","id":%s,"result":%s}\n' "$id" "$r"
+done
+"#;
+
+    /// The handshake against an agent that refuses or breaks: a signed-out
+    /// `session/new` is the non-retryable sign-in error with the agent's hint;
+    /// a failing `initialize` or mode pin and a `session/new` without an id
+    /// are loud; a refused `session/load`, or an agent that cannot load at
+    /// all, falls back to `session/new`; an adapter that exits mid-handshake
+    /// fails at once instead of waiting out the deadline; one that never
+    /// answers hits the deadline with one sentence naming the agent.
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn a_signed_out_or_broken_agent_fails_the_handshake_loudly() {
+        async fn attempt(
+            script: &Path,
+            log: &Path,
+            params: &Value,
+            fault: &str,
+            resume: Option<&str>,
+        ) -> Result<Handshake, String> {
+            let session = faulty_agent(script, log, Backend::Codex, Some(fault));
+            let out = tokio::time::timeout(
+                Duration::from_secs(5),
+                timed_handshake(
+                    Duration::from_millis(300),
+                    &session,
+                    params,
+                    resume,
+                    Some("read-only"),
+                    None,
+                ),
+            )
+            .await
+            .expect("the handshake must settle, not hang");
+            let _ = session.child.lock().await.start_kill();
+            out
+        }
+        fn methods(log: &Path) -> Vec<String> {
+            std::fs::read_to_string(log)
+                .unwrap()
+                .lines()
+                .map(|l| {
+                    serde_json::from_str::<Value>(l).unwrap()["method"]
+                        .as_str()
+                        .unwrap()
+                        .to_string()
+                })
+                .collect()
+        }
+        let scratch =
+            std::env::temp_dir().join(format!("opencode-faulty-agent-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&scratch);
+        std::fs::create_dir_all(&scratch).unwrap();
+        let script = scratch.join("agent.sh");
+        std::fs::write(&script, FAULTY_AGENT).unwrap();
+        let params = session_params(
+            Backend::Codex,
+            &scratch.join("ws"),
+            &scratch.join("cfg/agent-skills"),
+            "GUIDE",
+        );
+        let log = |name: &str| scratch.join(format!("{name}.log"));
+
+        let err = attempt(&script, &log("signed-out"), &params, "signed-out", None)
+            .await
+            .unwrap_err();
+        assert!(
+            err.starts_with(AUTH_REQUIRED) && err.contains("session/new"),
+            "{err}"
+        );
+        assert!(auth_hint(Backend::Codex, &err)
+            .unwrap()
+            .contains("ChatGPT app"));
+        assert!(!should_retry(&err, false, 1), "signed out is not a crash");
+
+        let err = attempt(&script, &log("init-error"), &params, "init-error", None)
+            .await
+            .unwrap_err();
+        assert!(
+            err.contains("initialize") && !err.starts_with(AUTH_REQUIRED),
+            "{err}"
+        );
+
+        let err = attempt(&script, &log("no-id"), &params, "no-id", None)
+            .await
+            .unwrap_err();
+        assert_eq!(err, "session/new returned no sessionId");
+
+        let hs = attempt(
+            &script,
+            &log("load-fails"),
+            &params,
+            "load-fails",
+            Some("prev-session"),
+        )
+        .await
+        .unwrap();
+        assert_eq!((hs.id.as_str(), hs.loaded), ("acp-stub", false));
+        assert_eq!(
+            methods(&log("load-fails")),
+            [
+                "initialize",
+                "session/load",
+                "session/new",
+                "session/set_mode"
+            ]
+        );
+
+        let hs = attempt(
+            &script,
+            &log("no-load"),
+            &params,
+            "no-load",
+            Some("prev-session"),
+        )
+        .await
+        .unwrap();
+        assert!(!hs.loaded);
+        assert_eq!(
+            methods(&log("no-load")),
+            ["initialize", "session/new", "session/set_mode"],
+            "no load is attempted on an agent that can't"
+        );
+
+        let err = attempt(&script, &log("mode-refused"), &params, "mode-refused", None)
+            .await
+            .unwrap_err();
+        assert!(err.contains("session/set_mode"), "{err}");
+
+        let err = attempt(&script, &log("dies"), &params, "dies", None)
+            .await
+            .unwrap_err();
+        assert!(
+            err.starts_with(CHILD_GONE),
+            "an adapter that exits fails at once, not at the deadline: {err}"
+        );
+
+        let err = attempt(&script, &log("silent"), &params, "silent", None)
+            .await
+            .unwrap_err();
+        assert_eq!(err, "Codex did not answer within 0s.");
+
+        let _ = std::fs::remove_dir_all(&scratch);
+    }
+
+    /// The pre-spawn "never signed in" check is the agent's own state dir
+    /// under the home — `~/.codex` for Codex, `~/.claude` for Claude — a
+    /// directory, not a stray file; opencode never has one.
+    #[test]
+    fn the_login_dir_decides_never_signed_in_per_agent() {
+        let home = std::env::temp_dir().join(format!("opencode-login-dir-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&home);
+        std::fs::create_dir_all(home.join(".codex")).unwrap();
+        assert!(login_dir_present(Backend::Codex, &home));
+        assert!(!login_dir_present(Backend::Claude, &home));
+        std::fs::write(home.join(".claude"), "not a dir").unwrap();
+        assert!(
+            !login_dir_present(Backend::Claude, &home),
+            "a file is not a login"
+        );
+        std::fs::remove_file(home.join(".claude")).unwrap();
+        std::fs::create_dir_all(home.join(".claude")).unwrap();
+        assert!(login_dir_present(Backend::Claude, &home));
+        assert!(!login_dir_present(Backend::Opencode, &home));
+        let _ = std::fs::remove_dir_all(&home);
     }
 }

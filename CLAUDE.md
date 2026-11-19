@@ -35,6 +35,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
+| "Cowork", "computer use", "let the agent use my screen / click and type for me", "Accessibility / Screen Recording permission", "record a skill" | `/iblai-vibe-os-agent-cowork` — the SDK chat's Cowork pill, its consent and macOS setup (needs the Tauri shell from `/iblai-vibe-ops-build`) |
 | "workflow", "multi-step agent", "branch / loop an agent", "route / classify a request", "chain agents", "state variables" | `/iblai-vibe-workflow` — `WorkflowsList` + `WorkflowEditor` from `/web-containers/next`; the list is organization-wide, opened from an agent |
 | "sandbox", "run code", "virtual machine", "what can the agent reach", "give the agent an API key" | `/iblai-vibe-agent-sandbox` (pick the kind) → `/iblai-vibe-agent-virtual-machine` (one agent's egress, network, environment variables), `/iblai-vibe-virtual-machine` (the org's networks + environment variables) |
 | "MCP", "connector", "connect GitHub / Google Drive / Linear to the agent", "let users switch a connector off", "OAuth client id for a connector" | `/iblai-vibe-agent-mcp` — the tab (Featured / Directory, per-agent switch, sign-in scope, the org's own OAuth app) and the chat's MCP panel; REST in `/iblai-api-agent-mcp` |
@@ -321,7 +322,9 @@ selling items via Stripe Connect: `/iblai-vibe-monetization-onboard`,
 `/iblai-vibe-crm-overview`, `/iblai-vibe-workflow`, `/iblai-vibe-onboard`,
 `/iblai-vibe-house-journeys` (official apps only: the OS's three first-run journeys),
 `/iblai-vibe-local-llm`, `/iblai-vibe-os-agent-code-mode` (the OS app's
-agentic Code mode in a Tauri build — opencode, permission cards, phone pairing).
+agentic Code mode in a Tauri build — opencode, Codex, Claude Code, Approvals,
+permission cards), `/iblai-vibe-os-agent-cowork` (Cowork: the agent sees the
+screen and clicks and types, with a guided macOS setup).
 
 **Tier 4 — ops and polish**: `/iblai-vibe-ops-build` (macOS, Windows, iOS,
 Android via Tauri v2), `/iblai-vibe-ops-release` (App Store / Play),

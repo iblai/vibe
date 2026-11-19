@@ -1,10 +1,12 @@
 # Cargo dependencies for the Code mode Rust modules.
 # Merge into `src-tauri/Cargo.toml` — entries already present from the
 # Tauri shell (`/iblai-vibe-ops-build`) are marked so you don't duplicate.
+# The target tables below already exist in the template for iOS: add the
+# new lines to them rather than repeating a table header.
 #
 # What each is for:
-#   - reqwest  : opencode release download, proxy upstream calls, the phone
-#                client's HTTP + SSE to the paired desktop
+#   - reqwest  : opencode, Node and adapter downloads, proxy upstream calls,
+#                the phone client's HTTP + SSE to the paired desktop
 #   - tokio / futures-util / tokio-stream : the ACP stdio loop, the proxy,
 #                SSE translation on mobile
 #   - axum / http : the loopback token-injecting proxy (opencode_proxy.rs)
@@ -15,8 +17,11 @@
 #   - if-addrs : every local interface address for the pairing QR (real LAN
 #                NICs must come before VPN tunnels)
 #   - qrcode   : the pairing QR as SVG (pure Rust, desktop popover only)
-#   - tauri-plugin-os / -dialog / -shell : platform(), the folder picker,
-#                opening the workspace
+#   - libc     : symlink-safe file writes in the sandbox setup (openat,
+#                O_NOFOLLOW, mkfifo; Unix)
+#   - tauri-plugin-os : platform(), and the macOS version check before the
+#                pinned Node is offered (Codex, Claude Code need 13.5+)
+#   - tauri-plugin-dialog : the "Select Workspace" folder picker
 #   - tauri-plugin-barcode-scanner (mobile) : scanning the pairing QR
 
 [dependencies]
@@ -30,12 +35,10 @@
 # url = "2"
 
 # --- add for Code mode ---
-tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "stream",
-    "blocking",
     "rustls-tls",
 ] }
 tokio = { version = "1", features = ["full"] }
@@ -53,6 +56,9 @@ if-addrs = "0.14"
 # QR rendering (SVG) for phone pairing; pure Rust, desktop popover only.
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [target.'cfg(target_os = "ios")'.dependencies]
 # QR pairing: the phone scans the desktop's pairing code with the camera.
 tauri-plugin-barcode-scanner = "2"
@@ -60,5 +66,6 @@ tauri-plugin-barcode-scanner = "2"
 [target.'cfg(target_os = "android")'.dependencies]
 tauri-plugin-barcode-scanner = "2"
 
-# `tauri` must expose `protocol-asset` if you serve workspace files to the
-# webview; the OS enables `features = ["protocol-asset", "devtools"]`.
+# `tauri-plugin-shell` is not needed. The OS app also enables
+# `features = ["protocol-asset", "devtools"]` on `tauri` and `blocking` on
+# `reqwest` for its own code; the Code modules use neither.
