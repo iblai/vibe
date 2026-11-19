@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.25.3] - 2026-11-19
+
+### Documentation
+
+- voice list is scoped to the user and organization in iblai-api-agent-voice
+
 ## [2.25.2] - 2026-11-19
 
 ### Documentation
