@@ -93,8 +93,9 @@ menu on narrow screens if you have one).
 ## Step 3: Pick the admin surfaces
 
 `AccountPanel tab="…"` mounts the SDK `Account` on one of: `organization`,
-`management`, `integrations`, `advanced`, `billing`, `memory`,
-`monetization`. Each is documented by its own skill:
+`management`, `api`, `secrets`, `virtualMachine` (the Network page),
+`advanced`, `billing`, `memory`, `monetization`. Each is documented by its
+own skill:
 
 | Admin need | Tab / component | Skill |
 |---|---|---|
@@ -102,7 +103,9 @@ menu on narrow screens if you have one).
 | Invite (single, CSV: `email, first_name, last_name, platform_key, company_name, user_group`) | `InviteUserDialog`, `InvitedUsersDialog` | `/iblai-vibe-invite` |
 | Roles and policies (custom grants) | `management` → Roles / Policies (`RolesTab`, `PoliciesTab`) | `/iblai-vibe-rbac` |
 | Groups, teams, alerts | `management` | `/iblai-vibe-account` |
-| LLM keys, data-source credentials, API tokens | `integrations` | `/iblai-vibe-account`, `/iblai-vibe-credential` |
+| Platform API Tokens for your own software | `api` | `/iblai-vibe-account`; REST `/iblai-api-token` |
+| Keys from other services: LLMs, Services (Stripe, Google Drive, …), Environment Variables | `secrets` | `/iblai-vibe-account`, `/iblai-vibe-virtual-machine`, `/iblai-vibe-credential` |
+| The addresses agents' virtual machines may reach | `virtualMachine` | `/iblai-vibe-virtual-machine` |
 | Default agent, feature toggles, help URL | `advanced` | `/iblai-vibe-account` |
 | Plan, credits, spend caps | `billing` | `/iblai-vibe-billing`, `/iblai-vibe-pricing` |
 | Everyone's memories | `memory` | `/iblai-vibe-memory` |

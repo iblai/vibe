@@ -26,9 +26,9 @@ Every Tier 0/1 skill has at least one; the journey set below illustrates
 | `00-join.png` | `ibl.ai/join` sign-up form | manual |
 | `01-me-org-key.png` | `login.iblai.app/me` with an org block and its key | manual |
 | `02-os-admin-toggle.png` | os.ibl.ai top bar, User/Admin toggle in Admin | manual |
-| `02b-os-integrations-apis-add.png` | Integrations → APIs → Add API dialog (no key visible) | manual |
+| `02b-os-integrations-apis-add.png` | Integrations → API → Add API Key dialog (no key visible) | manual |
 | `02c-os-billing-plan-credits.png` | Billing → Plan & Credits (Free plan) | manual |
-| `02d-os-integrations-llms.png` | Integrations → LLMs with one masked key | manual |
+| `02d-os-integrations-llms.png` | Integrations → Secrets → LLMs with one masked key | manual |
 | `03-starter-home-chat.png` | vibe-starter home chatting with the default agent — the README hero | `scripts/capture-screenshots.mjs` |
 | `03b-starter-home-empty.png` | the "No agent yet" empty state | manual (needs an org with no default agent) |
 | `04-starter-setup.png` | `/setup` pick-or-create agent | script |

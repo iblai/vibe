@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant, readTenants } from "@/lib/iblai/tenant";
 
@@ -12,7 +13,9 @@ import { resolveAppTenant, readTenants } from "@/lib/iblai/tenant";
  * background — so several tabs can live at their own routes.
  *
  * Tabs: organization · management (Users, Groups, Roles, Policies, Teams,
- * Alerts) · integrations · advanced · billing · memory · monetization.
+ * Alerts) · api · secrets (LLMs, Services, Environment Variables) ·
+ * virtualMachine (the Network page) · advanced · billing · memory ·
+ * monetization. The old `integrations` id still opens Secrets.
  *
  * `enableRbac` is deliberately NOT passed. It only means anything alongside a
  * matching `rbacPermissions` object: `checkRbacPermission` returns true when
@@ -28,10 +31,22 @@ export function AccountPanel({
   tab,
   onInviteClick,
 }: {
-  tab: "organization" | "management" | "integrations" | "advanced" | "billing" | "memory" | "monetization";
+  tab:
+    | "organization"
+    | "management"
+    | "api"
+    | "secrets"
+    | "virtualMachine"
+    | "advanced"
+    | "billing"
+    | "memory"
+    | "monetization";
   onInviteClick?: () => void;
 }) {
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise), which the Billing tab keys the free trial and plans on.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   const [session, setSession] = useState<{
     username: string;
     email: string;
@@ -66,7 +81,7 @@ export function AccountPanel({
         tenants={session.tenants}
         username={session.username}
         email={session.email}
-        mainPlatformKey={config.mainTenantKey()}
+        mainPlatformKey={platformMainOrg}
         isAdmin={session.isAdmin}
         authURL={config.authUrl()}
         currentPlatformBaseDomain={config.platformBaseDomain()}

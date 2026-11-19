@@ -9,7 +9,7 @@ manual path (`/iblai-vibe-ops-init`'s questions), so nothing breaks.
 
 Today a builder must: open `ibl.ai/join`, sign up, find their organization key
 on `login.iblai.app/me`, open `os.ibl.ai`, switch to Admin, go to
-Integrations → APIs → Add API, copy a secret, paste it into a chat, and never
+Integrations → API → Add API Key, copy a secret, paste it into a chat, and never
 paste it anywhere else. Every one of those steps has a way to go wrong, and
 the token passes through the conversation.
 
@@ -36,7 +36,7 @@ https://login.iblai.app/connect
 - `state` — echoed back unchanged; the client rejects a callback whose `state`
   does not match (CSRF guard, exactly as OAuth loopback flows do).
 - `name` — the label the minted token gets (`Platform API Token` → *Name*), so
-  the user can recognize and revoke it later under Integrations → APIs.
+  the user can recognize and revoke it later under Integrations → API.
 - `org` — optional preselection when the client already knows the key.
 
 ### 2. The page
@@ -139,7 +139,7 @@ manual questions.
 - Mint with the minimal scope the platform offers for a token that will be
   used from a builder's server (Owner today; a narrower "app" scope when
   available).
-- Log the mint (who, which org, which name) — the same audit as Add API.
+- Log the mint (who, which org, which name) — the same audit as Add API Key.
 - Never put the token in a `GET` URL when the exchange endpoint exists.
 
 ## What changes for users

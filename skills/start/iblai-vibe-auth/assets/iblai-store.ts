@@ -20,6 +20,7 @@ import {
   mcpApiSlice,
 } from "@iblai/iblai-js/data-layer";
 import {
+  appleRestrictionReducer,
   hostChatReducer,
   chatInputSliceReducer,
   chatSliceReducerShared,
@@ -47,8 +48,11 @@ export const iblaiStore = configureStore({
     chatSliceShared: chatSliceReducerShared,
     files: filesReducer,
     rbac: rbacReducer,
+    // The credits flows (402 routing, the free-trial gate, the top banner,
+    // the Apple in-app-purchase restriction) read and write these three.
     subscription: subscriptionReducer,
     topBanner: topBannerReducer,
+    appleRestriction: appleRestrictionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })

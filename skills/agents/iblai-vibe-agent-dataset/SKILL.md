@@ -64,12 +64,13 @@ offers **Delete Dataset**. Switching an untrained row on asks whether to
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.77.0). Check with
   `pnpm why @iblai/web-containers`. The Google Drive behaviour below (Allow
   cookies, Try Again) needs 2.62.2 or later.
 - A real agent UUID. Ask the user; never invent one.
-- For the Google Drive tile: the organization's `drive` data-source
-  credential (`client_id`, `developer_key`; see
+- For the Google Drive tile: the organization's `drive` credential, added
+  under organization settings → Secrets → **Services** (`client_id`,
+  `developer_key`; REST in
   [`/iblai-api-integration`](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/organizations/iblai-api-integration/SKILL.md)).
   The `client_id` must be a Google OAuth client id of the form
   `<project-number>-<x>.apps.googleusercontent.com` with the `drive.file`

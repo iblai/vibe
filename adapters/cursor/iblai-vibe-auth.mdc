@@ -236,6 +236,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 and Organization providers that other components depend on. Place your own providers
 inside it.
 
+The providers also route a credits 402 from any REST call: they dispatch it
+as the `creditsexhausted` DOM event, which nothing listens for until
+`CreditExhaustionHandler` is mounted in the signed-in layout
+(`/iblai-vibe-credit-exhaustion`, Step 2; vibe-starter ships it in
+`app/(app)/layout.tsx`). Without it, running out of credits shows nothing.
+
 ## Step 6: Configure Environment
 
 Step 3 created `.env.local` with the platform key. Verify it has the
@@ -297,8 +303,8 @@ pnpm dev
 | `lib/iblai/config.ts` | Environment variable accessors (API URLs, platform key, auth URL) |
 | `lib/iblai/storage-service.ts` | localStorage wrapper implementing the SDK's StorageService interface |
 | `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
-| `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware`, and the slice keys the SDK `<Chat>` hard-codes (`chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner`) |
-| `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > AuthProvider > TenantProvider |
+| `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware`, and the slice keys the SDK `<Chat>` and the credits flows hard-code (`chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner`, `appleRestriction`) |
+| `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > SubscriptionConfigProvider > AuthProvider > TenantProvider, plus the data layer's error handlers: a 401 goes back to the login page, a credits 402 is dispatched as the `creditsexhausted` DOM event and an admin's next step is `/admin/billing` |
 
 ## What Was Patched
 
@@ -408,9 +414,24 @@ version is `providers/index.tsx` in [iblai/os](https://github.com/iblai/os):
    target leaves the loading screen up or loops through the sign-in. Add
    `onTenantMismatch` that goes to `/` unless `isTenantSwitchInProgress()`, so a
    route still naming another org lands on the user's own.
-3. **Switching** — `UserProfileDropdown showTenantSwitcher` (or `TenantSwitcher`)
-   → `handleTenantSwitch(org, { authUrl })` from `@iblai/iblai-js/web-utils`:
-   clears storage, re-enters the SPA with `tenant=`, broadcasts to other tabs.
+3. **Switching** — the profile dropdown's **Organizations** item
+   (`UserProfileDropdown showOrganizationsLink`, on by default) opens the
+   sign-in app's organization chooser (`openTenantSwitcher({ authUrl, tenant })`
+   from `@iblai/iblai-js/web-utils`); the user picks there and comes back
+   signed in to that organization. The sign-in writes the picked organization
+   to `tenant` but never to `app_tenant`, which `resolveAppTenant()` reads
+   first, so point it there on the way in, or the next page re-authenticates
+   into the old organization. In `app/sso-login-complete/page.tsx`, add to
+   the starter's `<SsoLogin>`:
+
+   ```tsx
+   onLoginSuccess={(data: Record<string, string>) => {
+     if (data.tenant) localStorage.setItem("app_tenant", data.tenant);
+   }}
+   ```
+
+   To switch from code, `handleTenantSwitch(org, { authUrl })` clears
+   storage, re-enters the SPA with `tenant=`, broadcasts to other tabs.
 4. **Anonymous per agent** — in `AuthProvider`'s `middleware`, for
    `^/platform/([^/]+)/([^/]+)` fetch the agent's public settings
    (`useLazyGetMentorPublicSettingsQuery`) and return `false` when

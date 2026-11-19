@@ -3,7 +3,7 @@
  * ibl.ai Profile Dropdown
  *
  * A self-contained user avatar + dropdown menu with profile editing,
- * the current organization (admins open its settings), and logout. Wraps the SDK's
+ * the current organization (admins), and logout. Wraps the SDK's
  * `UserProfileDropdown`. Mirrors the reference app's prop set.
  *
  * Usage:
@@ -17,6 +17,7 @@
 
 import { useMemo } from "react";
 import { UserProfileDropdown } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 import { handleLogout } from "@/lib/iblai/auth-utils";
@@ -38,6 +39,9 @@ function readJSON<T>(key: string, fallback: T): T {
 
 export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const tenantKey = useMemo(() => resolveAppTenant(), []);
+  // The platform's main organization (`main` unless the provider says
+  // otherwise): the profile's Billing tab keys the free trial on it.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
 
   // `user_nicename` is the canonical username slug. The SDK fetches the
   // avatar from `/users/manage/metadata/?username=<this>`, which only
@@ -51,7 +55,8 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     };
   }, []);
 
-  // The organization row is named from `tenants`, and admin rights come from it.
+  // The user's `tenants` list. The organization row looks `tenantKey` up in it
+  // for the name, and hides itself when it holds no organization but `main`.
   const userTenants = useMemo<any[]>(() => readJSON<any[]>("tenants", []), []);
 
   const isAdmin = useMemo(
@@ -67,20 +72,21 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
     <UserProfileDropdown
       email={email}
       username={username}
-      mainPlatformKey={config.mainTenantKey()}
+      mainPlatformKey={platformMainOrg}
       tenantKey={tenantKey}
       userTenants={userTenants}
       userIsAdmin={isAdmin}
       userIsStudent={!isAdmin}
       showProfileTab
-      // Account settings live on a separate /account page.
+      // No dedicated "Account" item: for an admin, the organization row opens
+      // the organization's settings. (Account settings live on /account.)
       showAccountTab={false}
-      // The row names the current organization and, for an admin, opens its
-      // settings. For anyone else it is a bare label, so admins only.
+      // The organization row, admins only. For a non-admin it is only a
+      // label with the organization's name, so hiding it is cleaner.
       showTenantSwitcher={isAdmin}
-      // The organization chooser signs the user into another organization, but
-      // this app keeps working in `app_tenant`, which the chooser never sets.
-      // A multi-org app must point `app_tenant` at the chosen organization first.
+      // The "Organizations" item opens the sign-in app's organization chooser
+      // in a new tab. Off in a single-org app, where the organization is pinned;
+      // turn it on for a multi-org app (see /iblai-vibe-auth, "Going multi-org").
       showOrganizationsLink={false}
       showHelpLink={false}
       showLogoutButton

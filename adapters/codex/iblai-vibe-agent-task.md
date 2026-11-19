@@ -51,7 +51,7 @@ the page numbers. Tapping a task opens Task Logs full screen, with Back.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.77.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 

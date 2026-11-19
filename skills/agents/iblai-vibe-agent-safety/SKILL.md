@@ -41,7 +41,7 @@ with who sent each, when, the message, and the reason.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.67.0` (resolves `@iblai/web-containers` 1.67.0). Check with
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.77.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - To list flagged prompts, the user needs the agent's
@@ -114,7 +114,6 @@ export function FlaggedPromptsModal({
   const { data, isLoading } = useGetModerationLogsQuery(
     {
       org: tenantKey,
-      // @ts-expect-error userId (the path's user) is read at runtime but missing from the type
       userId: username,
       mentor: mentorId,
       page: 1,
@@ -158,14 +157,16 @@ export function FlaggedPromptsModal({
 }
 ```
 
-`userId` is the signed-in user (the path segment). SDK 2.36.2 types the
-hook's argument without it, but the request needs it -- hence the
-`@ts-expect-error`; `username` in that type filters to the flagged user
-instead. `mentor` filters to this agent. Add search, a date range and
-paging the same way. This list holds Moderation System rows only: replies
-the Safety Prompt blocked are served by `…/safety-logs/` (same query and row
-shape), which has no data-layer hook in SDK 2.36.2 -- call it from a server
-route (`/iblai-api-agent-safety`).
+`userId` is the signed-in user (the path segment), which the request needs;
+`@iblai/data-layer` 1.45.0 added it to the hook's argument type, so older
+releases need a `@ts-expect-error` on that line. `username` in that type
+filters to the flagged user instead. `mentor` filters to this agent. Add
+search, a date range and paging the same way. This list holds Moderation
+System rows only:
+replies the Safety Prompt blocked are served by `…/safety-logs/` (same query
+and row shape), which `useGetSafetyLogsQuery` reads with the same arguments
+(`@iblai/data-layer` 1.45.0 or later; `useDeleteSafetyLogMutation` deletes
+one).
 
 The page loads the agent's grants, gates the button, and passes the
 paywall gate through a nested provider:
@@ -318,6 +319,7 @@ Safety Prompt catches are at `…/safety-logs/?mentor=<uuid>` instead.
 |---|---|
 | `useGetMentorSettingsQuery` / `useEditMentorMutation` | Read and save the prompts, responses and switches |
 | `useGetModerationLogsQuery` / `useDeleteModerationLogMutation` | Flagged prompts, for your modal |
+| `useGetSafetyLogsQuery` / `useDeleteSafetyLogMutation` | Replies the Safety Prompt blocked (`@iblai/data-layer` 1.45.0 or later) |
 | `useGetRbacPermissionsMutation` | Load the `#view_moderation_logs` grant (Step 2) |
 
 All from `@iblai/iblai-js/data-layer`. REST twin:

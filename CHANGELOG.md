@@ -3,6 +3,58 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.25.0] - 2026-11-19
+
+### Added
+
+- credits plan picker + host relay skills > billing screenshot re-captured
+- credits plan picker + host relay skills > vulnerability patched
+- credits plan picker + host relay skills > review patched
+- credits plan picker + host relay skills
+
+## [2.24.0] - 2026-11-17
+
+### Added
+
+- Evals tab and benchmark screens rework; starter to @iblai/iblai-js 2.77.0
+
+### Fixed
+
+- review fixes on the evals update
+
+## [2.23.0] - 2026-11-13
+
+### Added
+
+- workflow Classifier step, keyboard shortcuts and linked warnings; starter to @iblai/iblai-js 2.73.1
+
+## [2.22.0] - 2026-11-12
+
+### Added
+
+- API, Secrets and Network pages; environment variables on the Sandbox tab
+
+### Documentation
+
+- screenshots without the starter navbar
+
+## [2.21.1] - 2026-11-11
+
+### Documentation
+
+- follow-up questions with session_id
+- agent id in the MCP URL, one Api-Token header
+
+## [2.21.0] - 2026-11-09
+
+### Added
+
+- Create Agent field permissions + User Limits and the default for new users
+
+### Fixed
+
+- review on #289 (YAML description, required create fields, organization row)
+
 ## [2.20.1] - 2026-11-03
 
 ### Documentation

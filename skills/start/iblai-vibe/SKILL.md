@@ -43,7 +43,7 @@ what: [docs/catalogue.md#core](https://raw.githubusercontent.com/iblai/vibe/refs
 | ★ Memory — what agents remember about people; agent knowledge | `/iblai-vibe-memory-guide` → `/iblai-vibe-memory`, `/iblai-vibe-agent-memory` | ★ `iblai-api-agent-memory` |
 | ★ Analytics — usage, users, topics, transcripts, costs, audit, reports | `/iblai-vibe-analytics`, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` | ★ `iblai-api-analytics` |
 | Notifications (bell, inbox, alerts, admin send) | `/iblai-vibe-notification` | `iblai-api-notification` |
-| Money — how you are billed; charging your users | `/iblai-vibe-pricing` → `/iblai-vibe-credit`, `-billing`, `-agent-billing`, `-monetization-app-paywall`, `-monetization` | `iblai-api-billing`, `spend-caps` |
+| Money — how you are billed; charging your users; what happens when credits run out | `/iblai-vibe-pricing` → `/iblai-vibe-credit`, `-billing`, `-credit-exhaustion`, `-agent-billing`, `-monetization-app-paywall`, `-monetization` | `iblai-api-billing`, `spend-caps` |
 | A navbar, an onboarding flow, a README | `/iblai-vibe-navbar`, `/iblai-vibe-onboard`, `/iblai-vibe-readme` | — |
 | Ship: a URL; macOS / Windows / iOS / Android; the stores | `/iblai-vibe-ops-deploy`, `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix`, `/iblai-vibe-iconography` | `iblai-api-infrastructure` (self-host) |
 | Test before showing work (build, tests, a browser touch test); upgrade | `/iblai-vibe-ops-test`, `/iblai-vibe-ops-upgrade` | — |

@@ -98,11 +98,15 @@ DOES use the `/next` bundle because it uses `next/image` internally).
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export default function AccountPage() {
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise), which the Billing tab keys the free trial and plans on.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   const [username, setUsername] = useState("");
   const [tenantKey, setTenantKey] = useState("");
   const [tenants, setTenants] = useState<any[]>([]);
@@ -150,7 +154,7 @@ export default function AccountPage() {
           tenants={tenants}
           username={username}
           email={email}
-          mainPlatformKey={config.mainTenantKey()}
+          mainPlatformKey={platformMainOrg}
           isAdmin={isAdmin}
           authURL={config.authUrl()}
           currentPlatformBaseDomain={config.platformBaseDomain()}

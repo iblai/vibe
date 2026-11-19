@@ -59,8 +59,8 @@ Your app's server (deploys, admin routes, anything with no SDK component)
 authenticates with one org-scoped secret. Three ways to get it:
 
 1. **In the OS (no tooling):** Admin mode → settings → **Integrations** →
-   **APIs** tab → **Add API**. Name it after the app (`my-app`), leave the
-   expiry empty, keep the default Owner permissions, **Submit**. The secret
+   **API** → **Add API Key**. Name it after the app (`my-app`), leave the
+   expiry empty, keep the default Owner permissions, **Add API Key**. The secret
    is shown **once** — copy it now. (The same key list is reachable from any
    agent's Edit Agent → Integrations → API; they are one store.)
 2. **From your agent:** `npx skills add iblai/vibe --all` then `/iblai-api-login` — it
@@ -90,12 +90,16 @@ key for the platform's OpenAI-compatible endpoint
 
 Admin mode → settings → **Billing**.
 
-- **Plan & Credits:** your plan (`Free` → `Trial` → `Premium`, **Upgrade** goes
-  through Stripe checkout), your **credit balance**, **Add Credits**, and
-  **Auto Recharge** (opt-in: threshold, amount, optional spending limit; needs
-  a payment method on file, added via **Manage Billing** → Stripe portal).
+- **Credits:** your plan — a free trial first; **Upgrade** opens the
+  plan picker (Free, Pro, Max or Ultra, through Stripe), and **Change Plan**
+  moves between them later — your **credit balance**, **Add Credits** (pick an
+  amount; with no card on file Stripe's portal takes one and the charge goes
+  through when you come back), and **Auto Recharge** (opt-in: threshold,
+  amount, optional spending limit; needs a payment method on file).
 - Agents draw credits down as they run. The balance is a hard ceiling: when it
-  is spent, agents pause. No per-seat fees.
+  is spent, agents pause and the app shows the next step — Billing for an
+  admin, the plan picker for a free-trial user, a contact-your-admin notice for
+  everyone else (`/iblai-vibe-credit-exhaustion`). No per-seat fees.
 - **Spend Limits:** one org-wide cap on LLM cost per day/week/month/year,
   **Block Requests** or **Alert Only**, alerts at 80 % / 95 %.
 - **Agent Limits:** the same per agent, and per user on an agent.
@@ -106,7 +110,7 @@ For what to charge *your* users, see `/iblai-vibe-pricing`.
 
 ## 6. More models — your own LLM keys
 
-Admin mode → settings → **Integrations** → **LLMs** → **Add LLM**. Pick a
+Admin mode → settings → **Integrations** → **Secrets** → **LLMs** → **Add LLM**. Pick a
 provider (OpenAI, Anthropic, Google, Azure OpenAI per deployment, …) and paste
 its key; it is stored masked. Agents in the org can then select those models
 (`/iblai-vibe-agent-llm`). Costs by provider and model appear under

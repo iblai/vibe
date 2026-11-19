@@ -20,7 +20,7 @@ The data every app is built on: [domain-model.md](domain-model.md).
 ## The journey
 
 0. **Get an organization** — sign up at [ibl.ai/join](https://ibl.ai/join); it creates your account *and your organization*. (Everyone is also in the shared `main` org — that one is not yours.) → [Platform lifecycle](platform-lifecycle.md)
-1. **Get two values** — your **org key** (on [login.iblai.app/me](https://login.iblai.app/me)) and a **Platform API Token** (os.ibl.ai → Admin → Integrations → APIs → Add API). → [same doc](platform-lifecycle.md#4-value-two-a-platform-api-token)
+1. **Get two values** — your **org key** (on [login.iblai.app/me](https://login.iblai.app/me)) and a **Platform API Token** (os.ibl.ai → Admin → Integrations → API → Add API Key). → [same doc](platform-lifecycle.md#4-value-two-a-platform-api-token)
 2. **Scaffold and run** — install the skills, run `/iblai-vibe-ops-init`, `pnpm dev`, sign in, pick or create your agent on `/setup`.
 3. **Add the core** — profile, admin area, custom user and org data, memory, analytics, notifications: one skill each, [below](#the-core-app).
 4. **Make it yours** — your pages with shadcn/ui; anything without a component through the REST API ([`/iblai-vibe-api`](../skills/start/iblai-vibe-api/SKILL.md)).
@@ -70,8 +70,8 @@ its headless twin, the `iblai-api-*` skill that documents the same data over RES
 
 ## How money works
 
-- **You** run on prepaid, rechargeable **credits** with a hard ceiling (plans Free → Trial → Premium, opt-in auto-recharge, no per-seat fees). Add your own LLM keys for more models; put **spend caps** on the org, an agent, or one user on one agent.
-- **Your users** can be charged three ways: pay-to-enter for the whole app on your own Stripe key with no commission ([`/iblai-vibe-monetization-app-paywall`](../skills/monetization/iblai-vibe-monetization-app-paywall/SKILL.md), the [vibe-agent](https://github.com/iblai/vibe-agent) model); per-item sales with subscriptions and revenue dashboards via Stripe Connect ([`/iblai-vibe-monetization`](../skills/monetization/iblai-vibe-monetization/SKILL.md) → [onboard](../skills/monetization/iblai-vibe-monetization-onboard/SKILL.md), [configure](../skills/monetization/iblai-vibe-monetization-configure/SKILL.md), [checkout](../skills/monetization/iblai-vibe-monetization-checkout/SKILL.md), [subscription](../skills/monetization/iblai-vibe-monetization-subscription/SKILL.md), [analytics](../skills/monetization/iblai-vibe-monetization-analytics/SKILL.md)); or reselling platform credits ([`/iblai-vibe-credit`](../skills/billing/iblai-vibe-credit/SKILL.md), [`/iblai-vibe-billing`](../skills/billing/iblai-vibe-billing/SKILL.md), [`/iblai-vibe-agent-billing`](../skills/agents/iblai-vibe-agent-billing/SKILL.md)).
+- **You** run on prepaid, rechargeable **credits** with a hard ceiling (a free trial, then a plan — Free, Pro, Max or Ultra — picked in the app; opt-in auto-recharge; no per-seat fees). Add your own LLM keys for more models; put **spend caps** on the org, an agent, or one user on one agent. When credits run out the app shows the next step: [`/iblai-vibe-credit-exhaustion`](../skills/billing/iblai-vibe-credit-exhaustion/SKILL.md).
+- **Your users** can be charged three ways: pay-to-enter for the whole app on your own Stripe key with no commission ([`/iblai-vibe-monetization-app-paywall`](../skills/monetization/iblai-vibe-monetization-app-paywall/SKILL.md), the [vibe-agent](https://github.com/iblai/vibe-agent) model); per-item sales with subscriptions and revenue dashboards via Stripe Connect ([`/iblai-vibe-monetization`](../skills/monetization/iblai-vibe-monetization/SKILL.md) → [onboard](../skills/monetization/iblai-vibe-monetization-onboard/SKILL.md), [configure](../skills/monetization/iblai-vibe-monetization-configure/SKILL.md), [checkout](../skills/monetization/iblai-vibe-monetization-checkout/SKILL.md), [subscription](../skills/monetization/iblai-vibe-monetization-subscription/SKILL.md), [analytics](../skills/monetization/iblai-vibe-monetization-analytics/SKILL.md)); or reselling platform credits ([`/iblai-vibe-credit`](../skills/billing/iblai-vibe-credit/SKILL.md), [`/iblai-vibe-billing`](../skills/billing/iblai-vibe-billing/SKILL.md), [`/iblai-vibe-credit-exhaustion`](../skills/billing/iblai-vibe-credit-exhaustion/SKILL.md), [`/iblai-vibe-agent-billing`](../skills/agents/iblai-vibe-agent-billing/SKILL.md)).
 - One page decides: [`/iblai-vibe-pricing`](../skills/billing/iblai-vibe-pricing/SKILL.md).
 
 
@@ -154,13 +154,13 @@ hooks, RTK Query endpoints, provider setup). `.mcp.json` at the project root
 
 **`iblai-agent-chat`** — a *hosted* MCP server for the one runtime capability
 that is not a REST call: holding a live conversation with a deployed agent
-(streamed responses, tool use, RAG). No install; wire it with
+(its tools, RAG and memory). No install; wire it with
 [`/iblai-api-agent-chat`](../skills/agents/iblai-api-agent-chat/SKILL.md) or by hand from
 [`mcp/iblai-agent-chat/README.md`](../mcp/iblai-agent-chat/README.md):
 
 ```bash
-claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/ \
-  --header "Authorization: Api-Token YOUR_API_TOKEN" --header "X-Mentor-Unique-Id: YOUR_AGENT_UUID"
+claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UUID \
+  --header "Authorization: Api-Token YOUR_API_TOKEN"
 ```
 
 

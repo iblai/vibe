@@ -3,12 +3,12 @@
 
 <a href="https://ibl.ai"><img src="https://ibl.ai/images/iblai-logo.png" alt="ibl.ai" width="300"></a>
 
-# iblai/vibe
+# ibl.ai/base
 
 Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
 [![Release](https://img.shields.io/github/v/release/iblai/vibe?label=skills%20release)](https://github.com/iblai/vibe/releases/latest)
-[![Skills](https://img.shields.io/badge/skills-154_%C2%B7_ui_54_%C2%B7_api_66-CC785C)](docs/skill-kinds.md)
+[![Skills](https://img.shields.io/badge/skills-162_%C2%B7_ui_61_%C2%B7_api_67-CC785C)](docs/skill-kinds.md)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -34,7 +34,7 @@ with no UI at all. One install; your coding agent does the rest.
 **1. Install the skills** in the agent you already use.
 
 ```bash
-npx skills add iblai/vibe --all        # Claude Code, OpenAI Codex, Cursor, OpenCode, Copilot …
+npx skills add iblai/base --all        # Claude Code, OpenAI Codex, Cursor, OpenCode, Copilot …
 ```
 
 Claude Code users can install the plugin instead (same skills, plus the SDK-docs
@@ -183,7 +183,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 61 |
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations, the official apps' first-run journeys | 19 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
-| [`billing/`](skills/billing) | How you are charged, credits, spend caps, choosing a pricing rail | 5 |
+| [`billing/`](skills/billing) | How you are charged, credits, spend caps, what happens when they run out, choosing a pricing rail | 6 |
 | [`monetization/`](skills/monetization) | Charge your users: app paywall, item sales, subscriptions, revenue | 7 |
 | [`analytics/`](skills/analytics) | Usage, users, topics, transcripts, costs, reports | 2 |
 | [`content/`](skills/content) | Courses, catalog, credentials, admissions, Open edX Studio, avatar video | 26 |

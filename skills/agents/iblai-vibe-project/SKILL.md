@@ -52,19 +52,16 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
     `GET https://api.$DOMAIN/dm/api/ai-mentor/orgs/<tenant>/users/<username>/projects/?limit=5`
     (use `Authorization: Token <axd_token>`; `$DOMAIN` is `DOMAIN` from
     `iblai.env`, default `iblai.app`).
-- **Minimum SDK versions.** The `projectId` prop on `<Chat>` and the
-  `ProjectLandingPage` slot were added in:
-
-  | package | min version |
-  |---|---|
-  | `@iblai/iblai-js` | `^2.67.0` |
-  | `@iblai/agent-ai` | `^2.10.0` |
+- **SDK versions.** The `projectId` prop on `<Chat>` and the
+  `ProjectLandingPage` slot are in `@iblai/web-containers` 1.74.0's typings
+  and later; vibe-starter's `@iblai/iblai-js@^2.80.0` resolves 1.77.0, and it
+  pins `@iblai/agent-ai@^2.15.0` for the embed.
 
 - **Pre-flight prop check (do this before writing the route):**
 
   ```bash
   grep -q "projectId?: string" \
-    node_modules/@iblai/web-containers/dist/next/index.d.ts \
+    node_modules/.pnpm/@iblai+web-containers@*/node_modules/@iblai/web-containers/dist/next/index.d.ts \
     && echo "projectId prop present" \
     || echo "MISSING — upgrade @iblai/web-containers (Step 2)"
   ```
@@ -98,7 +95,7 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^2.67.0 @iblai/agent-ai@^2.10.0
+pnpm add @iblai/iblai-js@^2.80.0 @iblai/agent-ai@^2.15.0
 ```
 
 (v2 bundles `web-containers`, `web-utils`, and `data-layer` as

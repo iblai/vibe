@@ -1,6 +1,6 @@
 ---
 name: iblai-api-agent-create
-description: Create a new ibl.ai agent from a template via the platform API — set name, display name, description, system prompt, and LLM provider; returns the new agent's unique id. Use when creating an agent from scratch, then configure it with the other /iblai-api-agent-* skills.
+description: Create a new ibl.ai agent from a template via the platform API — set name, display name, description, categories, visibility, prompts, and LLM provider; returns the new agent's unique id. Read which create fields the caller may write (field-permissions) first, since a create that sends a forbidden field is refused. Use when creating an agent from scratch, checking what a user may set when creating one, then configure it with the other /iblai-api-agent-* skills.
 metadata:
   core: true
   kind: api
@@ -26,6 +26,18 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
 
 ## Reads
 
+- **GET** `https://api.iblai.app/dm/v1/agents/settings/field-permissions` —
+  which fields of the create call the caller may set. Mounted at the `/dm`
+  root (not under `/api/ai-mentor/`). The header `iblai-org: {org}` is
+  required only for service accounts; every other caller, a Platform API
+  Token included, is scoped to its token's organization, so the header can
+  only confirm it (`403` if it names another). Returns one entry
+  per create field, `{ "<field>": { "write": true|false } }` — e.g.
+  `new_mentor_name`, `display_name`, `description`, `categories`,
+  `metadata`, `uploaded_profile_image`, `template_name`,
+  `mentor_visibility`, `system_prompt`, `proactive_prompt`,
+  `guided_prompt_instructions`, `moderation_system_prompt`. A field left out
+  of the answer is writable. `403` = the caller may not create agents at all.
 - **GET** `https://api.iblai.app/dm/api/search/orgs/{org}/users/{username}/mentors/` — list existing agents in the org (useful to pick a fork source or confirm names are free).
 - **GET** `https://api.iblai.app/dm/api/ai-mentor/orgs/{org}/users/{username}/mentor/categories/` — category options (to assign after creation via `/iblai-api-agent-setting`).
 
@@ -42,6 +54,13 @@ starting from a template, use `/iblai-api-agent-setting` (fork).
     "llm_provider": "string"
   }
   ```
+
+  The create call **refuses the whole request (`403`) when it carries a field
+  the caller may not write**. Read `field-permissions` first and leave those
+  fields out: an omitted optional field keeps the agent's default. The two
+  required fields are the exception: a caller barred from `template_name` or
+  `new_mentor_name` cannot create agents at all, since leaving either out is
+  a `400` ("This field is required.") and sending it is the `403`.
 
 ## Example
 
@@ -63,8 +82,12 @@ curl -X POST \
 
 ## Notes
 
-- `template_name` defaults to `ai-mentor` on most orgs; the create call accepts
-  any template the org exposes.
+- **Field permissions are per caller.** The organization's RBAC policies
+  decide them, so two members can get different answers; read them for the
+  caller you are creating as, not once for the organization.
+
+- `template_name` is required, usually `ai-mentor` (the default template on
+  most orgs); the create call accepts any template the org exposes.
 - Creation is intentionally minimal — set only name + a couple of fields here,
   then drive the rest with the focused skills: `/iblai-api-agent-setting`,
   `/iblai-api-agent-llm`, `/iblai-api-agent-prompt`, `/iblai-api-agent-dataset`,
