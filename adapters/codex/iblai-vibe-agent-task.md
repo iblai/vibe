@@ -40,7 +40,7 @@ Started and Ended times, and the full output.
 
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1).
-- `@iblai/iblai-js@^2.77.0` (resolves `@iblai/web-containers` 1.74.0). Check with
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.77.0). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 

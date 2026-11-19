@@ -58,7 +58,7 @@ and adds new ones without leaving the agent.
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `@iblai/iblai-js@^2.77.0` (resolves `@iblai/web-containers` 1.74.0).
+- `@iblai/iblai-js@^2.80.0` (resolves `@iblai/web-containers` 1.77.0).
   Releases before 2.68.0 call these "network policies" and "secrets", show
   secrets only under Public Internet and Custom Allowlist, and add them
   only through a **Manage Secrets** popup.

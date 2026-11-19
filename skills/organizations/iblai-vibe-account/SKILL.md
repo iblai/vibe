@@ -102,11 +102,15 @@ container so it renders as a card against the gray page background
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant } from "@/lib/iblai/tenant";
 
 export default function AccountPage() {
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise), which the Billing tab keys the free trial and plans on.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [tenantKey, setTenantKey] = useState("");
@@ -156,7 +160,7 @@ export default function AccountPage() {
           tenants={tenants}
           username={username}
           email={email}
-          mainPlatformKey={config.mainTenantKey()}
+          mainPlatformKey={platformMainOrg}
           isAdmin={isAdmin}
           authURL={config.authUrl()}
           currentPlatformBaseDomain={config.platformBaseDomain()}
@@ -267,7 +271,7 @@ Two things are specific to `Account`:
 | **Secrets** | Integrations | `secrets` | `isAdmin === true` — keys from other services: LLMs, Services, Environment Variables |
 | **Network** | Integrations | `virtualMachine` | `isAdmin === true` — the addresses agents' virtual machines may reach (see `/iblai-vibe-virtual-machine`) |
 | **Monetization** | Finance | `monetization` | `isAdmin === true`, the organization has monetization enabled **and** the caller holds `/platforms/<org>/#can_sell_items` (with RBAC off that check passes automatically) |
-| **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` |
+| **Billing** | Finance | `billing` | The organization's paywall is on (`show_paywall`) **and** the caller is an admin or holds `can_sell_items` — Credits (the plan picker / Change Plan, Add Credits, Auto Recharge), Spend Limits, Agent Limits, User Limits (see `/iblai-vibe-billing`) |
 | **Benchmarks** | AI & data | `datasets` | `showBenchmarks` **and** `isAdmin === true` — the organization's benchmarks (questions and expected answers for evaluating agents), on the same screens as the Evals tab's **Manage Benchmarks** (see `/iblai-vibe-agent-evals`) |
 | **Memory** | AI & data | `memory` | `isAdmin === true` — organization-wide global and per-agent memories (see `/iblai-vibe-memory`) |
 | **Advanced** | System | `advanced` | `isAdmin === true` — organization-wide switches, among them **Allow users to control chat privacy**, the gate that turns Incognito on for the organization (`PATCH …/chat-privacy-config/`, admin-only; see `/iblai-vibe-incognito`) |

@@ -30,6 +30,8 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "incognito", "private mode", "don't save this chat", "PII", "redact personal data" | `/iblai-vibe-incognito` (the toggle + the four tiers) → `/iblai-vibe-agent-privacy` (PII filtering + the agent's Incognito policy), the Profile › Privacy tab in `/iblai-vibe-profile` |
 | "analytics", "usage", "costs", "transcripts", "who changed what" | `/iblai-vibe-analytics` ★, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | "charge", "pricing", "paywall", "credits", "spend limit" | `/iblai-vibe-pricing` → the rail it picks |
+| "out of credits", "402", "plan picker", "upgrade plan", "free trial" | `/iblai-vibe-credit-exhaustion` — what the app shows when credits run out (vibe-starter ships it), the free-trial gate, the hand-off from `<agent-ai>` (once the OS ships iblai/os#677) |
+| "embed the agent", "embed the OS agent", "iframe", "`<agent-ai>`", "put the agent on another site" | `/iblai-vibe-agent-embed` (the agent's Embed tab in your app) → `/iblai-api-agent-embed` (the `<agent-ai>` element: its attributes, SSO and the frames it posts) |
 | "deploy", "URL", "share it" | `/iblai-vibe-ops-deploy` |
 | "iOS", "Android", "Mac", "Windows", "Surface", "Linux", "App Store" | `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release`, `/iblai-vibe-windows-msix` |
 | "code mode", "let the agent edit my files / run commands", "opencode", "Code from my phone" | `/iblai-vibe-os-agent-code-mode` (needs the Tauri shell from `/iblai-vibe-ops-build`) |
@@ -79,7 +81,7 @@ tabs), organizations (metadata, people, billing) — hook by hook:
 2. `os.ibl.ai/platform/<org-key>/…` is the reference app *and* the org's admin console (User/Admin toggle top-right).
 3. Org key: on `login.iblai.app/me`, or the path segment after `/platform/`. Check: `GET https://api.iblai.app/dm/api/core/orgs/<key>/metadata/` → 200 (public).
 4. Platform API Token: OS → Admin → Integrations → API → Add API Key (shown once), or `/iblai-api-login`, or an org secret. Check: `GET /dm/api/core/token/verify/` with `Authorization: Api-Token …` → 200 + `username`.
-5. Credits: prepaid, rechargeable, a hard ceiling; plans Free/Trial/Premium; spend caps at org/agent/user scope.
+5. Credits: prepaid, rechargeable, a hard ceiling; a free trial, then a plan picked in the app (Free, Pro, Max, Ultra); spend caps at org/agent/user scope.
 6. LLM keys: OS → Integrations → Secrets → LLMs — more models for agents.
 7. Agents: created in the OS, on `/setup`, or via the API; the UUID at the end of the OS URL is what every chat skill needs.
 8. People: OS → Management → Users (Admin/User + policies), invites; the same surface `/iblai-vibe-admin` mounts.
@@ -146,7 +148,7 @@ links its headless twin, the `iblai-api-*` skill for the same data).
 | 9 ★ | Memory: user-global, per-agent, agent knowledge | `useGetGlobalMemoriesQuery`, `useGetUserMemorySettingsQuery`, `AgentMemoryTab`, `Account targetTab="memory"` | `/iblai-vibe-memory-guide`, `/iblai-vibe-memory` (starter), `/iblai-vibe-agent-memory` |
 | 10 ★ | Analytics, transcripts, costs, audit, reports | `AnalyticsLayout` + tabs, `AgentAnalyticsTab` | `/iblai-vibe-analytics` (starter), `/iblai-vibe-agent-analytics`, `/iblai-vibe-agent-audit`, `/iblai-vibe-history` |
 | 11 | Notifications | `NotificationDropdown`, `NotificationDisplay` | `/iblai-vibe-notification` (starter) |
-| 12 | Money: credits, spend caps, your own pricing | `CreditBalance`, `BillingTab`, spend-cap hooks; paywall assets | `/iblai-vibe-pricing`, `/iblai-vibe-credit`, `/iblai-vibe-billing`, `/iblai-vibe-agent-billing`, `/iblai-vibe-monetization-app-paywall` |
+| 12 | Money: credits, spend caps, your own pricing | `CreditBalance`, `BillingTab`, `UpgradePackageModal` + `use402ErrorCheck` (what happens when credits run out), spend-cap hooks; paywall assets | `/iblai-vibe-pricing`, `/iblai-vibe-credit`, `/iblai-vibe-billing`, `/iblai-vibe-credit-exhaustion` (starter), `/iblai-vibe-agent-billing`, `/iblai-vibe-monetization-app-paywall` |
 | + | Ship everywhere | — | `/iblai-vibe-ops-deploy`, `/iblai-vibe-ops-build`, `/iblai-vibe-ops-release` |
 | + | No component? | `lib/iblai/platform.ts` | `/iblai-vibe-api` |
 
@@ -300,6 +302,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 | `/iblai-vibe-pricing` | How money works; which rail to charge users |
 | `/iblai-vibe-credit` | Credit balance widget |
 | `/iblai-vibe-billing` | Org Billing: plan & credits, spend limits, agent limits, user limits + the default for new users |
+| `/iblai-vibe-credit-exhaustion` | Out of credits: the plan picker, Billing or the contact-admin notice; the free-trial gate; the hand-off from an embedded OS agent |
 | `/iblai-vibe-agent-billing` | One agent's spend cap and per-user caps |
 | `/iblai-vibe-monetization-app-paywall` | Pay-to-enter on the org's own Stripe key |
 | `/iblai-vibe-api` | REST without a component: server route + `Api-Token`; map to the `iblai-api-*` twin |

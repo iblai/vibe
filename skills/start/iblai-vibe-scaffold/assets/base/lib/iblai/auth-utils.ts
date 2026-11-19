@@ -28,3 +28,14 @@ export function handleLogout() {
   localStorage.clear();
   window.location.href = `${config.authUrl()}/logout?redirect-to=${origin}&tenant=${tenant}`;
 }
+
+/**
+ * The login page with this app nested inside: where the platform returns a
+ * person after a Stripe checkout. The checkout appends a sign-in token the
+ * login page consumes, then it comes back to `origin`. The pricing session
+ * only accepts a return URL on a domain it allows, and the login host is one;
+ * an app's own domain is refused (400 "Redirect URL domain is not allowed").
+ */
+export function loginReturnUrl(origin: string = config.appUrl()): string {
+  return `${config.authUrl()}/login?app=custom&redirect-to=${encodeURIComponent(origin)}`;
+}

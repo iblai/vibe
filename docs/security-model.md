@@ -2,7 +2,7 @@
 
 What credentials exist, where each one lives, why, and what that means for
 you. Written for the reader of
-[iblai/vibe#167](https://github.com/iblai/vibe/issues/167) ("Auth tokens and
+[iblai/vibe#167](https://github.com/iblai/base/issues/167) ("Auth tokens and
 tenant state stored in plain localStorage") and for anyone doing a security
 review of an app built from vibe-starter.
 

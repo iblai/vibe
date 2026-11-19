@@ -37,6 +37,11 @@ const env = {
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
   NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_STRIPE_ENABLED: process.env.NEXT_PUBLIC_STRIPE_ENABLED,
+  NEXT_PUBLIC_PLAN_FEATURES_FREE: process.env.NEXT_PUBLIC_PLAN_FEATURES_FREE,
+  NEXT_PUBLIC_PLAN_FEATURES_PRO: process.env.NEXT_PUBLIC_PLAN_FEATURES_PRO,
+  NEXT_PUBLIC_PLAN_FEATURES_MAX: process.env.NEXT_PUBLIC_PLAN_FEATURES_MAX,
+  NEXT_PUBLIC_PLAN_FEATURES_ULTRA: process.env.NEXT_PUBLIC_PLAN_FEATURES_ULTRA,
 };
 
 declare global {
@@ -50,6 +55,13 @@ const runtimeEnv = () =>
 
 const getEnv = (key: keyof typeof env, fallback = ""): string =>
   runtimeEnv()[key] ?? env[key] ?? fallback;
+
+// A `|`-separated list (the plan bullets): trimmed, empties dropped.
+const getEnvList = (key: keyof typeof env): string[] =>
+  getEnv(key)
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
 
 const domain = () =>
   getEnv("NEXT_PUBLIC_PLATFORM_BASE_DOMAIN", "iblai.app");
@@ -121,6 +133,21 @@ const config = {
     (getEnv("NEXT_PUBLIC_APP_URL") ||
       (typeof window !== "undefined" ? window.location.origin : "")
     ).replace(/\/+$/, ""),
+
+  // The credits switch: when off, nothing gates or prompts for credits (no
+  // credit balance in the navbar, no plan picker, no out-of-credits notices).
+  // On by default, as on the OS.
+  stripeEnabled: () => getEnv("NEXT_PUBLIC_STRIPE_ENABLED", "true") !== "false",
+
+  // The bullets the plan picker shows on each plan's card, by the SDK's plan
+  // key (`premium` is the Pro plan). Each env var is `|`-separated and
+  // `**text**` shows in bold; an empty list keeps the SDK's built-in bullets.
+  planFeatures: (): Record<string, string[]> => ({
+    free: getEnvList("NEXT_PUBLIC_PLAN_FEATURES_FREE"),
+    premium: getEnvList("NEXT_PUBLIC_PLAN_FEATURES_PRO"),
+    max: getEnvList("NEXT_PUBLIC_PLAN_FEATURES_MAX"),
+    ultra: getEnvList("NEXT_PUBLIC_PLAN_FEATURES_ULTRA"),
+  }),
 
   // Server-only: IBLAI_API_KEY is a secret and not NEXT_PUBLIC_*, so Next.js
   // never inlines it into the client bundle — in the browser this returns "".

@@ -22,6 +22,8 @@ project, a Pixel 7 viewport); `pnpm test:e2e:all` adds Firefox and WebKit.
 | M3 | member | the profile page carries the app preferences card | `journeys/member.journey.spec.ts` |
 | M4 | member | a member never sees admin links or the Admin mode switch; /admin/users sends them home | `journeys/member.journey.spec.ts` |
 | M5 | member | /setup tells a member only admins can set it up | `journeys/member.journey.spec.ts` |
+| M6 | member | an out-of-credits event shows a member the contact-your-admin notice | `journeys/member.journey.spec.ts` |
+| M7 | member | a 402 that carries a pricing table opens the plan picker | `journeys/member.journey.spec.ts` |
 | D1 | admin | admin links appear in Admin mode and disappear in User mode | `journeys/admin.journey.spec.ts` |
 | D2 | admin | /admin/users hosts the Management surface and the invite actions | `journeys/admin.journey.spec.ts` |
 | D3 | admin | /admin/analytics renders the tab strip | `journeys/admin.journey.spec.ts` |
@@ -36,6 +38,7 @@ project, a Pixel 7 viewport); `pnpm test:e2e:all` adds Firefox and WebKit.
 | K7 | pages | /admin/analytics/reports opens inside the analytics tab strip | `journeys/pages.journey.spec.ts` |
 | K8 | pages | /admin/billing mounts the account panel | `journeys/pages.journey.spec.ts` |
 | K9 | pages | /admin/memory shows the memory panel | `journeys/pages.journey.spec.ts` |
+| K10 | pages | an out-of-credits event from an embedded agent opens the credits flow | `journeys/pages.journey.spec.ts` |
 | R1 | api | the admin lists the agents through /api/admin/agents | `journeys/api.journey.spec.ts` |
 | R2 | api | creating an agent without a name is refused with 400 | `journeys/api.journey.spec.ts` |
 | R3 | api | the admin reads a member's metadata through /api/admin/user-metadata | `journeys/api.journey.spec.ts` |
@@ -44,7 +47,7 @@ project, a Pixel 7 viewport); `pnpm test:e2e:all` adds Firefox and WebKit.
 | P1 | mobile | a phone shows every page without sideways overflow | `journeys/mobile.journey.spec.ts` |
 | P2 | mobile | the drawer reaches Agents | `journeys/mobile.journey.spec.ts` |
 
-Not covered yet: the Billing tab itself (the SDK shows Plan & Credits only to an
+Not covered yet: the Billing tab itself (the SDK shows Credits only to an
 organization with billing enabled; elsewhere `/admin/billing` opens on
 Organization), the navbar's own controls (bell, profile menu, the drawer's
 Escape), saving a preference and reading it back, the org settings form's save

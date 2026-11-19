@@ -164,7 +164,9 @@ Pass the hook output to whichever surface accepts `localLLMProps` in
 **your installed SDK**. As of `@iblai/web-containers` 1.7.x that is
 `UserProfileDropdown` / `UserProfileModal` (the "Local LLM" account tab)
 — **not** `Account` or `Chat`. Confirm with
-`grep -rn localLLMProps node_modules/@iblai/web-containers/dist/**/*.d.ts`
+`grep -rln localLLMProps node_modules/.pnpm/@iblai+web-containers@*/node_modules/@iblai/web-containers/dist/ --include='*.d.ts'`
+(pnpm keeps `@iblai/web-containers` under `.pnpm` only: it is a dependency of
+`@iblai/iblai-js`, not of the app)
 before wiring; the earlier `<Account localLLMProps>` example was wrong
 for shipped SDKs.
 

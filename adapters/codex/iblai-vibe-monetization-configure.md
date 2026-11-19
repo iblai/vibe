@@ -121,11 +121,15 @@ A typical Next.js host that supplies all the required props:
 'use client';
 
 import { Account } from '@iblai/iblai-js/web-containers/next';
+import { useSubscriptionConfig } from '@iblai/iblai-js/web-utils';
 import { useAuth } from '@/lib/iblai/auth';
 import config from '@/lib/iblai/config';
 
 export default function AccountPage() {
   const { user, tenants, rbacPermissions } = useAuth();
+  // The platform's main organization (`main`), which the Billing tab keys
+  // the free trial and plans on — never this app's organization.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   if (!user) return null;
 
   return (
@@ -134,7 +138,7 @@ export default function AccountPage() {
       tenants={tenants}
       username={user.username}
       email={user.email}
-      mainPlatformKey={config.mainTenantKey()}
+      mainPlatformKey={platformMainOrg}
       authURL={config.authUrl()}
       enableRbac={true}
       rbacPermissions={rbacPermissions}

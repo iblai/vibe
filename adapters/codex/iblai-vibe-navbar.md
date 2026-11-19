@@ -100,7 +100,7 @@ Every navbar includes all of the following — no choices, no skipping:
 - Account (`/account`)
 
 **Right side (left → right):**
-- Credit balance widget (plan-aware dropdown with credits, auto-recharge, upgrade)
+- Credit balance widget (a credit-card button; its dropdown shows the balance, the plan badge and Upgrade / Change Plan, Manage Usage, Add Credits) — shown by the SDK's own rule: billing on, an organization that sells credits, an admin acting as one or a free-trial user (`/iblai-vibe-credit`)
 - Notification bell (links to `/notifications`)
 - Profile dropdown (with Profile and Account links)
 
@@ -285,6 +285,9 @@ interface NavBarProps {
   // Tenant/user props
   tenantKey: string;
   username?: string;
+  email: string;
+  /** The platform's main organization (`useSubscriptionConfig().mainTenantKey`), never this app's. */
+  mainPlatformKey: string;
   isAdmin: boolean;
   currentTenant?: any;
   userTenants?: any[];
@@ -303,6 +306,8 @@ export function NavBar({
   links,
   tenantKey,
   username,
+  email,
+  mainPlatformKey,
   isAdmin,
   currentTenant,
   userTenants,
@@ -360,7 +365,16 @@ export function NavBar({
 
         {/* Right: credit balance + notifications + profile */}
         <div className="flex items-center space-x-4">
-          {showCreditBalance && <CreditBalanceWidget />}
+          {/* An app with a User/Admin switch passes `isAdmin && adminMode` (/iblai-vibe-admin). */}
+          {showCreditBalance && (
+            <CreditBalanceWidget
+              tenantKey={tenantKey}
+              currentTenant={currentTenant}
+              username={username ?? ''}
+              email={email}
+              isLiveAdmin={isAdmin}
+            />
+          )}
 
           {showNotifications && (
             <NotificationDropdown
@@ -438,7 +452,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         tenantKey={tenantKey /* getTenant() */}
         username={username /* getUserName() */}
         email={email /* from userData in localStorage */}
-        mainPlatformKey={mainPlatformKey /* config.mainTenantKey() */}
+        mainPlatformKey={mainPlatformKey /* useSubscriptionConfig().mainTenantKey — the platform's main organization, never NEXT_PUBLIC_MAIN_TENANT_KEY */}
         isAdmin={isAdmin /* from your auth context */}
         authURL={authURL /* config.authUrl() */}
         onLogout={onLogout /* your logout handler */}

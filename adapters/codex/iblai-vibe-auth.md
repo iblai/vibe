@@ -234,6 +234,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 and Organization providers that other components depend on. Place your own providers
 inside it.
 
+The providers also route a credits 402 from any REST call: they dispatch it
+as the `creditsexhausted` DOM event, which nothing listens for until
+`CreditExhaustionHandler` is mounted in the signed-in layout
+(`/iblai-vibe-credit-exhaustion`, Step 2; vibe-starter ships it in
+`app/(app)/layout.tsx`). Without it, running out of credits shows nothing.
+
 ## Step 6: Configure Environment
 
 Step 3 created `.env.local` with the platform key. Verify it has the
@@ -295,8 +301,8 @@ pnpm dev
 | `lib/iblai/config.ts` | Environment variable accessors (API URLs, platform key, auth URL) |
 | `lib/iblai/storage-service.ts` | localStorage wrapper implementing the SDK's StorageService interface |
 | `lib/iblai/auth-utils.ts` | `redirectToAuthSpa()`, `hasNonExpiredAuthToken()`, `handleLogout()` |
-| `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware`, and the slice keys the SDK `<Chat>` hard-codes (`chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner`) |
-| `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > AuthProvider > TenantProvider |
+| `store/iblai-store.ts` | Redux store with `coreApiSlice`, `mentorReducer`, `mentorMiddleware`, and the slice keys the SDK `<Chat>` and the credits flows hard-code (`chat`, `chatInput`, `chatSliceShared`, `files`, `rbac`, `subscription`, `topBanner`, `appleRestriction`) |
+| `providers/iblai-providers.tsx` | Provider chain: ReduxProvider > SubscriptionConfigProvider > AuthProvider > TenantProvider, plus the data layer's error handlers: a 401 goes back to the login page, a credits 402 is dispatched as the `creditsexhausted` DOM event and an admin's next step is `/admin/billing` |
 
 ## What Was Patched
 

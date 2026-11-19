@@ -191,6 +191,7 @@
       "iblai-vibe-pricing",
       "iblai-vibe-credit",
       "iblai-vibe-billing",
+      "iblai-vibe-credit-exhaustion",
       "iblai-api-billing",
       "iblai-api-spend-caps"
     ],

@@ -90,12 +90,16 @@ key for the platform's OpenAI-compatible endpoint
 
 Admin mode → settings → **Billing**.
 
-- **Plan & Credits:** your plan (`Free` → `Trial` → `Premium`, **Upgrade** goes
-  through Stripe checkout), your **credit balance**, **Add Credits**, and
-  **Auto Recharge** (opt-in: threshold, amount, optional spending limit; needs
-  a payment method on file, added via **Manage Billing** → Stripe portal).
+- **Credits:** your plan — a free trial first; **Upgrade** opens the
+  plan picker (Free, Pro, Max or Ultra, through Stripe), and **Change Plan**
+  moves between them later — your **credit balance**, **Add Credits** (pick an
+  amount; with no card on file Stripe's portal takes one and the charge goes
+  through when you come back), and **Auto Recharge** (opt-in: threshold,
+  amount, optional spending limit; needs a payment method on file).
 - Agents draw credits down as they run. The balance is a hard ceiling: when it
-  is spent, agents pause. No per-seat fees.
+  is spent, agents pause and the app shows the next step — Billing for an
+  admin, the plan picker for a free-trial user, a contact-your-admin notice for
+  everyone else (`/iblai-vibe-credit-exhaustion`). No per-seat fees.
 - **Spend Limits:** one org-wide cap on LLM cost per day/week/month/year,
   **Block Requests** or **Alert Only**, alerts at 80 % / 95 %.
 - **Agent Limits:** the same per agent, and per user on an agent.

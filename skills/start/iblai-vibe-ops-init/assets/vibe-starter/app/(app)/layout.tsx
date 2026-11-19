@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSubscriptionConfig } from '@iblai/iblai-js/web-utils';
 import { NavBar, type NavLink } from '@/components/navbar/nav-bar';
 import {
   NavigationDrawer,
@@ -12,6 +13,7 @@ import config from '@/lib/iblai/config';
 import { resolveAppTenant, readTenants, isTenantAdmin } from '@/lib/iblai/tenant';
 import { handleLogout } from '@/lib/iblai/auth-utils';
 import { AdminModeProvider } from '@/lib/iblai/admin-mode';
+import { CreditExhaustionHandler } from '@/components/credit-exhaustion-handler';
 
 /** What every member sees. `key` indexes the `Nav` message namespace. */
 const MEMBER_LINKS: ReadonlyArray<Omit<NavLink, 'name'> & { key: string }> = [
@@ -71,6 +73,10 @@ export default function AppLayout({
   const liveAdmin = isAdmin && adminMode;
   const pathname = usePathname() ?? '/';
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise): the SDK's credits flows key the free trial and the plan list
+  // on it. Not this app's organization (NEXT_PUBLIC_MAIN_TENANT_KEY).
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
 
   // The admin area is admin-only, in Admin mode only.
   useEffect(() => {
@@ -93,7 +99,7 @@ export default function AppLayout({
           tenantKey={tenantKey}
           username={username}
           email={email}
-          mainPlatformKey={config.mainTenantKey()}
+          mainPlatformKey={platformMainOrg}
           isAdmin={isAdmin}
           currentTenant={currentTenant}
           userTenants={tenants}
@@ -106,6 +112,9 @@ export default function AppLayout({
           onClose={() => setDrawerOpen(false)}
           items={drawerItems}
         />
+
+        {/* The plan picker / contact-admin notice the SDK opens when credits run out. */}
+        <CreditExhaustionHandler />
 
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--sidebar-bg,#fafbfc)]">
           {pathname.startsWith('/admin') && !liveAdmin ? null : children}

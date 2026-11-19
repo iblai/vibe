@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Account } from "@iblai/iblai-js/web-containers/next";
+import { useSubscriptionConfig } from "@iblai/iblai-js/web-utils";
 import config from "@/lib/iblai/config";
 import { resolveAppTenant, readTenants } from "@/lib/iblai/tenant";
 
@@ -43,6 +44,9 @@ export function AccountPanel({
   onInviteClick?: () => void;
 }) {
   const router = useRouter();
+  // The platform's main organization (`main` unless the provider says
+  // otherwise), which the Billing tab keys the free trial and plans on.
+  const { mainTenantKey: platformMainOrg } = useSubscriptionConfig();
   const [session, setSession] = useState<{
     username: string;
     email: string;
@@ -77,7 +81,7 @@ export function AccountPanel({
         tenants={session.tenants}
         username={session.username}
         email={session.email}
-        mainPlatformKey={config.mainTenantKey()}
+        mainPlatformKey={platformMainOrg}
         isAdmin={session.isAdmin}
         authURL={config.authUrl()}
         currentPlatformBaseDomain={config.platformBaseDomain()}

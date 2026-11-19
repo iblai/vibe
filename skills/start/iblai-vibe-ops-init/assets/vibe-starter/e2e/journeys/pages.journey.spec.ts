@@ -61,4 +61,35 @@ test.describe('pages journey', () => {
     await open(page, '/admin/memory');
     await expect(page.getByText(/global memories|shared memory/i).first()).toBeVisible({ timeout: 30_000 });
   });
+
+  /**
+   * An embedded OS agent (`<agent-ai handlecreditexhaustion>`) hands a 402 to
+   * the page as the `creditsexhausted` event; `CreditExhaustionHandler` feeds it
+   * to the SDK, which routes by who is signed in: the admin lands on Billing, a
+   * free-trial owner gets the plan picker, a member the contact-admin notice.
+   * Dispatched by hand, so it runs on any organization without spending credits.
+   */
+  test('K10 · an out-of-credits event from an embedded agent opens the credits flow', async ({ page }) => {
+    await open(page, '/');
+    await page.evaluate(() => {
+      document.dispatchEvent(
+        new CustomEvent('creditsexhausted', {
+          detail: { type: 'credits.exhausted', audience: 'admin', error: 'Insufficient balance' },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+    const planPicker = page.getByRole('dialog', { name: /(choose|change) your plan/i });
+    const contactAdmin = page.getByRole('dialog', { name: /run out of credits/i });
+    await expect
+      .poll(
+        async () =>
+          new URL(page.url()).pathname === '/admin/billing' ||
+          (await planPicker.isVisible().catch(() => false)) ||
+          (await contactAdmin.isVisible().catch(() => false)),
+        { timeout: 30_000 },
+      )
+      .toBe(true);
+  });
 });
