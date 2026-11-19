@@ -3,6 +3,20 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.25.1] - 2026-11-19
+
+### Fixed
+
+- drop onTenantChange and hide Organizations
+- drop onTenantChange, gone from UserProfileDropdown
+
+### Documentation
+
+- retake three shots after rows settle
+- note tablet page sizes
+- show the full-height layout the activity tabs need
+- redesigned activity tabs
+
 ## [2.25.0] - 2026-11-19
 
 ### Added
