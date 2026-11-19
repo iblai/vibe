@@ -44,11 +44,13 @@ Endpoints verified against the live schema
   also embeds the agent's `call_configuration` object, never `null`: its `id`
   is `null` until a POST creates the row, so POST first. Voice fields come
   back as voice **names** (e.g. `"alloy"`), not ids.
-- **GET** `…/voices/` — the voice catalog. Query: `provider`
+- **GET** `…/voices/` — the voice catalog, plus any custom voices
+  `{username}` created in this organization. Query: `provider`
   (`browser | openai | google | iblai | elevenlabs`), `search`, `page`,
   `page_size`, `ordering`. Each voice: `{ id, name, provider, language,
   description, audio_url }` (`audio_url` is a playable sample).
-- **GET** `…/voices/{id}/` — one voice.
+- **GET** `…/voices/{id}/` — one voice. `404` for a custom voice that belongs
+  to another user or another organization.
 - **GET** `…/call-configurations/?mentor={mentor}` — the agent's call
   configuration (an array; use the first item). Also filters by `mode`,
   `search`, `ordering`.
@@ -119,6 +121,14 @@ curl -X PATCH "$API/call-configurations/$ID/" \
 
 - **Names out, ids in:** settings return voice names; writes take voice ids.
   Resolve a name with `GET …/voices/?provider=<p>&search=<name>`.
+- **Who can list voices:** `{org}` must be the org key (the organization's
+  name is a `404`), and a token issued for another organization gets `403`. A
+  user who is not an organization admin can list only under their own
+  `{username}`; any other `{username}` is a `403`. An admin listing under
+  another user's path sees that user's custom voices from this organization
+  only. Where RBAC is on, the list needs `Ibl.Mentor/Voices/list` and a single
+  voice `Ibl.Mentor/Voices/read` on `/platforms/{pk}/voices/`; the default
+  Students role holds both.
 - **Absent = unchanged:** leaving a field out of the settings PUT keeps it.
   Clear `voice_instructions` / `transcription_instructions` with `""`, never
   `null`.
