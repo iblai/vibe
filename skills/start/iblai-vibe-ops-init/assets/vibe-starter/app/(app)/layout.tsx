@@ -86,7 +86,8 @@ export default function AppLayout({
 
   return (
     <AdminModeProvider isAdmin={isAdmin} mode={adminMode} setMode={setAdminMode}>
-      <div className="flex h-screen flex-col overflow-hidden bg-white">
+      {/* The shell fills the safe area (body carries the insets as padding): a 100dvh box would end below the screen. */}
+      <div className="flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col overflow-hidden bg-white">
         <NavBar
           onMenuClick={() => setDrawerOpen((prev) => !prev)}
           links={links}

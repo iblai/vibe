@@ -13,7 +13,7 @@
 
   <Properties>
     <DisplayName>My App</DisplayName>
-    <PublisherDisplayName>My App</PublisherDisplayName>
+    <PublisherDisplayName>My Company</PublisherDisplayName>
     <Logo>icons\StoreLogo.png</Logo>
     <Description>My App desktop application</Description>
   </Properties>

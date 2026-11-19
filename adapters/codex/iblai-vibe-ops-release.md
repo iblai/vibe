@@ -19,10 +19,11 @@ make release-all        # both
 
 ## Prerequisites
 
-1. **Tauri shell already added** and the mobile projects initialized —
-   [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
-   (`pnpm exec tauri ios init`, `pnpm exec tauri android init`). This skill
-   assumes `src-tauri/gen/apple` and `src-tauri/gen/android` exist.
+1. **Tauri shell already added** and the mobile projects generated and
+   committed — [`/iblai-vibe-ops-build`](../../ship/iblai-vibe-ops-build/SKILL.md)
+   (`scripts/mobile-init.sh` once per OS; see its
+   [`references/mobile-projects.md`](../../ship/iblai-vibe-ops-build/references/mobile-projects.md)).
+   This skill assumes `src-tauri/gen/apple` and `src-tauri/gen/android` exist.
 2. **Fastlane** installed: `brew install fastlane` (macOS) or
    `gem install fastlane`. Verify with `fastlane --version`.
 3. **Store accounts**: an Apple Developer Program membership ($99/yr) and a

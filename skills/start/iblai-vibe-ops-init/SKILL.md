@@ -416,13 +416,13 @@ must be in the org's allowed redirect origins or sign-in never returns.
 ## Brand
 
 - **Primary** `#0058cc`, **Gradient** `linear-gradient(135deg, #00b0ef, #0058cc)`, button `bg-gradient-to-r from-[#2563EB] to-[#93C5FD] text-white`
-- shadcn/ui base-nova (Base UI: `render` prop, not `asChild`), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
+- shadcn/ui base-nova (Base UI: `render` prop, not `asChild` — the SDK's `SidebarInset asChild` is the one exception), Open Sans (`--font-open-sans` on `<html>`, mapped to `--font-sans`; semibold renders 500, bold 600), Lucide icons; SDK components ship their own styles — do NOT override them
 
 ## Layout Patterns
 
 - Page background `var(--sidebar-bg, #fafbfc)`; member pages wrap SDK components in `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`, `w-full px-4` / `md:w-[75vw] md:px-0`.
 - Admin pages host SDK panels the OS way: full width, `flex-1 min-h-0`, the component's own background.
-- Mobile safe area: `globals.css` `env(safe-area-inset-*)` on body; `viewport-fit=cover` in `app/layout.tsx`.
+- Mobile safe area: `globals.css` `env(safe-area-inset-*)` on body; `viewport-fit=cover` in `app/layout.tsx`; the app shell is `h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))]`, never `h-screen` (a pinned composer would be cut), and a `fixed inset-y-0` overlay pads the insets itself.
 
 ## Commands
 

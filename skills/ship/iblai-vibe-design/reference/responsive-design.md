@@ -59,6 +59,13 @@ body {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ```
 
+**A box sized in `dvh` lives inside that padded body**, so it subtracts the
+insets: the app shell is `h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))]`,
+never `h-screen` — otherwise it ends below the screen and a pinned chat composer
+is what gets cut. A `fixed inset-y-0` overlay ignores the body padding: give it
+`pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]` and reset at the
+breakpoint where it goes static (`md:py-0`).
+
 ## Responsive Images: Get It Right
 
 ### srcset with Width Descriptors

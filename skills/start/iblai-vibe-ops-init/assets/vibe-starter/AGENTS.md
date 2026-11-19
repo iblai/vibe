@@ -154,7 +154,7 @@ must be in the org's allowed redirect origins or sign-in never returns.
 
 - Page background `var(--sidebar-bg, #fafbfc)`; member pages wrap SDK components in `bg-white rounded-lg border border-[var(--border-color)] overflow-hidden`, `w-full px-4` / `md:w-[75vw] md:px-0`.
 - Admin pages host SDK panels the OS way: full width, `flex-1 min-h-0`, the component's own background.
-- Mobile safe area: `globals.css` `env(safe-area-inset-*)` on body; `viewport-fit=cover` in `app/layout.tsx`.
+- Mobile safe area: `globals.css` `env(safe-area-inset-*)` on body; `viewport-fit=cover` in `app/layout.tsx`; the app shell is `h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))]`, never `h-screen` (a pinned composer would be cut), and a `fixed inset-y-0` overlay pads the insets itself.
 
 ## Commands
 

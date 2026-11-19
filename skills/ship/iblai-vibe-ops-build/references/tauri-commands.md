@@ -24,22 +24,25 @@ A global `cargo tauri` works too, if installed.
 ```bash
 pnpm exec tauri dev                    # desktop dev mode
 pnpm exec tauri build                  # build for distribution (NSIS/MSI/DMG/AppImage)
-pnpm exec tauri ios init|dev|build     # iOS (macOS + Xcode)
-pnpm exec tauri android init|dev|build
+bash scripts/mobile-init.sh            # once per OS: the iOS (macOS) or Android (Linux) project, committed
+pnpm exec tauri ios dev|build          # iOS (macOS + Xcode)
+pnpm exec tauri android dev|build
 ```
 
-`dev` runs `beforeDevCommand` (`pnpm dev`) and loads `devUrl`; for the hosted
-app override per run: `-c '{"build":{"devUrl":"https://<app>","beforeDevCommand":""}}'`.
-After `ios init` / `android init`, regenerate platform icons from
-`src-tauri/icons/icon.png`.
+`dev` loads `devUrl` — the live app, like every build; to work on the web app
+inside the shell: `-c '{"build":{"devUrl":"http://localhost:3000","beforeDevCommand":"pnpm dev"}}'`.
+After generating a mobile project, `scripts/mobile-init.sh` regenerates the icons
+from `src-tauri/icons/icon-source-1024.png`.
 
 ## Manual steps
 
 | Task | How |
 |---|---|
 | Add the Tauri shell | Copy [`../assets/tauri/src-tauri/`](../assets/tauri/src-tauri/) into `src-tauri/` (skip if it already exists), set the names the owning skill lists, add the scripts below. Needs a `package.json`. |
-| Icons | Generate every size from one image — ImageMagick for the full set (Tauri + MSIX + multi-res `.ico` + macOS `.icns`), or `pnpm exec tauri icon` for the standard set. See [`../../iblai-vibe-iconography/SKILL.md`](../../iblai-vibe-iconography/SKILL.md). |
-| CI workflows | Copy the GitHub Actions templates from [`../assets/tauri/workflows/`](../assets/tauri/workflows/) into `.github/workflows/` (desktop, iOS, windows-msix). iOS needs `APPLE_API_KEY_*` secrets. |
+| Mobile projects | Copy [`../assets/tauri/scripts/mobile-init.sh`](../assets/tauri/scripts/mobile-init.sh) into `scripts/`; run it on a Mac (iOS) and on Linux (Android), build once, commit `src-tauri/gen/` — [`mobile-projects.md`](mobile-projects.md). |
+| Icons | `pnpm exec tauri icon src-tauri/icons/icon-source-1024.png` — the ibl.ai icon ships with its 1024 source; replace the source with your own logo. See [`../../iblai-vibe-iconography/SKILL.md`](../../iblai-vibe-iconography/SKILL.md). |
+| Shell tests | Copy [`../assets/tauri/scripts/`](../assets/tauri/scripts/) into `scripts/` (`shell-test*.sh`, `shell-test*.ps1`, `shell-test-server.mjs`) and add the `shell:*` scripts below: `pnpm shell:smoke` is headless (what `tauri-check.yml` runs), `pnpm shell:touch*` runs the built shell with a checklist on a throwaway organization, `pnpm shell:clear` forgets its cookies and localStorage. |
+| CI workflows | Copy the GitHub Actions templates from [`../assets/tauri/workflows/`](../assets/tauri/workflows/) into `.github/workflows/` (desktop, iOS, Android, windows-msix, the shell check). iOS needs `APPLE_API_KEY_*` secrets. |
 | List devices | `xcrun simctl list devices` (iOS) / `adb devices` (Android). |
 | App-store screenshots | Write `e2e/screenshots.spec.ts`, a Playwright script that captures the app across device viewports. |
 
@@ -52,14 +55,22 @@ Add to `package.json` (`@tauri-apps/cli` as a devDependency):
   "tauri": "tauri",
   "tauri:dev": "tauri dev",
   "tauri:build": "tauri build",
-  "tauri:build:debug": "next build && tauri build --debug",
+  "tauri:build:debug": "tauri build --debug",
   "tauri:dev:android": "tauri android dev",
   "tauri:build:android": "tauri android build",
   "tauri:dev:ios": "tauri ios dev",
   "tauri:build:ios": "tauri ios build",
   "tauri:build:msix": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1",
   "tauri:build:msix:arm64": "powershell -ExecutionPolicy Bypass -File src-tauri/build-msix.ps1 -Architecture arm64",
-  "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1"
+  "tauri:setup:cert": "powershell -ExecutionPolicy Bypass -File src-tauri/setup-test-cert.ps1",
+  "shell:smoke": "bash scripts/shell-test.sh --smoke",
+  "shell:smoke:windows": "powershell -ExecutionPolicy Bypass -File scripts/shell-test.ps1 -Smoke",
+  "shell:touch": "bash scripts/shell-test.sh",
+  "shell:touch:windows": "powershell -ExecutionPolicy Bypass -File scripts/shell-test.ps1",
+  "shell:touch:ios": "bash scripts/shell-test-ios.sh",
+  "shell:touch:android": "bash scripts/shell-test-android.sh",
+  "shell:clear": "bash scripts/shell-test-clear.sh",
+  "shell:clear:windows": "powershell -ExecutionPolicy Bypass -File scripts/shell-test-clear.ps1"
 },
 "devDependencies": { "@tauri-apps/cli": "^2.12.0" }
 ```

@@ -91,7 +91,9 @@ the code and run it again.
 6. **Phone width.** `emulate` with viewport `412x915x2,mobile,touch`, reload,
    then `evaluate_script` with
    `() => document.documentElement.scrollWidth <= document.documentElement.clientWidth`
-   — it must return `true`. `take_snapshot` to check the controls are still
+   — it must return `true`. The chat composer stays on screen: `() => [...document.querySelectorAll('form textarea')].every((c) => c.getBoundingClientRect().bottom <= innerHeight)`
+   — `true` (in a native shell: `pnpm shell:touch:ios` / `:android`, `/iblai-vibe-ops-build`).
+   `take_snapshot` to check the controls are still
    reachable, then clear the viewport (`emulate` with `""`). `resize_page` stops
    near 850 px, so it is not a phone. No viewport tool? Report "phone: not
    checked".
@@ -103,7 +105,7 @@ the code and run it again.
    Touch test: /<route> (Chrome DevTools MCP)
    Touched: <control> → <what happened>; …
    Console: clean | <errors>. Network: clean | <url → status>
-   Phone 412 px: no sideways scroll | <what overflowed>
+   Phone 412 px: no sideways scroll, composer on screen | <what overflowed>
    Not touched: <control>, <why>
    E2E: <n> passed, <n> skipped, as <admin> + <member>; coverage <pct>% of <n> app lines | not run: <why>
    ```

@@ -15,8 +15,9 @@ const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans" })
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "vibe-starter",
+  title: "My App",
   description: "Built on the ibl.ai platform",
+  applicationName: "My App",
 };
 
 export const viewport: Viewport = {

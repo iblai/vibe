@@ -7,7 +7,7 @@ export default function Home() {
     <ChatWidget
       mentorId={config.defaultAgentId()}
       width="100vw"
-      height="100vh"
+      height="calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))"
     />
   );
 }

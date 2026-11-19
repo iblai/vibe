@@ -203,7 +203,7 @@ subsection follows this pattern:
 
 ```bash
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
-pnpm exec tauri ios init                          # one-time
+bash scripts/mobile-init.sh                       # once per OS; commit src-tauri/gen/
 xcrun simctl list devices                            # list simulators
 pnpm exec tauri ios dev "iPhone 16 Pro Max"       # run on simulator
 pnpm exec tauri ios build                         # produce .ipa

@@ -171,7 +171,8 @@ Then set the test script in `package.json`:
 
 Open `app/layout.tsx` and wrap `{children}` with the generated `IblaiProviders`.
 Add `viewport-fit=cover` to the metadata so mobile builds (iOS/Android) respect
-safe area insets and don't overlap with the status bar.
+safe area insets and don't overlap with the status bar; size the app shell
+`h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))]`, never `h-screen`.
 
 **If you have no existing providers:**
 
