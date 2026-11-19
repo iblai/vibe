@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.25.2] - 2026-11-19
+
+### Documentation
+
+- who may read and revoke an assertion by id
+
 ## [2.25.1] - 2026-11-19
 
 ### Fixed
