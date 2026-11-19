@@ -166,6 +166,7 @@ wiring are in [`references/`](references/).
 ### Step 1: Rust — drop in the modules
 
 ```bash
+mkdir -p src-tauri/permissions
 cp <skill>/assets/tauri/src-tauri/src/*                           src-tauri/src/
 cp <skill>/assets/tauri/src-tauri/permissions/cowork.toml         src-tauri/permissions/
 cp <skill>/assets/tauri/src-tauri/capabilities/macos-permissions.json src-tauri/capabilities/
@@ -187,15 +188,50 @@ and reference the `cowork` set per
 [`references/capabilities.md`](references/capabilities.md). Every command
 and event: [`references/tauri-commands.md`](references/tauri-commands.md).
 
+The shell's own commands (`open_external_url`, `allow_in_app_purchase`,
+`get_locked_tenant`) must stay allowed. Tauri refuses any app command no
+capability allows once `src-tauri/permissions/` holds a file, and the SDK
+falls back quietly. A shell from `/iblai-vibe-ops-build` has
+`permissions/shell.toml` and lists them. If yours doesn't, copy
+[`shell.toml`](../../ship/iblai-vibe-ops-build/assets/tauri/src-tauri/permissions/shell.toml)
+in and add its three `allow-*` entries to `default.json`.
+
 ```bash
 cd src-tauri && cargo check          # must compile before touching the frontend
 ```
 
-### Step 2: Frontend — nothing to add
+### Step 2: Frontend — your app's name in the setup
 
 The SDK `<Chat>` shows the pill on a Tauri desktop that answers
-`check_cua_driver_status`, and the starter's chat page needs no change.
-`config.features.cowork` (default `true`) is the only switch.
+`check_cua_driver_status`, and the starter's chat page needs no other
+change. `config.features.cowork` (default `true`) is the only switch.
+
+The setup's strings name the ibl.ai app (*Switch on ibl.ai in the list*,
+*Restart ibl.ai*). In System Settings macOS lists your app under its own
+name, the `productName` in `tauri.conf.json`. Override those five strings
+through `<Chat>`'s `labels`, keyed as in the SDK's `chat` catalog:
+
+```tsx
+import type { ChatLabels } from "@iblai/iblai-js/web-containers/next";
+
+const APP = "My App"; // productName in src-tauri/tauri.conf.json
+
+// <Chat labels={coworkLabels} … />
+export const coworkLabels: ChatLabels = {
+  chatInputFormInsideButtons: {
+    coworkStepAskedAccessibility: `Switch on ${APP} in the list. macOS may ask for your password or Touch ID.`,
+    coworkStepAskedScreenRecording: `Switch on ${APP} in the list. When macOS offers to quit and reopen ${APP}, choose Quit & Reopen. Setup finishes by itself.`,
+    coworkRelaunchHint: `Switched it on but it isn’t ticked yet? Restart ${APP} to finish.`,
+    coworkRelaunch: `Restart ${APP}`,
+    coworkOpenSettingsManually: `Open System Settings › Privacy & Security › {pane}, then switch on ${APP}.`,
+  },
+};
+```
+
+Keep `{pane}`: the SDK fills it with *Accessibility* or *Screen
+Recording*. Two more strings, `coworkConsentBody` and `coworkTabNote`, name
+ibl.ai as the place what Cowork sees is sent (the platform, not the app).
+Override them the same way if your app words that differently.
 
 **A desktop build without Step 1 shows a disabled pill** (*Cowork isn’t
 supported on this desktop session.*), because the status call fails. In a
@@ -250,16 +286,21 @@ From `@iblai/iblai-js/web-containers`:
   `requestPermission(kind, openSettings)`, `openPrivacySettings`,
   `bringToFront`, `relaunch`. Outside the desktop app every call does
   nothing.
-- `CUA_DRIVER_TAURI_COMMANDS`, `CUA_DRIVER_UNSUPPORTED_REASONS` — the
-  command names your Rust must answer, and the reasons it may report.
-- `CoworkPermissionKind` (`accessibility` | `screen_recording`),
-  `CoworkPermissionOutcome` (`granted` | `not_granted` | `unsupported`).
+- `CUA_DRIVER_TAURI_COMMANDS`, `CUA_DRIVER_TAURI_EVENTS` — the command
+  names the hook invokes and the install events your Rust emits;
+  `MACOS_PERMISSIONS_COMMANDS` — the plugin's grant checks.
+- `requestPermission` takes `"accessibility"` or `"screen_recording"` and
+  resolves `"granted"`, `"not_granted"` or `"unsupported"`;
+  `unsupportedReason` is `"unsupported_os"`, `"kde_unproven"`,
+  `"gnome_helper_missing"`, `"unknown_session"` or `"sandboxed"`. The SDK
+  exports no types or constant for these, so compare the strings.
 - `isCoworkEnabled`, `setCoworkEnabled` — the on/off preference
   (`ibl_cowork_enabled`); `modelSupportsCowork` — the 12 GB local-model
   check.
 
 From `@iblai/iblai-js/web-containers/next`: the types `ChatFeatures`
-(`cowork`), `ChatBrowseBridge`, `ChatSkillRecording`.
+(`cowork`) and `ChatBrowseBridge`. Its `recording` shape has no exported
+name; use `NonNullable<ChatBrowseBridge["recording"]>`.
 
 What the SDK keeps in `localStorage`: `ibl_cowork_enabled`,
 `ibl_cowork_consent`, `ibl_cowork_setup_pending` and

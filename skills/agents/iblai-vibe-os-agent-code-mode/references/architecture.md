@@ -10,11 +10,11 @@ each shipped file is for before you wire it in.
 │  SDK <Chat> (@iblai/iblai-js/web-containers/next)                        │
 │   ├─ slots.composerExtraControls   <CodingModeButton>  (shipped)        │
 │   │     Code pill · Agent (ibl.ai / Codex / Claude Code) · workspace ·   │
-│   │     phone access · first-run Approvals choice                         │
+│   │     phone access · the approval-mode pick (this machine + profile)    │
 │   ├─ slots.composerActionControls  <CodeApprovalsButton> (shipped)      │
 │   ├─ assistant bubble (SDK): reasoning, tool steps, the plan list,       │
 │   │     permission cards (opencode:permission_request → Allow / Deny)    │
-│   └─ transport (SDK useChatV2): streamOpencodeChat()                     │
+│   └─ transport (SDK useChat): streamOpencodeChat()                       │
 │         → invoke("opencode_chat_stream")                                 │
 │  Hooks near the root: useOpencodeLearner, useOpencodeAuthRequired,       │
 │  useOpencodeSkillSync, useCodeShownHere (all shipped)                    │
@@ -66,7 +66,7 @@ false on Windows, in the Mac App Store build, and before macOS 13.5.
 
 ## One turn, desktop
 
-1. The SDK's `useChatV2` sees `ibl_coding_mode_enabled === "true"` and a
+1. The SDK's `useChat` sees `ibl_coding_mode_enabled === "true"` and a
    Code-capable host (`isTauriCodeHost()`), so it calls
    `streamOpencodeChat()` instead of the hosted chat.
 2. That invokes `opencode_chat_stream(session_id, messages, model,

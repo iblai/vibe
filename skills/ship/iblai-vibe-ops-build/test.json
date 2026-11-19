@@ -5,6 +5,7 @@
     "assets/tauri/src-tauri/build-msix.ps1",
     "assets/tauri/src-tauri/capabilities/default.json",
     "assets/tauri/src-tauri/Cargo.toml",
+    "assets/tauri/src-tauri/permissions/shell.toml",
     "assets/tauri/src-tauri/setup-test-cert.ps1",
     "assets/tauri/src-tauri/src/lib.rs",
     "assets/tauri/src-tauri/src/main.rs",

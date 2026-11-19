@@ -8,11 +8,8 @@
   "remote": {
     "urls": [
       "https://*.iblai.app/*",
-      "https://*.iblai.org/*",
-      "https://*.ibl.ai/*",
       "http://127.0.0.1:*/*",
-      "http://localhost:*/*",
-      "mentor://localhost/*"
+      "http://localhost:*/*"
     ]
   },
   "permissions": [

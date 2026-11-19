@@ -4,7 +4,11 @@
 # explicit `[[permission]]` each — reference the `cowork` set from
 # `capabilities/default.json`.
 #
-# Drop this file into `src-tauri/permissions/` next to your app's own set.
+# Drop this file into `src-tauri/permissions/` next to the shell's `shell.toml`
+# (from /iblai-vibe-ops-build). Once that directory holds a file, Tauri
+# refuses every app command no capability allows, the shell's own
+# `open_external_url`, `allow_in_app_purchase` and `get_locked_tenant`
+# included; `shell.toml` and its three `default.json` entries keep them working.
 # Entries are the OS app's (`src-tauri/permissions/default.toml`).
 
 # A named set, not `[default]`: an app's `[default]` is always the set

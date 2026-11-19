@@ -50,5 +50,7 @@ const iap = await invoke<boolean>('allow_in_app_purchase');
 
 When `get_locked_tenant` returns a non-empty key, force the user onto that
 organization (logging out of any other) and hide the organization switcher. The commands
-are registered in `src-tauri/src/lib.rs` (`generate_handler!`); no extra ACL
-entry is needed since they are application commands.
+are registered in `src-tauri/src/lib.rs` (`generate_handler!`), allowed in
+`src-tauri/permissions/shell.toml` and listed in `capabilities/default.json`.
+Keep all three: without the allow entry each `invoke` above throws ("not
+allowed"), and the SDK's own check reads in-app purchase as off.

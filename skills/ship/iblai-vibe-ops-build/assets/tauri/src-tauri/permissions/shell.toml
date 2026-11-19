@@ -1,0 +1,29 @@
+# Permissions for the shell's own commands (src/lib.rs `generate_handler!`).
+#
+# Tauri checks an app command against the capabilities only once the app has
+# a permission file of its own, and from then on it refuses every app command
+# no capability allows ("<command> not allowed"). This file is that permission
+# file, so the check is on from the first build. A command you add to
+# `generate_handler!` needs an `allow-*` entry here (or in a file next to it)
+# and its identifier in `capabilities/default.json`, or the webview's invoke
+# fails.
+#
+# Entries are the OS app's (`src-tauri/permissions/default.toml`).
+
+[[permission]]
+identifier = "allow-open-external-url"
+description = "Enables opening URLs in the system browser for OAuth flows"
+[permission.commands]
+allow = ["open_external_url"]
+
+[[permission]]
+identifier = "allow-allow-in-app-purchase"
+description = "Enables checking whether in-app purchase is allowed for this build"
+[permission.commands]
+allow = ["allow_in_app_purchase"]
+
+[[permission]]
+identifier = "allow-get-locked-tenant"
+description = "Enables reading the tenant this build is locked to"
+[permission.commands]
+allow = ["get_locked_tenant"]

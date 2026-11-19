@@ -30,7 +30,7 @@ the agent's skills.
 and, while Code is on, as a button beside **Send** (a hand for Ask Me, a
 lightning bolt for Automatic):
 
-![The Approvals button beside Send, open: Ask Me (checked) and Automatic, each with its hint](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-12-approvals.png)
+![Code switched on in the composer, and the Approvals button beside Send open: Ask Me (checked) and Automatic, each with its hint](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-os-agent-code-mode/assets/iblai-vibe-os-agent-code-mode-12-approvals.png)
 
 - **Ask Me** — every file change and every command shows up as a card in
   the reply that you allow or deny.
@@ -216,6 +216,7 @@ Cowork on too, it also gets the screen tools.
 ### Step 1: Rust — drop in the modules
 
 ```bash
+mkdir -p src-tauri/permissions
 cp -R <skill>/assets/tauri/src-tauri/src/*            src-tauri/src/
 cp    <skill>/assets/tauri/src-tauri/permissions/code-mode.toml   src-tauri/permissions/
 cp    <skill>/assets/tauri/src-tauri/capabilities/mobile-pairing.json src-tauri/capabilities/
@@ -241,6 +242,15 @@ Cargo entries from [`references/cargo-deps.toml`](references/cargo-deps.toml)
 and reference the `code-mode` set from `capabilities/default.json` per
 [`references/capabilities.md`](references/capabilities.md).
 
+**Keep the shell's own commands allowed.** Once `src-tauri/permissions/`
+holds a file, Tauri refuses every app command no capability allows,
+including the shell's `open_external_url`, `allow_in_app_purchase` and
+`get_locked_tenant`. The build still passes and the SDK falls back
+quietly, so nothing says why. A shell from `/iblai-vibe-ops-build` allows
+them in `permissions/shell.toml`. If yours has no such file, copy
+[`shell.toml`](../../ship/iblai-vibe-ops-build/assets/tauri/src-tauri/permissions/shell.toml)
+in and add its three `allow-*` entries to `default.json`.
+
 **Stubs.** `opencode_acp.rs` reaches into the Cowork driver, the on-device
 model manager and telemetry. Add the five small stub files in the wiring
 reference (§4) for any of those you have not added; cloud Code never calls
@@ -253,7 +263,7 @@ cd src-tauri && cargo check          # must compile before touching the frontend
 
 ### Step 2: Frontend — the transport is already in the SDK
 
-`useChatV2` (in `@iblai/web-utils`, used by the SDK `<Chat>`) routes a turn
+`useChat` (from `@iblai/iblai-js/web-utils`, used by the SDK `<Chat>`) routes a turn
 to `opencode_chat_stream` whenever **both** hold:
 
 - `isTauriCodeHost()` — a Tauri desktop (a phone only when paired, which the
@@ -317,21 +327,21 @@ once near the app root.
 
 | In the asset | In a vibe-starter app |
 |---|---|
-| `@/lib/config` → `config.dmUrl()`, `getEnv('NEXT_PUBLIC_AUTH_URL')` | `@/lib/iblai/config` — same `config.dmUrl()`, `config.authUrl()`, `config.platformBaseDomain()`, `getEnv` |
+| `@/lib/config` → `{ config, getEnv }` | `import config, { getEnv } from '@/lib/iblai/config'` (`config` is the default export there); same `config.dmUrl()`, `config.platformBaseDomain()` |
 | `@/lib/auth-storage` | `getAuthItem` from `@iblai/iblai-js/web-utils` |
-| `@/types/tauri` → `isTauriApp`, `isTauriMobile`, `isTauriPhone` | drop [`/iblai-vibe-local-llm`'s `types/tauri.ts`](../iblai-vibe-local-llm/assets/nextjs/types/tauri.ts) in, or copy the probes (`__TAURI__` on `window`; `platform()` from `@tauri-apps/plugin-os` ∈ ios/android) |
-| `@/hooks/use-mentors/use-mentor-settings` → `llmProvider`, `llmName` | `useGetMentorSettingsQuery` from `@iblai/data-layer` (used only to pre-select the agent's model) |
+| `@/types/tauri` → `isTauriApp`, `isTauriMobile`, `isTauriPhone` | [`/iblai-vibe-local-llm`'s `types/tauri.ts`](../iblai-vibe-local-llm/assets/nextjs/types/tauri.ts) has `isTauriApp` only. Add `isTauriPhone()` (`platform()` from `@tauri-apps/plugin-os` is `ios` or `android`, `false` when it throws) and `isTauriMobile()`, the same as a `Promise` |
+| `@/hooks/use-mentors/use-mentor-settings` → `useMentorSettings().data` with `llmProvider`, `llmName` | a hook over `useGetMentorSettingsQuery({ mentor, org })` from `@iblai/iblai-js/data-layer` returning `{ data: { llmProvider: llm_provider, llmName: llm_name } }` (only pre-selects the agent's model) |
 | `@/hooks/use-tauri-offline` → `isTauriOfflineMode()` | `() => localStorage.getItem('ibl_local_llm_enabled') === 'true'` if you have local models, else `() => false` |
-| `@/lib/utils` → `getUserOS()` | `platform()` from `@tauri-apps/plugin-os` |
-| `@/hooks/use-user`, `@/features/utils` → `useUsername`, `getUserEmail` | `useUsername` from `@iblai/iblai-js/web-utils`; `userData.user_email` from localStorage |
-| `@/components/ui/{popover,switch,tooltip,button}` | `npx shadcn@latest add popover switch tooltip button` |
+| `@/lib/utils` → `getUserOS()` | a `getUserOS()` returning `"macOS"`, `"Windows"`, … (the pill compares those): map `platform()` from `@tauri-apps/plugin-os`, or read `navigator.userAgent` as the OS does |
+| `@/hooks/use-user`, `@/features/utils` → `useUsername`, `getUserEmail` | both from `@iblai/iblai-js/web-utils` |
+| `@/components/ui/{popover,switch,tooltip,button}` | `switch` and `button`: the starter's. `popover` and `tooltip` must be shadcn's **Radix** ones: the pill uses `asChild`, `PopoverAnchor` and `collisionPadding`, which the starter's base-nova (Base UI) primitives lack. `npx shadcn@latest add https://ui.shadcn.com/r/styles/new-york-v4/popover.json https://ui.shadcn.com/r/styles/new-york-v4/tooltip.json`, then point the `cn` import it writes at `@/lib/utils` and `pnpm remove cn` (it installs an unrelated package by that name). Wrap the app in its `TooltipProvider` once (in `app/layout.tsx`), or the pill throws on mount |
 | `next-intl` `useTranslations('…')` | already installed: merge `messages/code-mode.en.json` into every `messages/<locale>.json`, or inline the strings |
 
 Frontend deps:
 
 ```bash
 pnpm add @tauri-apps/api @tauri-apps/plugin-dialog @tauri-apps/plugin-opener
-pnpm add @tauri-apps/plugin-barcode-scanner   # mobile builds only
+pnpm add @tauri-apps/plugin-barcode-scanner   # the pill imports it; it runs on phones only
 ```
 
 An app that ships Code but not Cowork should pass `features: { cowork:
@@ -341,7 +351,7 @@ Cowork pill (see `/iblai-vibe-os-agent-cowork`).
 ### Step 4: Use MCP tools for the SDK side
 
 ```
-get_hook_info("useChatV2")
+get_hook_info("useChat")
 get_component_info("Chat")
 get_component_info("ApprovalsModeButton")
 get_api_query_info("useGetAgentSkillsQuery")
@@ -364,10 +374,10 @@ From `@iblai/iblai-js/web-containers/next`:
 
 From `@iblai/iblai-js/web-utils` (the transport lives here):
 
-- `useChatV2` — routes turns to Code when the flags are set; fills
+- `useChat` — routes turns to Code when the flags are set; fills
   `reasoningContent` / `toolCalls` on the streaming message.
 - `isTauriDesktop()`, `isTauriEmbeddedLLMHost()` — the public platform
-  predicates (`isTauriCodeHost` is internal to `useChatV2`).
+  predicates (`isTauriCodeHost` is internal to web-utils).
 
 From `@iblai/iblai-js/data-layer`:
 

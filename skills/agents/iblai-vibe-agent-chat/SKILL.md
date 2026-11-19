@@ -534,9 +534,10 @@ Also optional: `onScreenShare`, `onVoiceCall`, `eventBus`,
 `defaultSupportPhoneNumber`, `maximumCharacterSizeToCopy`,
 `exploreMentorsPublicFallback`, `showMessageActionsWhenLoggedOut`.
 
-`ChatProps`, `ChatConfig`, `ChatFeatures`, `ChatLabels`, `ChatSlots`,
-`ChatBrowseBridge` and `ChatSkillRecording` are exported as types from
-`@iblai/iblai-js/web-containers/next`.
+`ChatProps`, `ChatConfig`, `ChatFeatures`, `ChatLabels`, `ChatSlots` and
+`ChatBrowseBridge` are exported as types from
+`@iblai/iblai-js/web-containers/next`; the `recording` shape is
+`NonNullable<ChatBrowseBridge["recording"]>`.
 
 ## Known issues & host workarounds
 

@@ -1,9 +1,11 @@
 # Capabilities and permissions
 
-Tauri v2 lets a window invoke only the commands its capability allows, and
-**app commands need an explicit `[[permission]]` each**. The app's page is
-a remote origin (`build.frontendDist` is its deployed URL), and Tauri never
-lets a remote origin reach an app command without one. Three files.
+Tauri v2 checks an app command against the capabilities once the app has
+a permission file of its own, and from then on **refuses every app command
+no capability allows**. Each needs an explicit `[[permission]]`. The
+deployed page counts as local (it sits under `build.frontendDist`), so
+`"local": true` is what lets it in. The check covers the shell's own
+commands too (§2). Three files.
 
 ## 1. `src-tauri/permissions/cowork.toml` (shipped)
 
@@ -32,15 +34,25 @@ the set called `default`, whatever identifier it is given.
 
 ## 2. `src-tauri/capabilities/default.json`
 
-Add the set next to Code mode's:
+Add the set next to Code mode's, and keep the shell's own three:
 
 ```json
 "permissions": [
   "code-mode",
   "cowork",
+  "allow-open-external-url",
+  "allow-allow-in-app-purchase",
+  "allow-get-locked-tenant",
   …
 ]
 ```
+
+Those three are declared in the shell's `permissions/shell.toml`, which a
+shell from `/iblai-vibe-ops-build` already has. An older shell needs
+[`shell.toml`](../../../ship/iblai-vibe-ops-build/assets/tauri/src-tauri/permissions/shell.toml)
+copied in. Without it the SDK's checkout links (`open_external_url`),
+in-app purchase and the organization lock are refused. The build still
+passes.
 
 The `local_llm_openai_stream` channel needs nothing more: Tauri lets every
 page read the channels it opened.
@@ -60,8 +72,8 @@ macos-permissions:allow-request-screen-recording-permission
 ```
 
 The plugin's own `default` set is empty, so each is listed. Its
-`remote.urls` are the OS's; set them to the same list as your
-`default.json`, or the deployed page can't reach the plugin.
+`remote.urls` are the shell template's; if you add an origin to
+`default.json`, add it here too.
 
 ## Events
 

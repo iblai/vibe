@@ -105,6 +105,20 @@ Wire them into `.invoke_handler(tauri::generate_handler![...])`. Add
 the Cargo deps listed in
 [`references/cargo-deps.toml`](references/cargo-deps.toml).
 
+Then allow them. The shell's `src-tauri/permissions/shell.toml` turns on
+Tauri's command check, so a command no capability allows is refused
+(*`<command>` not allowed*). Copy the shipped set and reference it:
+
+```bash
+mkdir -p src-tauri/permissions
+cp <skill>/assets/tauri/src-tauri/permissions/local-llm.toml src-tauri/permissions/
+# capabilities/default.json → "permissions": [..., "local-llm"]
+```
+
+[`local-llm.toml`](assets/tauri/src-tauri/permissions/local-llm.toml) has
+one `allow-*` per command above, as the `local-llm` set. A command you add
+beyond these needs its own entry.
+
 ### 3 — React hook shape
 
 `localLLMProps` is read by the SDK's account/profile **dropdown**

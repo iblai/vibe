@@ -225,7 +225,7 @@ the wiring reference for why.
 
 | Event | Who listens |
 |---|---|
-| `ollama:*`, `opencode:reasoning`, `opencode:tool_call` | the SDK transport (`useChatV2`) |
+| `ollama:*`, `opencode:reasoning`, `opencode:tool_call` | the SDK transport (`useChat`) |
 | `opencode:plan`, `opencode:permission_request`, `opencode:permission_resolved` | the SDK `<Chat>` (its plan list and permission cards) |
 | `opencode:payment-required` (from the proxy, body of the upstream 402) | the SDK (`use-opencode-402`) — the same out-of-credit flow as normal chat |
 | `opencode:auth_required` | `useOpencodeAuthRequired()` (shipped) |
