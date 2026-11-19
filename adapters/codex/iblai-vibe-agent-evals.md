@@ -17,9 +17,11 @@ tab in the agent-settings family indexed by `/iblai-vibe-agent`; it shares the
 **Evaluations** -- a benchmark picker (the first benchmark is selected),
 **Manage Benchmarks**, **New Evaluation**, and a table of this agent's runs
 (Evaluation, Status, Initiated By, Created), as many rows as fit the tab's
-height, with pagination below. Runs work in the background. Status is an icon
-that names itself on hover: **Queued**, **Running**, **Complete** or
-**Failed**.
+height, with pagination below, so it never scrolls (between 768 and 1023px
+wide it shows 10 a page instead). Runs work in the background. Status is an
+icon that names itself on hover: **Queued**, **Running**, **Complete** or
+**Failed**. Between 768 and 1440px the table uses narrower columns so it fits
+without scrolling sideways.
 
 ![Evals tab -- evaluations](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-1-evaluations.png)
 
@@ -31,6 +33,13 @@ evaluation failed". On a phone a tap opens a sheet that prints the reason under
 each action that is off.
 
 ![Evals tab -- row actions](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-2-actions.png)
+
+**On a phone** (below 768px) -- each run is a card, the row actions and the
+benchmark picker open as sheets from the bottom, and a "Page x of y" pager
+replaces the page numbers.
+
+![Evals tab on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-13-phone.png)
+![Row actions on a phone](https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/agents/iblai-vibe-agent-evals/iblai-vibe-agent-evals-14-phone-actions.png)
 
 **No benchmarks yet** -- an organization without benchmarks gets a **New
 Benchmark** button in the empty state. It opens the New Benchmark dialog
@@ -174,6 +183,12 @@ The tab reads `tenantKey`, `mentorId`, and `username` from
 benchmark dialogs. No props are required. The judge's model picker gets
 provider names and logos from the API, so there is no logo map to pass.
 
+The tab measures its wrapper to decide how many rows fit, so give it a set
+height (here `h-full` inside a full-height layout, as in `/iblai-vibe-agent`
+§1). On phones the tab's explanation moves behind an info button in your
+header when the header has an empty `<div data-activity-info-slot />`;
+without one it stays above the tab.
+
 Every eval endpoint is admin-only, so pass `userIsStudent` on the tab from the
 app's own admin check. It defaults to `false`, and the provider does not
 forward a value that changes after the first render, so without the prop
@@ -190,7 +205,8 @@ export function AdminOnlyEvals({ isAdmin }: { isAdmin: boolean }) {
 ### Custom pagination (optional)
 
 When there is more than one page of runs, the tab shows the SDK's
-`AdvancedPagination`. Pass `PaginationComponent` to use your own:
+`AdvancedPagination`. Pass `PaginationComponent` to use your own. Phones
+always get the SDK's "Page x of y" pager:
 
 ```tsx
 import { AgentEvaluationTab } from "@iblai/iblai-js/web-containers/next";
