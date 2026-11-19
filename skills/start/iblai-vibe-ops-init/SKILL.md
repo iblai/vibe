@@ -472,7 +472,7 @@ dependencies or clear `pnpm audit`; with no `pnpm-lock.yaml`, skip it and say so
 lifts the SDK's exact pins past advisories with `overrides:` — read the current ones:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/iblai/vibe/refs/heads/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter/pnpm-workspace.yaml
+curl -fsSL https://raw.githubusercontent.com/iblai/base/refs/heads/main/skills/start/iblai-vibe-ops-init/assets/vibe-starter/pnpm-workspace.yaml
 ```
 
 Copy every `overrides:` and `auditConfig.ignoreGhsas` entry, with its comment,
