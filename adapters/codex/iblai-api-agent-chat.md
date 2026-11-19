@@ -1,6 +1,6 @@
 # iblai-api-agent-chat
 
-> Set up live chat with a deployed ibl.ai agent by wiring the hosted iblai-api-agent-chat MCP server into the project (.mcp.json / claude mcp add) using the .env Api-Token and a chosen agent's unique id. Use to enable runtime conversations with an agent. The actual chatting then happens through the MCP server's tools.
+> Set up live chat with a deployed ibl.ai agent by wiring the hosted iblai-api-agent-chat MCP server into the project (.mcp.json / claude mcp add) using the .env Api-Token and a chosen agent's unique id, or by signing in from claude.ai, ChatGPT or Claude Desktop with only the URL. Use to enable runtime conversations with an agent, and to list or disconnect the apps a user has connected. The actual chatting then happens through the MCP server's tools.
 
 # iblai-api-agent-chat
 
@@ -70,6 +70,62 @@ the agent replies as it does in the chat screen, with its own instructions,
 tools and trained documents. The tool returns the full reply text, ending with
 a `session_id: <id>` line (also in the result's structured content).
 
+## Sign in instead of a key (claude.ai, ChatGPT, Claude Desktop)
+
+App stores and connector dialogs give the user no box for a key. On
+platforms where OAuth sign-in is on (hosted `iblai.app` included), the same
+URL works with **no header at all**: the app discovers the sign-in from the
+server's `401`, registers itself, and opens an ibl.ai page in the browser.
+
+1. Give the app only the URL, `https://asgi.data.iblai.app/mcp/agent-chat/<unique_id>`,
+   and keep its default sign-in (claude.ai: Settings > Connectors > Add
+   custom connector, Authentication left as OAuth; ChatGPT: chatgpt.com/plugins
+   > Add custom MCP server, Authentication OAuth; Claude Desktop: the same
+   connector dialog).
+2. The browser lands on the organization's sign-in (the auth SPA for the
+   agent's organization, so its SSO options show), then on a consent page
+   that names the agent and the app: **Connect** or **Cancel**. The page
+   shows the signed-in email, **Switch account** (signs the SPA out and
+   starts again) and **Contact support** (the organization's support address).
+3. Back in the app, `get_mentor_response` works as with a key. The user must
+   be an active member of the agent's organization; for a `main` agent shared
+   with every organization the connection is on the user's organization, picked
+   on the page when they are on several.
+
+What the token can do: chat with the agent in its URL, and nothing else. It
+is refused by the other MCP servers and by the REST API. The access token
+lasts an hour and the app refreshes it silently for up to 30 days of
+inactivity, so the user signs in again only after a month unused or after
+disconnecting. The turn is attributed to the signed-in user and billed to
+the connection's organization, exactly as a key's would be.
+
+Registration takes public clients only (`token_endpoint_auth_method` `none`,
+PKCE S256, https redirect URIs or http on localhost): claude.ai and ChatGPT
+both register that way. A client that asks for a secret gets
+`invalid_client_metadata`.
+
+## The user's connected apps
+
+Apps a user connected this way are listed and disconnected with the user's
+own session token (`Authorization: Token <dm_token>`, the browser SDK's
+token), never a Platform API Token: each user sees only their own.
+
+```bash
+# List: app, host, agent, organization, connected and last-used dates, expired flag.
+# Standard page envelope (count, next_page, previous_page, results); page_size=,
+# and date_filter= / start_date= / end_date= on the connected date.
+curl -s "https://api.iblai.app/dm/v1/mcp/connected-apps" \
+  -H "Authorization: Token $DM_TOKEN"
+
+# Disconnect one: its tokens stop at once; the app must be connected again.
+curl -s -X DELETE "https://api.iblai.app/dm/v1/mcp/connected-apps/<id>" \
+  -H "Authorization: Token $DM_TOKEN"     # 204, or 404 when it is not theirs
+```
+
+`POST /dm/api/core/session/logout/` ("invalidate all tokens") disconnects
+them all and reports the count as `tokens_deleted.mcp`. Disconnecting the app
+on the claude.ai or ChatGPT side revokes the token too.
+
 ## Notes
 
 - **One agent per connection** - the agent is fixed by the URL of each server
@@ -80,9 +136,9 @@ a `session_id: <id>` line (also in the result's structured content).
   continue the conversation; the agent sees the earlier turns. Omit it to start
   a new conversation. A session belongs to the token's owner and its agent; a
   session id of another user, organization or agent is refused.
-- **Owner-mode tokens only** - the turn is attributed to the token's owner and
-  billed to the token's organization like a turn in the chat screen (credits,
-  spend caps and moderation apply). A refused turn (out of credits, a
+- **Owner-mode tokens only** (when a key is used) - the turn is attributed to
+  the token's owner and billed to the token's organization like a turn in the
+  chat screen (credits, spend caps and moderation apply). A refused turn (out of credits, a
   non-owner-mode token, no access to the agent) comes back as a tool error with
   the reason.
 - **Which agents** - your organization's agents, plus `main` agents shared with

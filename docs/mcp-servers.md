@@ -37,6 +37,10 @@ claude mcp add iblai-agent-chat --transport http https://asgi.data.iblai.app/mcp
   --header "Authorization: Api-Token YOUR_API_TOKEN"
 ```
 
+From claude.ai, ChatGPT or Claude Desktop the URL alone is enough: the
+connector signs the user in on an ibl.ai page (OAuth, public clients only)
+and the token chats with that agent and nothing else; users manage those
+connections at `GET`/`DELETE /dm/v1/mcp/connected-apps`.
 `/iblai-api-agent-chat` writes this configuration for you from `.env`;
 [`mcp/iblai-agent-chat/README.md`](../mcp/iblai-agent-chat/README.md) has the
 Claude Desktop / Cursor JSON and the tool list. Rule: if a skill covers it,
