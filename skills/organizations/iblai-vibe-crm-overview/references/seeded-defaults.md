@@ -6,6 +6,10 @@ by a data migration. You do not need to create any of the records
 below — they are present on every Platform and can be edited,
 renamed, or extended.
 
+The seeds belong to the CRM itself (blank `app`). An app sharing the
+Platform's CRM (`?app=`) sees none of them and creates its own
+pipeline, stages and lead sources.
+
 > **Reference seeds by `code`, not `id`.** The `code` value on
 > stages and lead sources is stable across environments (dev /
 > staging / prod) and survives display-name renames. The numeric `id`

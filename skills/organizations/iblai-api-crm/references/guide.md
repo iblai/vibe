@@ -115,6 +115,10 @@ If you request a resource that belongs to a different org, the API returns `404 
 
 The same rule applies on writes. Attempting to `POST` or `PATCH` a record onto an org that is not yours will fail as if the parent object were missing.
 
+### App Scope
+
+Within an org, several apps can share the CRM and each sees only its own records. A request names its app with `?app=` (blank or absent: the CRM itself), records carry a read-only `app`, and another app's record behaves exactly like another org's: `404`, and linking to it is refused. Names and codes are unique per org and app. The scope keeps records apart; it grants and removes no permission. An app confirms the scope through `GET /api/crm/overview/?app=…`, which echoes `app`, before it writes.
+
 ### Permission Levels
 
 CRM access is governed by four roles. The table below is the high-level summary — the full action-by-action matrix lives in Section 14 (RBAC Reference).
@@ -269,7 +273,7 @@ Two structural rules to internalise from the graph:
 ---
 ## 6. Resource Reference
 
-The CRM exposes eight resources under `/api/crm/`. Each is org-scoped (resolved from the caller's token) except `Stage`, which nests under a parent `Pipeline`. IDs are integers for everything except `Person` and `Organization`, which use UUID strings so they can be minted client-side and survive cross-system imports. This section is the at-a-glance map; Section 7 walks every endpoint, payload, and filter in detail.
+The CRM exposes these resources under `/api/crm/` (the per-user favorites and saved views are in the skill). Each is org-scoped (resolved from the caller's token) except `Stage`, which nests under a parent `Pipeline`. IDs are integers for everything except `Person` and `Organization`, which use UUID strings so they can be minted client-side and survive cross-system imports. This section is the at-a-glance map; Section 7 walks every endpoint, payload, and filter in detail.
 
 | Resource | URL Prefix | ID Type | Scoped To | Description |
 |---|---|---|---|---|
@@ -281,6 +285,7 @@ The CRM exposes eight resources under `/api/crm/`. Each is org-scoped (resolved 
 | Deal | `/api/crm/deals/` | integer | org | A revenue opportunity attached to a person |
 | Activity | `/api/crm/activities/` | integer | org | A logged or scheduled interaction |
 | Tag | `/api/crm/tags/` | integer | org | A coloured label attachable to people, organizations, and deals |
+| Web form | `/api/crm/web-forms/` | `slug` | org | A public lead-capture form; visitors read and submit it with no credential at `/api/crm/orgs/{org}/web-forms/{slug}/` |
 
 ### Read & Write Shape
 
@@ -317,7 +322,7 @@ How each resource responds to `DELETE`, and what happens to records that referen
 | Resource | On DELETE |
 | --- | --- |
 | Person | Hard-delete (`204`). A person still referenced by deals cannot be deleted (see [`schema.md`](schema.md)). |
-| Organization | Hard-delete; the `organization` foreign key on any referencing persons and deals is set to `null` (no cascade-delete of people or deals); attached tag assignments are removed. |
+| Organization | Hard-delete; the `organization` foreign key on any referencing persons and deals is set to `null` (no cascade-delete of people or deals); activities attached only to the organization are deleted, the others keep their deal or person and lose the link; attached tag assignments and favorites are removed. |
 | Pipeline | Cascade-deletes its stages; returns `409 Conflict` if any deal still references it — move or delete those deals first. |
 | Stage | Returns `409 Conflict` if any deal still references it — move those deals to a different stage first. |
 | Lead Source | **Not** blocked by referencing deals: each referencing deal's `source` is cleared (`SET NULL`). Treat as destructive — the historical "where did this deal come from?" attribution is lost. |
@@ -329,7 +334,7 @@ How each resource responds to `DELETE`, and what happens to records that referen
 Several fields store free-form JSON (the API does not enforce a shape). Recommended conventions:
 
 - `Person.emails` — list of `{ "label": "...", "email": "..." }`.
-- `Person.contact_numbers` — list of `{ "label": "...", "number": "..." }`.
+- `Person.contact_numbers` — list of strings (`["+1 555 0100"]`): what the CRM apps display and what web forms write.
 - `Organization.address` — `{ "street", "city", "state", "zip", "country" }`.
 
 See [`schema.md`](schema.md) for the authoritative field list, types, and defaults.

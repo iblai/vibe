@@ -37,8 +37,9 @@ without exposing the broader pipeline.
 
 Action codes follow the bucket convention `Ibl.CRM/<Resource>/<verb>`
 with five canonical verbs: `list`, `read`, `action`, `write`,
-`delete`. `action` covers create (`POST`) and custom verb endpoints
-(`move-stage`, `won`, `lost`, `done`, `link-user`, `merge`).
+`delete`. `action` covers create (`POST`); the custom verb endpoints
+(`move-stage`, `won`, `lost`, `done`, `link-user`, `merge`,
+`stages/reorder`) check `write`.
 
 | Resource bucket | Action codes | Viewer | User | Manager | Inviter |
 |---|---|---|---|---|---|
@@ -55,8 +56,26 @@ with five canonical verbs: `list`, `read`, `action`, `write`,
 | `Ibl.CRM/Tags` | `list`, `read` | ✓ | ✓ | ✓ | — |
 | `Ibl.CRM/Tags` | `action`, `write`, `delete` | — | ✓ | ✓ | — |
 | `Ibl.CRM/Invite` | `action` | — | — | ✓ | ✓ |
+| `Ibl.CRM/Favorites` | `list`, `read`, `action`, `delete` (own stars) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/Views` | `list`, `read`, `action`, `write`, `delete` (own saved views) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `list`, `read` (forms and their submissions) | ✓ | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `action`, `write` (create, update, publish) | — | ✓ | ✓ | — |
+| `Ibl.CRM/WebForms` | `delete` (the form and its submissions log) | — | — | ✓ | — |
 
 Notes:
+- **Favorites and saved views are per user.** The verbs grant access to
+  the caller's own rows only; starring a record also needs its `read`.
+- **Search, overview and board reuse `list`.** `/search/` and
+  `/overview/` show only the buckets / sections the caller may list;
+  `/deals/board/` needs `Ibl.CRM/Deals/list`; `…/{id}/history/` needs
+  the record's `read`.
+- **Web forms.** `write` covers publishing, so a CRM User can put a form
+  live; the public read and submit take no credential.
+- **Members and metadata.** `GET /api/crm/members/` needs any CRM `list`
+  verb (emails need `Ibl.Core/Users/list`); `PATCH …/{id}/metadata/`
+  needs the record's `write`.
+- **The app scope adds no permission.** The same verbs apply in every
+  app (`?app=`); the scope only keeps each app's records apart.
 - **Lead Source endpoints fall under `Ibl.CRM/Pipelines`.** They are
   administrative — only CRM Manager can create / update / delete a
   lead source even though CRM Users will reference them on Deals.
@@ -71,10 +90,13 @@ Notes:
 | `GET` (list endpoint) | `list` |
 | `GET` (detail endpoint) | `read` |
 | `POST` (create) | `action` |
-| `POST` (custom: `move-stage`, `won`, `lost`, `done`, `link-user`, `merge`) | `action` |
+| `POST` (custom: `move-stage`, `won`, `lost`, `done`, `link-user`, `merge`, `stages/reorder`) | `write` |
+| `GET` `…/{id}/history/` | `read` |
 | `POST` attach-tag, `DELETE` detach-tag | `write` (on `Ibl.CRM/Tags`) |
 | `PATCH` / `PUT` | `write` |
+| `PATCH` `…/{id}/metadata/` (merge) | `write` |
 | `DELETE` (resource delete) | `delete` |
+| `GET` / `POST` `/orgs/{org}/web-forms/{slug}/…` (public) | none — no credential |
 
 ## Two permissions worth a second look
 

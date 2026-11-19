@@ -1,13 +1,14 @@
 # iblai-api-crm
 
-> Manage an ibl.ai organization's CRM via the platform API — people, organizations, pipelines and stages, lead sources, deals (with stage-move/won/lost actions), activities, and tags. Org-wide sales/relationship management. Use for lead capture, pipelines, and deal flow.
+> Manage an ibl.ai organization's CRM via the platform API — people, organizations, pipelines and stages, lead sources, deals (with stage-move/won/lost actions), activities, tags, and public web forms. Org-wide sales/relationship management, kept apart per app with ?app=. Use for lead capture, landing-page forms, pipelines, and deal flow.
 
 # iblai-api-crm
 
 Manage an organization's **CRM** from the API: people and organizations,
 pipelines and their stages, lead sources, deals (with stage-move / won / lost
-actions), activities, and tags — all the sales and relationship-management
-records for one organization. Use for lead capture, pipelines, and deal flow.
+actions), activities, tags, and public web forms — all the sales and
+relationship-management records for one organization, kept apart per app.
+Use for lead capture, landing-page forms, pipelines, and deal flow.
 
 ## Auth & conventions
 
@@ -18,7 +19,17 @@ records for one organization. Use for lead capture, pipelines, and deal flow.
   developer docs phrase this as `Authorization: Token <key>` — it is the same
   Platform API Token.)
 - **Scope:** Platform-scoped. Every record belongs to the organization resolved
-  from the token, so there is **no `{org}` in the path**.
+  from the token, so there is **no `{org}` in the path** (the public web form
+  routes are the exception: no token, the org key in the path).
+- **App:** several apps can share one organization's CRM, each with its own
+  records. Name yours with `?app={app}` on **every** call, the public web form
+  routes included (lowercase letters and digits joined by hyphens, ≤ 64; blank
+  or absent is the CRM itself; malformed is `400`). Records carry a read-only
+  `app`, a create stamps yours, and another app's record is a `404`. Before the
+  first write, check that `GET /api/crm/overview/?app={app}` echoes
+  `"app": "{app}"`: a platform older than crm 1.4.0 ignores the parameter and
+  would file your writes among the CRM's own records, and one that can't keep
+  apps apart yet answers `503` with `code: app_scope_unavailable`.
 - **Ids:** integers for every resource **except** Person and Organization, whose
   ids are **UUID** strings.
 - Not connected yet? Run **`/iblai-api-login`** first to populate `IBLAI_ORG`,
@@ -36,6 +47,10 @@ records for one organization. Use for lead capture, pipelines, and deal flow.
 | Deal         | `/api/crm/deals/`                         | int                             |
 | Activity     | `/api/crm/activities/`                    | int                             |
 | Tag          | `/api/crm/tags/`                          | int                             |
+| Favorite     | `/api/crm/favorites/`                     | int (yours only)                |
+| Saved view   | `/api/crm/views/`                         | int (yours only)                |
+| Web form     | `/api/crm/web-forms/`                     | `slug` in the path              |
+| Member       | `/api/crm/members/`                       | int (user id; read-only)        |
 
 Each resource supports standard REST: **GET** (list), **POST** (create),
 **GET** `{id}` (read), **PATCH** `{id}` (update), **DELETE** `{id}` (delete).
@@ -44,9 +59,22 @@ DELETE is destructive — confirm with the user first.
 ### Useful filters
 
 - `owner={user_id}` — "my pipeline" / "my accounts".
-- `owner__isnull=true` — unowned records.
 - `?is_default=true` on pipelines — the seeded pipeline; its response embeds its
   stages inline.
+- `?search={q}` on every list but favorites — case-insensitive substring over
+  the resource's text fields (person name / email / job title / external id,
+  organization name, deal title / description, activity title / comment /
+  location, tag, lead-source, pipeline and stage name / code).
+- `?ordering=field` / `?ordering=-field` on every list (the resource's scalar
+  columns, e.g. `name`, `created_at`, `lead_value`, `expected_close_date`).
+- `?date_filter=today|7d|30d|90d|all_time|custom` on every list — rows created
+  in that window; `custom` takes `start_date` and `end_date` (`YYYY-MM-DD`,
+  inclusive), which also override a preset. No parameter means all time.
+- `?active=true` on persons — hides the persons a link or merge retired.
+- `?primary_email={email}` on persons and `?name__iexact={name}` on
+  organizations and tags — an exact match, ignoring case (`?name=` stays a
+  substring). The way to find a record before creating it.
+- `?organization={uuid}` on activities — an organization's timeline.
 
 ## Pagination
 
@@ -62,15 +90,39 @@ URLs — a detail different from stock DRF pagination.
 
 ## Reads
 
+### Search and overview
+
+- **GET** `/api/crm/search/?q={q}&limit={n}` — one substring query across people
+  (name / email / job title; merged persons excluded), organizations (name) and
+  deals (title), up to `limit` rows per bucket (default 8, max 25). A bucket is
+  present only when you hold that resource's `list` permission; with none of
+  them the call is `403`.
+- **GET** `/api/crm/overview/` — dashboard figures: `persons.count`,
+  `organizations.count`, `deals` (`open_count`, `pipeline_value`,
+  `weighted_value`, this month's `won_*` / `lost_*`, `by_stage` for the default
+  or `?pipeline={id}` pipeline, six months of `won_lost_by_month`) and
+  `activities` (`open_count`, `due_today`, `overdue`). Each section needs that
+  resource's `list` permission and is omitted otherwise. `?date_filter=` (or
+  `start_date` + `end_date`) adds flat `period_*` figures for the window
+  (`period_deals_created`, `period_deals_won`, `period_deals_won_value`, …).
+  It echoes the `app` its figures cover (blank for the CRM itself).
+
 ### Person
 
 - **GET** `/api/crm/persons/` — list people.
 - **GET** `/api/crm/persons/{id}/` — read a person.
+- **GET** `/api/crm/persons/{id}/history/` — the person's field-change history
+  (audit entries, newest first, up to 200): `id`, `action` (`create` /
+  `update`), `timestamp`, `actor_username`, `changes: {field: [old, new]}` as
+  strings (a null reads `"None"`). No actor email or IP — the admin audit-log
+  API keeps those. Bulk writes (a person merge, links a delete clears) leave no
+  entry.
 
 ### Organization
 
 - **GET** `/api/crm/organizations/` — list organizations.
 - **GET** `/api/crm/organizations/{id}/` — read an organization.
+- **GET** `/api/crm/organizations/{id}/history/` — field-change history, as for persons.
 
 ### Pipeline
 
@@ -89,8 +141,17 @@ URLs — a detail different from stock DRF pagination.
 
 ### Deal
 
-- **GET** `/api/crm/deals/` — list deals.
+- **GET** `/api/crm/deals/` — list deals. Every deal carries `is_stale` (open and
+  untouched for longer than its pipeline's `rotten_days`), `person_name` and
+  `organization_name`.
 - **GET** `/api/crm/deals/{id}/` — read a deal.
+- **GET** `/api/crm/deals/{id}/history/` — field-change history, as for persons.
+- **GET** `/api/crm/deals/board/?pipeline={id}&limit={n}` — the kanban: every deal
+  of one pipeline (default: the default pipeline) grouped by stage in
+  `sort_order`, each stage with `count`, `total_value`, `weighted_value`
+  (`lead_value × probability / 100`), its newest `limit` deals (default 100,
+  max 200) and `has_more`. The deal list filters (`owner`, `source`, `tags`,
+  `search`, `status`, …) apply; `ordering` is ignored.
 
 ### Activity
 
@@ -102,6 +163,34 @@ URLs — a detail different from stock DRF pagination.
 - **GET** `/api/crm/tags/` — list tags.
 - **GET** `/api/crm/tags/{id}/` — read a tag.
 
+### Favorite
+
+- **GET** `/api/crm/favorites/` — your starred persons, organizations and deals,
+  newest first. Each row has `target_type` (`person` / `organization` / `deal`)
+  and `label` (the target's display name). `?person=` / `?organization=` /
+  `?deal=` narrow to one target: the way to ask whether a record is starred.
+
+### Saved view
+
+- **GET** `/api/crm/views/?object_type={persons|organizations|deals|activities}` — your saved
+  views for one list.
+- **GET** `/api/crm/views/{id}/` — read a saved view.
+
+### Member
+
+- **GET** `/api/crm/members/?query={q}` — the organization's active members, for
+  owner pickers: `id` (the user id `owner` takes), `username`, `name`, `email`,
+  `is_admin`, paginated. `query` matches username or name. `email` is `null`
+  unless you hold `Ibl.Core/Users/list`; any CRM `list` verb reads the rest.
+
+### Web form
+
+- **GET** `/api/crm/web-forms/` — list web forms (`?search=` over name and slug).
+- **GET** `/api/crm/web-forms/{slug}/` — read a form with its `fields` and `routing`.
+- **GET** `/api/crm/web-forms/{slug}/submissions/` — its submissions, newest
+  first: `answers`, `utm`, `page_url`, the `person` it landed in and the `deal`
+  it opened.
+
 ## Writes
 
 ### Person
@@ -109,6 +198,10 @@ URLs — a detail different from stock DRF pagination.
 - **POST** `/api/crm/persons/` — create a person.
 - **PATCH** `/api/crm/persons/{id}/` — update a person.
 - **DELETE** `/api/crm/persons/{id}/` — delete a person. Confirm with the user first.
+- **PATCH** `/api/crm/persons/{id}/metadata/` — merge into `metadata` (RFC 7386:
+  objects merge key by key, `null` removes a key) under a row lock, so two
+  writers never lose each other's keys; a plain `PATCH` replaces `metadata`
+  whole. Body: the patch object. Returns the person.
 
 **Person actions:**
 
@@ -131,6 +224,7 @@ URLs — a detail different from stock DRF pagination.
 - **POST** `/api/crm/organizations/` — create an organization.
 - **PATCH** `/api/crm/organizations/{id}/` — update an organization.
 - **DELETE** `/api/crm/organizations/{id}/` — delete an organization. Confirm with the user first.
+- **PATCH** `/api/crm/organizations/{id}/metadata/` — merge into `metadata`, as for persons.
 
 ### Pipeline
 
@@ -143,6 +237,10 @@ URLs — a detail different from stock DRF pagination.
 - **POST** `/api/crm/pipelines/{pipeline_id}/stages/` — create a stage.
 - **PATCH** `/api/crm/pipelines/{pipeline_id}/stages/{id}/` — update a stage.
 - **DELETE** `/api/crm/pipelines/{pipeline_id}/stages/{id}/` — delete a stage. Confirm with the user first.
+- **POST** `/api/crm/pipelines/{pipeline_id}/stages/reorder/` — set every stage's
+  `sort_order` in one call: body `{ "order": [stage ids] }` listing each stage of
+  the pipeline exactly once (`400` otherwise). Returns the pipeline with its
+  reordered `stages`.
 
 ### Lead Source
 
@@ -155,6 +253,7 @@ URLs — a detail different from stock DRF pagination.
 - **POST** `/api/crm/deals/` — create a deal.
 - **PATCH** `/api/crm/deals/{id}/` — update a deal.
 - **DELETE** `/api/crm/deals/{id}/` — delete a deal. Confirm with the user first.
+- **PATCH** `/api/crm/deals/{id}/metadata/` — merge into `metadata`, as for persons.
 
 **Deal actions** (the canonical way to transition deals):
 
@@ -170,7 +269,8 @@ URLs — a detail different from stock DRF pagination.
 
 ### Activity
 
-- **POST** `/api/crm/activities/` — create an activity.
+- **POST** `/api/crm/activities/` — create an activity attached to at least one
+  of `person`, `organization`, `deal` (all in your org).
 - **PATCH** `/api/crm/activities/{id}/` — update an activity.
 - **DELETE** `/api/crm/activities/{id}/` — delete an activity. Confirm with the user first.
 - **POST** `/api/crm/activities/{id}/done/` — mark the activity done (stamps `done_at`; see `is_done`/`done_at` in the schema).
@@ -181,6 +281,37 @@ URLs — a detail different from stock DRF pagination.
 - **PATCH** `/api/crm/tags/{id}/` — update a tag.
 - **DELETE** `/api/crm/tags/{id}/` — delete a tag. Cascades — removes every
   assignment on every person / organization / deal. Confirm with the user first.
+
+### Favorite
+
+- **POST** `/api/crm/favorites/` — star a record: body with exactly one of
+  `person` (UUID), `organization` (UUID), `deal` (int). `201` with the favorite;
+  `200` with the existing row if you already starred it. Needs the target's
+  `read` permission as well.
+- **GET** `/api/crm/favorites/{id}/` — read one of your favorites.
+- **DELETE** `/api/crm/favorites/{id}/` — unstar (`204`).
+
+### Saved view
+
+- **POST** `/api/crm/views/` — save a view: `object_type` (`persons` |
+  `organizations` | `deals` | `activities`), `name` (unique per platform, user and list),
+  `type` (`table`, or `kanban` for deals only), `columns`
+  (`[{id, visible}]`), `filters` (`[{field, op, value}]`, all ANDed), `sorts`
+  (`[{field, dir}]`), `group_by` (kanban column field, e.g. `stage`).
+- **PATCH** `/api/crm/views/{id}/` — update any of those fields.
+- **DELETE** `/api/crm/views/{id}/` — delete a saved view.
+
+### Web form
+
+- **POST** `/api/crm/web-forms/` — create a form, a draft unless `is_published`:
+  `slug`, `name`, `fields`, `routing`, `metadata` (the app's page copy),
+  `success_title`, `success_message`. Shapes:
+  [`references/schema.md`](references/schema.md) § WebForm.
+- **PATCH** `/api/crm/web-forms/{slug}/` — update; `{"is_published": true}` puts it
+  live. Publishing needs a field mapped to `person.primary_email` and one to
+  `person.name` or `person.first_name`.
+- **DELETE** `/api/crm/web-forms/{slug}/` — delete the form and its submissions
+  log. Confirm with the user first.
 
 **Attach / detach on a host** (`{host}` = `persons` | `organizations` | `deals`;
 both need `Ibl.CRM/Tags/write`, a **separate** RBAC bucket from host-write — see
@@ -193,6 +324,27 @@ both need `Ibl.CRM/Tags/write`, a **separate** RBAC bucket from host-write — s
 - **DELETE** `/api/crm/{host}/{id}/tags/{tag_id}/` — detach a tag (removes the
   assignment row, not the tag). `204` on success; `404` if it wasn't attached. Not
   idempotent — a repeat DELETE returns `404`; treat that as a no-op success.
+
+## Public web form endpoints (no credential)
+
+A published form's page reads and submits with **no** `Authorization` header.
+`{org}` is the organization key, and `?app=` names the form's app.
+
+- **GET** `/api/crm/orgs/{org}/web-forms/{slug}/?app={app}` — what the page
+  renders: `slug`, `name`, `metadata` (the page copy), `fields` without their
+  targets, `success_title`, `success_message`, `app`. Unknown, draft and
+  inactive forms are one `404`.
+- **POST** `/api/crm/orgs/{org}/web-forms/{slug}/submissions/?app={app}` — body
+  `{"answers": {<field key>: value}, "utm": {"utm_source": …}, "page_url": "…",
+  "website": ""}`; `201 {"created": true, "submission_id": UUID}`.
+  - Reuses the person with that email (ignoring case), filling only what they
+    lack, or creates one; opens a deal when `routing.create_deal`; tags the
+    person and the deal; logs a note with every answer. All in one transaction.
+  - Identical answers within ten minutes return the first submission with
+    `created: false`.
+  - `website` is a honeypot: filled, it gets the same success and stores nothing.
+  - Invalid answers are `400 {"issues": {<field key>: [...]}}`. JSON only (`415`),
+    ≤ 64 KB (`413`), throttled per client IP (`429`, default 20 a minute).
 
 ## Example
 
@@ -219,6 +371,24 @@ curl -X POST \
 - A CRM Person auto-links to a Platform user when a signup matches by email.
 - Stages are nested under a pipeline; deal transitions go through the deal
   actions (`move-stage/`, `won/`, `lost/`) rather than ad-hoc edits.
+- Deleting a person, pipeline or stage that a deal still references returns
+  `409` with `{ "detail", "protected_by": { "deals": n } }` — move or delete the
+  deals first.
+- Favorites and saved views are personal: every call sees and changes the
+  calling user's rows only.
+- Each app keeps its own records. Names and codes are unique per organization
+  **and app** (organization name, person `unique_id`, lead-source and pipeline
+  codes, the default pipeline, tag name, saved-view name, web-form slug), and
+  linking another app's record (a deal's person, a tag, a stage) is refused.
+  The seeded pipeline and lead sources belong to the CRM itself: an app creates
+  its own. RBAC is unchanged: the scope keeps records apart, it doesn't
+  restrict who may act.
+- CRM notifications (person created, stage changed, person linked to a user)
+  fire for the CRM's own records only, never for an app's.
+- A `token_policies` Platform API key acts with the policies attached to it
+  (give it the organization's `CRM User` policy); an `owner`-mode key acts as
+  its owner. Either way a write defaults `owner` to the key's owner, and
+  favorites and saved views refuse keys.
 - Every read is scoped to your org (the token's `platform`), so a record in
   another org returns `404`, not `403` — existence is never leaked. Treat `404`
   as "not found **or** not visible to you".
