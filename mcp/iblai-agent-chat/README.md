@@ -22,7 +22,9 @@ The agent is named in the URL, and the server authenticates with one header. You
 
 | Header | Description | Required |
 |--------|-------------|----------|
-| `Authorization` | `Api-Token <key>` | Yes |
+| `Authorization` | `Api-Token <key>`, or `Bearer <token>` from OAuth sign-in | Yes |
+
+Where OAuth sign-in is on, a client may send no header at all: the `401` carries `WWW-Authenticate: Bearer resource_metadata="..."`, the client registers itself (public clients only, PKCE S256) and the user signs in and connects on an ibl.ai page. claude.ai, ChatGPT and Claude Desktop connectors do this with only the URL. The token works for the agent in the URL only.
 
 No agent header is needed. The older `X-Mentor-Unique-Id` (or `X-Agent-Unique-Id`) header with `https://asgi.data.iblai.app/mcp/agent-chat/` still works for existing configs; a URL id and a header naming different agents are refused. The URL works with or without a trailing slash.
 
@@ -49,6 +51,10 @@ Add this to your configuration file:
   }
 }
 ```
+
+### Connect from claude.ai or ChatGPT (sign in, no key)
+
+Add a custom connector (claude.ai: Settings > Connectors; ChatGPT: chatgpt.com/plugins > Add custom MCP server) with the URL `https://asgi.data.iblai.app/mcp/agent-chat/YOUR_AGENT_UNIQUE_ID` and the default OAuth sign-in. The browser opens the organization's sign-in, then a consent page naming the agent and the app; **Connect** finishes. Users list and disconnect these connections with `GET` and `DELETE https://api.iblai.app/dm/v1/mcp/connected-apps` under their own session token.
 
 ### Connect from Claude Code
 
@@ -90,7 +96,7 @@ A session belongs to the token's owner and the agent it was started with; a sess
 
 ## How It Works
 
-1. **Authentication**: The server validates the `Api-Token` against ibl.ai's authentication system
+1. **Authentication**: The server validates the `Api-Token` against ibl.ai's authentication system, or the `Bearer` token it issued at sign-in (bound to the agent in the URL and to the user's organization)
 2. **Agent Resolution**: The agent ID in the URL path (`/mcp/agent-chat/<UNIQUE_AGENT_ID>`) identifies which agent to route the conversation to. It can be one of your organization's agents, or a `main` agent shared with every organization (visibility "viewable by anyone")
 3. **Chat turn**: The prompt runs as a chat turn on the same path as the chat screen, with the agent's system prompt, tools, trained documents and memory. The turn is attributed to the token's owner and billed to the token's organization; credits, spend caps and moderation apply
 4. **Response**: The agent's full reply is returned as the tool result, with the session id to continue the conversation
@@ -164,7 +170,8 @@ To find an agent's unique ID:
 | Tool error "Could not authenticate the agent named by the URL or X-Agent-Unique-Id" | Missing or unknown agent ID, or an agent your organization cannot reach | Verify the agent ID in the URL; another organization's agent is reachable only if it is a `main` agent shared with every organization |
 | Tool error "Only owner-mode API tokens are supported for chat" | The token runs in a non-owner mode | Use an owner-mode Platform API Key |
 | Tool error with the chat's message (for example, out of credits) | The chat refused the turn | Act on the message (top up credits, raise the spend cap, check access) |
-| 401 Unauthorized | Missing or invalid `Api-Token` | Use a valid Platform API Key |
+| 401 Unauthorized | Missing or invalid `Api-Token`, or an expired or disconnected sign-in token | Use a valid Platform API Key, or let the client re-run the sign-in it is pointed to by `WWW-Authenticate` |
+| `invalid_client_metadata` at registration | The client asked for a client secret | Register as a public client (`token_endpoint_auth_method: none`); claude.ai and ChatGPT do |
 | 500 Server Error | Internal processing error | Contact support |
 
 ## Best Practices
