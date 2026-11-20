@@ -1,0 +1,94 @@
+# Permissions for the local-model commands this skill asks you to implement
+# (the Ollama path in SKILL.md, step 2). The /iblai-vibe-ops-build shell
+# ships `permissions/shell.toml`, so Tauri refuses any app command no
+# capability allows: reference the `local-llm` set from
+# `capabilities/default.json`. A command you add beyond these needs its own
+# `allow-*` entry the same way.
+#
+# Drop this file into `src-tauri/permissions/` next to `shell.toml`.
+# Entries are the OS app's (`src-tauri/permissions/default.toml`).
+
+# A named set, not `[default]`: an app's `[default]` is always the set
+# called "default", whatever identifier it is given.
+[[set]]
+identifier = "local-llm"
+description = "The commands behind the SDK's local models (Ollama path)"
+permissions = [
+    "allow-install-ollama",
+    "allow-stop-ollama",
+    "allow-check-ollama-status",
+    "allow-check-disk-space-for-model",
+    "allow-get-system-memory",
+    "allow-download-model",
+    "allow-cancel-model-download",
+    "allow-check-network-status",
+    "allow-get-os-type",
+    "allow-ollama-chat",
+    "allow-ollama-chat-stream",
+]
+
+[[permission]]
+identifier = "allow-install-ollama"
+description = "Enables installing Ollama"
+[permission.commands]
+allow = ["install_ollama"]
+
+[[permission]]
+identifier = "allow-stop-ollama"
+description = "Enables stopping the Ollama model manager server"
+[permission.commands]
+allow = ["stop_ollama"]
+
+[[permission]]
+identifier = "allow-check-ollama-status"
+description = "Enables checking Ollama status"
+[permission.commands]
+allow = ["check_ollama_status"]
+
+[[permission]]
+identifier = "allow-check-disk-space-for-model"
+description = "Enables checking disk space for model downloads"
+[permission.commands]
+allow = ["check_disk_space_for_model"]
+
+[[permission]]
+identifier = "allow-get-system-memory"
+description = "Allow getting system memory"
+[permission.commands]
+allow = ["get_system_memory"]
+
+[[permission]]
+identifier = "allow-download-model"
+description = "Enables downloading any Ollama model (generic model download)"
+[permission.commands]
+allow = ["download_model"]
+
+[[permission]]
+identifier = "allow-cancel-model-download"
+description = "Enables canceling model downloads"
+[permission.commands]
+allow = ["cancel_model_download"]
+
+[[permission]]
+identifier = "allow-check-network-status"
+description = "Enables checking network status"
+[permission.commands]
+allow = ["check_network_status"]
+
+[[permission]]
+identifier = "allow-get-os-type"
+description = "Enables getting the OS type"
+[permission.commands]
+allow = ["get_os_type"]
+
+[[permission]]
+identifier = "allow-ollama-chat"
+description = "Enables Ollama chat"
+[permission.commands]
+allow = ["ollama_chat"]
+
+[[permission]]
+identifier = "allow-ollama-chat-stream"
+description = "Enables Ollama streaming chat"
+[permission.commands]
+allow = ["ollama_chat_stream"]

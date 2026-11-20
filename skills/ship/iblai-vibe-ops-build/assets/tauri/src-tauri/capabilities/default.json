@@ -12,6 +12,9 @@
     ]
   },
   "permissions": [
+    "allow-open-external-url",
+    "allow-allow-in-app-purchase",
+    "allow-get-locked-tenant",
     "core:default",
     "core:event:default",
     "core:event:allow-listen",

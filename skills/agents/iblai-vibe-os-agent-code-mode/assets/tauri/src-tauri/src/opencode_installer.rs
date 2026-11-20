@@ -17,7 +17,7 @@ use crate::opencode_acp::{iblai_data_dir, opencode_bin, opencode_program};
 
 /// Pinned opencode version → GitHub release tag `v<VERSION>`. Bump ONLY after
 /// testing ACP + config against it. Override at runtime with `IBL_OPENCODE_VERSION`.
-const OPENCODE_VERSION: &str = "1.18.13";
+const OPENCODE_VERSION: &str = "1.19.0";
 
 /// The opencode version this run wants: the runtime override, or the pin.
 fn pinned_version() -> String {
@@ -54,9 +54,10 @@ const CONFIG_TEMPLATE: &str = r#"{
 /// iblai/vibe — the public dev-toolkit skills repo, synced for Coding Mode.
 /// Every look resolves the LATEST GitHub Release and syncs to it — releases
 /// are what ship (the repo's release workflow cuts one on every landing),
-/// never the moving branch head, and no version is ever pinned here. There is
-/// deliberately NO freshness window: the app resolves latest at every launch
-/// (and on Code enable) and downloads only when the tag moved.
+/// never the moving branch head, and no version is ever pinned here — the one
+/// exception is the dev override `IBL_VIBE_SKILLS_TAG` (`vibe_tag_override`).
+/// There is deliberately NO freshness window: the app resolves latest at every
+/// launch (and on Code enable) and downloads only when the tag moved.
 ///
 /// github.com, not api.github.com: this URL's redirect names the tag, the
 /// probe shares the tarball's host (one reachability question), and the
@@ -151,7 +152,10 @@ fn target_asset() -> Result<(&'static str, &'static str, &'static str), String> 
 }
 
 /// Extract a `.tar.gz` (tar) or `.zip` (unzip on macOS, bsdtar elsewhere).
-fn extract(archive: &Path, dir: &Path) -> Result<(), String> {
+///
+/// `pub(crate)`: the code-agent installer unpacks its Node tarball through this
+/// same extractor.
+pub(crate) fn extract(archive: &Path, dir: &Path) -> Result<(), String> {
     let a = archive.to_string_lossy().to_string();
     let d = dir.to_string_lossy().to_string();
     let mut cmd = if a.ends_with(".tar.gz") {
@@ -355,6 +359,23 @@ async fn fetch_latest_vibe_tag() -> Option<String> {
     resolve_latest_tag(VIBE_LATEST_RELEASE_URL).await
 }
 
+/// A release tag to sync instead of latest — `IBL_VIBE_SKILLS_TAG` in the
+/// shell or, for dev builds, `src-tauri/.env.local`: the way to touch-test a
+/// vibe pre-release, which `releases/latest` never points at. The marker
+/// stores whatever tag was synced, so dropping the variable re-syncs to the
+/// real latest on the next look. A wrong tag fails the download loudly (bad
+/// status) and keeps the cached copy.
+fn vibe_tag_override() -> Option<String> {
+    vibe_tag_from(std::env::var("IBL_VIBE_SKILLS_TAG").ok().as_deref())
+}
+
+/// One path segment, trimmed; anything else is "no override" — a branch ref
+/// would build a tarball URL that does not exist.
+fn vibe_tag_from(value: Option<&str>) -> Option<String> {
+    let tag = value?.trim();
+    (!tag.is_empty() && !tag.contains('/')).then(|| tag.to_string())
+}
+
 /// Download the vibe tarball at `url` and swap its `skills/` over `dest`. The
 /// old copy survives any failure (extract to temp, rename with a backup).
 async fn download_vibe_skills(app: &AppHandle, dest: &Path, url: &str) -> Result<(), String> {
@@ -436,7 +457,16 @@ pub async fn ensure_vibe_skills(app: AppHandle) -> Result<serde_json::Value, Str
     let marker = vibe_sha_marker();
     let cached = dir_is_populated(&dir);
 
-    let latest = fetch_latest_vibe_tag().await;
+    let latest = match vibe_tag_override() {
+        Some(tag) => {
+            log(
+                &app,
+                &format!("vibe skills pinned to {tag} by IBL_VIBE_SKILLS_TAG"),
+            );
+            Some(tag)
+        }
+        None => fetch_latest_vibe_tag().await,
+    };
     if cached {
         match &latest {
             Some(latest_tag) => {
@@ -488,15 +518,23 @@ pub async fn ensure_vibe_skills(app: AppHandle) -> Result<serde_json::Value, Str
 /// Write the ibl.ai opencode config into `config_home` if missing. Public so the ACP
 /// spawn path can materialise a session's own copy — the config ships embedded in the app
 /// (CONFIG_TEMPLATE), not as a loose file on the user's disk.
+///
+/// Through the link-safe config-home calls: the sandboxed agent can write this
+/// folder, so a link it left at `opencode/` or `opencode.json` must be
+/// replaced, never written through.
 pub fn ensure_opencode_config_at(config_home: &Path) -> Result<(), String> {
-    let path = config_home.join("opencode").join("opencode.json");
-    if path.exists() {
+    use crate::opencode_acp::{make_real_dirs, read_config_file, write_config_file};
+    make_real_dirs(config_home, Path::new("opencode"))
+        .map_err(|e| format!("config dir failed: {e}"))?;
+    let rel = Path::new("opencode").join("opencode.json");
+    if read_config_file(config_home, &rel)
+        .map_err(|e| format!("config read failed: {e}"))?
+        .is_some()
+    {
         return Ok(());
     }
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| format!("config dir failed: {e}"))?;
-    }
-    std::fs::write(&path, CONFIG_TEMPLATE).map_err(|e| format!("config write failed: {e}"))
+    write_config_file(config_home, &rel, CONFIG_TEMPLATE.as_bytes())
+        .map_err(|e| format!("config write failed: {e}"))
 }
 
 /// The canonical copy, kept only so `check_opencode_status` can answer "is Code set up at
@@ -597,6 +635,9 @@ pub async fn ensure_opencode_current(app: AppHandle) {
             &app,
             &format!("opencode upgrade failed (keeping the current copy): {e}"),
         );
+        // A pin bump reaches every desktop through this path on its next
+        // launch, so a broken pin fails here silently and everywhere at once.
+        crate::telemetry::report("[opencode] managed upgrade failed", e);
     }
 }
 
@@ -824,8 +865,37 @@ mod tests {
         assert!(dir_is_populated(&dir), "populated");
     }
 
+    /// A dev build can pin the sync to one release tag — the way a vibe
+    /// pre-release, which `releases/latest` never names, gets touch-tested.
+    /// Pure on the value, so no process-global env in a parallel test run.
+    #[test]
+    fn a_release_tag_can_be_pinned_for_a_touch_test() {
+        assert_eq!(
+            vibe_tag_from(Some("v2.11.0-rc.1")).as_deref(),
+            Some("v2.11.0-rc.1")
+        );
+        assert_eq!(
+            vibe_tag_from(Some(" v2.11.0-rc.1 ")).as_deref(),
+            Some("v2.11.0-rc.1"),
+            "whitespace from a dotenv line is trimmed"
+        );
+        assert_eq!(
+            vibe_tag_from(Some("")),
+            None,
+            "unset-by-emptiness is no override"
+        );
+        assert_eq!(vibe_tag_from(Some("   ")), None);
+        assert_eq!(vibe_tag_from(None), None);
+        assert_eq!(
+            vibe_tag_from(Some("refs/heads/main")),
+            None,
+            "a branch is not a tag: the tarball URL would not exist"
+        );
+    }
+
     /// Skills track whatever release is latest — the tag is read out of the
-    /// `releases/latest` redirect every time, never configured.
+    /// `releases/latest` redirect every time, never configured, unless
+    /// `IBL_VIBE_SKILLS_TAG` names one for a touch test.
     #[test]
     fn the_release_tag_is_read_from_the_redirect_never_configured() {
         assert_eq!(
@@ -968,7 +1038,7 @@ mod tests {
 
         /// A proven-working OpenAI-compatible SSE completion (one "ok" chunk, a
         /// stop chunk, then [DONE]) — what @ai-sdk/openai-compatible inside
-        /// opencode v1.18.13 accepts. Close-delimited body (no content-length),
+        /// opencode v1.19.0 accepts. Close-delimited body (no content-length),
         /// so the stub shuts the socket after writing.
         const STUB_SSE: &str = "HTTP/1.1 200 OK\r\ncontent-type: text/event-stream\r\nconnection: close\r\n\r\n\
 data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"ok\"},\"finish_reason\":null}]}\n\n\
@@ -1078,7 +1148,7 @@ data: [DONE]\n\n";
 
         /// One real `opencode run` turn under a fully scratch HOME/XDG world.
         ///
-        /// `env_clear` plus upstream's own hermetic-harness recipe (v1.18.13),
+        /// `env_clear` plus upstream's own hermetic-harness recipe (v1.19.0),
         /// so the child can never read or write the developer's real
         /// config/state and never phones home (no update check, no models.dev
         /// fetch, no auth file). PATH passes through — opencode needs its

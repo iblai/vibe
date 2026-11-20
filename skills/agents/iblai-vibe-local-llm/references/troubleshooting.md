@@ -27,6 +27,18 @@ Your Rust commands aren't registered. Verify:
 Rebuild after editing — Tauri's command registry is baked at compile
 time.
 
+## `<command> not allowed` / `Command <command> not allowed by ACL`
+
+The command is registered but no capability allows it. Once
+`src-tauri/permissions/` holds any file (the shell's `shell.toml`, Code
+mode's or Cowork's set), Tauri checks every app command. Copy
+`assets/tauri/src-tauri/permissions/local-llm.toml` into
+`src-tauri/permissions/`, add `"local-llm"` to the `permissions` in
+`capabilities/default.json`, and give any extra command its own
+`[[permission]]` there. A dev build's error names the permission that
+would allow it (or says none is declared: *Command not found*); a release
+build only says *not allowed by ACL*.
+
 ## A command never runs — no `println!` / no error, just silence
 
 A command that's correctly registered can still *never fire*. Two

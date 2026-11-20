@@ -1,0 +1,7 @@
+{
+  "_comment": "The Rust modules are copied verbatim from the OS app and need the Code mode modules beside them, so there is no starter overlay to typecheck; the render gate validates the JSON assets parse and the rest read cleanly.",
+  "render_only": [
+    "assets/tauri/src-tauri/capabilities/macos-permissions.json",
+    "assets/tauri/src-tauri/permissions/cowork.toml"
+  ]
+}

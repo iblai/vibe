@@ -71,9 +71,31 @@ An app with no server routes may ship a static export instead: `output:
 vibe-starter keeps its server routes, so it uses the URL.
 
 The shell registers `tauri-plugin-os`, so the SDK knows it runs in a desktop
-or mobile app; Code mode and on-device models still need
-[`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md)
+or mobile app; Code mode, Cowork and on-device models still need
+[`/iblai-vibe-os-agent-code-mode`](../../agents/iblai-vibe-os-agent-code-mode/SKILL.md),
+[`/iblai-vibe-os-agent-cowork`](../../agents/iblai-vibe-os-agent-cowork/SKILL.md)
 and [`/iblai-vibe-local-llm`](../../agents/iblai-vibe-local-llm/SKILL.md).
+Until the desktop build has Cowork's Rust, the SDK chat shows its
+**Cowork** pill disabled (*Cowork isn’t supported on this desktop
+session.*); pass `features: { cowork: false }` in the chat's `config` to
+hide it.
+
+## Commands the webview may call
+
+The shell's own commands (`open_external_url`, `allow_in_app_purchase`,
+`get_locked_tenant`) are allowed in `src-tauri/permissions/shell.toml` and
+listed in `capabilities/default.json`. Because the app has a permission file,
+Tauri refuses any app command no capability allows: a dev build rejects the
+`invoke` with *`<command>` not allowed*, a release build with *Command
+`<command>` not allowed by ACL*. The SDK falls back quietly: in-app
+purchase reads as off, and a checkout link meant for the system browser
+opens in the window instead, where the navigation guard may block it. So
+a command you add to `generate_handler!` needs an `allow-*`
+`[[permission]]` and its identifier in `default.json`. The Code, Cowork and
+local-model skills ship their own sets (`code-mode`, `cowork`, `local-llm`)
+to copy in next to `shell.toml`. A shell copied before `shell.toml`
+existed needs the file and the three `default.json` entries before any of
+those sets is added.
 
 ## Mobile Safe Area
 

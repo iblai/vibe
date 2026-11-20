@@ -57,7 +57,7 @@ Two sibling surfaces overlap with this one — check before mounting:
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - MCP server + skills configured (`@iblai/mcp` in `.mcp.json`)
-- `@iblai/iblai-js@^2.80.0`: the User Limits tab is not in releases
+- `@iblai/iblai-js@^2.83.0`: the User Limits tab is not in releases
   before 2.62.3; the plan picker and Change Plan not before 2.73.0
 - The store carries the `subscription`, `topBanner` and `appleRestriction`
   slices and the app mounts `SubscriptionConfigProvider`

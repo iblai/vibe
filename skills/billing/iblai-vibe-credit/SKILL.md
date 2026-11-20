@@ -67,7 +67,7 @@ The widget MUST follow the canonical integration:
 
 - Auth must be set up first (`/iblai-vibe-auth`)
 - Navbar must be in place (`/iblai-vibe-navbar`)
-- `@iblai/iblai-js@^2.80.0` — the plan picker, Change Plan and the one-trip
+- `@iblai/iblai-js@^2.83.0` — the plan picker, Change Plan and the one-trip
   Add Credits flow are not in releases before 2.73.0
 - The store carries the `subscription`, `topBanner` and `appleRestriction`
   slices and the app mounts `SubscriptionConfigProvider`
