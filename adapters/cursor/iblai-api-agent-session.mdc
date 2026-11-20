@@ -1,5 +1,5 @@
 ---
-description: "Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context), and list/read sessions and per-task history exports. The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server."
+description: "Talk to a deployed ibl.ai agent directly over REST/SSE (or WebSocket) and manage its chat sessions — POST a prompt to the agent chat endpoint, attach arbitrary metadata (surfaced later as client_context), list/read sessions and per-task history exports, and give the agent client tools that run on the user's machine (client_tools, the client_tool_call frame, chat-tool-results). The direct-transport counterpart to iblai-api-agent-chat's MCP wiring; use when you want raw streamed chat + session records rather than an MCP server."
 globs:
 alwaysApply: false
 ---
@@ -62,6 +62,15 @@ and it never appears in the prompt or saved history. It only shrinks the retriev
 candidate set; top-k similarity ranking still runs afterward, so an eligible document is
 not guaranteed to be retrieved if higher-scoring eligible documents fill the top-k.
 
+**`client_tools` → tools the client runs.** A turn may also carry `client_tools`:
+OpenAI-style function definitions for tools that run on the user's machine (`read_page`,
+`click`). When the agent calls one, the stream carries a `client_tool_call` frame; the
+client runs the tool and posts the output to `chat-tool-results/`, and the agent continues
+on the same turn. The agent must have `enable_client_tools` on, the definitions are sent
+on every turn that may use them (nothing is stored on the session), and an unanswered call
+fails after at most 300 seconds. Frame shapes, limits and status codes:
+[`references/client-tools.md`](references/client-tools.md).
+
 ## Reads
 
 - **GET** `…/dm/api/ai-mentor/orgs/{org}/users/{user}/sessions/` — list the user's
@@ -89,7 +98,10 @@ not guaranteed to be retrieved if higher-scoring eligible documents fill the top
     "flow": { "name": "<agent unique_id>", "tenant": "<org key>" },
     "page_content": "optional text appended to the prompt, stripped before saving",
     "metadata": { "any": "soft client context keys" },
-    "document_filter": { "stateCode": "CA" }
+    "document_filter": { "stateCode": "CA" },
+    "client_tools": [
+      { "type": "function", "function": { "name": "read_page", "description": "…", "parameters": { "type": "object", "properties": {} } } }
+    ]
   }
   ```
   `session_id` (a UUID4) and `flow` are **required**; `flow.name` selects the agent (its
@@ -98,8 +110,22 @@ not guaranteed to be retrieved if higher-scoring eligible documents fill the top
   soft passthrough — stored on the session as `client_context` (see Concepts) and echoed in
   the reads above. `document_filter` is the hard retrieval scope — an inclusive per-key
   allow-list over documents' ingested `custom_metadata`, applied only to this turn and never
-  persisted (see Concepts and Schema). The **same payload** works over WebSocket at
-  `wss://asgi.data.iblai.app/ws/chat/`.
+  persisted (see Concepts and Schema). `client_tools` is optional and defaults to null;
+  the turn is refused with a `400` error frame when the agent's `enable_client_tools` is
+  off. The **same payload** works over WebSocket at `wss://asgi.data.iblai.app/ws/chat/`.
+- **POST** `…/dm/api/ai-mentor/orgs/{org}/users/{user}/chat-tool-results/` — return the
+  output of a client tool the agent called. Body:
+  ```json
+  {
+    "generation_id": "from the client_tool_call frame",
+    "tool_call_id": "the frame's id",
+    "output": "text, at most 256 KB",
+    "is_error": false
+  }
+  ```
+  `200 {"detail": "Accepted"}`; `404` when no call of yours is waiting under that id
+  (timed out, finished, or not yours); `409` when it was already answered. Post with the
+  credential that started the turn.
 - **POST** `…/dm/api/ai-mentor/orgs/{org}/users/{user}/sessions/` — create/retrieve a
   session (`ChatSessionView`; the body's `mentor` field picks the agent). Or let the
   first chat turn create one by passing a new `session_id`.
@@ -176,6 +202,10 @@ tagging documents at ingestion (the `custom_metadata` field on `documents/train/
 
 ## Reference material
 
+- [`references/client-tools.md`](references/client-tools.md) — tools the client runs:
+  the `client_tools` definition and its limits, the `client_tool_call` frame, the
+  `chat-tool-results/` endpoint and its status codes, timeouts and stop, and every reason
+  a turn that sends `client_tools` is refused.
 - [`references/metadata-passthrough.md`](references/metadata-passthrough.md) — the
   `metadata` pass-through companion: the `<CONTEXT METADATA>` prompt-injection format,
   per-transport wire notes (SSE/WebSocket + the embedded-iframe `postMessage` channel),

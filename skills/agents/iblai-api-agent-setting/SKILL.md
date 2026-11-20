@@ -62,6 +62,7 @@ when configuring an agent's basic identity and capabilities.
     "enable_prompt_caching": "boolean",
     "disable_chathistory": "boolean",
     "forkable": "boolean",
+    "enable_client_tools": "boolean",
     "show_explore_mentors": "boolean"
   }
   ```
@@ -82,6 +83,9 @@ when configuring an agent's basic identity and capabilities.
   embed-widget counterparts of `show_attachment` / `show_voice_record` /
   `show_voice_call` (`embed_show_*`) save through the same PUT — see
   `/iblai-api-agent-embed`.
+  `enable_client_tools` lets a chat client send its own tools with a turn and
+  run them on the user's machine; off by default — see
+  `/iblai-api-agent-session` (`references/client-tools.md`).
   The three `virtual_machine_*` keys configure the agent's Linux VM sandbox;
   the networks and environment variables they reference are managed per
   organization — see `/iblai-vibe-agent-sandbox` ("Virtual machine networks &
