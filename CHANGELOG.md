@@ -3,6 +3,12 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.26.1] - 2026-11-20
+
+### Documentation
+
+- agent-chat OAuth sign-in and connected apps
+
 ## [2.26.0] - 2026-11-20
 
 ### Added
