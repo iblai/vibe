@@ -3,6 +3,23 @@
 All notable changes to the [vibe](https://github.com/iblai/vibe) toolkit.
 
 
+## [2.26.0] - 2026-11-20
+
+### Added
+
+- Cowork skill, Code approvals and the refreshed Code mode files; starter to @iblai/iblai-js 2.83.0
+
+### Fixed
+
+- keep the Tauri shell's own commands allowed, and review fixes for Cowork and Code
+
+### Documentation
+
+- Code screenshots with the Code pill on
+- Cowork and Code screenshots show the chat alone
+- Cowork and Code screenshots in the agent app's layout
+- Cowork and Code screenshots show the whole app
+
 ## [2.25.3] - 2026-11-19
 
 ### Documentation
