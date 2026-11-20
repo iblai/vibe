@@ -1,6 +1,6 @@
 ---
 name: iblai-vibe-ops-upgrade
-description: Upgrade the @iblai/iblai-js SDK and refresh every ibl.ai skill (both families — iblai-vibe-* and iblai-api-*) to the latest release, then summarize what changed. Use when asked to "upgrade iblai", "get the latest SDK", "update ibl.ai", "refresh the skills", when the installed skills are older than two weeks, or when a skill misbehaves in a way a newer release may fix.
+description: Upgrade the @iblai/iblai-js SDK, update the other dependencies until `pnpm audit` passes, and refresh every ibl.ai skill (both families — iblai-vibe-* and iblai-api-*) to the latest release, then summarize what changed. Use when asked to "upgrade iblai", "get the latest SDK", "update ibl.ai", "refresh the skills", when the installed skills are older than two weeks, or when a skill misbehaves in a way a newer release may fix.
 globs:
 alwaysApply: false
 metadata:
@@ -10,10 +10,11 @@ metadata:
 # /iblai-vibe-ops-upgrade
 
 Upgrade the ibl.ai toolchain in the current project to the latest versions.
-Two things:
+Three things:
 
 1. The `@iblai/iblai-js` SDK in the project's `package.json`
-2. Every ibl.ai skill — both families, `iblai-vibe-*` and `iblai-api-*`, come
+2. Every other dependency, until `pnpm audit` passes
+3. Every ibl.ai skill — both families, `iblai-vibe-*` and `iblai-api-*`, come
    from this one repo (re-runs `npx skills add iblai/vibe --all`)
 
 Installed skills are a **copy**: they never update themselves. This repo
@@ -43,7 +44,8 @@ echo "installed: $(date -r "$LOCAL" 2>/dev/null || date -d @"$LOCAL")  · latest
 ```
 
 If the release is newer than the installed copy, or the copy is older than
-14 days, continue; otherwise tell the user they are current and stop.
+14 days, continue; otherwise tell the user the skills are current and go
+to Step 3 — the dependencies have their own check.
 
 ## Step 1: Detect current SDK
 
@@ -124,7 +126,15 @@ to see what changed.
 
 ---
 
-## Step 3: Refresh skills
+## Step 3: Update the dependencies
+
+Run **Step 5: Update the dependencies** of `/iblai-vibe-ops-init`: the
+starter's security overrides, a full `pnpm update`, and `pnpm audit` until it
+passes.
+
+---
+
+## Step 4: Refresh skills
 
 Re-run the installer to pull the latest skills — both families, the Cursor /
 Codex adapters, and any new skills added since. Pass `--all` so it runs
@@ -136,7 +146,7 @@ npx skills add iblai/vibe --all
 
 ---
 
-## Step 4: Show What's New
+## Step 5: Show What's New
 
 Fetch the last few entries from the vibe CHANGELOG and summarize as
 3-7 bullets grouped by theme. Focus on user-facing changes, skip
@@ -152,6 +162,7 @@ Format the report:
 ibl.ai upgrade complete!
 
 SDK:    {OLD_SDK} → {NEW_SDK}
+Audit:  passes | <what is still listed>
 Skills: refreshed from iblai/vibe@<latest tag> (iblai-vibe-* + iblai-api-*)
 
 What's new:

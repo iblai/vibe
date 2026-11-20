@@ -59,8 +59,8 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-component`](../skills/start/iblai-vibe-component/SKILL.md) | 📖 guide | Add an iblai component or feature to your app |
 | [`/iblai-vibe-connect`](../skills/start/iblai-vibe-connect/SKILL.md) | 📖 guide | Connect an ibl.ai organization in one browser round trip |
 | [`/iblai-vibe-navbar`](../skills/start/iblai-vibe-navbar/SKILL.md) | 🖥️ ui | Add a responsive navbar with logo, page links, notification bell, and profile dropdown |
-| [`/iblai-vibe-ops-init`](../skills/start/iblai-vibe-ops-init/SKILL.md) | 🛠️ ops | Start a new ibl.ai project by default, scaffold from the bundled vibe-starter template, and write the project CLAUDE.md with ibl.ai platf… |
-| [`/iblai-vibe-ops-upgrade`](../skills/start/iblai-vibe-ops-upgrade/SKILL.md) | 🛠️ ops | Upgrade the @iblai/iblai-js SDK and refresh every ibl.ai skill (both families |
+| [`/iblai-vibe-ops-init`](../skills/start/iblai-vibe-ops-init/SKILL.md) | 🛠️ ops | Start a new ibl.ai project by default, scaffold from the bundled vibe-starter template, write the project CLAUDE.md with ibl.ai platform … |
+| [`/iblai-vibe-ops-upgrade`](../skills/start/iblai-vibe-ops-upgrade/SKILL.md) | 🛠️ ops | Upgrade the @iblai/iblai-js SDK, update the other dependencies until `pnpm audit` passes, and refresh every ibl.ai skill (both families |
 | [`/iblai-vibe-scaffold`](../skills/start/iblai-vibe-scaffold/SKILL.md) | 📖 guide | Scaffold a new ibl.ai app or add ibl.ai features to an existing Next.js project |
 | [`/iblai-vibe-start`](../skills/start/iblai-vibe-start/SKILL.md) | 📖 guide | The first conversation for anything on ibl.ai |
 
