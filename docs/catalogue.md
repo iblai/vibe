@@ -10,7 +10,7 @@ six data families almost every app reads or writes (the section right below).
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](#start) | Get an app running: the first conversation, credentials, sign-in, the starter, the REST bridge, keeping skills current. | 11 |
-| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 62 |
+| [`agents/`](#agents) | Chat with agents, browse and create them, and configure every setting tab — with a screen (`iblai-vibe-*`) or headless (`iblai-api-*`). | 63 |
 | [`users/`](#users) | Profiles, custom per-user data, memories, roles and admins, invitations, notifications, onboarding. | 19 |
 | [`organizations/`](#organizations) | Org settings and custom metadata, branding, integrations and tokens, CRM. | 10 |
 | [`billing/`](#billing) | How you are charged, credits, spend caps, and which rail to charge your users on. | 6 |
@@ -101,6 +101,7 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-agent-access`](../skills/agents/iblai-vibe-agent-access/SKILL.md) | 🖥️ ui | Add the agent Access tab (role-based access control for editor and chat roles) to your Next.js app |
 | [`/iblai-vibe-agent-analytics`](../skills/agents/iblai-vibe-agent-analytics/SKILL.md) | 🖥️ ui | Add the agent Analytics tab (AgentAnalyticsTab, a hub of report cards for one agent that hands off to your full analytics pages) to your … |
 | [`/iblai-vibe-agent-api`](../skills/agents/iblai-vibe-agent-api/SKILL.md) | 🖥️ ui | Add the agent API tab (list, add, edit and delete the API keys apps use to call the agent; the secret is shown once) to your Next.js app |
+| [`/iblai-vibe-agent-assistant`](../skills/agents/iblai-vibe-agent-assistant/SKILL.md) | 🖥️ ui | Add the Assistant to your vibe Next.js app, an agent one click away on every page |
 | [`/iblai-vibe-agent-audit`](../skills/agents/iblai-vibe-agent-audit/SKILL.md) | 🖥️ ui | Add the agent Audit tab (audit log of who changed what and when, with user/date/action filters) to your Next.js app |
 | [`/iblai-vibe-agent-billing`](../skills/agents/iblai-vibe-agent-billing/SKILL.md) | 🖥️ ui | Add the agent Billing tab (LLM spend limits for the agent and per user, with usage bars, block or alert-only enforcement, and near-limit … |
 | [`/iblai-vibe-agent-chat`](../skills/agents/iblai-vibe-agent-chat/SKILL.md) | 🖥️ ui | Add the in-process Chat SDK component (full agent surface |
@@ -279,4 +280,4 @@ word ("memory", "settings", "metadata") exists at four scopes.
 | [`/iblai-vibe-security-prompt-injection`](../skills/security/iblai-vibe-security-prompt-injection/SKILL.md) | 🛡️ security | Audit applications for AI prompt injection, agent security, and LLM permission boundary vulnerabilities |
 | [`/iblai-vibe-security-recon`](../skills/security/iblai-vibe-security-recon/SKILL.md) | 🛡️ security | Perform structured reconnaissance and attack surface enumeration for authorized penetration tests, CTF challenges, and bug bounty programs |
 
-Total: 163 skills.
+Total: 164 skills.

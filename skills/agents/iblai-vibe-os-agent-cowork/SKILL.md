@@ -152,7 +152,7 @@ wiring are in [`references/`](references/).
    Cowork's; the Code pill itself is optional.
 3. **Sign-in** via [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md):
    Cowork on the organization's models needs the session token and the org.
-4. **`@iblai/iblai-js@^2.83.0`** (resolves `@iblai/web-containers` 1.79.0).
+4. **`@iblai/iblai-js@^2.85.1`** (resolves `@iblai/web-containers` 1.81.1).
    The guided macOS setup and Code with Cowork are not in releases before
    2.81.0, and the side panel's Record a skill row not before 2.83.0.
 5. **Platform**: a macOS, Windows, or Linux (X11 or Sway) desktop. KDE

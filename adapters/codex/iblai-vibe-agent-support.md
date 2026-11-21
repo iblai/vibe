@@ -57,7 +57,7 @@ Tapping a ticket opens it full screen, with Back.
 - Auth set up (`/iblai-vibe-auth`, or vibe-starter).
 - `AgentSettingsProvider` wraps the route (`/iblai-vibe-agent` §1). The tab
   throws without it: it has no identity props.
-- `@iblai/iblai-js@^2.83.0` (resolves `@iblai/web-containers` 1.79.0). Check with
+- `@iblai/iblai-js@^2.85.1` (resolves `@iblai/web-containers` 1.81.1). Check with
   `pnpm why @iblai/web-containers`.
 - A real agent UUID. Ask the user; never invent one.
 - The organization's tool catalogue needs the **human support** tool, or the

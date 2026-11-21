@@ -1,5 +1,9 @@
 {
   "_comment": "Per-skill skips for scripts/test-skills-render.mjs fence extraction. '<skill>': 'all' skips every fence; {'targets': ['store/index.ts']} skips fences by declared destination path; {'fences': [0,2]} skips by fence index (brittle — prefer targets; indexes count ts/tsx fences top-to-bottom). Fences with no import/export line, or with elided '...' import lists, are auto-skipped as docs shapes. Keep entries justified — every skip is untested prose code.",
+  "iblai-vibe-agent-assistant": {
+    "targets": ["app/(app)/layout.tsx", "components/navbar/nav-bar.tsx"],
+    "reason": "partial edits to vibe-starter's layout and navbar (the imports plus the lines to add around existing code), not compilable modules; the provider itself is an overlay asset, and the full edit was built in vibe-starter"
+  },
   "iblai-vibe-agent-chat": {
     "targets": ["store/index.ts"],
     "reason": "partial store-wiring fragment (imports + bare reducer map to merge into an existing store), not a compilable module"

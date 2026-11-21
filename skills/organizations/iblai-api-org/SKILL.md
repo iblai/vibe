@@ -42,7 +42,11 @@ Chat Area Width, and the feature toggles. Use when configuring org-wide behavior
     }
   }
   ```
-  - **Default Agent** → `overall_default_mentor` (agent `unique_id` or `"none"`)
+  - **Default Agent** → `overall_default_mentor`: the agent as an object,
+    `{ "name", "unique_id", "id" }` (what the Advanced tab saves), or `null`
+    for none. The SDK also reads older JSON text of that object, but skips a
+    bare `unique_id` string: its Assistant (`/iblai-vibe-agent-assistant`)
+    and its Default Agent landing (`MentorProvider`) would ignore it.
   - **Help Center URL** → `help_center_url` (string)
   - **Chat Area Width** → `chat_area_size` (string)
   - **Help Menu** / **Accessibility Menu** / **Persistent Chat Input Label** /

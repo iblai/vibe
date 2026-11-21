@@ -21,6 +21,7 @@ macOS, Windows, iOS, and Android — in about twenty minutes.
 | "I want to build…", "start", "where do I start", "add ibl.ai to my project", or describes an app without saying who signs in | `/iblai-vibe-start` — four questions (new/existing · single-org/multi-org/headless · members/public · users/memories/agents/organizations), recorded in `iblai.env` as `PROJECT`, `ARCHITECTURE`, `ACCESS`, `DOMAIN_FOCUS`; every later skill reads them |
 | "new app", "start a project", "scaffold" | `/iblai-vibe-ops-init` — copies vibe-starter, asks only for the org key and a Platform API Token (refuses `main`), verifies both, writes the env files |
 | "chat", "talk to the agent", "assistant" | The starter's `/` already chats; it needs an agent — `/setup` (pick or create) or `/iblai-vibe-agent-create`; customize with `/iblai-vibe-agent-chat` |
+| "an assistant on every page", "Default Agent in the header", "agent beside the page", "side panel chat", "master agent" | `/iblai-vibe-agent-assistant` — the SDK's Assistant (`MasterAgentProvider`, `MasterAgent`, `MasterAgentPanel`): a header button opening the Default Agent in a resizable panel beside the page |
 | "create an agent", "another agent" | `/iblai-vibe-agent-create` ★ → `/iblai-vibe-agent-setting` ★; every tab via `/iblai-vibe-agent` |
 | "users", "admins", "roles", "invite", "who can" | `/iblai-vibe-admin` (User/Admin mode, `/admin/users`), `/iblai-vibe-invite`, `/iblai-vibe-rbac` |
 | "store something per user", "preferences", "onboarding progress", "custom user fields" | `/iblai-vibe-user-metadata` ★ — never localStorage, never your own DB |
@@ -278,6 +279,7 @@ feature template (`templates/skill-template-feature.md`), and ≤ 400 lines.
 |-------|-------------|
 | `/iblai-vibe-agent-chat` | The in-process chat surface (message stream, canvas, voice, prompts) |
 | `/iblai-vibe-agent-chat-sidebar` | Wrap the chat with the SDK sidebar (projects, pinned/recent) |
+| `/iblai-vibe-agent-assistant` | The Assistant: a header button that docks the organization's Default Agent beside every page (resizable, full screen, phone overlay) |
 | `/iblai-vibe-project` | Projects surface (files, instructions, assigned agents) |
 | `/iblai-vibe-agent-search` | Agent browser (starred, featured, custom, all) |
 | `/iblai-vibe-agent-create` ★ | Create an agent from the app (the SDK's Create Agent form, showing only the fields each person may set; server route + setup screen) |
