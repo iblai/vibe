@@ -202,7 +202,7 @@ Cowork on too, it also gets the screen tools.
    — `src-tauri/` with the template `lib.rs`, plus the Rust toolchain.
 2. **Sign-in** via [`/iblai-vibe-auth`](../../start/iblai-vibe-auth/SKILL.md)
    — Code reads the org key and session token from the SDK's auth storage.
-3. **`@iblai/iblai-js@^2.83.0`** (resolves `@iblai/web-containers` 1.79.0):
+3. **`@iblai/iblai-js@^2.85.1`** (resolves `@iblai/web-containers` 1.81.1):
    the SDK `<Chat>` renders the permission cards, the thinking and the tool
    activity itself, and takes the Code pill and the Approvals button
    through its `slots`.

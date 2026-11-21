@@ -1,0 +1,5 @@
+{
+  "overlay": {
+    "assets/assistant-provider.tsx": "components/assistant/assistant-provider.tsx"
+  }
+}

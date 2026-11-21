@@ -478,4 +478,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 ## Step 10 — CSS variables, behavior, more links, SDK reference
 
+The Assistant's header button (`MasterAgent`) goes before the bell; it and
+its docked panel are added by `/iblai-vibe-agent-assistant`.
+
 The navbar's CSS variables (`--navbar-bg`, `--navbar-text`, `--navbar-active-*`, …), the desktop/mobile behavior table, how to add links, and the SDK component reference are in [`references/css-variables-and-reference.md`](references/css-variables-and-reference.md).

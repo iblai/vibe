@@ -8,7 +8,7 @@
 Ship AI-powered apps fast — and run the platform behind them. Backend included.
 
 [![Release](https://img.shields.io/github/v/release/iblai/vibe?label=skills%20release)](https://github.com/iblai/vibe/releases/latest)
-[![Skills](https://img.shields.io/badge/skills-162_%C2%B7_ui_61_%C2%B7_api_67-CC785C)](docs/skill-kinds.md)
+[![Skills](https://img.shields.io/badge/skills-164_%C2%B7_ui_63_%C2%B7_api_67-CC785C)](docs/skill-kinds.md)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
@@ -180,7 +180,7 @@ script, a CI job, or your own backend. [How they differ →](docs/skill-kinds.md
 | Folder | What it covers | Skills |
 |---|---|---|
 | [`start/`](skills/start) | The first conversation, connecting your organization, sign-in, the starter | 11 |
-| [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 62 |
+| [`agents/`](skills/agents) | Chat, browse, create, and configure agents — every settings tab | 63 |
 | [`users/`](skills/users) | Profiles, custom user data, memories, roles and admins, invitations, the official apps' first-run journeys | 19 |
 | [`organizations/`](skills/organizations) | Organization settings and metadata, branding, integrations | 10 |
 | [`billing/`](skills/billing) | How you are charged, credits, spend caps, what happens when they run out, choosing a pricing rail | 6 |

@@ -38,6 +38,10 @@ auth session. This text describes the redesigned chat that ships from
 > actions, shared auth/store with the rest of your app, themeable with
 > your Tailwind config.
 
+> **An agent beside every page instead?** `/iblai-vibe-agent-assistant`
+> docks the organization's Default Agent next to any page, from a button
+> in the header.
+
 Do NOT add custom styles, colors, or CSS overrides to the SDK `Chat`
 component. It ships with its own styling. Keep the component as-is.
 Do NOT implement dark mode unless the user explicitly asks for it.
@@ -68,8 +72,8 @@ Do NOT implement dark mode unless the user explicitly asks for it.
 
   | package | min version |
   |---|---|
-  | `@iblai/iblai-js` | `^2.83.0` |
-  | `@iblai/agent-ai` | `^2.15.0` |
+  | `@iblai/iblai-js` | `^2.85.1` |
+  | `@iblai/agent-ai` | `^2.15.1` |
 
   (v2 bundles `web-containers`, `web-utils`, and `data-layer` as
   `@iblai/iblai-js/*` subpaths — do not install the separate v1 packages.)

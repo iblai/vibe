@@ -49,8 +49,8 @@ integration cost lives over there. Run `/iblai-vibe-agent-chat` first.
     `iblai.env`, default `iblai.app`).
 - **SDK versions.** The `projectId` prop on `<Chat>` and the
   `ProjectLandingPage` slot are in `@iblai/web-containers` 1.74.0's typings
-  and later; vibe-starter's `@iblai/iblai-js@^2.83.0` resolves 1.79.0, and it
-  pins `@iblai/agent-ai@^2.15.0` for the embed.
+  and later; vibe-starter's `@iblai/iblai-js@^2.85.1` resolves 1.81.1, and it
+  pins `@iblai/agent-ai@^2.15.1` for the embed.
 
 - **Pre-flight prop check (do this before writing the route):**
 
@@ -90,7 +90,7 @@ If `/iblai-vibe-agent-chat` was set up against an older SDK release, bump
 the packages so `projectId` is recognized:
 
 ```bash
-pnpm add @iblai/iblai-js@^2.83.0 @iblai/agent-ai@^2.15.0
+pnpm add @iblai/iblai-js@^2.85.1 @iblai/agent-ai@^2.15.1
 ```
 
 (v2 bundles `web-containers`, `web-utils`, and `data-layer` as

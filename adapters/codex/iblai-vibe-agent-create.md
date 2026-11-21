@@ -28,7 +28,7 @@ UUID every other agent skill needs. Two ways to put creation in an app:
 ## Prerequisites
 
 - Auth in place (`/iblai-vibe-auth`).
-- `@iblai/iblai-js@^2.83.0`. The field permissions below are not in releases
+- `@iblai/iblai-js@^2.85.1`. The field permissions below are not in releases
   before 2.65.0, which show every field to everyone.
 - The person creating must be allowed to: an org admin, or a member holding
   `MENTOR_CREATORS` (`/iblai-vibe-rbac`; the org toggle
